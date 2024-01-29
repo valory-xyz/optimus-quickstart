@@ -978,17 +978,17 @@ test = ["pytest (>=6)"]
 
 [[package]]
 name = "flask"
-version = "2.1.3"
+version = "2.0.2"
 description = "A simple framework for building complex web applications."
 optional = false
-python-versions = ">=3.7"
+python-versions = ">=3.6"
 files = [
-    {file = "Flask-2.1.3-py3-none-any.whl", hash = "sha256:9013281a7402ad527f8fd56375164f3aa021ecfaff89bfe3825346c24f87e04c"},
-    {file = "Flask-2.1.3.tar.gz", hash = "sha256:15972e5017df0575c3d6c090ba168b6db90259e620ac8d7ea813a396bad5b6cb"},
+    {file = "Flask-2.0.2-py3-none-any.whl", hash = "sha256:cb90f62f1d8e4dc4621f52106613488b5ba826b2e1e10a33eac92f723093ab6a"},
+    {file = "Flask-2.0.2.tar.gz", hash = "sha256:7b2fb8e934ddd50731893bdcdb00fc8c0315916f9fcd50d22c7cc1a95ab634e2"},
 ]
 
 [package.dependencies]
-click = ">=8.0"
+click = ">=7.1.2"
 itsdangerous = ">=2.0"
 Jinja2 = ">=3.0"
 Werkzeug = ">=2.0"
@@ -1581,13 +1581,13 @@ web3 = ">=6.0.0,<7"
 
 [[package]]
 name = "open-autonomy"
-version = "0.14.1"
+version = "0.14.2"
 description = "A framework for the creation of autonomous agent services."
 optional = false
 python-versions = ">=3.8"
 files = [
-    {file = "open-autonomy-0.14.1.tar.gz", hash = "sha256:9f39a9951fc886c68ce2722b4182fa46179605d92353fe2fab87f1e0554e270a"},
-    {file = "open_autonomy-0.14.1-py3-none-any.whl", hash = "sha256:b58ee5ce12901bb3c693b7848e083840ddf4f625301c81ee0ef9e9630750e30d"},
+    {file = "open-autonomy-0.14.2.tar.gz", hash = "sha256:2e983b9e5b735d579247d257790c262fc33e2041e215aeaa4d92f0656f2234bb"},
+    {file = "open_autonomy-0.14.2-py3-none-any.whl", hash = "sha256:388a8033b6154af4bc11f5449694e451e7637f3a09a9ebc9733047bc4dcf8d10"},
 ]
 
 [package.dependencies]
@@ -1603,15 +1603,15 @@ open-aea = {version = "1.46.0", extras = ["all"]}
 open-aea-cli-ipfs = "1.46.0"
 protobuf = ">=4.21.6,<4.25.0"
 pytest = "7.2.1"
-python-dotenv = ">=0.14.1,<0.18.0"
+python-dotenv = ">=0.14.2,<0.18.0"
 texttable = "1.6.7"
 valory-docker-compose = "1.29.3"
 watchdog = ">=2.1.6"
 werkzeug = "2.0.3"
 
 [package.extras]
-all = ["click (==8.0.2)", "coverage (>=6.4.4,<8.0.0)", "open-aea-cli-ipfs (==1.46.0)", "pytest (>=7.0.0,<7.3.0)", "python-dotenv (>=0.14.1,<0.18.0)", "texttable (==1.6.7)"]
-cli = ["click (==8.0.2)", "coverage (>=6.4.4,<8.0.0)", "open-aea-cli-ipfs (==1.46.0)", "pytest (>=7.0.0,<7.3.0)", "python-dotenv (>=0.14.1,<0.18.0)", "texttable (==1.6.7)"]
+all = ["click (==8.0.2)", "coverage (>=6.4.4,<8.0.0)", "open-aea-cli-ipfs (==1.46.0)", "pytest (>=7.0.0,<7.3.0)", "python-dotenv (>=0.14.2,<0.18.0)", "texttable (==1.6.7)"]
+cli = ["click (==8.0.2)", "coverage (>=6.4.4,<8.0.0)", "open-aea-cli-ipfs (==1.46.0)", "pytest (>=7.0.0,<7.3.0)", "python-dotenv (>=0.14.2,<0.18.0)", "texttable (==1.6.7)"]
 
 [[package]]
 name = "packaging"
@@ -1657,6 +1657,16 @@ files = [
 
 [package.dependencies]
 regex = ">=2022.3.15"
+
+[[package]]
+name = "petname"
+version = "2.6"
+description = "Generate human-readable, random object names"
+optional = false
+python-versions = "*"
+files = [
+    {file = "petname-2.6.tar.gz", hash = "sha256:981c31ef772356a373640d1bb7c67c102e0159eda14578c67a1c99d5b34c9e4c"},
+]
 
 [[package]]
 name = "pluggy"
@@ -2565,4 +2575,4 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.10"
-content-hash = "761da5d9f4f39cb1ed551375242ad7917a697e9ca4dd23e14c4997430cbb8f33"
+content-hash = "56f7bf2a01816c1f4de3a6c8390186ff0e4a8269d0d8289f7825e0493c61ab76"

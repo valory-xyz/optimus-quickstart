@@ -1,0 +1,7 @@
+services:
+  valory/trader:0.1.0:bafybeifhq2udyttnuidkc7nmtjcfzivbbnfcayixzps7fa5x3cg353bvfe:
+    required_envs:
+      - RPC_0
+    required_funds:
+      - 0
+    number_of_keys: 1
