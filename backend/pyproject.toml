@@ -1,0 +1,16 @@
+[tool.poetry]
+name = "backend"
+version = "0.1.0"
+description = ""
+authors = ["David Vilela <dvilelaf@gmail.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.10"
+open-autonomy = "^0.14.1"
+open-aea-ledger-ethereum = "^1.46.0"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
