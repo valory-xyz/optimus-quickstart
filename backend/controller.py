@@ -10,7 +10,10 @@ import os
 import yaml
 import petname
 import json
+import logging
+from scripts.utils import add_volume_to_service
 
+logging.basicConfig(level=logging.DEBUG)
 
 # install docker compose, tendermint
 
@@ -23,14 +26,15 @@ class Controller:
             self.config = [doc for doc in yaml.safe_load_all(config_file)][0]
 
         # Set dirs
-        self.app_dir = Path().absolute()
+        self.app_dir = Path().absolute()  # TODO: Viraj: might be better to use relative paths for docker volumes
         self.data_dir = Path(self.app_dir, "data")
         self.services_dir = Path(self.data_dir, "services")
         self.keys_dir = Path(self.data_dir, "keys")
         self.builds_dir = Path(self.data_dir, "builds")
+        self.volumes_dir = Path(self.data_dir, "volumes")
 
         # Create dirs
-        for d in [self.data_dir, self.services_dir, self.keys_dir, self.builds_dir]:
+        for d in [self.data_dir, self.services_dir, self.keys_dir, self.builds_dir, self.volumes_dir]:
             Path(d).mkdir(parents=True, exist_ok=True)
 
         # Load keys
@@ -48,11 +52,15 @@ class Controller:
 
     def get_service_dir(self, service_id):
         service_id = PublicId.from_str(service_id)
-        return Path(self.services_dir, str(service_id).replace("/", ":"))
+        return Path(self.services_dir, str(service_id).replace("/", ":").replace(":", "__"))
 
     def get_build_dir(self, service_id):
         service_id = PublicId.from_str(service_id)
-        return Path(self.builds_dir, str(service_id).replace("/", ":"))
+        return Path(self.builds_dir, str(service_id).replace("/", ":").replace(":", "__"))
+
+    def get_volume_dir(self, service_id):
+        service_id = PublicId.from_str(service_id)
+        return Path(self.volumes_dir, str(service_id).replace("/", ":").replace(":", "__"))
 
     def get_keys(self):
         return self.key_names
@@ -81,7 +89,8 @@ class Controller:
         for service_id in self.config["services"].keys():
             service_dir = self.get_service_dir(service_id)
             if not os.path.isdir(service_dir):
-                fetch_service_remote(service_id, service_dir)
+                logging.debug(f"Fetching {service_id} into {service_dir}")
+                fetch_service_remote(PublicId.from_str(service_id), service_dir)
 
 
     def get_service_config(self, service_id):
@@ -96,6 +105,7 @@ class Controller:
 
 
     def build_deployment(self, service_id, key_names, env_vars=None):
+
         service_dir = self.get_service_dir(service_id)
         build_dir = self.get_build_dir(service_id)
 
@@ -131,6 +141,14 @@ class Controller:
             use_tm_testnet_setup=True,
         )
 
+        # Add data volume to docker-compose.yaml
+        add_volume_to_service(
+            Path(build_dir, "docker-compose.yaml"),
+            PublicId.from_str(service_id).name,
+            "data",
+            self.get_volume_dir(service_id)
+        )
+
 
     def start_service(self, service_id):
         build_dir = self.get_build_dir(service_id)
@@ -145,6 +163,7 @@ class Controller:
         build_dir = self.get_build_dir(service_id)
         stop_deployment(build_dir)
 
-
+service_id = "valory/trader:0.1.0:bafybeifhq2udyttnuidkc7nmtjcfzivbbnfcayixzps7fa5x3cg353bvfe"
 controller = Controller()
-controller.build_deployment("valory/trader:0.1.0:bafybeifhq2udyttnuidkc7nmtjcfzivbbnfcayixzps7fa5x3cg353bvfe", ["divine-bee"])
+controller.build_deployment(service_id, ["true-dane"])
+controller.start_service(service_id)
