@@ -109,6 +109,11 @@ class Controller:
         service_dir = self.get_service_dir(service_id)
         build_dir = self.get_build_dir(service_id)
 
+        # Remove build if it exists
+        if Path.exists(build_dir):
+            pass
+
+
         # Load the service config
         service_config = self.get_service_config(service_id)
 
@@ -144,11 +149,16 @@ class Controller:
         # Add data volume to docker-compose.yaml
         add_volume_to_service(
             Path(build_dir, "docker-compose.yaml"),
-            PublicId.from_str(service_id).name,
+            f"{PublicId.from_str(service_id).name}_abci_0",
             "data",
             self.get_volume_dir(service_id)
         )
 
+        # Write env file
+        self.write_env_file(service_id, key_names, env_vars)
+
+    def write_env_file(self, service_id, key_names, env_vars):
+        pass
 
     def start_service(self, service_id):
         build_dir = self.get_build_dir(service_id)
@@ -165,5 +175,5 @@ class Controller:
 
 service_id = "valory/trader:0.1.0:bafybeifhq2udyttnuidkc7nmtjcfzivbbnfcayixzps7fa5x3cg353bvfe"
 controller = Controller()
-controller.build_deployment(service_id, ["true-dane"])
+# controller.build_deployment(service_id, ["true-dane"])
 controller.start_service(service_id)

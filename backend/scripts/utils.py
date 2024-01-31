@@ -45,10 +45,8 @@ def add_volume_to_service(compose_file, service_name, volume_name, volume_path):
     if service_name not in compose_data["services"].keys():
         return
 
-    relative_volume_path = volume_path.relative_to(compose_file.parent)
-
     compose_data["services"][service_name]["volumes"].append(
-        f"./{str(relative_volume_path)}:/{volume_name}:Z"
+        f"./{str(volume_path)}:/{volume_name}:Z"
     )
 
     with open(compose_file, "w") as compose:
