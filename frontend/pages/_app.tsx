@@ -1,3 +1,4 @@
+import { Layout } from "@/components/Layout/Layout";
 import { AgentsProvider } from "@/context/AgentsProvider";
 import { TabsProvider } from "@/context/TabsProvider";
 import "@/styles/globals.css";
@@ -7,7 +8,9 @@ export default function App({ Component, pageProps }: AppProps) {
   return (
     <AgentsProvider>
       <TabsProvider>
-        <Component {...pageProps} />
+        <Layout>
+          <Component {...pageProps} />
+        </Layout>
       </TabsProvider>
     </AgentsProvider>
   );
