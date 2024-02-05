@@ -1,7 +1,7 @@
+import { Marketplace } from "@/components/Marketplace/Marketplace";
 import { YourAgents } from "@/components/YourAgents/YourAgents";
-import { useTab } from "@/hooks/useTab";
+import { useTabs } from "@/hooks/useTabs";
 import { Tabs, type TabsProps } from "antd";
-import Head from "next/head";
 
 const tabs: TabsProps['items'] = [
   {
@@ -12,20 +12,14 @@ const tabs: TabsProps['items'] = [
   {
     key: "2", 
     label: "Marketplace",
-    children: "Content of Tab Pane 2",
+    children: <Marketplace/>,
   }
 ]
 
 
 export default function Home() {
-  const {activeTab, setActiveTab} = useTab()
+  const {activeTab, setActiveTab} = useTabs()
   return (
-    <>
-      <Head>
-        <title>Olas Operate App</title>
-      </Head>
-      
       <Tabs items={tabs} activeKey={activeTab} onChange={(activeKey: string)=>setActiveTab(activeKey)}/>
-    </>
   );
 }
