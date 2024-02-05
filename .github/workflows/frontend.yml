@@ -4,6 +4,9 @@ on: [push, pull_request]
 
 jobs:
   build:
+    defaults:
+      run:
+        working-directory: frontend
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
