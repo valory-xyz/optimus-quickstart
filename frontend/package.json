@@ -15,6 +15,7 @@
     "@types/node": "^20",
     "@types/react": "^18",
     "@types/react-dom": "^18",
+    "child_process": "^1.0.2",
     "concurrently": "^8.2.2",
     "electron": "^28.2.1",
     "electron-builder": "^24.9.1",
