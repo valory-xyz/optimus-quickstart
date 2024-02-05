@@ -1,7 +1,12 @@
 {
   "extends": [
-    "next/babel",
+    // "next/babel",
     "next/core-web-vitals",
     "plugin:prettier/recommended"
-  ]
+  ],
+  "plugins": [
+    "prettier"
+  ],
+  "rules": {
+  }
 }
