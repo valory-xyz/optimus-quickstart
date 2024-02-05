@@ -24,6 +24,7 @@ export const HasAgents = ({ agents }: { agents: any[] }) => {
     </>
   );
 };
+
 export const NoAgents = () => {
   const { setActiveTab } = useTabs();
   return (

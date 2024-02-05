@@ -1,10 +1,7 @@
-const { app, BrowserWindow } = require("electron");
-// const serve = require("electron-serve");
+const { app, BrowserWindow, Tray, Menu } = require("electron");
 const path = require("path");
 
-// const appServe = app.isPackaged ? serve({
-//   directory: path.join(__dirname, "../out")
-// }) : null;
+let tray; 
 
 const createWindow = () => {
   const win = new BrowserWindow({
@@ -14,17 +11,12 @@ const createWindow = () => {
 
   win.setMenuBarVisibility(false);
 
-  if (app.isPackaged) {
-    appServe(win).then(() => {
-      win.loadURL("app://-");
-    });
-  } else {
+  
     win.loadURL("http://localhost:3000");
     win.webContents.openDevTools();
     win.webContents.on("did-fail-load", (e, code, desc) => {
       win.webContents.reloadIgnoringCache();
     });
-  }
 
   win.on("minimize", function (event) {
     event.preventDefault();
@@ -53,4 +45,28 @@ app.on("window-all-closed", () => {
   if (process.platform !== "darwin") {
     app.quit();
   }
+});
+
+app.whenReady().then(() => {
+  tray = new Tray(path.join(__dirname, "icons/robot-head.png"));
+  const contextMenu = Menu.buildFromTemplate([
+    {
+      label: "Show App",
+      click: function () {
+        win.show();
+      },
+    },
+    {
+      label: "Quit",
+      click: function () {
+        app.isQuiting = true;
+        app.quit();
+      },
+    },
+  ]);
+  tray.setToolTip("This is my application.");
+  tray.setContextMenu(contextMenu);
+  tray.on("click", () => {
+    win.show();
+  });
 });
