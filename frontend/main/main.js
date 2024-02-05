@@ -25,32 +25,32 @@ const createWindow = () => {
       win.webContents.reloadIgnoringCache();
     });
   }
-  
-  win.on("minimize", function(event){
+
+  win.on("minimize", function (event) {
     event.preventDefault();
     win.hide();
   });
 
-  win.on("close", function(event){
-    if(!app.isQuiting){
+  win.on("close", function (event) {
+    if (!app.isQuiting) {
       event.preventDefault();
       win.hide();
     }
     return false;
   });
-}
+};
 
 app.on("ready", () => {
-    createWindow();
-    app.on("activate", () => {
-        if(BrowserWindow.getAllWindows().length === 0){
-            createWindow();
-        }
-    });
+  createWindow();
+  app.on("activate", () => {
+    if (BrowserWindow.getAllWindows().length === 0) {
+      createWindow();
+    }
+  });
 });
 
 app.on("window-all-closed", () => {
-    if(process.platform !== "darwin"){
-        app.quit();
-    }
+  if (process.platform !== "darwin") {
+    app.quit();
+  }
 });

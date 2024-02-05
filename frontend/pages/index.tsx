@@ -3,23 +3,26 @@ import { YourAgents } from "@/components/YourAgents/YourAgents";
 import { useTabs } from "@/hooks/useTabs";
 import { Tabs, type TabsProps } from "antd";
 
-const tabs: TabsProps['items'] = [
+const tabs: TabsProps["items"] = [
   {
-    key: "1", 
+    key: "1",
     label: "Your Agents",
-    children: <YourAgents/>,
+    children: <YourAgents />,
   },
   {
-    key: "2", 
+    key: "2",
     label: "Marketplace",
-    children: <Marketplace/>,
-  }
-]
-
+    children: <Marketplace />,
+  },
+];
 
 export default function Home() {
-  const {activeTab, setActiveTab} = useTabs()
+  const { activeTab, setActiveTab } = useTabs();
   return (
-      <Tabs items={tabs} activeKey={activeTab} onChange={(activeKey: string)=>setActiveTab(activeKey)}/>
+    <Tabs
+      items={tabs}
+      activeKey={activeTab}
+      onChange={(activeKey: string) => setActiveTab(activeKey)}
+    />
   );
 }
