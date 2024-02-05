@@ -1,6 +1,8 @@
+import { useAgents } from "@/hooks/useAgents";
 import { Row, Col, Button } from "antd";
 
 export const MarketplaceItem = () => {
+  const { startAgent: runAgent } = useAgents();
   return (
     <Row style={{ borderBottom: "1px solid black" }} gutter={16}>
       <Col span={8}>
@@ -17,7 +19,9 @@ export const MarketplaceItem = () => {
       <Col span={16}>
         <h2>Agent Name</h2>
         <p>Agent Description</p>
-        <Button>Run this agent</Button>
+        <Button onClick={() => runAgent(1)} type="primary">
+          Run this agent
+        </Button>
       </Col>
     </Row>
   );
