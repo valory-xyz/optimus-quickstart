@@ -6,8 +6,9 @@ let tray, mainWindow, splashWindow;
 const createWindow = () => {
   mainWindow = new BrowserWindow({
     width: 800,
-    height: 600,
+    height: 300,
     show: false,
+    title: "Olas Operate",
   });
 
   splashWindow = new BrowserWindow({
