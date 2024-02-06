@@ -13,6 +13,7 @@ import petname
 import json
 import logging
 from scripts.utils import add_volume_to_service
+from protocol import Service
 
 logging.basicConfig(level=logging.DEBUG)
 
@@ -180,6 +181,14 @@ class Controller:
     def stop_service(self, service_id):
         build_dir = self.get_build_dir(service_id)
         stop_deployment(build_dir)
+
+    def get_service(self, service_id):
+        return Service(
+            service_id=service_id,
+            service_path=self.get_service_dir(service_id),
+            chain_type=self.config["services"][str(service_id)]["chain_type"],
+            key=Path(self.get_build_dir(service_id), "keys.json")
+        )
 
 service_id = "valory/trader:0.1.0:bafybeifhq2udyttnuidkc7nmtjcfzivbbnfcayixzps7fa5x3cg353bvfe"
 controller = Controller()

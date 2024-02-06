@@ -1,37 +1,6 @@
-from autonomy.cli.helpers.chain import MintHelper
-from autonomy.chain.config import ChainType
-from typing import cast
 from pathlib import Path
 import yaml
 
-# def mint_service():
-
-#     mint_helper = (
-#         MintHelper(
-#             chain_type=ChainType.CUSTOM,
-#             key=key,
-#             update_token=update,
-#             dry_run=ctx.config.get("dry_run"),
-#             timeout=ctx.config.get("timeout"),
-#             retries=ctx.config.get("retries"),
-#             sleep=ctx.config.get("sleep"),
-#         )
-#         .load_package_configuration(
-#             package_path=package_path, package_type=PackageType.SERVICE
-#         )
-#         .load_metadata()
-#         .verify_nft(nft=nft)
-#         .verify_service_dependencies(agent_id=agent_id)
-#         .publish_metadata()
-#     )
-
-#     mint_helper.mint_service(
-#         number_of_slots=number_of_slots,
-#         cost_of_bond=cost_of_bond,
-#         threshold=threshold,
-#         token=token,
-#         owner=owner,
-#     )
 
 def add_volume_to_service(compose_file, service_name, volume_name, volume_path):
 

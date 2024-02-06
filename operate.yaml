@@ -5,3 +5,4 @@ services:
     required_funds:
       - 0
     number_of_keys: 1
+    chain_type: custom_chain
