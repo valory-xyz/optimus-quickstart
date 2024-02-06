@@ -1,7 +1,6 @@
 import { SpawnState } from "@/enums/SpawnState";
 import { Dispatch, PropsWithChildren, SetStateAction, createContext, useState } from "react";
 
-
 type SpawnContextType = {
     spawnState: SpawnState;
     setSpawnState: Dispatch<SetStateAction<SpawnState>>;
