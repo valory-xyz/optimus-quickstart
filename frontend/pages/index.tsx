@@ -1,9 +1,15 @@
+import { Layout } from "@/components/Layout/Layout";
 import { Marketplace } from "@/components/Marketplace/Marketplace";
 import { YourAgents } from "@/components/YourAgents/YourAgents";
 import { useTabs } from "@/hooks/useTabs";
-import { Tabs, type TabsProps } from "antd";
+import { Button, Tabs, type TabsProps } from "antd";
+import { useMemo } from "react";
 
-const tabs: TabsProps["items"] = [
+
+
+export default function Home() {
+  
+  const tabs: TabsProps["items"] = useMemo(()=>[
   {
     key: "1",
     label: "Your Agents",
@@ -14,15 +20,25 @@ const tabs: TabsProps["items"] = [
     label: "Marketplace",
     children: <Marketplace />,
   },
-];
-
-export default function Home() {
+  {
+    key: "3",
+    label: "Test",
+    children: <Button />,
+  }
+],[]);
+  
   const { activeTab, setActiveTab } = useTabs();
+
+
+
+
   return (
-    <Tabs
-      items={tabs}
-      activeKey={activeTab}
-      onChange={(activeKey: string) => setActiveTab(activeKey)}
-    />
+    <Layout>
+      <Tabs
+        items={tabs}
+        activeKey={activeTab}
+        onChange={(activeKey: string) => setActiveTab(activeKey)}
+      />
+    </Layout>
   );
 }

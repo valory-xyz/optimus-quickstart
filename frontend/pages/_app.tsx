@@ -8,9 +8,7 @@ export default function App({ Component, pageProps }: AppProps) {
   return (
     <AgentsProvider>
       <TabsProvider>
-        <Layout>
-          <Component {...pageProps} />
-        </Layout>
+        <Component {...pageProps} />
       </TabsProvider>
     </AgentsProvider>
   );

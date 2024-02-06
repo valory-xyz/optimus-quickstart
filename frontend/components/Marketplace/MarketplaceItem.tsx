@@ -19,7 +19,7 @@ export const MarketplaceItem = () => {
       <Col span={16}>
         <h2>Agent Name</h2>
         <p>Agent Description</p>
-        <Button onClick={() => runAgent(1)} type="primary">
+        <Button href="/spawn/1" type="primary">
           Run this agent
         </Button>
       </Col>

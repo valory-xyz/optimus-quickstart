@@ -4,6 +4,13 @@ import { useContext } from "react";
 export const useAgents = () => {
   const { agents, setAgents } = useContext(AgentsContext);
 
+  const testFlask = async () => {
+    console.log("Testing Flask");
+    const response = await fetch("/api/test");
+    const data = await response.json();
+    console.log(data);
+  } 
+
   const updateAgents = async () => {
     console.log("Updating agents");
     const response = await fetch("/api/agents");
