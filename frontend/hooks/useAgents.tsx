@@ -9,7 +9,7 @@ export const useAgents = () => {
     const response = await fetch("/api/test");
     const data = await response.json();
     console.log(data);
-  } 
+  }
 
   const updateAgents = async () => {
     console.log("Updating agents");
@@ -32,5 +32,5 @@ export const useAgents = () => {
     return data;
   };
 
-  return { startAgent, agents, updateAgents, stopAgent };
+  return { startAgent, agents, updateAgents, stopAgent, testFlask };
 };
