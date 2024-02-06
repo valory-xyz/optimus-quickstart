@@ -5,7 +5,7 @@ export const useAgents = () => {
   const { agents, setAgents } = useContext(AgentsContext);
 
   const testFlask = async () => {
-    const response = await fetch("/api/test");
+    const response = await fetch("http://localhost:5000/test");
     const data = await response.json();
     console.log(data);
   };
