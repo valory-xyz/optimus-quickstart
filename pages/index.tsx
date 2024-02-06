@@ -27,12 +27,9 @@ export default function Home() {
     {
       key: "3",
       label: "Test",
-      children: <Button />,
+      children: <Button onClick={testFlask} />,
     }
-  ], []);
-
-
-
+  ], [testFlask]);
 
   return (
     <Layout>

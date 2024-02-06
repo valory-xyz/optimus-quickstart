@@ -1,12 +1,15 @@
-import { Progress } from "antd";
+import { useSpawn } from "@/hooks/useSpawn";
+import { Progress, Typography } from "antd";
+import Image from "next/image";
 
 export const SpawnHeader = () => {
+    const { spawnPercentage } = useSpawn();
     return (
-        <div>
-            <img src="/robot-head.png" alt="" style={{ width: 200 }} />
-            <h1>Spawn your Agent</h1>
-            <Progress percent={30} />
-        </div>
+        <>
+            <Image src="/robot-head.png" alt="robot head" width={200} height={200} />
+            <Typography.Title>Spawn your Agent</Typography.Title>
+            <Progress percent={spawnPercentage} />
+        </>
     );
 }
 

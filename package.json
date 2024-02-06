@@ -40,7 +40,7 @@
   "private": true,
   "scripts": {
     "build": "",
-    "dev": "concurrently -n \"NEXT,ELECTRON,FLASK\" -c \"yellow,blue,green\" --kill-others \"next dev\" \"electron .\" \"python backend/server.py\"",
+    "dev": "concurrently -n \"NEXT,ELECTRON,FLASK\" -c \"yellow,blue,green\"  \"next dev\" \"electron .\" \"python backend/server.py\"",
     "install": "yarn install:javascript && yarn install:python",
     "install:javascript": "yarn install --ignore-scripts",
     "install:python": "cd ./backend && poetry install",
