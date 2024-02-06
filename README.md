@@ -1,4 +1,5 @@
-Frontend Electron + NextJS application for the Olas Operate App.
+# Olas Operate
+Electron + NextJS + Flask application to one-click run Agents.
 
 ## Technologies Used
 - NextJS
