@@ -41,7 +41,7 @@
     "build": "",
     "dev": "concurrently -n \"NEXT,ELECTRON,FLASK\" -c \"yellow,blue,green\" \"next dev\" \"electron .\" \"python3 backend/server.py\"",
     "dev:next": "next dev",
-    "dev:python": "cd ./backend && poetry shell; cd ..; python3 backend/server.py",
+    "dev:python": "python3 backend/server.py",
     "install": "yarn install:javascript && yarn install:python",
     "install:javascript": "yarn install --ignore-scripts",
     "install:python": "cd ./backend; poetry --no-root install",
