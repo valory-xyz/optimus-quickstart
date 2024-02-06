@@ -6,7 +6,7 @@ import { Button, Flex, Typography } from "antd";
 export const YourAgents = () => {
   const { agents } = useAgents();
 
-  const hasAgents = agents && agents.length > 0;
+  const hasAgents = agents?.length > 0;
 
   return <>{hasAgents ? <HasAgents agents={agents} /> : <NoAgents />}</>;
 };
@@ -16,11 +16,11 @@ export const HasAgents = ({ agents }: { agents: any[] }) => {
   return (
     <>
       {agents.map((agent) => (
-        <div key={agent.id}>
+        <Flex key={agent.id} vertical>
           <Typography.Title>{agent.name}</Typography.Title>
           <Typography.Paragraph>{agent.description}</Typography.Paragraph>
           <Button onClick={() => stopAgent(agent.id)}>Stop this agent</Button>
-        </div>
+        </Flex>
       ))}
     </>
   );
@@ -35,7 +35,7 @@ export const NoAgents = () => {
       justify="center"
       align="center"
     >
-      <p>No agents running.</p>
+      <Typography.Text>No agents running.</Typography.Text>
       <Button type="primary" onClick={() => setActiveTab(Tab.MARKETPLACE)}>
         Browse Agents
       </Button>

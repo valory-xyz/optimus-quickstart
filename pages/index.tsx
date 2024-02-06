@@ -15,17 +15,17 @@ export default function Home() {
 
   const tabs: TabsProps["items"] = useMemo(() => [
     {
-      key: "1",
+      key: "your-agents",
       label: "Your Agents",
       children: <YourAgents />,
     },
     {
-      key: "2",
+      key: "marketplace",
       label: "Marketplace",
       children: <Marketplace />,
     },
     {
-      key: "3",
+      key: "test",
       label: "Test",
       children: <Button onClick={testFlask} />,
     }

@@ -1,13 +1,13 @@
-import { SpawnDone } from "@/components/Spawn/SpawnDone";
+import { SpawnDone } from "@/components/Spawn/SpawnDone/SpawnDone";
 import { SpawnFunds } from "@/components/Spawn/SpawnFunds/SpawnFunds";
-import { SpawnHeader } from "@/components/Spawn/SpawnHeader";
+import { SpawnHeader } from "@/components/Spawn/SpawnHeader/SpawnHeader";
 import { SpawnRPC } from "@/components/Spawn/SpawnRPC/SpawnRPC";
 import { SpawnState } from "@/enums/SpawnState";
 import { useSpawn } from "@/hooks/useSpawn";
 import { useMemo } from "react";
 
 
-export const SpawnPage = ({ id }: { id: number }) => {
+export const SpawnPage = ({ params }: { params: { id: number } }) => {
 
     const { spawnState } = useSpawn();
 
@@ -25,7 +25,7 @@ export const SpawnPage = ({ id }: { id: number }) => {
     }, [spawnState])
 
     return <>
-        {id}
+        {params.id}
         <SpawnHeader />
         {spawnScreen}
     </>;
