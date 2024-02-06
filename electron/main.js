@@ -9,11 +9,9 @@ const createWindow = () => {
     height: 600,
   });
 
-  win.setMenuBarVisibility(false);
-
-  
+  win.setMenuBarVisibility(false);  
     win.loadURL("http://localhost:3000");
-    win.webContents.openDevTools();
+    // win.webContents.openDevTools();
     win.webContents.on("did-fail-load", () => {
       win.webContents.reloadIgnoringCache();
     });

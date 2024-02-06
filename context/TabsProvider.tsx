@@ -9,7 +9,7 @@ import {
 export const TabsContext = createContext<{
   activeTab: string;
   setActiveTab: Dispatch<SetStateAction<string>>;
-}>({ activeTab: "1", setActiveTab: () => {} });
+}>({ activeTab: "1", setActiveTab: () => { } });
 
 export const TabsProvider = ({ children }: PropsWithChildren) => {
   const [activeTab, setActiveTab] = useState<string>("1");

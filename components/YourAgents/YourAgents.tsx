@@ -1,5 +1,6 @@
+import { Tab } from "@/enums/Tabs";
 import { useAgents } from "@/hooks/useAgents";
-import { Tab, useTabs } from "@/hooks/useTabs";
+import { useTabs } from "@/hooks/useTabs";
 import { Button, Flex, Typography } from "antd";
 
 export const YourAgents = () => {
