@@ -1,6 +1,6 @@
 import { useAgents } from "@/hooks/useAgents";
 import { Tab, useTabs } from "@/hooks/useTabs";
-import { Button, Flex } from "antd";
+import { Button, Flex, Typography } from "antd";
 
 export const YourAgents = () => {
   const { agents } = useAgents();
@@ -16,8 +16,8 @@ export const HasAgents = ({ agents }: { agents: any[] }) => {
     <>
       {agents.map((agent) => (
         <div key={agent.id}>
-          <h2>{agent.name}</h2>
-          <p>{agent.description}</p>
+          <Typography.Title>{agent.name}</Typography.Title>
+          <Typography.Paragraph>{agent.description}</Typography.Paragraph>
           <Button onClick={() => stopAgent(agent.id)}>Stop this agent</Button>
         </div>
       ))}

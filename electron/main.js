@@ -1,10 +1,10 @@
 const { app, BrowserWindow, Tray, Menu } = require("electron");
 const path = require("path");
 
-let tray; 
+let tray, win; 
 
 const createWindow = () => {
-  const win = new BrowserWindow({
+  win = new BrowserWindow({
     width: 800,
     height: 600,
   });
@@ -14,7 +14,7 @@ const createWindow = () => {
   
     win.loadURL("http://localhost:3000");
     win.webContents.openDevTools();
-    win.webContents.on("did-fail-load", (e, code, desc) => {
+    win.webContents.on("did-fail-load", () => {
       win.webContents.reloadIgnoringCache();
     });
 
@@ -64,7 +64,7 @@ app.whenReady().then(() => {
       },
     },
   ]);
-  tray.setToolTip("This is my application.");
+  tray.setToolTip("Olas Operate");
   tray.setContextMenu(contextMenu);
   tray.on("click", () => {
     win.show();

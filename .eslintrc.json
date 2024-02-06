@@ -1,0 +1,25 @@
+{
+  "extends": [
+    "eslint:recommended",
+    "next/core-web-vitals",
+    "plugin:jest/recommended",
+    "plugin:react-hooks/recommended",
+    "plugin:react/recommended",
+    "prettier"
+  ],
+  "globals": {
+    "JSX": true,
+    "React": true
+  },
+  "plugins": [
+    "jest",
+    "prettier",
+    "react",
+    "react-hooks"
+  ],
+  "rules": {
+    "react/jsx-props-no-spreading": "off",
+    "react/no-array-index-key": "off",
+    "react/react-in-jsx-scope": "off"
+  }
+}

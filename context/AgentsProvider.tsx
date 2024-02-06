@@ -16,7 +16,7 @@ type AgentContextType = {
 
 export const AgentsContext = createContext<AgentContextType>({
   agents: [],
-  setAgents: () => {},
+  setAgents: () => { },
   isLoading: false,
 });
 

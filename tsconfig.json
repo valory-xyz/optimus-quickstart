@@ -23,6 +23,7 @@
     "strict": true
   },
   "exclude": [
+    "backend",
     "node_modules"
   ],
   "include": [

@@ -1,12 +1,10 @@
-import { useAgents } from "@/hooks/useAgents";
 import { Row, Col, Button } from "antd";
-
+import Image from "next/image";
 export const MarketplaceItem = () => {
-  const { startAgent: runAgent } = useAgents();
   return (
-    <Row style={{ borderBottom: "1px solid black" }} gutter={16}>
+    <Row gutter={16}>
       <Col span={8}>
-        <img
+        <Image
           src=""
           alt="Image"
           style={{
