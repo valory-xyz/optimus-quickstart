@@ -4,7 +4,7 @@ import { Layout } from "./Layout";
 
 describe("Layout", () => {
   it("should render", () => {
-    const { container } = render(<Layout />)
+    const { container } = render(<Layout />);
     expect(container).toBeInTheDocument();
   });
 });
