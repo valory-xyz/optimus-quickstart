@@ -1,11 +1,11 @@
 {
   "extends": [
-    "eslint:recommended",
     "next/core-web-vitals",
+    "eslint:recommended",
     "plugin:jest/recommended",
-    "plugin:react-hooks/recommended",
     "plugin:react/recommended",
-    "prettier"
+    "plugin:react-hooks/recommended",
+    "plugin:prettier/recommended"
   ],
   "globals": {
     "JSX": true,
@@ -18,8 +18,16 @@
     "react-hooks"
   ],
   "rules": {
+    "no-console": "warn",
+    "no-unused-vars": "off",
+    "prettier/prettier": ["error", {
+      "endOfLine": "auto",
+      "semi": true
+    }],
     "react/jsx-props-no-spreading": "off",
     "react/no-array-index-key": "off",
-    "react/react-in-jsx-scope": "off"
+    "react/react-in-jsx-scope": "off",    
+    "react-hooks/rules-of-hooks": "error", 
+    "react-hooks/exhaustive-deps": "warn" 
   }
 }

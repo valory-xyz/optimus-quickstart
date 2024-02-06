@@ -3,9 +3,8 @@ import { exec } from "child_process";
 
 const handler = (req: NextApiRequest, res: NextApiResponse) => {
   try {
-    exec("docker run -p 1337 hello-world", (error, stdout, stderr) => {
+    exec("docker run -p 1337 hello-world", (error, stdout) => {
       if (error) {
-        console.error(`exec error: ${error}`);
         res.status(500).json({ message: error });
       }
       res.status(200).json({ message: stdout });

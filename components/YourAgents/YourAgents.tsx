@@ -29,12 +29,7 @@ export const HasAgents = ({ agents }: { agents: any[] }) => {
 export const NoAgents = () => {
   const { setActiveTab } = useTabs();
   return (
-    <Flex
-      vertical
-      style={{ minWidth: "100vw", minHeight: "100vh" }}
-      justify="center"
-      align="center"
-    >
+    <Flex vertical justify="center" align="center">
       <Typography.Text>No agents running.</Typography.Text>
       <Button type="primary" onClick={() => setActiveTab(Tab.MARKETPLACE)}>
         Browse Agents

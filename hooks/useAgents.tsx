@@ -8,7 +8,7 @@ export const useAgents = () => {
     const response = await fetch("/api/test");
     const data = await response.json();
     console.log(data);
-  }
+  };
 
   const updateAgents = async () => {
     const response = await fetch("/api/agents");

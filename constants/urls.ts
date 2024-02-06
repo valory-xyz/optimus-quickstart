@@ -1,1 +1,1 @@
-export const NODIES_URL = 'https://nodies.app';
+export const NODIES_URL = "https://nodies.app";

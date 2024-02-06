@@ -1,30 +1,47 @@
 const { app, BrowserWindow, Tray, Menu } = require("electron");
 const path = require("path");
 
-let tray, win; 
+let tray, mainWindow, splashWindow;
 
 const createWindow = () => {
-  win = new BrowserWindow({
+  mainWindow = new BrowserWindow({
     width: 800,
     height: 600,
+    show: false,
   });
 
-  win.setMenuBarVisibility(false);  
-    win.loadURL("http://localhost:3000");
-    // win.webContents.openDevTools();
-    win.webContents.on("did-fail-load", () => {
-      win.webContents.reloadIgnoringCache();
-    });
+  splashWindow = new BrowserWindow({
+    width: 300,
+    height: 300,
+    frame: false,
+    alwaysOnTop: true,
+  });
 
-  win.on("minimize", function (event) {
+  splashWindow.loadURL(`file://${__dirname}/loading.html`);
+
+  mainWindow.setMenuBarVisibility(false);
+  mainWindow.loadURL("http://localhost:3000");
+
+  mainWindow.webContents.openDevTools();
+
+  mainWindow.webContents.on("did-fail-load", () => {
+    mainWindow.webContents.reloadIgnoringCache();
+  });
+
+  mainWindow.on("ready-to-show", () => {
+    splashWindow.destroy();
+    mainWindow.show();
+  });
+
+  mainWindow.on("minimize", function (event) {
     event.preventDefault();
-    win.hide();
+    mainWindow.hide();
   });
 
-  win.on("close", function (event) {
+  mainWindow.on("close", function (event) {
     if (!app.isQuiting) {
       event.preventDefault();
-      win.hide();
+      mainWindow.hide();
     }
     return false;
   });
@@ -51,7 +68,7 @@ app.whenReady().then(() => {
     {
       label: "Show App",
       click: function () {
-        win.show();
+        mainWindow.show();
       },
     },
     {
@@ -65,6 +82,6 @@ app.whenReady().then(() => {
   tray.setToolTip("Olas Operate");
   tray.setContextMenu(contextMenu);
   tray.on("click", () => {
-    win.show();
+    mainWindow.show();
   });
 });

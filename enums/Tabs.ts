@@ -1,4 +1,5 @@
 export enum Tab {
-  YOUR_AGENTS = "1",
-  MARKETPLACE = "2",
+  YOUR_AGENTS = "your-agents",
+  MARKETPLACE = "marketplace",
+  TEST = "test",
 }
