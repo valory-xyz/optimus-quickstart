@@ -1,3 +1,4 @@
+from typing import KeysView
 from autonomy.cli.helpers.registry import fetch_service_remote
 from autonomy.cli.helpers.image import build_image
 from aea.configurations.data_types import PublicId
@@ -41,7 +42,7 @@ class Controller:
         self.key_names = [k.stem for k in self.keys_dir.iterdir()]
 
         # Create master key
-        self.create_keys("master_key")
+        self.create_keys("master-key")
 
         # Download services
         self.fetch_services()
@@ -130,11 +131,8 @@ class Controller:
         # Create keys file
         keys_file = self.create_keys_file(key_names, build_dir)
 
-        # Create env file
-        if env_vars:
-            env_file = Path(build_dir, ".env")
-            with open(env_file, "w") as env_file:
-                env_file.writelines([f"{k}={v}" for k, v in env_vars.items()])
+        # Write env file
+        self.write_env_file(service_id, key_names, env_vars)
 
         # Generate deployment
         generate_deployment(
@@ -154,11 +152,21 @@ class Controller:
             self.get_volume_dir(service_id)
         )
 
-        # Write env file
-        self.write_env_file(service_id, key_names, env_vars)
-
     def write_env_file(self, service_id, key_names, env_vars):
-        pass
+        build_dir = self.get_build_dir(service_id)
+
+        all_participants = []
+        for key_name in key_names:
+            with open(Path(self.keys_dir, f"{key_name}.json"), "r") as key_file:
+                all_participants.extend([key["address"] for key in json.load(key_file)])
+
+        env_vars = {
+            "ALL_PARTICIPANTS": all_participants
+        }
+
+        env_file = Path(build_dir, ".env")
+        with open(env_file, "w") as env_file:
+            env_file.writelines([f"{k}={v}" for k, v in env_vars.items()])
 
     def start_service(self, service_id):
         build_dir = self.get_build_dir(service_id)
@@ -175,5 +183,5 @@ class Controller:
 
 service_id = "valory/trader:0.1.0:bafybeifhq2udyttnuidkc7nmtjcfzivbbnfcayixzps7fa5x3cg353bvfe"
 controller = Controller()
-# controller.build_deployment(service_id, ["true-dane"])
+controller.build_deployment(service_id, ["master-key"])
 controller.start_service(service_id)
