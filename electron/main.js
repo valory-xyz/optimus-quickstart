@@ -5,20 +5,20 @@ let tray, mainWindow, splashWindow;
 
 const createWindow = () => {
   mainWindow = new BrowserWindow({
-    width: 800,
-    height: 300,
+    width: 400,
+    height: 800,
     show: false,
     title: "Olas Operate",
   });
 
   splashWindow = new BrowserWindow({
-    width: 300,
-    height: 300,
+    width: 400,
+    height: 800,
     frame: false,
     alwaysOnTop: true,
   });
 
-  splashWindow.loadURL(`file://${__dirname}/loading.html`);
+  splashWindow.loadURL("file://" + __dirname + "/loading.html");
 
   mainWindow.setMenuBarVisibility(false);
   mainWindow.loadURL("http://localhost:3000");
