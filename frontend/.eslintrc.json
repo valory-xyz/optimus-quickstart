@@ -6,7 +6,5 @@
   ],
   "plugins": [
     "prettier"
-  ],
-  "rules": {
-  }
+  ]
 }
