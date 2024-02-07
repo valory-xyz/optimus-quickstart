@@ -1,3 +1,5 @@
+import { Typography, Flex } from "antd";
+
 export const TimelineItem = ({
   title,
   body,
@@ -6,9 +8,9 @@ export const TimelineItem = ({
   body: JSX.Element;
 }) => {
   return (
-    <div>
-      <h1>{title}</h1>
+    <Flex vertical gap={"small"}>
+      <Typography.Title level={5}>{title}</Typography.Title>
       <div>{body}</div>
-    </div>
+    </Flex>
   );
 };

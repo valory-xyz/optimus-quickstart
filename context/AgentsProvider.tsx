@@ -25,9 +25,10 @@ const fetcher = (url: string) => fetch(url).then((res) => res.json());
 export const AgentsProvider = ({ children }: PropsWithChildren) => {
   const [agents, setAgents] = useState<Agent[]>([]);
   const { data, error, isLoading } = useSWR("/api/agents", fetcher, {
-    // refreshInterval: 1000,
+    // refreshInterval: 1000, // COMMENTED FOR MOCK
   });
 
+  // REMOVED FOR MOCK
   // useEffect(() => {
   //   if (error) return console.log(error);
   //   setAgents(data ?? []);
