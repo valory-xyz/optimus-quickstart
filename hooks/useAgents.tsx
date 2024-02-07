@@ -4,12 +4,6 @@ import { useContext } from "react";
 export const useAgents = () => {
   const { agents, setAgents } = useContext(AgentsContext);
 
-  const testFlask = async () => {
-    const response = await fetch("http://localhost:5000/test");
-    const data = await response.json();
-    console.log(data);
-  };
-
   const updateAgents = async () => {
     const response = await fetch("/api/agents");
     const data = await response.json();
@@ -28,5 +22,5 @@ export const useAgents = () => {
     return data;
   };
 
-  return { startAgent, agents, updateAgents, stopAgent, testFlask };
+  return { startAgent, agents, updateAgents, stopAgent };
 };
