@@ -5,13 +5,7 @@ import { useContext } from "react";
 export const useAgents = () => {
   const { agents, setAgents } = useContext(AgentsContext);
 
-  const updateAgents = async () => {
-    const response = await fetch("/api/agents");
-    const data = await response.json();
-    setAgents(data);
-  };
-
-  const startAgent = async (id: number) => {
+  const addAgent = async (id: number) => {
     setAgents((prev) =>
       prev.map((agent) =>
         agent.id === id ? { ...agent, status: AgentStatus.RUNNING } : agent,
@@ -19,7 +13,7 @@ export const useAgents = () => {
     );
   };
 
-  const stopAgent = async (id: number) => {
+  const removeAgent = async (id: number) => {
     setAgents((prev) =>
       prev.map((agent) =>
         agent.id === id ? { ...agent, status: AgentStatus.STOPPED } : agent,
@@ -27,19 +21,9 @@ export const useAgents = () => {
     );
   };
 
-  const deleteAgent = async (id: number) => {
-    setAgents((prev) => {
-      const newArray = prev.filter((agent) => agent.id !== id);
-      return newArray;
-    });
-  };
-
   return {
-    startAgent,
+    addAgent,
+    removeAgent,
     agents,
-    updateAgents,
-    stopAgent,
-    setAgents,
-    deleteAgent,
   };
 };
