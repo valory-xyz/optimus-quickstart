@@ -2,14 +2,12 @@ import { Layout } from "@/components/Layout/Layout";
 import { Marketplace } from "@/components/Marketplace/Marketplace";
 import { YourAgents } from "@/components/YourAgents/YourAgents";
 import { Tab } from "@/enums";
-import { useAgents } from "@/hooks/useAgents";
 import { useTabs } from "@/hooks/useTabs";
-import { Button, Tabs, type TabsProps } from "antd";
+import { Tabs, type TabsProps } from "antd";
 import { useMemo } from "react";
 
 export default function Home() {
   const { activeTab, setActiveTab } = useTabs();
-  const { testFlask } = useAgents();
 
   const tabs: TabsProps["items"] = useMemo(
     () => [
@@ -23,13 +21,8 @@ export default function Home() {
         label: "Marketplace",
         children: <Marketplace />,
       },
-      {
-        key: Tab.TEST,
-        label: "Test",
-        children: <Button onClick={testFlask}>Test Flask Endpoint</Button>,
-      },
     ],
-    [testFlask],
+    [],
   );
 
   return (
