@@ -2,6 +2,7 @@ import { Tab } from "@/enums/Tabs";
 import { useAgents } from "@/hooks/useAgents";
 import { useTabs } from "@/hooks/useTabs";
 import { Button, Flex, Typography } from "antd";
+import { AgentCard } from "./AgentCard/AgentCard";
 
 export const YourAgents = () => {
   const { agents } = useAgents();
@@ -14,15 +15,11 @@ export const YourAgents = () => {
 export const HasAgents = ({ agents }: { agents: any[] }) => {
   const { stopAgent } = useAgents();
   return (
-    <>
+    <Flex vertical gap={16}>
       {agents.map((agent) => (
-        <Flex key={agent.id} vertical>
-          <Typography.Title>{agent.name}</Typography.Title>
-          <Typography.Paragraph>{agent.description}</Typography.Paragraph>
-          <Button onClick={() => stopAgent(agent.id)}>Stop this agent</Button>
-        </Flex>
+        <AgentCard key={agent.id} agent={agent} />
       ))}
-    </>
+    </Flex>
   );
 };
 

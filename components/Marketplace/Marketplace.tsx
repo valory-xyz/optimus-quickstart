@@ -1,5 +1,5 @@
 import { Flex } from "antd";
-import { MarketplaceItemCard } from "./MarketplaceItemCard";
+import { MarketplaceItemCard } from "./MarketplaceItemCard/MarketplaceItemCard";
 import { MARKETPLACE_ITEMS } from "@/constants/marketplace";
 import type { MarketplaceItem } from "@/types/MarketplaceItem";
 

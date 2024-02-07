@@ -1,4 +1,5 @@
 import { AgentsContext } from "@/context/AgentsProvider";
+import { AgentStatus } from "@/enums/AgentStatus";
 import { useContext } from "react";
 
 export const useAgents = () => {
@@ -11,16 +12,34 @@ export const useAgents = () => {
   };
 
   const startAgent = async (id: number) => {
-    const response = await fetch(`/api/agents/run?id=${id}`);
-    const data = await response.json();
-    return data;
+    setAgents((prev) =>
+      prev.map((agent) =>
+        agent.id === id ? { ...agent, status: AgentStatus.RUNNING } : agent,
+      ),
+    );
   };
 
   const stopAgent = async (id: number) => {
-    const response = await fetch(`/api/agents/stop?id=${id}`);
-    const data = await response.json();
-    return data;
+    setAgents((prev) =>
+      prev.map((agent) =>
+        agent.id === id ? { ...agent, status: AgentStatus.STOPPED } : agent,
+      ),
+    );
   };
 
-  return { startAgent, agents, updateAgents, stopAgent };
+  const deleteAgent = async (id: number) => {
+    setAgents((prev) => {
+      const newArray = prev.filter((agent) => agent.id !== id);
+      return newArray;
+    });
+  };
+
+  return {
+    startAgent,
+    agents,
+    updateAgents,
+    stopAgent,
+    setAgents,
+    deleteAgent,
+  };
 };
