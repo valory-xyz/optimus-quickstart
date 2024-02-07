@@ -1,3 +1,4 @@
+import { Tab } from "@/enums";
 import {
   Dispatch,
   PropsWithChildren,
@@ -9,10 +10,10 @@ import {
 export const TabsContext = createContext<{
   activeTab: string;
   setActiveTab: Dispatch<SetStateAction<string>>;
-}>({ activeTab: "1", setActiveTab: () => {} });
+}>({ activeTab: Tab.YOUR_AGENTS, setActiveTab: () => {} });
 
 export const TabsProvider = ({ children }: PropsWithChildren) => {
-  const [activeTab, setActiveTab] = useState<string>("1");
+  const [activeTab, setActiveTab] = useState<string>(Tab.YOUR_AGENTS);
   return (
     <TabsContext.Provider value={{ activeTab, setActiveTab }}>
       {children}
