@@ -1,13 +1,15 @@
-import { BellOutlined, SettingOutlined } from "@ant-design/icons";
-import { Flex, Typography } from "antd";
+import { Flex } from "antd";
+import { SettingsButton } from "./SettingsButton/SettingsButton";
+import { NotificationButton } from "./NotificationButton/NotificationButton";
+import Image from "next/image";
 
 export const Navbar = () => {
   return (
     <Flex vertical={false} justify="space-between" style={{ minWidth: "100%" }}>
-      <Typography.Text style={{ fontWeight: 700 }}>Operate</Typography.Text>
+      <Image src={"/olas-logo.png"} alt="" width={100} height={25} />
       <Flex gap={4}>
-        <BellOutlined />
-        <SettingOutlined />
+        <NotificationButton disabled={true} />
+        <SettingsButton />
       </Flex>
     </Flex>
   );
