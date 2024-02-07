@@ -1,10 +1,18 @@
 import { Flex } from "antd";
-import { MarketplaceItem } from "./MarketplaceItem";
+import { MarketplaceItemCard } from "./MarketplaceItemCard";
+import { MARKETPLACE_ITEMS } from "@/constants/marketplace";
+import type { MarketplaceItem } from "@/types/MarketplaceItem";
 
 export const Marketplace = () => {
   return (
     <Flex vertical>
-      <MarketplaceItem />
+      {MARKETPLACE_ITEMS.map((marketplaceItem: MarketplaceItem) => (
+        <MarketplaceItemCard
+          key={marketplaceItem.id}
+          marketplaceItem={marketplaceItem}
+          marginBottom={8}
+        />
+      ))}
     </Flex>
   );
 };
