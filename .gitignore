@@ -40,3 +40,7 @@ next-env.d.ts
 data
 backend/__pycache__/
 backend/scripts/__pycache__/
+
+# text files
+keys.txt
+rpcs.txt
