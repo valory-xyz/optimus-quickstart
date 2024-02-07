@@ -5,15 +5,15 @@ let tray, mainWindow, splashWindow;
 
 const createWindow = () => {
   mainWindow = new BrowserWindow({
-    width: 400,
-    height: 800,
+    width: 856,
+    height: 1321,
     show: false,
     title: "Olas Operate",
   });
 
   splashWindow = new BrowserWindow({
-    width: 400,
-    height: 800,
+    width: 856,
+    height: 1321,
     frame: false,
     alwaysOnTop: true,
   });
