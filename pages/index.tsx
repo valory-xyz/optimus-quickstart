@@ -29,6 +29,7 @@ export default function Home() {
     <Layout>
       <Tabs
         items={tabs}
+        centered
         activeKey={activeTab}
         onChange={(activeKey: string) => setActiveTab(activeKey)}
       />
