@@ -27,7 +27,9 @@ export const SpawnFunds = () => {
               <Button type="primary" onClick={() => copyToClipboard(mock.to)}>
                 Copy address
               </Button>
-              <Button type="default">Show QR</Button>
+              <Button type="default" disabled>
+                Show QR
+              </Button>
             </Flex>
           </Flex>
         ),

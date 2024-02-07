@@ -9,12 +9,24 @@ export const SpawnRPC = () => {
 
   const [rpc, setRpc] = useState("");
 
+  const [continueIsLoading, setContinueIsLoading] = useState(false);
+
   const handlePaste = () => {
     navigator.clipboard.readText().then((text) => setRpc(text));
   };
 
-  const handleContinue = () => {
-    setSpawnState(SpawnState.FUNDS);
+  const handleContinue = async () => {
+    if (continueIsLoading) return;
+    setContinueIsLoading(true);
+    fetch("/api/rpc/create", {
+      body: JSON.stringify({ rpc }),
+      method: "POST",
+    }).then((r) => {
+      if (r.status == 200) {
+        setSpawnState(SpawnState.FUNDS);
+      }
+    });
+    setContinueIsLoading(false);
   };
 
   const items = useMemo(
@@ -77,7 +89,12 @@ export const SpawnRPC = () => {
   return (
     <Flex gap={8} vertical>
       <Timeline items={items} />
-      <Button type="default" onClick={handleContinue}>
+      <Button
+        type="default"
+        onClick={handleContinue}
+        disabled={!rpc}
+        loading={continueIsLoading}
+      >
         Continue
       </Button>
     </Flex>
