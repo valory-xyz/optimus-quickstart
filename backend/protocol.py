@@ -6,13 +6,12 @@ import typing as t
 from enum import Enum
 from pathlib import Path
 from typing import Optional, Union
-
+import logging
 from aea.configurations.data_types import PackageType
 from aea.helpers.base import IPFSHash, cd
 from autonomy.chain.config import (
     ChainConfigs,
     ChainType,
-    ContractConfig,
     ContractConfigs,
 )
 from autonomy.chain.service import get_agent_instances, get_service_info
@@ -20,6 +19,7 @@ from autonomy.cli.helpers.chain import MintHelper as MintManager
 from autonomy.cli.helpers.chain import OnChainHelper
 from autonomy.cli.helpers.chain import ServiceHelper as ServiceManager
 
+logging.basicConfig(level=logging.DEBUG)
 
 class OnchainState(Enum):
     PRE_REGISTRATION = "PRE_REGISTRATION"
@@ -101,6 +101,8 @@ class OnChainManager:
         "Mint service."
         # TODO: Support for update
 
+        logging.info(f"Minting {package_path}...")
+
         self._patch()
 
         manager = (
@@ -139,6 +141,7 @@ class OnChainManager:
         token: t.Optional[str] = None,
     ) -> None:
         """Activate service."""
+        logging.info(f"Activating {service_id}...")
         self._patch()
         with contextlib.redirect_stdout(io.StringIO()):
             ServiceManager(
@@ -157,6 +160,7 @@ class OnChainManager:
         token: t.Optional[str] = None,
     ) -> None:
         """Register instance."""
+        logging.info(f"Registering {service_id}...")
         with contextlib.redirect_stdout(io.StringIO()):
             ServiceManager(
                 service_id=service_id,
@@ -176,6 +180,7 @@ class OnChainManager:
         token: t.Optional[str] = None,
     ) -> None:
         """Deploy service."""
+        logging.info(f"Deploying {service_id}...")
         self._patch()
         with contextlib.redirect_stdout(io.StringIO()):
             ServiceManager(

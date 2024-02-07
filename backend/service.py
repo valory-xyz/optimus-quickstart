@@ -126,7 +126,7 @@ class ServiceManager:
 
         # TODO: Remove later
         if spath.exists():
-            shutil.rmtree(spath)
+            return None
 
         spath.mkdir()
         downloaded = IPFSTool().download(
