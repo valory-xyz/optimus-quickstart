@@ -11,9 +11,10 @@ export default function Home() {
   const { activeTab, setActiveTab } = useTabs();
   const {
     getServices,
-    getKeys,
-    createKeys,
-    getVars,
+    getServiceVars,
+    getServiceKeys,
+    buildService,
+    deleteService,
     startService,
     stopService,
   } = useBackend();
