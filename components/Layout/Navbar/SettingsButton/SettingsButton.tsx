@@ -4,7 +4,7 @@ import { Button, Dropdown, MenuProps } from "antd";
 import { useMemo } from "react";
 
 export const SettingsButton = () => {
-  const { rpcModalOpen, setRpcModalOpen } = useModals();
+  const { setRpcModalOpen } = useModals();
 
   const items: MenuProps["items"] = useMemo(
     () => [
