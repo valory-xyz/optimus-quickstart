@@ -13,12 +13,12 @@ type SpawnContextType = {
 };
 
 export const SpawnContext = createContext<SpawnContextType>({
-  spawnState: SpawnState.RPC,
+  spawnState: SpawnState.LOADING,
   setSpawnState: () => {},
 });
 
 export const SpawnProvider = ({ children }: PropsWithChildren) => {
-  const [spawnState, setSpawnState] = useState<SpawnState>(SpawnState.RPC);
+  const [spawnState, setSpawnState] = useState<SpawnState>(SpawnState.LOADING);
   return (
     <SpawnContext.Provider value={{ spawnState, setSpawnState }}>
       {children}
