@@ -12,8 +12,8 @@ export const useBackend = () => {
       .then((data) => console.log(data));
   };
 
-  const getKeys = async () => {
-    fetch(`${BACKEND_URL}/keys`, {
+  const getServiceVars = async (serviceHash: string) => {
+    fetch(`${BACKEND_URL}/services/${serviceHash}/vars`, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
@@ -23,8 +23,19 @@ export const useBackend = () => {
       .then((data) => console.log(data));
   };
 
-  const createKeys = async () => {
-    fetch(`${BACKEND_URL}/keys`, {
+  const getServiceKeys = async (serviceHash: string) => {
+    fetch(`${BACKEND_URL}/services/${serviceHash}/keys`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    })
+      .then((response) => response.json())
+      .then((data) => console.log(data));
+  };
+
+  const buildService = async (serviceHash: string) => {
+    fetch(`${BACKEND_URL}/services/${serviceHash}/build`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -34,9 +45,9 @@ export const useBackend = () => {
       .then((data) => console.log(data));
   };
 
-  const getVars = async (serviceId: number) => {
-    fetch(`${BACKEND_URL}/vars/${serviceId}`, {
-      method: "GET",
+  const deleteService = async (serviceHash: string) => {
+    fetch(`${BACKEND_URL}/services/${serviceHash}/delete`, {
+      method: "DELETE",
       headers: {
         "Content-Type": "application/json",
       },
@@ -46,7 +57,7 @@ export const useBackend = () => {
   };
 
   const startService = async (serviceId: number) => {
-    fetch(`${BACKEND_URL}/start_service/${serviceId}`, {
+    fetch(`${BACKEND_URL}/services/${serviceId}/start`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -57,7 +68,7 @@ export const useBackend = () => {
   };
 
   const stopService = async (serviceId: number) => {
-    fetch(`${BACKEND_URL}/stop_service/${serviceId}`, {
+    fetch(`${BACKEND_URL}/services/${serviceId}/stop`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -69,9 +80,10 @@ export const useBackend = () => {
 
   return {
     getServices,
-    getKeys,
-    createKeys,
-    getVars,
+    getServiceVars,
+    getServiceKeys,
+    buildService,
+    deleteService,
     startService,
     stopService,
   };
