@@ -15,11 +15,13 @@
     "jest",
     "prettier",
     "react",
-    "react-hooks"
+    "react-hooks",
+    "unused-imports"
   ],
   "rules": {
+    "unused-imports/no-unused-imports": "error",
     "no-console": "warn",
-    "no-unused-vars": "off",
+    "no-unused-vars": "warn",
     "prettier/prettier": ["error", {
       "endOfLine": "auto",
       "semi": true
