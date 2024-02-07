@@ -1,196 +1,400 @@
-from typing import KeysView
-from autonomy.cli.helpers.registry import fetch_service_remote
-from autonomy.cli.helpers.image import build_image
-from aea.configurations.data_types import PublicId
-from aea.cli.generate_key import _generate_multiple_keys
-from autonomy.deploy.build import generate_deployment
-from pathlib import Path
-from autonomy.deploy.generators.docker_compose.base import DockerComposeGenerator
-from autonomy.cli.helpers.deployment import stop_deployment, run_deployment, _build_dirs
-import os
-import yaml
-import petname
 import json
 import logging
-from scripts.utils import add_volume_to_service
-from protocol import Service
+import os
+import shutil
+import typing as t
+from pathlib import Path
+
+from aea.helpers.base import IPFSHash
+from aea.helpers.yaml_utils import yaml_dump, yaml_load, yaml_load_all
+from aea_cli_ipfs.ipfs_utils import IPFSTool
+from aea_ledger_ethereum.ethereum import EthereumCrypto
+from autonomy.chain.config import ChainType
+from autonomy.cli.helpers.deployment import run_deployment, stop_deployment
+from autonomy.deploy.base import ServiceBuilder
+from autonomy.deploy.constants import (
+    AGENT_KEYS_DIR,
+    BENCHMARKS_DIR,
+    LOG_DIR,
+    PERSISTENT_DATA_DIR,
+    TM_STATE_DIR,
+    VENVS_DIR,
+)
+from autonomy.deploy.generators.docker_compose.base import DockerComposeGenerator
+from protocol import OnChainManager
 
 logging.basicConfig(level=logging.DEBUG)
 
-# install docker compose, tendermint
-
-class Controller:
-
-    def __init__(self) -> None:
-
-        # Load config
-        with open(Path("operate.yaml"), "r") as config_file:
-            self.config = [doc for doc in yaml.safe_load_all(config_file)][0]
-
-        # Set dirs
-        self.app_dir = Path().absolute()  # TODO: Viraj: might be better to use relative paths for docker volumes
-        self.data_dir = Path(self.app_dir, "data")
-        self.services_dir = Path(self.data_dir, "services")
-        self.keys_dir = Path(self.data_dir, "keys")
-        self.builds_dir = Path(self.data_dir, "builds")
-        self.volumes_dir = Path(self.data_dir, "volumes")
-
-        # Create dirs
-        for d in [self.data_dir, self.services_dir, self.keys_dir, self.builds_dir, self.volumes_dir]:
-            Path(d).mkdir(parents=True, exist_ok=True)
-
-        # Load keys
-        self.key_names = [k.stem for k in self.keys_dir.iterdir()]
-
-        # Create master key
-        self.create_keys("master-key")
-
-        # Download services
-        self.fetch_services()
+OPERATE = ".operate"
+CONFIG = "config.json"
+SERVICES = "services"
+KEYS = "keys"
+DEPLOYMENT = "deployment"
+CONFIG = "config.json"
+KEY = "key.txt"
+KEYS_JSON = "keys.json"
+DOCKER_COMPOSE_YAML = "docker-compose.yaml"
 
 
-    def get_services(self):
-        return self.config["services"]
+def build_dirs(build_dir: Path) -> None:
+    """Build necessary directories."""
 
-    def get_service_dir(self, service_id):
-        service_id = PublicId.from_str(service_id)
-        return Path(self.services_dir, str(service_id).replace("/", ":").replace(":", "__"))
-
-    def get_build_dir(self, service_id):
-        service_id = PublicId.from_str(service_id)
-        return Path(self.builds_dir, str(service_id).replace("/", ":").replace(":", "__"))
-
-    def get_volume_dir(self, service_id):
-        service_id = PublicId.from_str(service_id)
-        return Path(self.volumes_dir, str(service_id).replace("/", ":").replace(":", "__"))
-
-    def get_keys(self):
-        return self.key_names
-
-    def create_keys_file(self, key_names, target_dir):
-        keys = []
-        for key_name in key_names:
-            with open(Path(self.keys_dir, f"{key_name}.json"), "r") as key_file:
-                keys.append(json.load(key_file)[0])
-
-        keys_path = Path(target_dir, "keys.json")
-        with open(keys_path, "w") as keys_file:
-            json.dump(keys, keys_file, indent=4)
-
-        return keys_path
-
-    def create_keys(self, name=None, type_="ethereum"):
-        name = name or petname.Generate(2)
-        name += ".json"
-        keys_path = Path(self.keys_dir, name)
-        if not Path(keys_path).is_file():
-            _generate_multiple_keys(n=1, type_=type_, password=None, file=keys_path)
-        return name
-
-    def fetch_services(self):
-        for service_id in self.config["services"].keys():
-            service_dir = self.get_service_dir(service_id)
-            if not os.path.isdir(service_dir):
-                logging.debug(f"Fetching {service_id} into {service_dir}")
-                fetch_service_remote(PublicId.from_str(service_id), service_dir)
+    for dir_path in [
+        (PERSISTENT_DATA_DIR,),
+        (PERSISTENT_DATA_DIR, LOG_DIR),
+        (PERSISTENT_DATA_DIR, TM_STATE_DIR),
+        (PERSISTENT_DATA_DIR, BENCHMARKS_DIR),
+        (PERSISTENT_DATA_DIR, VENVS_DIR),
+        (AGENT_KEYS_DIR,),
+    ]:
+        path = Path(build_dir, *dir_path)
+        path.mkdir()
+        try:
+            os.chown(path, 1000, 1000)
+        except (PermissionError, AttributeError):
+            continue
 
 
-    def get_service_config(self, service_id):
-        service_dir = self.get_service_dir(service_id)
-        with open(Path(service_dir, "service.yaml"), "r") as service_config_file:
-            service_config = [doc for doc in yaml.safe_load_all(service_config_file)]
-            return service_config
+class KeysManager:
+    """Keys manager."""
 
-    def get_vars(self, service_id):
-        service_config = self.get_service_config(service_id)
-        return service_config[1][0]["models"]["params"]["args"]
+    def __init__(self, path: Path) -> None:
+        """Initialize object."""
+        self._path = path
+
+    def get(self, key: str) -> t.Dict:
+        """Get key object."""
+        return json.loads((self._path / key).read_text(encoding="utf-8"))
+
+    def create(self) -> str:
+        """Creates new key."""
+        crypto = EthereumCrypto()
+        (self._path / crypto.address).write_text(
+            json.dumps(
+                {
+                    "address": crypto.address,
+                    "private_key": crypto.private_key,
+                    "ledger": "ethereum",
+                }
+            ),
+            encoding="utf-8",
+        )
+        return crypto.address
+
+    def delete(self, key: str) -> None:
+        """Delete key."""
+        os.remove(self._path / key)
 
 
-    def build_deployment(self, service_id, key_names, env_vars=None):
+class ServiceManager:
+    """Service manager."""
 
-        service_dir = self.get_service_dir(service_id)
-        build_dir = self.get_build_dir(service_id)
+    def __init__(self, path: t.Optional[Path] = None) -> None:
+        """Initialize object."""
+        self._path = path or Path.cwd() / OPERATE
+        self._services = self._path / SERVICES
+        self._keys = self._path / KEYS
+        self._key = self._path / KEY
+        self.make()
 
-        # Remove build if it exists
-        if Path.exists(build_dir):
-            pass
+        self.keys = KeysManager(path=self._keys)
 
+    def make(self) -> None:
+        """Make the root directory."""
+        self._path.mkdir(exist_ok=True)
+        self._services.mkdir(exist_ok=True)
+        self._keys.mkdir(exist_ok=True)
+        if not self._key.exists():
+            self._key.write_bytes(EthereumCrypto().private_key.encode())
 
-        # Load the service config
-        service_config = self.get_service_config(service_id)
+    def get(self, phash: str) -> t.Dict:
+        """Get service."""
+        return json.loads((self._services / phash / CONFIG).read_text(encoding="utf-8"))
 
-        # Build docker image
-        build_image(
-            agent=PublicId.from_str(service_config[0]["agent"]),
-            service_dir=service_dir
+    def store(self, service: t.Dict) -> None:
+        """Store service."""
+        (self._services / str(service["hash"]) / CONFIG).write_text(
+            json.dumps(
+                service,
+                indent=4,
+            )
         )
 
-        # Build deployment. TODO: remove folder if exists
-        Path(build_dir).mkdir(parents=True, exist_ok=True)
-        _build_dirs(build_dir)
+    def fetch(self, phash: str) -> t.Dict:
+        """Fetch service to local storage."""
+        spath = self._services / phash
 
-        # Create keys file
-        keys_file = self.create_keys_file(key_names, build_dir)
+        # TODO: Remove later
+        if spath.exists():
+            shutil.rmtree(spath)
 
-        # Write env file
-        self.write_env_file(service_id, key_names, env_vars)
-
-        # Generate deployment
-        generate_deployment(
-            type_of_deployment=DockerComposeGenerator.deployment_type,
-            keys_file=keys_file,
-            service_path=service_dir,
-            build_dir=build_dir,
-            number_of_agents=1,
-            use_tm_testnet_setup=True,
+        spath.mkdir()
+        downloaded = IPFSTool().download(
+            hash_id=phash,
+            target_dir=spath,
         )
 
-        # Add data volume to docker-compose.yaml
-        add_volume_to_service(
-            Path(build_dir, "docker-compose.yaml"),
-            f"{PublicId.from_str(service_id).name}_abci_0",
-            "data",
-            self.get_volume_dir(service_id)
+        with Path(downloaded, "service.yaml").open("r", encoding="utf-8") as fp:
+            config, *_ = yaml_load_all(fp)
+            name = config["author"] + "/" + config["name"]
+
+        self.store(
+            dict(
+                name=name,
+                hash=phash,
+                service=downloaded,
+            )
         )
 
-    def write_env_file(self, service_id, key_names, env_vars):
-        build_dir = self.get_build_dir(service_id)
+        return self.get(phash=phash)
 
-        all_participants = []
-        for key_name in key_names:
-            with open(Path(self.keys_dir, f"{key_name}.json"), "r") as key_file:
-                all_participants.extend([key["address"] for key in json.load(key_file)])
+    def build(
+        self,
+        phash: str,
+        envrionment: str,
+        keys: t.Optional[t.List[str]] = None,
+        volumes: t.Optional[t.Dict[str, str]] = None,
+    ) -> None:
+        """Build deployment setup."""
+        service = self.get(phash=phash)
+        build = self._services / phash / DEPLOYMENT
+        if build.exists():
+            shutil.rmtree(build)
 
-        env_vars = {
-            "ALL_PARTICIPANTS": all_participants
-        }
+        build.mkdir()
+        build_dirs(build_dir=build)
+        if keys is None and len(service.get("instances", [])) == 0:
+            raise ValueError(
+                "Please provide keys or make sure service is deployed on-chain"
+            )
 
-        env_file = Path(build_dir, ".env")
-        with open(env_file, "w") as env_file:
-            env_file.writelines([f"{k}={v}" for k, v in env_vars.items()])
+        keys_file = self._services / phash / KEYS_JSON
+        if keys is None:
+            keys = service["instances"]
+        key_objs = [self.keys.get(key=key) for key in keys]
+        keys_file.write_text(json.dumps(key_objs, indent=4), encoding="utf-8")
 
-    def start_service(self, service_id):
-        build_dir = self.get_build_dir(service_id)
-        run_deployment(
-            build_dir=build_dir,
-            no_recreate=False,
-            remove_orphans=False,
-            detach=True
+        # Update environment
+        _environ = dict(os.environ)
+        os.environ.update(envrionment)
+
+        try:
+            builder = ServiceBuilder.from_dir(
+                path=Path(service["service"]),
+                keys_file=keys_file,
+                number_of_agents=len(keys),
+            )
+            builder.deplopyment_type = DockerComposeGenerator.deployment_type
+            builder.try_update_abci_connection_params()
+            builder.try_update_runtime_params(
+                multisig_address=service.get("multisig"),
+                agent_instances=service.get("instances"),
+                consensus_threshold=None,
+            )
+
+            # build deployment
+            (
+                DockerComposeGenerator(
+                    service_builder=builder,
+                    build_dir=build,
+                    use_tm_testnet_setup=True,
+                )
+                .generate()
+                .generate_config_tendermint()
+                .write_config()
+                .populate_private_keys()
+            )
+        except Exception:
+            shutil.rmtree(build)
+            raise
+        finally:
+            os.environ.clear()
+            os.environ.update(_environ)
+
+        if volumes is not None:
+            compose = build / DOCKER_COMPOSE_YAML
+            _volumes = []
+            for volume, mount in volumes.items():
+                (build / volume).mkdir(exist_ok=True)
+                _volumes.append(f"./{volume}:{mount}:Z")
+            with compose.open("r", encoding="utf-8") as stream:
+                deployment = yaml_load(stream=stream)
+            for service in deployment["services"]:
+                if "abci" in service:
+                    deployment["services"][service]["volumes"].extend(_volumes)
+            with compose.open("w", encoding="utf-8") as stream:
+                yaml_dump(data=deployment, stream=stream)
+
+    def start(self, phash: str) -> t.Dict:
+        """Deploy a service."""
+        run_deployment(build_dir=self._services / phash / DEPLOYMENT, detach=True)
+
+    def stop(self, phash: str) -> t.Dict:
+        """Stop a service."""
+        stop_deployment(build_dir=self._services / phash / DEPLOYMENT)
+
+    def mint(
+        self,
+        phash: str,
+        agent_id: int,
+        number_of_slots: int,
+        cost_of_bond: int,
+        threshold: int,
+        nft: t.Any,
+        rpc: str,
+        custom_addresses: t.Optional[t.Dict] = None,
+    ) -> None:
+        """Mint a service on-chain."""
+        service = self.get(phash=phash)
+        manager = OnChainManager(
+            rpc=rpc,
+            key=self._key,
+            chain_type=ChainType.CUSTOM,
+            custom_addresses=custom_addresses or {},
+        )
+        published = manager.mint(
+            package_path=Path(service["service"]),
+            agent_id=agent_id,  # trader agent
+            number_of_slots=number_of_slots,
+            cost_of_bond=cost_of_bond,  # Taken from the script
+            threshold=threshold,
+            nft=nft,  # from script
+        )
+        service["token"] = published["token"]
+        self.store(service=service)
+        return published
+
+    def activate(
+        self,
+        phash: str,
+        rpc: str,
+        custom_addresses: t.Optional[t.Dict] = None,
+    ) -> None:
+        """Activate service on-chain."""
+        service = self.get(phash=phash)
+        if "token" not in service:
+            raise ValueError("Cannot activate service, mint first")
+
+        manager = OnChainManager(
+            rpc=rpc,
+            key=self._key,
+            chain_type=ChainType.CUSTOM,
+            custom_addresses=custom_addresses or {},
         )
 
-    def stop_service(self, service_id):
-        build_dir = self.get_build_dir(service_id)
-        stop_deployment(build_dir)
-
-    def get_service(self, service_id):
-        return Service(
-            service_id=service_id,
-            service_path=self.get_service_dir(service_id),
-            chain_type=self.config["services"][str(service_id)]["chain_type"],
-            key=Path(self.get_build_dir(service_id), "keys.json")
+        manager.activate(
+            service_id=service["token"],
+            token=None,
         )
 
-service_id = "valory/trader:0.1.0:bafybeifhq2udyttnuidkc7nmtjcfzivbbnfcayixzps7fa5x3cg353bvfe"
-controller = Controller()
-controller.build_deployment(service_id, ["master-key"])
-controller.start_service(service_id)
+    def register(
+        self,
+        phash: str,
+        instances: t.List[str],
+        agents: t.List[int],
+        rpc: str,
+        custom_addresses: t.Optional[t.Dict] = None,
+    ) -> None:
+        """Register agent instances on-chain."""
+        service = self.get(phash=phash)
+        if "token" not in service:
+            raise ValueError("Cannot activate service, mint first")
+
+        manager = OnChainManager(
+            rpc=rpc,
+            key=self._key,
+            chain_type=ChainType.CUSTOM,
+            custom_addresses=custom_addresses or {},
+        )
+
+        manager.register(
+            service_id=service["token"],
+            instances=instances,
+            agents=agents,
+            token=None,
+        )
+
+    def deploy(
+        self,
+        phash: str,
+        rpc: str,
+        reuse_multisig: bool = False,
+        custom_addresses: t.Optional[t.Dict] = None,
+    ) -> t.Dict:
+        """Deploy service on-chain."""
+        service = self.get(phash=phash)
+        if "token" not in service:
+            raise ValueError("Cannot activate service, mint first")
+
+        manager = OnChainManager(
+            rpc=rpc,
+            key=self._key,
+            chain_type=ChainType.CUSTOM,
+            custom_addresses=custom_addresses or {},
+        )
+
+        manager.deploy(
+            service_id=service["token"],
+            reuse_multisig=reuse_multisig,
+            token=None,
+        )
+
+        info = manager.info(service_id=service["token"])
+        service["multisig"] = info["multisig_address"]
+        service["instances"] = info["instances"]
+        self.store(service=service)
+        return info
+
+
+if __name__ == "__main__":
+    phash = "bafybeifhq2udyttnuidkc7nmtjcfzivbbnfcayixzps7fa5x3cg353bvfe"
+    gnosis = {
+        "service_manager": "0x04b0007b2aFb398015B76e5f22993a1fddF83644",
+        "service_registry": "0x9338b5153AE39BB89f50468E608eD9d764B755fD",
+        "service_registry_token_utility": "0xa45E64d13A30a51b91ae0eb182e88a40e9b18eD8",
+        "gnosis_safe_proxy_factory": "0x3C1fF68f5aa342D296d4DEe4Bb1cACCA912D95fE",
+        "gnosis_safe_same_address_multisig": "0x6e7f594f680f7aBad18b7a63de50F0FeE47dfD06",
+        "multisend": "0x40A2aCCbd92BCA938b02010E17A5b8929b49130D",
+    }
+
+    manager = ServiceManager()
+    manager.fetch(phash=phash)
+    published = manager.mint(
+        phash=phash,
+        rpc="http://localhost:8545",
+        agent_id=14,  # trader agent
+        number_of_slots=1,
+        cost_of_bond=10000000000000000,  # from script
+        threshold=1,
+        nft=IPFSHash(
+            "bafybeig64atqaladigoc3ds4arltdu63wkdrk3gesjfvnfdmz35amv7faq"
+        ),  # from script
+        custom_addresses=gnosis,
+    )
+    manager.activate(
+        phash=phash,
+        rpc="http://localhost:8545",
+        custom_addresses=gnosis,
+    )
+    manager.register(
+        phash=phash,
+        instances=[manager.keys.create()],
+        agents=[14],
+        rpc="http://localhost:8545",
+        custom_addresses=gnosis,
+    )
+    manager.deploy(
+        phash=phash,
+        reuse_multisig=False,
+        rpc="http://localhost:8545",
+        custom_addresses=gnosis,
+    )
+    manager.build(
+        phash=phash,
+        envrionment={},
+        volumes={"data": "/data"},
+    )
+    manager.start(phash=phash)
+
+    input("> Press enter to stop")
+    manager.stop(phash=phash)

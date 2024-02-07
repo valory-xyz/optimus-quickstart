@@ -20,12 +20,11 @@
 """This module implements the Olas Operate App backend endpoints."""
 
 
-from flask import Flask
 from controller import Controller
+from flask import Flask
 
 
 def create_app():
-
     controller = Controller()
     operate = Flask(__name__)
 

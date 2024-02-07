@@ -1,9 +1,9 @@
 from pathlib import Path
+
 import yaml
 
 
 def add_volume_to_service(compose_file, service_name, volume_name, volume_path):
-
     if not Path.exists(compose_file):
         return
 
