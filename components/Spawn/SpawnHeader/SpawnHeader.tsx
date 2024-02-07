@@ -1,4 +1,5 @@
 import { useSpawn } from "@/hooks/useSpawn";
+import { mainTheme } from "@/theme/mainTheme";
 import { Progress, Typography } from "antd";
 import Image from "next/image";
 import { useMemo } from "react";
@@ -15,7 +16,10 @@ export const SpawnHeader = () => {
     <>
       <Image src="/robot-head.png" alt="robot head" width={200} height={200} />
       <Typography.Title>{title}</Typography.Title>
-      <Progress percent={spawnPercentage} />
+      <Progress
+        percent={spawnPercentage}
+        strokeColor={mainTheme.token?.colorPrimary}
+      />
     </>
   );
 };
