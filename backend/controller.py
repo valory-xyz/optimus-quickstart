@@ -151,7 +151,7 @@ class ServiceManager:
     def build(
         self,
         phash: str,
-        envrionment: str,
+        environment: str,
         keys: t.Optional[t.List[str]] = None,
         volumes: t.Optional[t.Dict[str, str]] = None,
     ) -> None:
@@ -176,7 +176,7 @@ class ServiceManager:
 
         # Update environment
         _environ = dict(os.environ)
-        os.environ.update(envrionment)
+        os.environ.update(environment)
 
         try:
             builder = ServiceBuilder.from_dir(
@@ -391,7 +391,7 @@ if __name__ == "__main__":
     )
     manager.build(
         phash=phash,
-        envrionment={},
+        environment={},
         volumes={"data": "/data"},
     )
     manager.start(phash=phash)
