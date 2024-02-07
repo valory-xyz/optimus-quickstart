@@ -3,6 +3,7 @@ import {
   SpawnFunds,
   SpawnHeader,
   SpawnRPC,
+  SpawnLoading,
 } from "@/components/Spawn";
 import { SpawnState } from "@/enums/SpawnState";
 import { useSpawn } from "@/hooks/useSpawn";
@@ -12,6 +13,9 @@ export const SpawnPage = () => {
   const { spawnState } = useSpawn();
 
   const spawnScreen = useMemo(() => {
+    if (spawnState === SpawnState.LOADING) {
+      return <SpawnLoading />;
+    }
     if (spawnState === SpawnState.RPC) {
       return <SpawnRPC />;
     }
