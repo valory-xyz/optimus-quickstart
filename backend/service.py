@@ -66,20 +66,28 @@ class KeysManager:
         """Get key object."""
         return json.loads((self._path / key).read_text(encoding="utf-8"))
 
-    def create(self) -> str:
+    def create(self, name=None) -> str:
         """Creates new key."""
         crypto = EthereumCrypto()
-        (self._path / crypto.address).write_text(
+        name = name or crypto.address
+        key_path = (self._path / f"{name}.json")
+
+        if key_path.is_file():
+            return crypto.address
+
+        key_path.write_text(
             json.dumps(
                 {
                     "address": crypto.address,
                     "private_key": crypto.private_key,
                     "ledger": "ethereum",
-                }
+                },
+                indent=4
             ),
             encoding="utf-8",
         )
         return crypto.address
+
 
     def delete(self, key: str) -> None:
         """Delete key."""

@@ -1,14 +1,18 @@
 from pathlib import Path
+from eth_keys import keys
 import yaml
 import logging
-from service import ServiceManager
+from service import KEY, ServiceManager
 from aea.helpers.base import IPFSHash
+from service import KeysManager, OPERATE, KEYS
 
 logging.basicConfig(level=logging.DEBUG)
 
 HTTP_OK = 200
 HTTP_BAD_REQUEST = 400
 HTTP_SERVER_ERROR = 500
+
+MASTER_KEY = "master-key"
 
 class Controller:
 
@@ -17,6 +21,10 @@ class Controller:
         # Load configuration
         with open(Path("operate.yaml"), "r") as config_file:
             self.config = [doc for doc in yaml.safe_load_all(config_file)][0]
+
+        # Create master key if not exists
+        self.key_manager = KeysManager(path=Path.cwd() / OPERATE / KEYS)
+        self.key_manager.create(MASTER_KEY)
 
         # Download all supported services
         self.fetch_services()
@@ -117,3 +125,12 @@ class Controller:
         manager = ServiceManager()
         manager.stop(phash=service_hash)
         return {}, HTTP_OK
+
+
+# controller = Controller()
+# controller.build_deployment(
+#     "bafybeifhq2udyttnuidkc7nmtjcfzivbbnfcayixzps7fa5x3cg353bvfe",
+#     {"rpc": "http://localhost:8545"}
+# )
+# controller.start_service("bafybeifhq2udyttnuidkc7nmtjcfzivbbnfcayixzps7fa5x3cg353bvfe")
+# controller.stop_service("bafybeifhq2udyttnuidkc7nmtjcfzivbbnfcayixzps7fa5x3cg353bvfe")
