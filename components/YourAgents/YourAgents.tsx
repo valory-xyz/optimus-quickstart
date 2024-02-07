@@ -13,7 +13,6 @@ export const YourAgents = () => {
 };
 
 export const HasAgents = ({ agents }: { agents: any[] }) => {
-  const { stopAgent } = useAgents();
   return (
     <Flex vertical gap={16}>
       {agents.map((agent) => (
