@@ -21,7 +21,7 @@
 
 
 from controller import Controller
-from flask import Flask
+from flask import Flask, request
 
 
 def create_app():
@@ -33,34 +33,39 @@ def create_app():
     def get_services():
         return controller.get_services()
 
-    # Get keys
-    @operate.route("/keys", methods=["GET"])
-    def get_mentions():
-        return controller.get_keys()
+    # Get service vars
+    @operate.route("/services/<service_hash>/vars", methods=["GET"])
+    def get_vars(service_hash):
+        return controller.get_vars(service_hash)
 
-    # Create keys
-    @operate.route("/keys", methods=["POST"])
-    def create_keys():
-        return controller.create_keys()
+    # Get service keys
+    @operate.route("/services/<service_hash>/keys", methods=["GET"])
+    def get_service_keys(service_hash):
+        return controller.get_service_keys(service_hash)
 
-    # Get vars
-    @operate.route("/vars/<service_id>", methods=["GET"])
-    def get_vars(service_id):
-        return controller.get_vars(service_id)
+    # Build deployment
+    @operate.route("/services/<service_hash>/build", methods=["POST"])
+    def build_deployment(service_hash):
+        return controller.build_deployment(service_hash, request.json)
+
+    # Delete deployment
+    @operate.route("/services/<service_hash>/delete", methods=["POST"])
+    def delete_deployment(service_hash):
+        return controller.delete_deployment(service_hash)
 
     # Start service
-    @operate.route("/start_service/<service_id>", methods=["POST"])
-    def start_service(service_id):
-        return controller.start_service(service_id)
+    @operate.route("/services/<service_hash>/start", methods=["POST"])
+    def start_service(service_hash):
+        return controller.start_service(service_hash)
 
     # Stop service
-    @operate.route("/stop_service/<service_id>", methods=["POST"])
-    def stop_service(service_id):
-        return controller.stop_service(service_id)
+    @operate.route("/services/<service_hash>/stop", methods=["POST"])
+    def stop_service(service_hash):
+        return controller.stop_service(service_hash)
 
     return operate
 
 
 if __name__ == "__main__":
     operate = create_app()
-    operate.run(debug=True, host="0.0.0.0")
+    operate.run(debug=True, host="0.0.0.0", use_reloader=False)
