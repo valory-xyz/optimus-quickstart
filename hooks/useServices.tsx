@@ -14,9 +14,10 @@ export const useServices = () => {
   const updateServiceStatus = async (serviceHash: string, status: string) =>
     setServices((prev) =>
       prev.map((service) => {
-        const _serviceHash = Object.keys(service)[0];
-        if (_serviceHash === serviceHash) {
-          return {_serviceHash: { ...service[_serviceHash], status };
+        if (Object.keys(service)[0] === serviceHash) {
+          let updateService = service;
+          updateService[serviceHash].status = status;
+          return updateService;
         }
         return service;
       }),

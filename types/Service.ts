@@ -4,7 +4,7 @@ export type Service = Record<
     agent_id: number;
     hash: string;
     name: string;
-    status?: "building" | "running" | "stopped";
+    status?: string;
   }
 >;
 
