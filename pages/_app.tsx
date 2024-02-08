@@ -1,5 +1,5 @@
-import { AgentsProvider } from "@/context/AgentsProvider";
 import { ModalsProvider } from "@/context/ModalsProvider";
+import { ServicesProvider } from "@/context/ServicesProvider";
 import { SpawnProvider } from "@/context/SpawnContext";
 import { TabsProvider } from "@/context/TabsProvider";
 import { mainTheme } from "@/theme/mainTheme";
@@ -8,7 +8,7 @@ import type { AppProps } from "next/app";
 
 export default function App({ Component, pageProps }: AppProps) {
   return (
-    <AgentsProvider>
+    <ServicesProvider>
       <SpawnProvider>
         <ModalsProvider>
           <TabsProvider>
@@ -18,6 +18,6 @@ export default function App({ Component, pageProps }: AppProps) {
           </TabsProvider>
         </ModalsProvider>
       </SpawnProvider>
-    </AgentsProvider>
+    </ServicesProvider>
   );
 }

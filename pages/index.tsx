@@ -10,7 +10,14 @@ import { useMemo } from "react";
 
 export default function Home() {
   const { activeTab, setActiveTab } = useTabs();
-  const { updateServices, services, updateServiceStatus, buildService, startService, stopService } = useServices();
+  const {
+    updateServices,
+    services,
+    updateServiceStatus,
+    buildService,
+    startService,
+    stopService,
+  } = useServices();
 
   const tabs: TabsProps["items"] = useMemo(
     () => [
@@ -31,17 +38,48 @@ export default function Home() {
           <Flex vertical>
             <Button onClick={updateServices}>updateServices</Button>
             <Button onClick={() => console.log(services)}>Log Services</Button>
-            <Button onClick={() => updateServiceStatus(Object.keys(services[0])[0], ServiceStatus.BUILDING)}>Set Service Status Building</Button>
-            <Button onClick={() => updateServiceStatus(Object.keys(services[0])[0], ServiceStatus.RUNNING)}>Set Service Status Running</Button>
-            <Button onClick={() => updateServiceStatus(Object.keys(services[0])[0], ServiceStatus.STOPPED)}>Set Service Status Stopped</Button>
-            <Button onClick={() => buildService(Object.keys(services[0])[0])}>Build Service</Button>
-            <Button onClick={() => startService(Object.keys(services[0])[0])}>Start Service</Button>
-            <Button onClick={() => stopService(Object.keys(services[0])[0])}>Stop Service</Button>
+            <Button
+              onClick={() =>
+                updateServiceStatus(services[0].hash, ServiceStatus.BUILDING)
+              }
+            >
+              Set Service Status Building
+            </Button>
+            <Button
+              onClick={() =>
+                updateServiceStatus(services[0].hash, ServiceStatus.RUNNING)
+              }
+            >
+              Set Service Status Running
+            </Button>
+            <Button
+              onClick={() =>
+                updateServiceStatus(services[0].hash, ServiceStatus.STOPPED)
+              }
+            >
+              Set Service Status Stopped
+            </Button>
+            <Button onClick={() => buildService(services[0].hash)}>
+              Build Service
+            </Button>
+            <Button onClick={() => startService(services[0].hash)}>
+              Start Service
+            </Button>
+            <Button onClick={() => stopService(services[0].hash)}>
+              Stop Service
+            </Button>
           </Flex>
         ),
       },
     ],
-    [updateServices],
+    [
+      buildService,
+      services,
+      startService,
+      stopService,
+      updateServiceStatus,
+      updateServices,
+    ],
   );
 
   return (

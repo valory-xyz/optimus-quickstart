@@ -3,6 +3,7 @@
   "dependencies": {
     "@ant-design/icons": "^5.3.0",
     "antd": "^5.14.0",
+    "hardhat": "^2.19.5",
     "next": "14.1.0",
     "react": "^18",
     "react-dom": "^18",
@@ -40,9 +41,10 @@
   "private": true,
   "scripts": {
     "build": "",
-    "dev": "concurrently -n \"NEXT,ELECTRON,FLASK\" -c \"yellow,blue,green\" \"next dev\" \"electron .\" \"yarn dev:python\"",
+    "dev": "concurrently -n \"NEXT,ELECTRON,FLASK\" -c \"yellow,blue,green\" \"next dev\" \"electron .\" \"yarn dev:python\" \"yarn dev:hardhat\"",
     "dev:next": "next dev",
     "dev:python": "cd backend; poetry run python server.py",
+    "dev:hardhat": "CHAIN_ID=100 npx hardhat node --fork https://lb.nodies.app/v1/406d8dcc043f4cb3959ed7d6673d311a",
     "install": "yarn install:javascript && yarn install:python",
     "install:javascript": "yarn install --ignore-scripts",
     "install:python": "cd ./backend; poetry --no-root install",

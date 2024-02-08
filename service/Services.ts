@@ -8,7 +8,13 @@ const getServices = async () =>
     },
   })
     .then((response) => response.json())
-    .then((data) => data);
+    .then((data) => {
+      let array: any = [];
+      Object.keys(data).map((key) => {
+        array.push({ ...data[key], hash: key });
+      });
+      return array;
+    });
 
 const getServiceVars = async (serviceHash: string) =>
   fetch(`${BACKEND_URL}/services/${serviceHash}/vars`, {
@@ -28,7 +34,9 @@ const getServiceKeys = async (serviceHash: string) =>
     },
   })
     .then((response) => response.json())
-    .then((data) => {data; });
+    .then((data) => {
+      data;
+    });
 
 const buildService = async (serviceHash: string) =>
   fetch(`${BACKEND_URL}/services/${serviceHash}/build`, {
@@ -36,9 +44,13 @@ const buildService = async (serviceHash: string) =>
     headers: {
       "Content-Type": "application/json",
     },
+    body: JSON.stringify({ rpc: "http://localhost:8545" }),
   })
     .then((response) => response.json())
-    .then((data) => {console.log(data); return data;});
+    .then((data) => {
+      console.log(data);
+      return data;
+    });
 
 const deleteService = async (serviceHash: string) =>
   fetch(`${BACKEND_URL}/services/${serviceHash}/delete`, {
@@ -57,7 +69,10 @@ const startService = async (serviceHash: string) => {
     },
   })
     .then((response) => response.json())
-    .then((data) => {console.log(data); return data;});
+    .then((data) => {
+      console.log(data);
+      return data;
+    });
 };
 
 const stopService = async (serviceHash: string) => {
@@ -68,7 +83,10 @@ const stopService = async (serviceHash: string) => {
     },
   })
     .then((response) => response.json())
-    .then((data) => {console.log(data); return data;});
+    .then((data) => {
+      console.log(data);
+      return data;
+    });
 };
 
 const ServicesService = {
