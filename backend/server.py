@@ -22,6 +22,7 @@
 
 from controller import Controller
 from flask import Flask, request
+from flask_cors import CORS
 
 
 def create_app():
@@ -68,4 +69,5 @@ def create_app():
 
 if __name__ == "__main__":
     operate = create_app()
+    CORS(operate)
     operate.run(debug=True, host="0.0.0.0", use_reloader=False)

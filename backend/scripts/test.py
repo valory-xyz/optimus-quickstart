@@ -13,7 +13,7 @@ trader_hash = list(response.json().keys())[0]
 response = requests.post(
     f"{BASE_URL}/services/{trader_hash}/build",
     json={"rpc": "http://localhost:8545"},
-    timeout=120
+    timeout=120,
 )
 print(response.status_code, response.json())
 
