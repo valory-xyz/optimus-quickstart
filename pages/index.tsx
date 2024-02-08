@@ -2,22 +2,14 @@ import { Layout } from "@/components/Layout/Layout";
 import { Marketplace } from "@/components/Marketplace/Marketplace";
 import { YourAgents } from "@/components/YourAgents/YourAgents";
 import { Tab } from "@/enums";
-import { useBackend } from "@/hooks/useBackend";
+import { useServices } from "@/hooks/useServices";
 import { useTabs } from "@/hooks/useTabs";
 import { Button, Flex, Tabs, type TabsProps } from "antd";
 import { useMemo } from "react";
 
 export default function Home() {
   const { activeTab, setActiveTab } = useTabs();
-  const {
-    getServices,
-    getServiceVars,
-    getServiceKeys,
-    buildService,
-    deleteService,
-    startService,
-    stopService,
-  } = useBackend();
+  const { updateServices } = useServices();
 
   const tabs: TabsProps["items"] = useMemo(
     () => [
@@ -36,12 +28,12 @@ export default function Home() {
         label: "Test",
         children: (
           <Flex vertical>
-            <Button onClick={getServices}>getServices</Button>
+            <Button onClick={updateServices}>updateServices</Button>
           </Flex>
         ),
       },
     ],
-    [getServices],
+    [updateServices],
   );
 
   return (
