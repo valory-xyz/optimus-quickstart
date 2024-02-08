@@ -1,0 +1,61 @@
+FLASK] Don't cancel while stopping services...
+[FLASK] Stopping trader_tm_0 ... 
+[FLASK] Stopping trader_tm_0 ... error
+[FLASK] 
+[FLASK] ERROR: for trader_tm_0  cannot stop container: 7afe0c5647d0dcc679cea674d00a7f66262d86fe62cdda710f9f27b35d9a80c4: permission denied
+[FLASK] Removing trader_abci_0 ... 
+[FLASK] Removing trader_abci_0 ... done
+[FLASK] [2024-02-08 15:09:12,964][INFO] 127.0.0.1 - - [08/Feb/2024 15:09:12] "POST /services/bafybeifhq2udyttnuidkc7nmtjcfzivbbnfcayixzps7fa5x3cg353bvfe/stop HTTP/1.1" 500 -
+[FLASK] Traceback (most recent call last):
+[FLASK]   File "/home/vboxuser/.cache/pypoetry/virtualenvs/backend-GLINQfQJ-py3.10/lib/python3.10/site-packages/docker/api/client.py", line 268, in _raise_for_status
+[FLASK]     response.raise_for_status()
+[FLASK]   File "/home/vboxuser/.cache/pypoetry/virtualenvs/backend-GLINQfQJ-py3.10/lib/python3.10/site-packages/requests/models.py", line 1021, in raise_for_status
+[FLASK]     raise HTTPError(http_error_msg, response=self)
+[FLASK] requests.exceptions.HTTPError: 403 Client Error: Forbidden for url: http+docker://localhost/v1.43/networks/deployment_service_trader_localnet
+[FLASK] 
+[FLASK] The above exception was the direct cause of the following exception:
+[FLASK] 
+[FLASK] Traceback (most recent call last):
+[FLASK]   File "/home/vboxuser/.cache/pypoetry/virtualenvs/backend-GLINQfQJ-py3.10/lib/python3.10/site-packages/flask/app.py", line 2091, in __call__
+[FLASK]     return self.wsgi_app(environ, start_response)
+[FLASK]   File "/home/vboxuser/.cache/pypoetry/virtualenvs/backend-GLINQfQJ-py3.10/lib/python3.10/site-packages/flask/app.py", line 2076, in wsgi_app
+[FLASK]     response = self.handle_exception(e)
+[FLASK]   File "/home/vboxuser/.cache/pypoetry/virtualenvs/backend-GLINQfQJ-py3.10/lib/python3.10/site-packages/flask_cors/extension.py", line 176, in wrapped_function
+[FLASK]     return cors_after_request(app.make_response(f(*args, **kwargs)))
+[FLASK]   File "/home/vboxuser/.cache/pypoetry/virtualenvs/backend-GLINQfQJ-py3.10/lib/python3.10/site-packages/flask/app.py", line 2073, in wsgi_app
+[FLASK]     response = self.full_dispatch_request()
+[FLASK]   File "/home/vboxuser/.cache/pypoetry/virtualenvs/backend-GLINQfQJ-py3.10/lib/python3.10/site-packages/flask/app.py", line 1518, in full_dispatch_request
+[FLASK]     rv = self.handle_user_exception(e)
+[FLASK]   File "/home/vboxuser/.cache/pypoetry/virtualenvs/backend-GLINQfQJ-py3.10/lib/python3.10/site-packages/flask_cors/extension.py", line 176, in wrapped_function
+[FLASK]     return cors_after_request(app.make_response(f(*args, **kwargs)))
+[FLASK]   File "/home/vboxuser/.cache/pypoetry/virtualenvs/backend-GLINQfQJ-py3.10/lib/python3.10/site-packages/flask/app.py", line 1516, in full_dispatch_request
+[FLASK]     rv = self.dispatch_request()
+[FLASK]   File "/home/vboxuser/.cache/pypoetry/virtualenvs/backend-GLINQfQJ-py3.10/lib/python3.10/site-packages/flask/app.py", line 1502, in dispatch_request
+[FLASK]     return self.ensure_sync(self.view_functions[rule.endpoint])(**req.view_args)
+[FLASK]   File "/home/vboxuser/Desktop/valory/olas-operate-app/backend/server.py", line 65, in stop_service
+[FLASK]     return controller.stop_service(service_hash)
+[FLASK]   File "/home/vboxuser/Desktop/valory/olas-operate-app/backend/controller.py", line 117, in stop_service
+[FLASK]     manager.stop(phash=service_hash)
+[FLASK]   File "/home/vboxuser/Desktop/valory/olas-operate-app/backend/service.py", line 240, in stop
+[FLASK]     stop_deployment(build_dir=self._services / phash / DEPLOYMENT)
+[FLASK]   File "/home/vboxuser/.cache/pypoetry/virtualenvs/backend-GLINQfQJ-py3.10/lib/python3.10/site-packages/autonomy/cli/helpers/deployment.py", line 171, in stop_deployment
+[FLASK]     commands.down({"--volumes": False, "--remove-orphans": True, "--rmi": None})
+[FLASK]   File "/home/vboxuser/.cache/pypoetry/virtualenvs/backend-GLINQfQJ-py3.10/lib/python3.10/site-packages/compose/metrics/decorator.py", line 18, in wrapper
+[FLASK]     result = fn(*args, **kwargs)
+[FLASK]   File "/home/vboxuser/.cache/pypoetry/virtualenvs/backend-GLINQfQJ-py3.10/lib/python3.10/site-packages/compose/cli/main.py", line 508, in down
+[FLASK]     self.project.down(
+[FLASK]   File "/home/vboxuser/.cache/pypoetry/virtualenvs/backend-GLINQfQJ-py3.10/lib/python3.10/site-packages/compose/project.py", line 457, in down
+[FLASK]     self.networks.remove()
+[FLASK]   File "/home/vboxuser/.cache/pypoetry/virtualenvs/backend-GLINQfQJ-py3.10/lib/python3.10/site-packages/compose/network.py", line 287, in remove
+[FLASK]     network.remove()
+[FLASK]   File "/home/vboxuser/.cache/pypoetry/virtualenvs/backend-GLINQfQJ-py3.10/lib/python3.10/site-packages/compose/network.py", line 100, in remove
+[FLASK]     self.client.remove_network(self.true_name)
+[FLASK]   File "/home/vboxuser/.cache/pypoetry/virtualenvs/backend-GLINQfQJ-py3.10/lib/python3.10/site-packages/docker/utils/decorators.py", line 19, in wrapped
+[FLASK]     return f(self, resource_id, *args, **kwargs)
+[FLASK]   File "/home/vboxuser/.cache/pypoetry/virtualenvs/backend-GLINQfQJ-py3.10/lib/python3.10/site-packages/docker/api/network.py", line 187, in remove_network
+[FLASK]     self._raise_for_status(res)
+[FLASK]   File "/home/vboxuser/.cache/pypoetry/virtualenvs/backend-GLINQfQJ-py3.10/lib/python3.10/site-packages/docker/api/client.py", line 270, in _raise_for_status
+[FLASK]     raise create_api_error_from_http_exception(e) from e
+[FLASK]   File "/home/vboxuser/.cache/pypoetry/virtualenvs/backend-GLINQfQJ-py3.10/lib/python3.10/site-packages/docker/errors.py", line 39, in create_api_error_from_http_exception
+[FLASK]     raise cls(e, response=response, explanation=explanation) from e
+[FLASK] docker.errors.APIError: 403 Client Error for http+docker://localhost/v1.43/networks/deployment_service_trader_localnet: Forbidden ("error while removing network: network deployment_service_trader_localnet id 7ea571860d782ed16db18dc478895c5b4a0b9c1ce6738630fc0deb35f0dd381c has active endpoints")
