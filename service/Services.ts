@@ -48,7 +48,6 @@ const buildService = async (serviceHash: string) =>
   })
     .then((response) => response.json())
     .then((data) => {
-      console.log(data);
       return data;
     });
 
@@ -70,7 +69,6 @@ const startService = async (serviceHash: string) => {
   })
     .then((response) => response.json())
     .then((data) => {
-      console.log(data);
       return data;
     });
 };
@@ -84,7 +82,6 @@ const stopService = async (serviceHash: string) => {
   })
     .then((response) => response.json())
     .then((data) => {
-      console.log(data);
       return data;
     });
 };

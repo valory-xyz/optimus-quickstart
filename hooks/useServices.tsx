@@ -9,7 +9,6 @@ export const useServices = () => {
 
   const updateServices = async () =>
     await ServicesService.getServices().then((data: Service[]) => {
-      console.log(data);
       setServices(data);
     });
 

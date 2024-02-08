@@ -2,12 +2,14 @@ import { Button, Flex, Input, Timeline, Typography } from "antd";
 import { NODIES_URL } from "@/constants/urls";
 import { useMemo, useState } from "react";
 import { useSpawn } from "@/hooks/useSpawn";
-import { SpawnState } from "@/enums/SpawnState";
+import { useServices } from "@/hooks/useServices";
+import { SpawnState } from "@/enums";
 
-export const SpawnRPC = () => {
+export const SpawnRPC = ({ serviceHash }: { serviceHash: string }) => {
   const { setSpawnState } = useSpawn();
+  const { buildService, startService } = useServices();
 
-  const [rpc, setRpc] = useState("");
+  const [rpc, setRpc] = useState("http://localhost:8545");
 
   const [continueIsLoading, setContinueIsLoading] = useState(false);
 
@@ -18,15 +20,12 @@ export const SpawnRPC = () => {
   const handleContinue = async () => {
     if (continueIsLoading) return;
     setContinueIsLoading(true);
-    fetch("/api/rpc/create", {
-      body: JSON.stringify({ rpc }),
-      method: "POST",
-    }).then((r) => {
-      if (r.status == 200) {
+    buildService(serviceHash).then(() =>
+      startService(serviceHash).then(() => {
+        setContinueIsLoading(false);
         setSpawnState(SpawnState.FUNDS);
-      }
-    });
-    setContinueIsLoading(false);
+      }),
+    );
   };
 
   const items = useMemo(

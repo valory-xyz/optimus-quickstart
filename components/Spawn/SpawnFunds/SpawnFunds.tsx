@@ -8,7 +8,7 @@ const mockRequiresFunds = [
   { amount: 0.1, currency: "xDAI", to: "0xTest", recieved: true },
 ];
 
-export const SpawnFunds = () => {
+export const SpawnFunds = ({ serviceHash }: { serviceHash: string }) => {
   const { setSpawnState } = useSpawn();
 
   const handleContinue = () => {

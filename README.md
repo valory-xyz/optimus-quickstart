@@ -9,15 +9,10 @@ Electron + NextJS + Flask application to one-click run Agents.
 - Python
 - Flask
 - Poetry
+- Docker v24
 
 
 ## Getting Started
-
-### Install Yarn 
-
-```bash
-npm install --global yarn
-```
 
 ### Install dependencies
 

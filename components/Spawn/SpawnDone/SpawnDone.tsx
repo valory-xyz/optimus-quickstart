@@ -8,26 +8,24 @@ import { Agent } from "@/types/Agent";
 import { Button, Flex } from "antd";
 import { useRouter } from "next/router";
 
-export const SpawnDone = () => {
+export const SpawnDone = ({ serviceHash }: { serviceHash: string }) => {
   const router = useRouter();
 
-  const { setAgents } = useAgents();
+  const { addAgent } = useAgents();
   const { setSpawnState } = useSpawn();
   const { setActiveTab } = useTabs();
 
   const handleViewAgent = () => {
-    setAgents((prev) => [
-      ...prev,
-      {
-        id: 1,
-        name: "Test Agent",
-        description: "Test description",
-        image_src: "/marketplace/prediction-agent.png",
-        status: AgentStatus.RUNNING,
-        earnings_24h: 0,
-        total_balance: 0,
-      } as Agent,
-    ]);
+    addAgent({
+      id: 1,
+      name: "Test Agent",
+      description: "Test description",
+      image_src: "/marketplace/prediction-agent.png",
+      status: AgentStatus.RUNNING,
+      earnings_24h: 0,
+      total_balance: 0,
+      serviceHash,
+    } as Agent);
     router.push("/").then(() => {
       setActiveTab(Tab.YOUR_AGENTS);
       setSpawnState(SpawnState.RPC);

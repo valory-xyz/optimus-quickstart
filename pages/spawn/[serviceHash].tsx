@@ -3,30 +3,34 @@ import {
   SpawnFunds,
   SpawnHeader,
   SpawnRPC,
-  SpawnLoading,
 } from "@/components/Spawn";
 import { SpawnState } from "@/enums/SpawnState";
 import { useSpawn } from "@/hooks/useSpawn";
+import { GetServerSidePropsContext } from "next";
 import { useMemo } from "react";
 
-export const SpawnPage = () => {
+export const getServerSideProps = async (
+  context: GetServerSidePropsContext,
+) => {
+  const { serviceHash } = context.query;
+  return { props: { serviceHash } };
+};
+
+export const SpawnPage = ({ serviceHash }: { serviceHash: string }) => {
   const { spawnState } = useSpawn();
 
   const spawnScreen = useMemo(() => {
-    if (spawnState === SpawnState.LOADING) {
-      return <SpawnLoading />;
-    }
     if (spawnState === SpawnState.RPC) {
-      return <SpawnRPC />;
+      return <SpawnRPC serviceHash={serviceHash} />;
     }
     if (spawnState === SpawnState.FUNDS) {
-      return <SpawnFunds />;
+      return <SpawnFunds serviceHash={serviceHash} />;
     }
     if (spawnState === SpawnState.DONE) {
-      return <SpawnDone />;
+      return <SpawnDone serviceHash={serviceHash} />;
     }
     return null;
-  }, [spawnState]);
+  }, [serviceHash, spawnState]);
 
   return (
     <>

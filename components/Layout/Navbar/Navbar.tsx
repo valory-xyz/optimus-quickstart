@@ -9,7 +9,7 @@ export const Navbar = () => {
       <Image src={"/olas-logo.png"} alt="" width={100} height={25} />
       <Flex gap={4}>
         <NotificationButton disabled={true} />
-        <SettingsButton />
+        <SettingsButton disabled />
       </Flex>
     </Flex>
   );

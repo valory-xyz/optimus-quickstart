@@ -3,9 +3,11 @@ import { Button, Typography, Flex, Card } from "antd";
 import Image from "next/image";
 export const MarketplaceItemCard = ({
   marketplaceItem,
+  serviceHash,
   marginBottom,
 }: {
   marketplaceItem: MarketplaceItem;
+  serviceHash: string;
   marginBottom?: number;
 }) => {
   const { name, description, image_src } = marketplaceItem;
@@ -18,7 +20,7 @@ export const MarketplaceItemCard = ({
             <Typography.Title level={3}>{name}</Typography.Title>
             <Typography.Text>{description}</Typography.Text>
             <Flex style={{ marginTop: "auto" }}>
-              <Button href="/spawn/1" type="primary">
+              <Button href={`/spawn/${serviceHash}`} type="primary">
                 Run this agent
               </Button>
             </Flex>

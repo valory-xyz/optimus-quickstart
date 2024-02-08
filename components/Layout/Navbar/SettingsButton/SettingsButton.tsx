@@ -3,7 +3,7 @@ import { SettingOutlined } from "@ant-design/icons";
 import { Button, Dropdown, MenuProps } from "antd";
 import { useMemo } from "react";
 
-export const SettingsButton = () => {
+export const SettingsButton = ({ disabled }: { disabled: boolean }) => {
   const { setRpcModalOpen } = useModals();
 
   const items: MenuProps["items"] = useMemo(
@@ -23,7 +23,7 @@ export const SettingsButton = () => {
   );
 
   return (
-    <Dropdown menu={{ items }} placement="bottomLeft">
+    <Dropdown menu={{ items }} placement="bottomLeft" disabled={disabled}>
       <Button type="text" icon={<SettingOutlined />} />
     </Dropdown>
   );

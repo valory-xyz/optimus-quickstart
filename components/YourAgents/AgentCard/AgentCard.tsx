@@ -1,21 +1,53 @@
 import { AgentStatus } from "@/enums/AgentStatus";
 import { useAgents } from "@/hooks/useAgents";
+import { useServices } from "@/hooks/useServices";
 import { Agent } from "@/types/Agent";
 import { Card, Flex, Typography, Button } from "antd";
 import Image from "next/image";
-import { useMemo } from "react";
+import { useCallback, useMemo, useState } from "react";
 
 type AgentCardProps = {
   agent: Agent;
 };
 
 export const AgentCard = ({ agent }: AgentCardProps) => {
-  const { stopAgent, startAgent, deleteAgent } = useAgents();
+  const { removeAgent, updateAgentStatus } = useAgents();
+  const { stopService, startService } = useServices();
+
+  const [isStopping, setIsStopping] = useState(false);
+  const [isStarting, setIsStarting] = useState(false);
+
+  const handleStart = useCallback(() => {
+    setIsStarting(true);
+    startService(agent.serviceHash)
+      .then(() => {
+        updateAgentStatus(agent, AgentStatus.RUNNING);
+      })
+      .finally(() => {
+        setIsStarting(false);
+      });
+  }, [agent, startService, updateAgentStatus]);
+
+  const handleStop = useCallback(() => {
+    setIsStopping(true);
+    stopService(agent.serviceHash)
+      .then(() => {
+        updateAgentStatus(agent, AgentStatus.STOPPED);
+      })
+      .finally(() => {
+        setIsStopping(false);
+      });
+  }, [agent, stopService, updateAgentStatus]);
 
   const button = useMemo(() => {
     if (agent.status === AgentStatus.RUNNING) {
       return (
-        <Button danger onClick={() => stopAgent(agent.id)}>
+        <Button
+          danger
+          onClick={handleStop}
+          disabled={isStopping}
+          loading={isStopping}
+        >
           Stop this agent
         </Button>
       );
@@ -23,17 +55,22 @@ export const AgentCard = ({ agent }: AgentCardProps) => {
     if (agent.status === AgentStatus.STOPPED) {
       return (
         <Flex gap={16}>
-          <Button type="primary" onClick={() => startAgent(agent.id)}>
+          <Button
+            type="primary"
+            onClick={handleStart}
+            disabled={isStarting}
+            loading={isStarting}
+          >
             Start this agent
           </Button>
-          <Button danger onClick={() => deleteAgent(agent.id)}>
+          <Button danger onClick={() => removeAgent(agent)}>
             Delete this agent
           </Button>
         </Flex>
       );
     }
     return null;
-  }, [agent.id, agent.status, deleteAgent, startAgent, stopAgent]);
+  }, [agent, handleStart, handleStop, isStarting, isStopping, removeAgent]);
 
   return (
     <Card>

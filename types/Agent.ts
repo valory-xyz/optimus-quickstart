@@ -2,6 +2,7 @@ import { AgentStatus } from "@/enums/AgentStatus";
 
 export type Agent = {
   id: number;
+  serviceHash: string;
   name: string;
   status: AgentStatus;
   earnings_24h: number;
