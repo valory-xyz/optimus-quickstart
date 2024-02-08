@@ -1,4 +1,5 @@
 import { ServicesContext } from "@/context/ServicesProvider";
+import { ServiceStatus } from "@/enums/ServiceStatus";
 import ServicesService from "@/service/Services";
 import { Service } from "@/types/Service";
 import { useContext } from "react";
@@ -11,7 +12,7 @@ export const useServices = () => {
       setServices(data),
     );
 
-  const updateServiceStatus = async (serviceHash: string, status: string) =>
+  const updateServiceStatus = async (serviceHash: string, status: ServiceStatus) =>
     setServices((prev) =>
       prev.map((service) => {
         if (Object.keys(service)[0] === serviceHash) {
@@ -21,9 +22,29 @@ export const useServices = () => {
         }
         return service;
       }),
-    );
+    );  
+
+  const buildService = async (serviceHash: string) => {
+    await updateServiceStatus(serviceHash, ServiceStatus.BUILDING);
+    await ServicesService.buildService(serviceHash);
+  }
+
+  const startService = async (serviceHash: string) => {
+    await updateServiceStatus(serviceHash, ServiceStatus.RUNNING);
+    await ServicesService.startService(serviceHash);
+  };
+
+  const stopService = async (serviceHash: string) => {  
+    await updateServiceStatus(serviceHash, ServiceStatus.STOPPED);
+    await ServicesService.stopService(serviceHash);
+  }
 
   return {
+    services,
     updateServices,
+    updateServiceStatus,
+    buildService,
+    startService,
+    stopService,
   };
 };

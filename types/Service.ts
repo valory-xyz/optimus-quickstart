@@ -1,10 +1,12 @@
+import { ServiceStatus } from "@/enums/ServiceStatus";
+
 export type Service = Record<
   string,
   {
     agent_id: number;
     hash: string;
     name: string;
-    status?: string;
+    status?: ServiceStatus;
   }
 >;
 

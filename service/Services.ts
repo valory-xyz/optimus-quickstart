@@ -28,7 +28,8 @@ const getServiceKeys = async (serviceHash: string) =>
     },
   })
     .then((response) => response.json())
-    .then((data) => data);
+    .then((data) => {data; });
+
 const buildService = async (serviceHash: string) =>
   fetch(`${BACKEND_URL}/services/${serviceHash}/build`, {
     method: "POST",
@@ -37,7 +38,8 @@ const buildService = async (serviceHash: string) =>
     },
   })
     .then((response) => response.json())
-    .then((data) => data);
+    .then((data) => {console.log(data); return data;});
+
 const deleteService = async (serviceHash: string) =>
   fetch(`${BACKEND_URL}/services/${serviceHash}/delete`, {
     method: "DELETE",
@@ -47,26 +49,26 @@ const deleteService = async (serviceHash: string) =>
   })
     .then((response) => response.json())
     .then((data) => data);
-const startService = async (serviceId: number) => {
-  fetch(`${BACKEND_URL}/services/${serviceId}/start`, {
+const startService = async (serviceHash: string) => {
+  fetch(`${BACKEND_URL}/services/${serviceHash}/start`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
     },
   })
     .then((response) => response.json())
-    .then((data) => data);
+    .then((data) => {console.log(data); return data;});
 };
 
-const stopService = async (serviceId: number) => {
-  fetch(`${BACKEND_URL}/services/${serviceId}/stop`, {
+const stopService = async (serviceHash: string) => {
+  fetch(`${BACKEND_URL}/services/${serviceHash}/stop`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
     },
   })
     .then((response) => response.json())
-    .then((data) => data);
+    .then((data) => {console.log(data); return data;});
 };
 
 const ServicesService = {
