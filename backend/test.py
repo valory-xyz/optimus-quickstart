@@ -61,6 +61,7 @@ info = manager.deploy(
     rpc="http://localhost:8545",
     custom_addresses=gnosis,
 )
+print(info)
 
 print("Terminating...")
 manager.terminate(
@@ -76,6 +77,11 @@ manager.unbond(
     custom_addresses=gnosis,
 )
 
+
+service_old = manager.get(phash=phash)
+
+print("Updating...")
+
 # Fund agent instance
 (owner,) = info["instances"]
 tx = ledger_api.get_transfer_transaction(
@@ -90,12 +96,31 @@ stx = crypto.sign_transaction(transaction=tx)
 digest = ledger_api.send_signed_transaction(stx)
 receipt = ledger_api.get_transaction_receipt(tx_digest=digest)
 
-
 print("Swapping owner...")
 manager.swap(
     phash=phash,
     rpc="http://localhost:8545",
     custom_addresses=gnosis,
+)
+
+phash = "bafybeigt734q4z22khysf22p5wbs4hzko3qfhwxcz3r37ahdneuc7mp5em"
+
+print("Fetching...")
+manager.fetch(phash=phash)
+
+print("Minting...")
+published = manager.mint(
+    phash=phash,
+    rpc="http://localhost:8545",
+    agent_id=14,  # trader agent
+    number_of_slots=1,
+    cost_of_bond=10000000000000000,  # from script
+    threshold=1,
+    nft=IPFSHash(
+        "bafybeig64atqaladigoc3ds4arltdu63wkdrk3gesjfvnfdmz35amv7faq"
+    ),  # from script
+    custom_addresses=gnosis,
+    update_token=service_old["token"],
 )
 
 print("Activating...")
@@ -121,6 +146,8 @@ info = manager.deploy(
     rpc="http://localhost:8545",
     custom_addresses=gnosis,
 )
+
+print(info)
 
 print("Building...")
 manager.build(

@@ -21,6 +21,7 @@ from autonomy.deploy.constants import (
 )
 from autonomy.deploy.generators.docker_compose.base import DockerComposeGenerator
 from protocol import OnChainManager
+from enum import Enum
 
 logging.basicConfig(level=logging.DEBUG)
 
@@ -52,6 +53,19 @@ def build_dirs(build_dir: Path) -> None:
             os.chown(path, 1000, 1000)
         except (PermissionError, AttributeError):
             continue
+
+
+class ServiceState(Enum):
+    """
+    Service state
+    """
+
+    NON_EXISTENT = 0
+    PRE_REGISTRATION = 1
+    ACTIVE_REGISTRATION = 2
+    FINISHED_REGISTRATION = 3
+    DEPLOYED = 4
+    TERMINATED_BONDED = 5
 
 
 class KeysManager:
@@ -126,13 +140,27 @@ class ServiceManager:
             )
         )
 
+    def info(
+        self,
+        token_id,
+        rpc: str,
+        custom_addresses: t.Optional[t.Dict] = None,
+    ):
+        manager = OnChainManager(
+            rpc=rpc,
+            key=self._key,
+            chain_type=ChainType.CUSTOM,
+            custom_addresses=custom_addresses or {},
+        )
+        return manager.info(token_id)
+
     def fetch(self, phash: str) -> t.Dict:
         """Fetch service to local storage."""
         spath = self._services / phash
 
         # TODO: Remove later
         if spath.exists():
-            return None
+            return self.get(phash=phash)
 
         spath.mkdir()
         downloaded = IPFSTool().download(
@@ -153,6 +181,15 @@ class ServiceManager:
         )
 
         return self.get(phash=phash)
+
+    def update(self, new: str, old: str) -> t.Dict:
+        """Update a service."""
+        service_old = self.get(phash=old)
+        service = self.fetch(phash=new)
+
+        service["token"] = service_old.get("token")
+        service["multisig"] = service_old.get("multisig")
+        service["instances"] = service_old.get("instances")
 
     def build(
         self,
@@ -248,6 +285,7 @@ class ServiceManager:
         threshold: int,
         nft: t.Any,
         rpc: str,
+        update_token: t.Optional[int] = None,
         custom_addresses: t.Optional[t.Dict] = None,
     ) -> None:
         """Mint a service on-chain."""
@@ -260,11 +298,12 @@ class ServiceManager:
         )
         published = manager.mint(
             package_path=Path(service["service"]),
-            agent_id=agent_id,  # trader agent
+            agent_id=agent_id,
             number_of_slots=number_of_slots,
-            cost_of_bond=cost_of_bond,  # Taken from the script
+            cost_of_bond=cost_of_bond,
             threshold=threshold,
-            nft=nft,  # from script
+            nft=nft,
+            update_token=update_token,
         )
         service["token"] = published["token"]
         self.store(service=service)
@@ -345,7 +384,7 @@ class ServiceManager:
             token=None,
         )
 
-        info = manager.info(service_id=service["token"])
+        info = manager.info(token_id=service["token"])
         service["multisig"] = info["multisig_address"]
         service["instances"] = info["instances"]
         self.store(service=service)
@@ -414,9 +453,19 @@ class ServiceManager:
             owner_key=self.keys.get(key=owner).get("private_key"),
         )
 
-    def onchain_setup(self):
-        # pseudocode - follows the quickstart
-        state = self.get_state()
+    def onchain_setup(
+        self,
+        phash: str,
+        rpc: str,
+        custom_addresses: t.Optional[t.Dict] = None,
+    ) -> None:
+        service = self.get(phash=phash)
+        info = self.info(
+            token_id=service["token"],
+            rpc=rpc,
+            custom_addresses=custom_addresses or {},
+        )
+        state = ServiceState(info["service_state"])
 
         if not self.minted:
             self.mint()

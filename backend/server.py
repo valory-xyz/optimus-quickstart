@@ -36,32 +36,39 @@ def create_app():
 
     # Get service vars
     @operate.route("/services/<service_hash>/vars", methods=["GET"])
-    def get_vars(service_hash):
+    def get_vars(service_hash: str) -> None:
         return controller.get_vars(service_hash)
 
     # Get service keys
     @operate.route("/services/<service_hash>/keys", methods=["GET"])
-    def get_service_keys(service_hash):
+    def get_service_keys(service_hash: str) -> None:
         return controller.get_service_keys(service_hash)
 
     # Build deployment
     @operate.route("/services/<service_hash>/build", methods=["POST"])
-    def build_deployment(service_hash):
+    def build_deployment(service_hash: str) -> None:
+        """
+        returns {
+            fund_requirements: {
+                address: required_funds
+            }
+        }
+        """
         return controller.build_deployment(service_hash, request.json)
 
     # Delete deployment
     @operate.route("/services/<service_hash>/delete", methods=["POST"])
-    def delete_deployment(service_hash):
+    def delete_deployment(service_hash: str) -> None:
         return controller.delete_deployment(service_hash)
 
     # Start service
     @operate.route("/services/<service_hash>/start", methods=["POST"])
-    def start_service(service_hash):
+    def start_service(service_hash: str) -> None:
         return controller.start_service(service_hash)
 
     # Stop service
     @operate.route("/services/<service_hash>/stop", methods=["POST"])
-    def stop_service(service_hash):
+    def stop_service(service_hash: str) -> None:
         return controller.stop_service(service_hash)
 
     return operate
