@@ -126,6 +126,20 @@ class ServiceManager:
             )
         )
 
+    def info(
+        self,
+        token_id,
+        rpc: str,
+        custom_addresses: t.Optional[t.Dict] = None,
+    ):
+        manager = OnChainManager(
+            rpc=rpc,
+            key=self._key,
+            chain_type=ChainType.CUSTOM,
+            custom_addresses=custom_addresses or {},
+        )
+        return manager.info(token_id)
+
     def fetch(self, phash: str) -> t.Dict:
         """Fetch service to local storage."""
         spath = self._services / phash
