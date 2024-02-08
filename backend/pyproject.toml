@@ -11,6 +11,7 @@ open-autonomy = "^0.14.2"
 open-aea-ledger-ethereum = "^1.46.0"
 flask = "2.0.2"
 petname = "^2.6"
+flask-cors = "^4.0.0"
 
 
 [build-system]
