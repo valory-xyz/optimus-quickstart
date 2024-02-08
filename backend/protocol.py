@@ -217,6 +217,7 @@ class OnChainManager:
         cost_of_bond: int,
         threshold: int,
         nft: Optional[Union[Path, IPFSHash]],
+        update_token: t.Optional[int] = None,
     ):
         "Mint service."
         # TODO: Support for update
@@ -229,6 +230,7 @@ class OnChainManager:
             MintManager(
                 chain_type=self.chain_type,
                 key=self.key,
+                update_token=update_token,
             )
             .load_package_configuration(
                 package_path=package_path, package_type=PackageType.SERVICE
@@ -243,7 +245,12 @@ class OnChainManager:
             io.StringIO()
         ):
             with cd(temp):
-                manager.mint_service(
+                method = (
+                    manager.mint_service
+                    if update_token is None
+                    else manager.update_service
+                )
+                method(
                     number_of_slots=number_of_slots,
                     cost_of_bond=cost_of_bond,
                     threshold=threshold,

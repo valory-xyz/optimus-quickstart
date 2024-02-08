@@ -16,22 +16,18 @@ MASTER_KEY = "master-key"
 
 class Controller:
     def __init__(self) -> None:
+        self.manager = ServiceManager()
         # Load configuration
         with open(Path("operate.yaml"), "r") as config_file:
             self.config = [doc for doc in yaml.safe_load_all(config_file)][0]
-
-        # Create master key if not exists
-        self.key_manager = KeysManager(path=Path.cwd() / OPERATE / KEYS)
-        self.key_manager.create(MASTER_KEY)
 
         # Download all supported services
         self.fetch_services()
 
     def fetch_services(self):
-        service_manager = ServiceManager()
         for service_hash, service_config in self.config["services"].items():
             logging.debug(f"Fetching {service_config['name']}")
-            service_manager.fetch(phash=service_hash)
+            self.manager.fetch(phash=service_hash)
 
     def get_services(self):
         return self.config["services"], HTTP_OK
@@ -43,12 +39,11 @@ class Controller:
         return {}, HTTP_OK
 
     def build_deployment(self, service_hash, args):
-        manager = ServiceManager()
         service_config = self.config["services"][service_hash]
         custom_addresses = self.config["chains"][service_config["chain"]]
         rpc = args.get("rpc")
         agent_addresses = [
-            manager.keys.create() for _ in range(service_config["number_of_keys"])
+            self.manager.keys.create() for _ in range(service_config["number_of_keys"])
         ]
 
         code = HTTP_OK
@@ -59,7 +54,7 @@ class Controller:
         }
 
         try:
-            published = manager.mint(
+            published = self.manager.mint(
                 phash=service_hash,
                 rpc=rpc,
                 agent_id=service_config["agent_id"],
@@ -70,13 +65,13 @@ class Controller:
                 custom_addresses=custom_addresses,
             )
 
-            manager.activate(
+            self.manager.activate(
                 phash=service_hash,
                 rpc=rpc,
                 custom_addresses=custom_addresses,
             )
 
-            manager.register(
+            self.manager.register(
                 phash=service_hash,
                 instances=agent_addresses,
                 agents=[14],
@@ -84,14 +79,14 @@ class Controller:
                 custom_addresses=custom_addresses,
             )
 
-            manager.deploy(
+            self.manager.deploy(
                 phash=service_hash,
                 reuse_multisig=False,
                 rpc=rpc,
                 custom_addresses=custom_addresses,
             )
 
-            manager.build(
+            self.manager.build(
                 phash=service_hash,
                 environment={},
                 volumes={"data": "/data"},
@@ -108,13 +103,11 @@ class Controller:
         return {}, HTTP_OK
 
     def start_service(self, service_hash):
-        manager = ServiceManager()
-        manager.start(phash=service_hash)
+        self.manager.start(phash=service_hash)
         return {}, HTTP_OK
 
     def stop_service(self, service_hash):
-        manager = ServiceManager()
-        manager.stop(phash=service_hash)
+        self.manager.stop(phash=service_hash)
         return {}, HTTP_OK
 
 
