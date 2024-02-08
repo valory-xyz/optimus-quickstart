@@ -5,7 +5,6 @@ import shutil
 import typing as t
 from pathlib import Path
 
-
 from aea.helpers.yaml_utils import yaml_dump, yaml_load, yaml_load_all
 from aea_cli_ipfs.ipfs_utils import IPFSTool
 from aea_ledger_ethereum.ethereum import EthereumCrypto
@@ -70,7 +69,7 @@ class KeysManager:
         """Creates new key."""
         crypto = EthereumCrypto()
         name = name or crypto.address
-        key_path = (self._path / f"{name}.json")
+        key_path = self._path / name
 
         if key_path.is_file():
             return crypto.address
@@ -82,12 +81,11 @@ class KeysManager:
                     "private_key": crypto.private_key,
                     "ledger": "ethereum",
                 },
-                indent=4
+                indent=4,
             ),
             encoding="utf-8",
         )
         return crypto.address
-
 
     def delete(self, key: str) -> None:
         """Delete key."""
@@ -353,8 +351,70 @@ class ServiceManager:
         self.store(service=service)
         return info
 
-    def onchain_setup(self):
+    def terminate(
+        self,
+        phash: str,
+        rpc: str,
+        custom_addresses: t.Optional[t.Dict] = None,
+    ) -> t.Dict:
+        """Deploy service on-chain."""
+        service = self.get(phash=phash)
+        if "token" not in service:
+            raise ValueError("Cannot activate service, mint first")
+        manager = OnChainManager(
+            rpc=rpc,
+            key=self._key,
+            chain_type=ChainType.CUSTOM,
+            custom_addresses=custom_addresses or {},
+        )
+        manager.terminate(service_id=service["token"])
+        self.store(service=service)
 
+    def unbond(
+        self,
+        phash: str,
+        rpc: str,
+        custom_addresses: t.Optional[t.Dict] = None,
+    ) -> t.Dict:
+        """Deploy service on-chain."""
+        service = self.get(phash=phash)
+        if "token" not in service:
+            raise ValueError("Cannot activate service, mint first")
+        manager = OnChainManager(
+            rpc=rpc,
+            key=self._key,
+            chain_type=ChainType.CUSTOM,
+            custom_addresses=custom_addresses or {},
+        )
+        manager.unbond(service_id=service["token"])
+
+    def swap(
+        self,
+        phash: str,
+        rpc: str,
+        custom_addresses: t.Optional[t.Dict] = None,
+    ) -> t.Dict:
+        """Swap owner agent owner with user as safe owner."""
+        service = self.get(phash=phash)
+        if "multisig" not in service:
+            raise ValueError("Cannot swap service")
+
+        manager = OnChainManager(
+            rpc=rpc,
+            key=self._key,
+            chain_type=ChainType.CUSTOM,
+            custom_addresses=custom_addresses or {},
+        )
+
+        (owner,) = service["instances"]
+
+        manager.swap(
+            service_id=service["token"],
+            multisig=service["multisig"],
+            owner_key=self.keys.get(key=owner).get("private_key"),
+        )
+
+    def onchain_setup(self):
         # pseudocode - follows the quickstart
         state = self.get_state()
 
@@ -362,7 +422,6 @@ class ServiceManager:
             self.mint()
 
         if needs_update:
-
             if state == OnchainState.DEPLOYED and safe.owner == agent:
                 state = self.safe_swap(operator)
 
@@ -374,7 +433,6 @@ class ServiceManager:
 
             if state == OnchainState.PRE_REGISTRATION:
                 state = self.mint(update)
-
 
         if state == OnchainState.PRE_REGISTRATION:
             state = self.activate()
