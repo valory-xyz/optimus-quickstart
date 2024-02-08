@@ -135,11 +135,16 @@ def skill_input_hex_to_payload(payload: str) -> dict:
 
 
 class OnchainState(Enum):
-    PRE_REGISTRATION = "PRE_REGISTRATION"
-    ACTIVE_REGISTRATION = "ACTIVE_REGISTRATION"
-    FINISHED_REGISTRATION = "FINISHED_REGISTRATION"
-    DEPLOYED = "DEPLOYED"
-    TERMINATED_BONDED = "TERMINATED_BONDED"
+    """
+    Service state
+    """
+
+    NON_EXISTENT = 0
+    PRE_REGISTRATION = 1
+    ACTIVE_REGISTRATION = 2
+    FINISHED_REGISTRATION = 3
+    DEPLOYED = 4
+    TERMINATED_BONDED = 5
 
 
 class OnChainManager:
@@ -167,7 +172,7 @@ class OnChainManager:
         for name, address in self.custom_addresses.items():
             ContractConfigs.get(name=name).contracts[self.chain_type] = address
 
-    def info(self, service_id: int) -> t.Dict:
+    def info(self, token_id: int) -> t.Dict:
         """Get service info."""
         self._patch()
         ledger_api, _ = OnChainHelper.get_ledger_and_crypto_objects(
@@ -185,21 +190,21 @@ class OnChainManager:
         ) = get_service_info(
             ledger_api=ledger_api,
             chain_type=self.chain_type,
-            token_id=service_id,
+            token_id=token_id,
         )
         instances = get_agent_instances(
             ledger_api=ledger_api,
             chain_type=self.chain_type,
-            token_id=service_id,
+            token_id=token_id,
         ).get("agentInstances", [])
         return dict(
             security_deposit=security_deposit,
             multisig_address=multisig_address,
-            config_hash=config_hash,
+            config_hash=config_hash.hex(),
             threshold=threshold,
             max_agents=max_agents,
             number_of_agent_instances=number_of_agent_instances,
-            service_state=service_state,
+            service_state=OnchainState(service_state),
             cannonical_agents=cannonical_agents,
             instances=instances,
         )
@@ -212,6 +217,7 @@ class OnChainManager:
         cost_of_bond: int,
         threshold: int,
         nft: Optional[Union[Path, IPFSHash]],
+        update_token: t.Optional[int] = None,
     ):
         "Mint service."
         # TODO: Support for update
@@ -224,6 +230,7 @@ class OnChainManager:
             MintManager(
                 chain_type=self.chain_type,
                 key=self.key,
+                update_token=update_token,
             )
             .load_package_configuration(
                 package_path=package_path, package_type=PackageType.SERVICE
@@ -238,7 +245,12 @@ class OnChainManager:
             io.StringIO()
         ):
             with cd(temp):
-                manager.mint_service(
+                method = (
+                    manager.mint_service
+                    if update_token is None
+                    else manager.update_service
+                )
+                method(
                     number_of_slots=number_of_slots,
                     cost_of_bond=cost_of_bond,
                     threshold=threshold,
