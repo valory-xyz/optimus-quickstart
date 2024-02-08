@@ -428,9 +428,13 @@ class ServiceManager:
             owner_key=self.keys.get(key=owner).get("private_key"),
         )
 
-    def onchain_setup(self):
+    def onchain_setup(self, token_id):
         # pseudocode - follows the quickstart
-        state = self.get_state()
+        state = self.info(
+            token_id
+            rpc,
+            custom_addresses,
+        )["service_state"]
 
         if not self.minted:
             self.mint()
