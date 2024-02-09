@@ -1,4 +1,4 @@
-const { app, BrowserWindow, Tray, Menu } = require("electron");
+const { app, BrowserWindow, Tray, Menu, shell } = require("electron");
 const path = require("path");
 
 let tray, mainWindow, splashWindow;
@@ -10,6 +10,12 @@ const createWindow = () => {
     show: false,
     title: "Olas Operate",
     resizable: false,
+  });
+
+  // Ensure that external links are opened in native browser
+  mainWindow.webContents.setWindowOpenHandler((details) => {
+    shell.openExternal(details.url);
+    return { action: "deny" };
   });
 
   splashWindow = new BrowserWindow({
