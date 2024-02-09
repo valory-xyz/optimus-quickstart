@@ -12,10 +12,7 @@ export const useServices = () => {
       setServices(data);
     });
 
-  const updateServiceStatus = async (
-    serviceHash: string,
-    status: ServiceStatus,
-  ) =>
+  const updateServiceStatus = (serviceHash: string, status: ServiceStatus) =>
     setServices((prev) =>
       prev.map((service) => {
         if (service.hash === serviceHash) {
@@ -26,18 +23,18 @@ export const useServices = () => {
     );
 
   const buildService = async (serviceHash: string) => {
-    await updateServiceStatus(serviceHash, ServiceStatus.BUILDING);
-    await ServicesService.buildService(serviceHash);
+    updateServiceStatus(serviceHash, ServiceStatus.BUILDING);
+    return ServicesService.buildService(serviceHash);
   };
 
   const startService = async (serviceHash: string) => {
-    await updateServiceStatus(serviceHash, ServiceStatus.RUNNING);
-    await ServicesService.startService(serviceHash);
+    updateServiceStatus(serviceHash, ServiceStatus.RUNNING);
+    return ServicesService.startService(serviceHash);
   };
 
   const stopService = async (serviceHash: string) => {
-    await updateServiceStatus(serviceHash, ServiceStatus.STOPPED);
-    await ServicesService.stopService(serviceHash);
+    updateServiceStatus(serviceHash, ServiceStatus.STOPPED);
+    return ServicesService.stopService(serviceHash);
   };
 
   return {

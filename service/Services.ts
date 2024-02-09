@@ -60,7 +60,7 @@ const deleteService = async (serviceHash: string) =>
   })
     .then((response) => response.json())
     .then((data) => data);
-const startService = async (serviceHash: string) => {
+const startService = async (serviceHash: string) =>
   fetch(`${BACKEND_URL}/services/${serviceHash}/start`, {
     method: "POST",
     headers: {
@@ -71,9 +71,8 @@ const startService = async (serviceHash: string) => {
     .then((data) => {
       return data;
     });
-};
 
-const stopService = async (serviceHash: string) => {
+const stopService = async (serviceHash: string) =>
   fetch(`${BACKEND_URL}/services/${serviceHash}/stop`, {
     method: "POST",
     headers: {
@@ -84,7 +83,6 @@ const stopService = async (serviceHash: string) => {
     .then((data) => {
       return data;
     });
-};
 
 const ServicesService = {
   getServices,
