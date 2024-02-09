@@ -9,12 +9,12 @@ export const SettingsButton = ({ disabled }: { disabled: boolean }) => {
   const items: MenuProps["items"] = useMemo(
     () => [
       {
-        key: "1",
+        key: "rpcs",
         label: "RPCs",
         onClick: () => setRpcModalOpen(true),
       },
       {
-        key: "2",
+        key: "agent-keys",
         label: "Agent Keys",
         disabled: true,
       },
