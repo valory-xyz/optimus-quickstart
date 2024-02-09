@@ -76,6 +76,20 @@ docker run hello-world
 yarn
 ```
 
+### Set master key in the backend folder
+
+Currently the project runs using a Gnosis hardhat node.
+
+On running the following command we are presented with a number of public and private keys. 
+
+```bash
+yarn dev:hardhat
+```
+
+Copy any one of these private keys into `/backend/.operate/master-key.txt`.
+
+Be sure to kill the Hardhat node once you have completed this step.
+
 ### Run the development app
 
 ```bash
