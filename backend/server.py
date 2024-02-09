@@ -85,4 +85,10 @@ def create_app():
 if __name__ == "__main__":
     operate = create_app()
     CORS(operate)
-    operate.run(debug=True, host="0.0.0.0", use_reloader=False)
+    operate.run(
+        debug=True,
+        host="0.0.0.0",
+        # We need this to avoid issues with Flask reloading while building
+        # A potential solution is to move the .operate folder outside the backend folder
+        use_reloader=False
+    )
