@@ -20,34 +20,39 @@
 """This module implements the Olas Operate App backend endpoints."""
 
 
-from controller import Controller
+from controller import Controller, ServerResponse
 from flask import Flask, request
 from flask_cors import CORS
 
 
 def create_app():
+    """Create operate app"""
     controller = Controller()
     operate = Flask(__name__)
 
     # Get services
     @operate.route("/services", methods=["GET"])
     def get_services():
+        """Get services"""
         return controller.get_services()
 
     # Get service vars
     @operate.route("/services/<service_hash>/vars", methods=["GET"])
-    def get_vars(service_hash: str) -> None:
+    def get_vars(service_hash: str) -> ServerResponse:
+        """Get env vars"""
         return controller.get_vars(service_hash)
 
     # Get service keys
     @operate.route("/services/<service_hash>/keys", methods=["GET"])
-    def get_service_keys(service_hash: str) -> None:
+    def get_service_keys(service_hash: str) -> ServerResponse:
+        """Get service keys"""
         return controller.get_service_keys(service_hash)
 
     # Build deployment
     @operate.route("/services/<service_hash>/build", methods=["POST"])
-    def build_deployment(service_hash: str) -> None:
+    def build_deployment(service_hash: str) -> ServerResponse:
         """
+        Build a deployment
         returns {
             fund_requirements: {
                 address: required_funds
@@ -58,17 +63,20 @@ def create_app():
 
     # Delete deployment
     @operate.route("/services/<service_hash>/delete", methods=["POST"])
-    def delete_deployment(service_hash: str) -> None:
+    def delete_deployment(service_hash: str) -> ServerResponse:
+        """Delete a deployment"""
         return controller.delete_deployment(service_hash)
 
     # Start service
     @operate.route("/services/<service_hash>/start", methods=["POST"])
-    def start_service(service_hash: str) -> None:
+    def start_service(service_hash: str) -> ServerResponse:
+        """Start a deployment"""
         return controller.start_service(service_hash)
 
     # Stop service
     @operate.route("/services/<service_hash>/stop", methods=["POST"])
-    def stop_service(service_hash: str) -> None:
+    def stop_service(service_hash: str) -> ServerResponse:
+        """Stop a deployment"""
         return controller.stop_service(service_hash)
 
     return operate

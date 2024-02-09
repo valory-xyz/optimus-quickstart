@@ -4,7 +4,8 @@ import os
 import shutil
 import typing as t
 from pathlib import Path
-
+import docker
+import itertools
 from aea.helpers.yaml_utils import yaml_dump, yaml_load, yaml_load_all
 from aea_cli_ipfs.ipfs_utils import IPFSTool
 from aea_ledger_ethereum.ethereum import EthereumCrypto
@@ -120,6 +121,7 @@ class ServiceManager:
         self.make()
 
         self.keys = KeysManager(path=self._keys)
+        self.docker_client = docker.from_env()
 
     def make(self) -> None:
         """Make the root directory."""
@@ -137,6 +139,14 @@ class ServiceManager:
         """Get service config."""
         with open(self._services / phash / name / SERVICE_YAML, "r") as config_file:
             return [doc for doc in yaml.safe_load_all(config_file)]
+
+    def get_deployment(self, phash: str) -> Path:
+        """Get the deployment path"""
+        return self._services / phash / DEPLOYMENT
+
+    def has_deployment(self, phash: str) -> bool:
+        """Check whether a deployment exists"""
+        return self.get_deployment(phash).is_dir()
 
     def store(self, service: t.Dict) -> None:
         """Store service."""
@@ -501,3 +511,15 @@ class ServiceManager:
             state = self.deploy(reuse_multisig)
 
         return state == OnchainState.DEPLOYED
+
+    def is_running(self, service_hash: str) -> bool:
+        """Check whether a service is running"""
+        running_tags = list(set(itertools.chain.from_iterable([
+            container.image.tags for container in self.docker_client.containers.list()
+        ])))
+
+        service_author, service_name = self.get(service_hash)["name"].split("/")
+        config = self.get_config(service_hash, service_name)
+        agent_hash = config[0]["agent"].split(":")[-1]
+        service_tag = f"{service_author}/oar-{service_name}:{agent_hash}"
+        return service_tag in running_tags
