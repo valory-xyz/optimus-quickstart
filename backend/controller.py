@@ -5,7 +5,6 @@ from aea.helpers.base import IPFSHash
 from service import ServiceManager
 import typing as t
 
-logging.basicConfig(level=logging.DEBUG)
 
 HTTP_OK = 200
 HTTP_BAD_REQUEST = 400
@@ -33,7 +32,7 @@ class Controller:
     def fetch_services(self) -> None:
         """Fetch all services"""
         for service_hash, service_config in self.config["services"].items():
-            logging.debug(f"Fetching {service_config['name']}")
+            logging.info(f"Fetching {service_config['name']}")
             self.manager.fetch(phash=service_hash)
 
     def get_services(self) -> ServerResponse:

@@ -20,8 +20,6 @@ from autonomy.cli.helpers.chain import OnChainHelper
 from autonomy.cli.helpers.chain import ServiceHelper as ServiceManager
 from hexbytes import HexBytes
 
-logging.basicConfig(level=logging.DEBUG)
-
 
 NULL_ADDRESS: str = "0x" + "0" * 40
 MAX_UINT256 = 2**256 - 1
@@ -268,7 +266,7 @@ class OnChainManager:
         token: t.Optional[str] = None,
     ) -> None:
         """Activate service."""
-        logging.info(f"Activating {service_id}...")
+        logging.info(f"Activating service {service_id}...")
         self._patch()
         with contextlib.redirect_stdout(io.StringIO()):
             ServiceManager(
@@ -287,7 +285,7 @@ class OnChainManager:
         token: t.Optional[str] = None,
     ) -> None:
         """Register instance."""
-        logging.info(f"Registering {service_id}...")
+        logging.info(f"Registering service {service_id}...")
         with contextlib.redirect_stdout(io.StringIO()):
             ServiceManager(
                 service_id=service_id,
@@ -307,7 +305,7 @@ class OnChainManager:
         token: t.Optional[str] = None,
     ) -> None:
         """Deploy service."""
-        logging.info(f"Deploying {service_id}...")
+        logging.info(f"Deploying service {service_id}...")
         self._patch()
         with contextlib.redirect_stdout(io.StringIO()):
             ServiceManager(
@@ -327,6 +325,7 @@ class OnChainManager:
         owner_key: str,
     ) -> None:
         """Swap safe owner."""
+        logging.info(f"Swapping safe for service {service_id} [{multisig}]...")
         manager = ServiceManager(
             service_id=service_id,
             chain_type=self.chain_type,
@@ -416,6 +415,7 @@ class OnChainManager:
         token: t.Optional[str] = None,
     ) -> None:
         """Terminate service."""
+        logging.info(f"Terminating service {service_id}...")
         with contextlib.redirect_stdout(io.StringIO()):
             ServiceManager(
                 service_id=service_id,
@@ -431,6 +431,7 @@ class OnChainManager:
         token: t.Optional[str] = None,
     ) -> None:
         """Unbond service."""
+        logging.info(f"Unbonding service {service_id}...")
         with contextlib.redirect_stdout(io.StringIO()):
             ServiceManager(
                 service_id=service_id,
