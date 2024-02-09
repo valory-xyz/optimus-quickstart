@@ -2,8 +2,7 @@ services:
   bafybeifhq2udyttnuidkc7nmtjcfzivbbnfcayixzps7fa5x3cg353bvfe:
     name: trader
     number_of_keys: 1
-    required_funds:
-      - 0.1
+    required_funds: 0.1
     required_envs:
       - rpc
     agent_id: 14

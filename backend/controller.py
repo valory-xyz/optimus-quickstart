@@ -1,12 +1,31 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+# ------------------------------------------------------------------------------
+#
+#   Copyright 2021-2024 Valory AG
+#
+#   Licensed under the Apache License, Version 2.0 (the "License");
+#   you may not use this file except in compliance with the License.
+#   You may obtain a copy of the License at
+#
+#       http://www.apache.org/licenses/LICENSE-2.0
+#
+#   Unless required by applicable law or agreed to in writing, software
+#   distributed under the License is distributed on an "AS IS" BASIS,
+#   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#   See the License for the specific language governing permissions and
+#   limitations under the License.
+#
+# ------------------------------------------------------------------------------
+"""This module implements the controller."""
+
 import logging
 from pathlib import Path
-import docker
 import yaml
 from aea.helpers.base import IPFSHash
 from service import ServiceManager
-import itertools
+import typing as t
 
-logging.basicConfig(level=logging.DEBUG)
 
 HTTP_OK = 200
 HTTP_BAD_REQUEST = 400
@@ -14,11 +33,15 @@ HTTP_SERVER_ERROR = 500
 
 MASTER_KEY = "master-key"
 
+ServerResponse = t.Tuple[t.Dict, int]
+
 
 class Controller:
+    """Controller class"""
+
     def __init__(self) -> None:
+        """Init"""
         self.manager = ServiceManager()
-        self.docker_client = docker.from_env()
 
         # Load configuration
         with open(Path("operate.yaml"), "r") as config_file:
@@ -27,35 +50,35 @@ class Controller:
         # Download all supported services
         self.fetch_services()
 
-    def fetch_services(self):
+    def fetch_services(self) -> None:
+        """Fetch all services"""
         for service_hash, service_config in self.config["services"].items():
-            logging.debug(f"Fetching {service_config['name']}")
+            logging.info(f"Fetching {service_config['name']}")
             self.manager.fetch(phash=service_hash)
 
-    def get_services(self):
-
+    def get_services(self) -> ServerResponse:
+        """Get service info and status"""
         services = self.config["services"]
 
-        running_tags = list(set(itertools.chain.from_iterable([
-            container.image.tags for container in self.docker_client.containers.list()
-        ])))
-
         for service_hash in services.keys():
-            service_author, service_name = self.manager.get(service_hash)["name"].split("/")
-            config = self.manager.get_config(service_hash, service_name)
-            agent_hash = config[0]["agent"].split(":")[-1]
-            service_tag = f"{service_author}/oar-{service_name}:{agent_hash}"
-            services[service_hash]["running"] = service_tag in running_tags
+            services[service_hash]["running"] = self.manager.is_running(service_hash)
 
         return services, HTTP_OK
 
-    def get_vars(self, service_hash):
+    def get_vars(self, service_hash: str) -> ServerResponse:
+        """Get service env vars"""
         return {}, HTTP_OK
 
-    def get_service_keys(self, service_hash):
+    def get_service_keys(self, service_hash: str) -> ServerResponse:
+        """"Get service keys"""
         return {}, HTTP_OK
 
-    def build_deployment(self, service_hash, args):
+    def build_deployment(self, service_hash: str, args: dict) -> ServerResponse:
+        """Build a service deployment"""
+
+        if self.manager.has_deployment(service_hash):
+            return {"error": "Deployment already exists"}, 400
+
         service_config = self.config["services"][service_hash]
         custom_addresses = self.config["chains"][service_config["chain"]]
         rpc = args.get("rpc")
@@ -116,14 +139,29 @@ class Controller:
 
         return response_json, code
 
-    def delete_deployment(self, service_hash):
+    def delete_deployment(self, service_hash: str) -> ServerResponse:
+        """Delete a deployment"""
+
+        if not self.manager.has_deployment(service_hash):
+            return {"error": "Deployment does not exist"}, 400
+
         return {}, HTTP_OK
 
-    def start_service(self, service_hash):
+    def start_service(self, service_hash) -> ServerResponse:
+        """Start a service"""
+
+        if self.manager.is_running(service_hash):
+            return {"error": "Service is already running"}, 400
+
         self.manager.start(phash=service_hash)
         return {}, HTTP_OK
 
-    def stop_service(self, service_hash):
+    def stop_service(self, service_hash) -> ServerResponse:
+        """"Stop a service"""
+
+        if not self.manager.is_running(service_hash):
+            return {"error": "Service is already stopped"}, 400
+
         self.manager.stop(phash=service_hash)
         return {}, HTTP_OK
 
