@@ -20,7 +20,7 @@ export const SpawnRPC = ({ serviceHash }: { serviceHash: string }) => {
   const handleContinue = async () => {
     if (continueIsLoading) return;
     setContinueIsLoading(true);
-    buildService(serviceHash).then(() =>
+    buildService(serviceHash, rpc).then(() =>
       startService(serviceHash).then(() => {
         setContinueIsLoading(false);
         setSpawnState(SpawnState.FUNDS);

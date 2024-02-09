@@ -22,9 +22,9 @@ export const useServices = () => {
       }),
     );
 
-  const buildService = async (serviceHash: string) => {
+  const buildService = async (serviceHash: string, rpc: string) => {
     updateServiceStatus(serviceHash, ServiceStatus.BUILDING);
-    return ServicesService.buildService(serviceHash);
+    return ServicesService.buildService(serviceHash, rpc);
   };
 
   const startService = async (serviceHash: string) => {

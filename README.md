@@ -120,3 +120,9 @@ Then we can prune all the containers by running:
 ```bash
 docker system prune
 ```
+
+## Further notes
+
+- Only one agent can be run at a time. Steps to reset the application must be taken after running and stopping the service.
+- Hardhat node RPC is prepopulated for ease of use.
+- Ensure there are no applications running on ports 3000 and 5000 until port conflicts are resolved.
