@@ -22,6 +22,7 @@ from autonomy.deploy.constants import (
 from autonomy.deploy.generators.docker_compose.base import DockerComposeGenerator
 from protocol import OnChainManager
 from enum import Enum
+import yaml
 
 logging.basicConfig(level=logging.DEBUG)
 
@@ -34,6 +35,7 @@ CONFIG = "config.json"
 KEY = "master-key.txt"
 KEYS_JSON = "keys.json"
 DOCKER_COMPOSE_YAML = "docker-compose.yaml"
+SERVICE_YAML = "service.yaml"
 
 
 def build_dirs(build_dir: Path) -> None:
@@ -130,6 +132,11 @@ class ServiceManager:
     def get(self, phash: str) -> t.Dict:
         """Get service."""
         return json.loads((self._services / phash / CONFIG).read_text(encoding="utf-8"))
+
+    def get_config(self, phash: str, name: str) -> t.Dict:
+        """Get service config."""
+        with open(self._services / phash / name / SERVICE_YAML, "r") as config_file:
+            return [doc for doc in yaml.safe_load_all(config_file)]
 
     def store(self, service: t.Dict) -> None:
         """Store service."""
