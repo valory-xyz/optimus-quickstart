@@ -83,3 +83,26 @@ yarn dev
 ```
 
 This will run Electron, NextJS, Flask, and Hardhat concurrently.
+
+## Resetting the application
+
+The project does not yet delete services. Therefore we must manually delete them.
+
+### Deleting deployments
+
+After building a service, the service deployment will be added to `backend/.operate/services/SERVICE_HASH`.
+This folder must be deleted prior to rebuilding.
+
+### Checking for lingering Docker containers
+
+Ensure that there are no Docker containers left running by the application.
+
+We can stop all containers by running the following command:
+```bash
+docker stop $(docker ps -a -q)
+```
+
+Then we can prune all the containers by running:
+```bash
+docker system prune
+```
