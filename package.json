@@ -41,7 +41,7 @@
   "private": true,
   "scripts": {
     "build": "",
-    "dev": "concurrently -n \"NEXT,ELECTRON,FLASK,HARDHAT\" -c \"red,blue,green,yellow\" \"next dev\" \"electron .\" \"yarn dev:python\" \"yarn dev:hardhat\"",
+    "dev": "concurrently -n \"NEXT,ELECTRON,FLASK,HARDHAT\" -c \"red,blue,green,yellow\" --kill-others \"next dev\" \"electron .\" \"yarn dev:python\" \"yarn dev:hardhat\"",
     "dev:next": "next dev",
     "dev:python": "cd backend; poetry run python server.py",
     "dev:hardhat": "CHAIN_ID=100 npx hardhat node --fork https://lb.nodies.app/v1/406d8dcc043f4cb3959ed7d6673d311a",
