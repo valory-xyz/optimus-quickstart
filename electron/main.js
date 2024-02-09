@@ -9,6 +9,7 @@ const createWindow = () => {
     height: 1321,
     show: false,
     title: "Olas Operate",
+    resizable: false,
   });
 
   splashWindow = new BrowserWindow({
@@ -23,7 +24,7 @@ const createWindow = () => {
   mainWindow.setMenuBarVisibility(false);
   mainWindow.loadURL("http://localhost:3000");
 
-  mainWindow.webContents.openDevTools();
+  // mainWindow.webContents.openDevTools();
 
   mainWindow.webContents.on("did-fail-load", () => {
     mainWindow.webContents.reloadIgnoringCache();
