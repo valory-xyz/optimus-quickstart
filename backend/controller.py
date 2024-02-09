@@ -1,9 +1,10 @@
 import logging
 from pathlib import Path
-
+import docker
 import yaml
 from aea.helpers.base import IPFSHash
-from service import KEYS, OPERATE, KeysManager, ServiceManager
+from service import ServiceManager
+import itertools
 
 logging.basicConfig(level=logging.DEBUG)
 
@@ -17,6 +18,8 @@ MASTER_KEY = "master-key"
 class Controller:
     def __init__(self) -> None:
         self.manager = ServiceManager()
+        self.docker_client = docker.from_env()
+
         # Load configuration
         with open(Path("operate.yaml"), "r") as config_file:
             self.config = [doc for doc in yaml.safe_load_all(config_file)][0]
@@ -30,7 +33,21 @@ class Controller:
             self.manager.fetch(phash=service_hash)
 
     def get_services(self):
-        return self.config["services"], HTTP_OK
+
+        services = self.config["services"]
+
+        running_tags = list(set(itertools.chain.from_iterable([
+            container.image.tags for container in self.docker_client.containers.list()
+        ])))
+
+        for service_hash in services.keys():
+            service_author, service_name = self.manager.get(service_hash)["name"].split("/")
+            config = self.manager.get_config(service_hash, service_name)
+            agent_hash = config[0]["agent"].split(":")[-1]
+            service_tag = f"{service_author}/oar-{service_name}:{agent_hash}"
+            services[service_hash]["running"] = service_tag in running_tags
+
+        return services, HTTP_OK
 
     def get_vars(self, service_hash):
         return {}, HTTP_OK
@@ -110,11 +127,3 @@ class Controller:
         self.manager.stop(phash=service_hash)
         return {}, HTTP_OK
 
-
-# controller = Controller()
-# controller.build_deployment(
-#     "bafybeifhq2udyttnuidkc7nmtjcfzivbbnfcayixzps7fa5x3cg353bvfe",
-#     {"rpc": "http://localhost:8545"}
-# )
-# controller.start_service("bafybeifhq2udyttnuidkc7nmtjcfzivbbnfcayixzps7fa5x3cg353bvfe")
-# controller.stop_service("bafybeifhq2udyttnuidkc7nmtjcfzivbbnfcayixzps7fa5x3cg353bvfe")
