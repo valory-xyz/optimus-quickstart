@@ -575,5 +575,6 @@ class ServiceManager:
             return None
 
         # Remove previous build
+        # TODO, pending sudo issues with nodes folder
 
         return latest_hash
