@@ -41,7 +41,7 @@ class Controller:
         services = self.config["services"]
 
         for service_hash in services.keys():
-            services[service_hash] = self.manager.is_running(service_hash)
+            services[service_hash]["running"] = self.manager.is_running(service_hash)
 
         return services, HTTP_OK
 
