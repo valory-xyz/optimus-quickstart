@@ -21,11 +21,9 @@
 
 from aea.helpers.base import IPFSHash
 from aea_ledger_ethereum.ethereum import EthereumApi, EthereumCrypto
-from autonomy.chain.base import registry_contracts
-from autonomy.chain.config import ChainType
-from protocol import OnChainManager
+import sys
+sys.path.append('../backend')
 from service import ServiceManager
-from web3 import HTTPProvider, Web3
 
 phash = "bafybeifhq2udyttnuidkc7nmtjcfzivbbnfcayixzps7fa5x3cg353bvfe"
 gnosis = {
