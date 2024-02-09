@@ -18,8 +18,9 @@ export const SpawnDone = ({ serviceHash }: { serviceHash: string }) => {
   const handleViewAgent = () => {
     addAgent({
       id: 1,
-      name: "Test Agent",
-      description: "Test description",
+      name: "Prediction Agent",
+      description:
+        "Participates in prediction markets according to your strategy.",
       image_src: "/marketplace/prediction-agent.png",
       status: AgentStatus.RUNNING,
       earnings_24h: 0,

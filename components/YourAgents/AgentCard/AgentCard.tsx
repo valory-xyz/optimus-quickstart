@@ -2,7 +2,7 @@ import { AgentStatus } from "@/enums/AgentStatus";
 import { useAgents } from "@/hooks/useAgents";
 import { useServices } from "@/hooks/useServices";
 import { Agent } from "@/types/Agent";
-import { Card, Flex, Typography, Button } from "antd";
+import { Card, Flex, Typography, Button, Badge } from "antd";
 import Image from "next/image";
 import { useCallback, useMemo, useState } from "react";
 
@@ -63,7 +63,7 @@ export const AgentCard = ({ agent }: AgentCardProps) => {
           >
             Start this agent
           </Button>
-          <Button danger onClick={() => removeAgent(agent)}>
+          <Button danger onClick={() => removeAgent(agent)} disabled>
             Delete this agent
           </Button>
         </Flex>
@@ -72,24 +72,35 @@ export const AgentCard = ({ agent }: AgentCardProps) => {
     return null;
   }, [agent, handleStart, handleStop, isStarting, isStopping, removeAgent]);
 
+  const agentStatus = useMemo(() => {
+    if (agent.status === AgentStatus.RUNNING) {
+      return <Badge status="success" text="Running" />;
+    }
+    if (agent.status === AgentStatus.STOPPED) {
+      return <Badge status="error" text="Stopped" />;
+    }
+    return "Unknown";
+  }, [agent.status]);
+
   return (
     <Card>
       <Flex gap={16}>
         <Image src={agent.image_src} alt="Image" width={200} height={200} />
         <Flex vertical>
           <Typography.Title level={3}>{agent.name}</Typography.Title>
+          <Typography.Text>{agent.description}</Typography.Text>
           <Flex gap={"large"} justify="space-between">
             <Flex vertical>
               <Typography.Text strong>STATUS</Typography.Text>
-              <Typography.Text>{agent.status}</Typography.Text>
+              <Typography.Text>{agentStatus}</Typography.Text>
             </Flex>
             <Flex vertical>
               <Typography.Text strong>EARNINGS 24H</Typography.Text>
-              <Typography.Text>{agent.earnings_24h}</Typography.Text>
+              <Typography.Text>$ {agent.earnings_24h}</Typography.Text>
             </Flex>
             <Flex vertical>
               <Typography.Text strong>TOTAL BALANCE</Typography.Text>
-              <Typography.Text>{agent.total_balance}</Typography.Text>
+              <Typography.Text>$ {agent.total_balance}</Typography.Text>
             </Flex>
           </Flex>
           <Flex style={{ marginTop: "auto" }}>{button}</Flex>

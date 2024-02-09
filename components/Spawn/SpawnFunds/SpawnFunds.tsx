@@ -19,19 +19,21 @@ export const SpawnFunds = ({ serviceHash }: { serviceHash: string }) => {
     () =>
       mockRequiresFunds.map((mock) => ({
         children: (
-          <Flex gap={8} vertical key={mock.to}>
-            <Typography.Text>
-              Send {mock.amount} {mock.currency} to: {mock.to}
-            </Typography.Text>
-            <Flex gap={8}>
-              <Button type="primary" onClick={() => copyToClipboard(mock.to)}>
-                Copy address
-              </Button>
-              <Button type="default" disabled>
-                Show QR
-              </Button>
+          <>
+            <Flex gap={8} vertical key={mock.to}>
+              <Typography.Text>
+                Send {mock.amount} {mock.currency} to: {mock.to}
+              </Typography.Text>
+              <Flex gap={8}>
+                <Button type="primary" onClick={() => copyToClipboard(mock.to)}>
+                  Copy address
+                </Button>
+                <Button type="default" disabled>
+                  Show QR
+                </Button>
+              </Flex>
             </Flex>
-          </Flex>
+          </>
         ),
       })),
     [],
@@ -43,16 +45,18 @@ export const SpawnFunds = ({ serviceHash }: { serviceHash: string }) => {
   );
 
   return (
-    <Flex gap={8} vertical>
-      <Typography.Text>Your agent needs funds!</Typography.Text>
-      <Timeline items={items} />
-      <Button
-        type="default"
-        disabled={!hasSentAllFunds}
-        onClick={handleContinue}
-      >
-        Continue
-      </Button>
-    </Flex>
+    <>
+      <Flex gap={8} vertical>
+        <Typography.Text>Your agent needs funds!</Typography.Text>
+        <Timeline items={items} />
+        <Button
+          type="default"
+          disabled={!hasSentAllFunds}
+          onClick={handleContinue}
+        >
+          Continue
+        </Button>
+      </Flex>
+    </>
   );
 };
