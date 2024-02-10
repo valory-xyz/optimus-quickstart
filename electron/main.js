@@ -13,7 +13,10 @@ const DEFAULT_PORTS = {
   hardhat: 8545,
 };
 
-const killAllProcesses = () => processList.forEach((p) => p.kill());
+const killAllProcesses = () =>
+  processList.forEach((p) => {
+    p.kill();
+  });
 
 const launchProcesses = async () => {
   let flaskPort = DEFAULT_PORTS.flask,
@@ -199,4 +202,12 @@ app.whenReady().then(() => {
   tray.on("click", () => {
     mainWindow.show();
   });
+});
+
+process.on("SIGINT", () => {
+  console.log(
+    "Main process received SIGINT signal. Killing all child processes...",
+  );
+  killAllProcesses();
+  app.quit();
 });
