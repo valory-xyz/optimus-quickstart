@@ -12,6 +12,7 @@ open-aea-ledger-ethereum = "^1.46.0"
 flask = "2.0.2"
 petname = "^2.6"
 flask-cors = "^4.0.0"
+docker = "6.1.2"
 
 
 [build-system]

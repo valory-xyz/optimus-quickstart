@@ -1,10 +1,32 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+# ------------------------------------------------------------------------------
+#
+#   Copyright 2021-2024 Valory AG
+#
+#   Licensed under the Apache License, Version 2.0 (the "License");
+#   you may not use this file except in compliance with the License.
+#   You may obtain a copy of the License at
+#
+#       http://www.apache.org/licenses/LICENSE-2.0
+#
+#   Unless required by applicable law or agreed to in writing, software
+#   distributed under the License is distributed on an "AS IS" BASIS,
+#   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#   See the License for the specific language governing permissions and
+#   limitations under the License.
+#
+# ------------------------------------------------------------------------------
+"""This module implements the service manager class."""
+
 import json
 import logging
 import os
 import shutil
 import typing as t
 from pathlib import Path
-
+import docker
+import itertools
 from aea.helpers.yaml_utils import yaml_dump, yaml_load, yaml_load_all
 from aea_cli_ipfs.ipfs_utils import IPFSTool
 from aea_ledger_ethereum.ethereum import EthereumCrypto
@@ -22,6 +44,7 @@ from autonomy.deploy.constants import (
 from autonomy.deploy.generators.docker_compose.base import DockerComposeGenerator
 from protocol import OnChainManager
 from enum import Enum
+import yaml
 
 logging.basicConfig(level=logging.DEBUG)
 
@@ -34,6 +57,7 @@ CONFIG = "config.json"
 KEY = "master-key.txt"
 KEYS_JSON = "keys.json"
 DOCKER_COMPOSE_YAML = "docker-compose.yaml"
+SERVICE_YAML = "service.yaml"
 
 
 def build_dirs(build_dir: Path) -> None:
@@ -118,6 +142,7 @@ class ServiceManager:
         self.make()
 
         self.keys = KeysManager(path=self._keys)
+        self.docker_client = docker.from_env()
 
     def make(self) -> None:
         """Make the root directory."""
@@ -130,6 +155,19 @@ class ServiceManager:
     def get(self, phash: str) -> t.Dict:
         """Get service."""
         return json.loads((self._services / phash / CONFIG).read_text(encoding="utf-8"))
+
+    def get_config(self, phash: str, name: str) -> t.Dict:
+        """Get service config."""
+        with open(self._services / phash / name / SERVICE_YAML, "r") as config_file:
+            return [doc for doc in yaml.safe_load_all(config_file)]
+
+    def get_deployment(self, phash: str) -> Path:
+        """Get the deployment path"""
+        return self._services / phash / DEPLOYMENT
+
+    def has_deployment(self, phash: str) -> bool:
+        """Check whether a deployment exists"""
+        return self.get_deployment(phash).is_dir()
 
     def store(self, service: t.Dict) -> None:
         """Store service."""
@@ -494,3 +532,15 @@ class ServiceManager:
             state = self.deploy(reuse_multisig)
 
         return state == OnchainState.DEPLOYED
+
+    def is_running(self, service_hash: str) -> bool:
+        """Check whether a service is running"""
+        running_tags = list(set(itertools.chain.from_iterable([
+            container.image.tags for container in self.docker_client.containers.list()
+        ])))
+
+        service_author, service_name = self.get(service_hash)["name"].split("/")
+        config = self.get_config(service_hash, service_name)
+        agent_hash = config[0]["agent"].split(":")[-1]
+        service_tag = f"{service_author}/oar-{service_name}:{agent_hash}"
+        return service_tag in running_tags
