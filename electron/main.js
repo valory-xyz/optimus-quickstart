@@ -210,4 +210,5 @@ process.on("SIGINT", () => {
   );
   killAllProcesses();
   app.quit();
+  process.exit();
 });
