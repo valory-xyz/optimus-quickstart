@@ -1,9 +1,118 @@
 const { app, BrowserWindow, Tray, Menu, shell } = require("electron");
 const path = require("path");
+const { spawn, exec } = require("child_process");
+const { isPortAvailable, portRange, findAvailablePort } = require("./ports");
 
 let tray, mainWindow, splashWindow;
+let flaskProcess, nextProcess, hardhatProcess;
+let processList = [];
 
-const createWindow = () => {
+const DEFAULT_PORTS = {
+  flask: 5000,
+  next: 3000,
+  hardhat: 8545,
+};
+
+const killAllProcesses = () => processList.forEach((p) => p.kill());
+
+const launchProcesses = async () => {
+  let flaskPort = DEFAULT_PORTS.flask,
+    nextPort = DEFAULT_PORTS.next,
+    hardhatPort = DEFAULT_PORTS.hardhat;
+
+  // flask
+  try {
+    const flaskPortAvailable = await isPortAvailable(flaskPort);
+    if (!flaskPortAvailable) {
+      flaskPort = await findAvailablePort(
+        portRange.startPort,
+        portRange.endPort,
+      );
+    }
+  } catch (error) {
+    console.error("Error checking Flask port: ", error);
+    app.quit();
+  }
+
+  flaskProcess = exec(`yarn dev:python`);
+  processList.push(flaskProcess);
+  flaskProcess.stdout.on("data", (data) =>
+    console.log("[FLASK]: ", data.toString()),
+  );
+  flaskProcess.stderr.on("data", (data) =>
+    console.error("[FLASK]: ", data.toString()),
+  );
+
+  // next
+  try {
+    const nextPortAvailable = await isPortAvailable(DEFAULT_PORTS.next);
+    if (!nextPortAvailable) {
+      nextPort = await findAvailablePort(
+        portRange.startPort,
+        portRange.endPort,
+      );
+    }
+  } catch (error) {
+    console.error("Error checking Next port: ", error);
+    app.quit();
+  }
+
+  nextProcess = exec(
+    `cross-env NEXT_PUBLIC_FLASK_PORT=${flaskPort} next dev --port=${nextPort}`,
+  );
+  processList.push(nextProcess);
+  nextProcess.stdout.on("data", (data) =>
+    console.log("[NEXT]: ", data.toString()),
+  );
+  nextProcess.stderr.on("data", (data) =>
+    console.error("[NEXT]: ", data.toString()),
+  );
+
+  // hardhat
+  try {
+    const hardhatPortAvailable = await isPortAvailable(DEFAULT_PORTS.hardhat);
+    if (!hardhatPortAvailable) {
+      hardhatPort = await findAvailablePort(
+        portRange.startPort,
+        portRange.endPort,
+      );
+    }
+  } catch (error) {
+    console.error("Error checking Hardhat port: ", error);
+    app.quit();
+  }
+
+  hardhatProcess = exec(`npx hardhat node --port ${hardhatPort}`);
+  processList.push(hardhatProcess);
+  hardhatProcess.stdout.on("data", (data) =>
+    console.log("[HARDHAT]: ", data.toString()),
+  );
+  hardhatProcess.stderr.on("data", (data) =>
+    console.error("[HARDHAT]: ", data.toString()),
+  );
+
+  return {
+    flaskProcess,
+    nextProcess,
+    hardhatProcess,
+    flaskPort,
+    nextPort,
+    hardhatPort,
+  };
+};
+
+const createSplashWindow = () => {
+  splashWindow = new BrowserWindow({
+    width: 856,
+    height: 1321,
+    frame: false,
+    alwaysOnTop: false,
+  });
+
+  splashWindow.loadURL("file://" + __dirname + "/loading.html");
+};
+
+const createMainWindow = (nextPort) => {
   mainWindow = new BrowserWindow({
     width: 856,
     height: 1321,
@@ -18,19 +127,10 @@ const createWindow = () => {
     return { action: "deny" };
   });
 
-  splashWindow = new BrowserWindow({
-    width: 856,
-    height: 1321,
-    frame: false,
-    alwaysOnTop: true,
-  });
-
-  splashWindow.loadURL("file://" + __dirname + "/loading.html");
-
   mainWindow.setMenuBarVisibility(false);
-  mainWindow.loadURL("http://localhost:3000");
+  mainWindow.loadURL(`http://localhost:${nextPort}`);
 
-  // mainWindow.webContents.openDevTools();
+  mainWindow.webContents.openDevTools();
 
   mainWindow.webContents.on("did-fail-load", () => {
     mainWindow.webContents.reloadIgnoringCache();
@@ -55,11 +155,13 @@ const createWindow = () => {
   });
 };
 
-app.on("ready", () => {
-  createWindow();
+app.on("ready", async () => {
+  createSplashWindow();
+  const { nextPort } = await launchProcesses();
+  createMainWindow(nextPort);
   app.on("activate", () => {
     if (BrowserWindow.getAllWindows().length === 0) {
-      createWindow();
+      createMainWindow();
     }
   });
 });
@@ -68,6 +170,11 @@ app.on("window-all-closed", () => {
   if (process.platform !== "darwin") {
     app.quit();
   }
+});
+
+app.on("before-quit", () => {
+  app.isQuiting = true;
+  killAllProcesses();
 });
 
 app.whenReady().then(() => {
