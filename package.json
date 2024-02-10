@@ -42,7 +42,6 @@
   "name": "olas-operate-app",
   "private": true,
   "scripts": {
-    "build": "",
     "dev:next": "next dev",
     "dev:python": "cd backend; poetry run python server.py",
     "dev:hardhat": "npx hardhat node --fork https://lb.nodies.app/v1/406d8dcc043f4cb3959ed7d6673d311a",
