@@ -1,6 +1,6 @@
 const { app, BrowserWindow, Tray, Menu, shell } = require("electron");
 const path = require("path");
-const { spawn, exec } = require("child_process");
+const { exec } = require("child_process");
 const { isPortAvailable, portRange, findAvailablePort } = require("./ports");
 
 let tray, mainWindow, splashWindow;
