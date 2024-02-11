@@ -1,28 +1,32 @@
 import { Tab } from "@/enums/Tabs";
-import { useAgents } from "@/hooks/useAgents";
 import { useTabs } from "@/hooks/useTabs";
 import { Button, Flex, Typography } from "antd";
-import { AgentCard } from "./AgentCard/AgentCard";
+
+import { useServices } from "@/hooks/useServices";
+import { ServiceCard } from "./ServiceCard/ServiceCard";
 
 export const YourAgents = () => {
-  const { agents } = useAgents();
+  const { services } = useServices();
 
-  const hasAgents = agents?.length > 0;
+  const hasAgents = services.reduce(
+    (acc, service) => (acc || service.running ? true : acc),
+    false,
+  );
 
-  return <>{hasAgents ? <HasAgents agents={agents} /> : <NoAgents />}</>;
+  return hasAgents ? <HasServices services={services} /> : <NoAgents />;
 };
 
-export const HasAgents = ({ agents }: { agents: any[] }) => {
+const HasServices = ({ services }: { services: any[] }) => {
   return (
     <Flex vertical gap={16}>
-      {agents.map((agent) => (
-        <AgentCard key={agent.id} agent={agent} />
+      {services.map((service) => (
+        <ServiceCard key={service.id} service={service} />
       ))}
     </Flex>
   );
 };
 
-export const NoAgents = () => {
+const NoAgents = () => {
   const { setActiveTab } = useTabs();
   return (
     <Flex vertical justify="center" align="center">
