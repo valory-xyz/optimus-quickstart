@@ -192,7 +192,6 @@ app.whenReady().then(() => {
     {
       label: "Quit",
       click: function () {
-        app.isQuiting = true;
         app.quit();
       },
     },
