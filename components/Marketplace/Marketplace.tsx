@@ -1,31 +1,37 @@
 import { Flex } from "antd";
 import { MarketplaceItemCard } from "./MarketplaceItemCard/MarketplaceItemCard";
-import { MARKETPLACE_ITEMS } from "@/constants/marketplace";
-import type { MarketplaceItem } from "@/types/MarketplaceItem";
 import { useServices } from "@/hooks/useServices";
+import { SERVICE_META } from "@/constants/serviceMeta";
+import { useMemo } from "react";
+import { ServiceMeta } from "@/types/ServiceMeta";
+import { Service } from "@/types/Service";
 
 export const Marketplace = () => {
   const { services } = useServices();
 
-  const marketPlaceItems = services.map((service) => ({
-    marketplaceItem: MARKETPLACE_ITEMS[service.name],
-    serviceHash: service.hash,
-  }));
+  const marketPlaceItems = useMemo(
+    () =>
+      services.map((service) => ({
+        serviceMeta: SERVICE_META[service.name],
+        service,
+      })),
+    [services],
+  );
 
   return (
     <Flex vertical>
       {marketPlaceItems.map(
         ({
-          marketplaceItem,
-          serviceHash,
+          serviceMeta,
+          service,
         }: {
-          marketplaceItem: MarketplaceItem;
-          serviceHash: string;
+          serviceMeta: ServiceMeta;
+          service: Service;
         }) => (
           <MarketplaceItemCard
-            key={marketplaceItem.id}
-            marketplaceItem={marketplaceItem}
-            serviceHash={serviceHash}
+            key={serviceMeta.id}
+            serviceMeta={serviceMeta}
+            service={service}
             marginBottom={8}
           />
         ),
