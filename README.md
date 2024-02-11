@@ -100,13 +100,6 @@ This will run Electron, NextJS, Flask, and Hardhat concurrently.
 
 ## Resetting the application
 
-The project does not yet delete services. Therefore we must manually delete them.
-
-### Deleting deployments
-
-After building a service, the service deployment will be added to `backend/.operate/services/SERVICE_HASH`.
-This folder must be deleted prior to rebuilding.
-
 ### Checking for lingering Docker containers
 
 Ensure that there are no Docker containers left running by the application.
@@ -121,8 +114,21 @@ Then we can prune all the containers by running:
 docker system prune
 ```
 
+### Check for lingering processes on quit
+
+Known bug where Next & Flask processes may linger after killing the application.
+
+Check for lingering processes by running:
+```bash
+ps -a
+```
+
+Kill all lingering processes by running
+```bash
+killall electron python node next-server
+``` 
+
 ## Further notes
 
-- Only one agent can be run at a time. Steps to reset the application must be taken after running and stopping the service.
+- Only one agent can be run at a time.
 - Hardhat node RPC is prepopulated for ease of use.
-- Ensure there are no applications running on ports 3000 and 5000 until port conflicts are resolved.
