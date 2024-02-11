@@ -7,7 +7,7 @@ import {
 import { SpawnState } from "@/enums/SpawnState";
 import { useSpawn } from "@/hooks/useSpawn";
 import { GetServerSidePropsContext } from "next";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 
 export const getServerSideProps = async (
   context: GetServerSidePropsContext,
@@ -19,18 +19,27 @@ export const getServerSideProps = async (
 export const SpawnPage = ({ serviceHash }: { serviceHash: string }) => {
   const { spawnState } = useSpawn();
 
+  const [fundRequirements, setFundRequirements] = useState<{
+    [address: string]: number;
+  }>({});
+
   const spawnScreen = useMemo(() => {
     if (spawnState === SpawnState.RPC) {
       return <SpawnRPC serviceHash={serviceHash} />;
     }
     if (spawnState === SpawnState.FUNDS) {
-      return <SpawnFunds serviceHash={serviceHash} />;
+      return (
+        <SpawnFunds
+          fundRequirements={fundRequirements}
+          setFundRequirements={setFundRequirements}
+        />
+      );
     }
     if (spawnState === SpawnState.DONE) {
-      return <SpawnDone serviceHash={serviceHash} />;
+      return <SpawnDone />;
     }
     return null;
-  }, [serviceHash, spawnState]);
+  }, [fundRequirements, serviceHash, spawnState]);
 
   return (
     <>
