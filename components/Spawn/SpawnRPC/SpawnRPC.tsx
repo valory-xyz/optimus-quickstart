@@ -1,32 +1,46 @@
-import { Button, Flex, Input, Timeline, Typography } from "antd";
+import { Button, Flex, Input, Timeline, Typography, message } from "antd";
 import { NODIES_URL } from "@/constants/urls";
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { useSpawn } from "@/hooks/useSpawn";
 import { useServices } from "@/hooks/useServices";
 import { SpawnState } from "@/enums";
+import { BuildServiceResponse } from "@/types/BuildServiceResponse";
 
 export const SpawnRPC = ({ serviceHash }: { serviceHash: string }) => {
   const { setSpawnState } = useSpawn();
   const { buildService, startService } = useServices();
 
-  const [rpc, setRpc] = useState("http://localhost:8545");
-
+  const [rpc, setRpc] = useState("http://localhost:8545"); // default to hardhat node
   const [continueIsLoading, setContinueIsLoading] = useState(false);
 
   const handlePaste = () => {
     navigator.clipboard.readText().then((text) => setRpc(text));
   };
 
-  const handleContinue = async () => {
-    if (continueIsLoading) return;
+  const handleContinue = useCallback(async () => {
+    if (continueIsLoading)
+      return message.info("Please wait for the current action to complete");
     setContinueIsLoading(true);
-    buildService(serviceHash, rpc).then(() =>
-      startService(serviceHash).then(() => {
-        setContinueIsLoading(false);
-        setSpawnState(SpawnState.FUNDS);
-      }),
-    );
-  };
+    buildService(serviceHash, rpc)
+      .then((res: BuildServiceResponse) => {
+        startService(serviceHash)
+          .then(() => {
+            setSpawnState(SpawnState.FUNDS);
+          })
+          .catch((err) => message.error(err.message));
+      })
+      .catch((err) => {
+        message.error(err.message);
+      })
+      .finally(() => setContinueIsLoading(false));
+  }, [
+    buildService,
+    continueIsLoading,
+    rpc,
+    serviceHash,
+    setSpawnState,
+    startService,
+  ]);
 
   const items = useMemo(
     () => [

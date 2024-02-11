@@ -1,31 +1,59 @@
 import { SpawnState } from "@/enums/SpawnState";
 import { copyToClipboard } from "@/helpers/copyToClipboard";
 import { useSpawn } from "@/hooks/useSpawn";
-import { Button, Flex, Timeline, Typography } from "antd";
-import { useMemo } from "react";
+import { Button, Flex, Timeline, Typography, message } from "antd";
+import { Dispatch, SetStateAction, useMemo } from "react";
 
 const mockRequiresFunds = [
   { amount: 0.1, currency: "xDAI", to: "0xTest", recieved: true },
 ];
 
-export const SpawnFunds = ({ serviceHash }: { serviceHash: string }) => {
+export const SpawnFunds = ({
+  fundRequirements,
+  setFundRequirements,
+}: {
+  fundRequirements: { [address: string]: number };
+  setFundRequirements: Dispatch<SetStateAction<{ [address: string]: number }>>;
+}) => {
   const { setSpawnState } = useSpawn();
 
   const handleContinue = () => {
     setSpawnState(SpawnState.DONE);
   };
 
+  // Temporary transformation of fundRequirements until backend updated
+  const transformedFundRequirements: {
+    address: string;
+    required: number;
+    received: boolean;
+  }[] = useMemo(
+    () =>
+      Object.keys(fundRequirements).map((address) => ({
+        address,
+        required: fundRequirements[address],
+        received: false,
+      })),
+    [fundRequirements],
+  );
+
   const items = useMemo(
     () =>
-      mockRequiresFunds.map((mock) => ({
+      transformedFundRequirements.map((fundRequirement) => ({
         children: (
           <>
-            <Flex gap={8} vertical key={mock.to}>
+            <Flex gap={8} vertical key={fundRequirement.address}>
               <Typography.Text>
-                Send {mock.amount} {mock.currency} to: {mock.to}
+                Send {fundRequirement.required} XDAI to:{" "}
+                {fundRequirement.address}
               </Typography.Text>
               <Flex gap={8}>
-                <Button type="primary" onClick={() => copyToClipboard(mock.to)}>
+                <Button
+                  type="primary"
+                  onClick={() => {
+                    copyToClipboard(fundRequirement.address);
+                    message.success("Copied to clipboard");
+                  }}
+                >
                   Copy address
                 </Button>
                 <Button type="default" disabled>
@@ -36,7 +64,7 @@ export const SpawnFunds = ({ serviceHash }: { serviceHash: string }) => {
           </>
         ),
       })),
-    [],
+    [transformedFundRequirements],
   );
 
   const hasSentAllFunds = useMemo(
