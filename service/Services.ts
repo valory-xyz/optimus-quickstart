@@ -1,4 +1,5 @@
 import { BACKEND_URL } from "@/constants/urls";
+import { BuildServiceResponse } from "@/types/BuildServiceResponse";
 
 const getServices = async () =>
   fetch(`${BACKEND_URL}/services`, {
@@ -38,7 +39,10 @@ const getServiceKeys = async (serviceHash: string) =>
       data;
     });
 
-const buildService = async (serviceHash: string, rpc: string) =>
+const buildService = async (
+  serviceHash: string,
+  rpc: string,
+): Promise<BuildServiceResponse> =>
   fetch(`${BACKEND_URL}/services/${serviceHash}/build`, {
     method: "POST",
     headers: {
@@ -47,9 +51,7 @@ const buildService = async (serviceHash: string, rpc: string) =>
     body: JSON.stringify({ rpc }),
   })
     .then((response) => response.json())
-    .then((data) => {
-      return data;
-    });
+    .then((data) => data);
 
 const deleteService = async (serviceHash: string) =>
   fetch(`${BACKEND_URL}/services/${serviceHash}/delete`, {
