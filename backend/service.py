@@ -42,9 +42,10 @@ from autonomy.deploy.constants import (
     VENVS_DIR,
 )
 from autonomy.deploy.generators.docker_compose.base import DockerComposeGenerator
-from protocol import OnChainManager
+from protocol import OnChainManager, OnchainState
 from enum import Enum
 import yaml
+from repo import Repo
 
 logging.basicConfig(level=logging.DEBUG)
 
@@ -174,6 +175,17 @@ class ServiceManager:
         (self._services / str(service["hash"]) / CONFIG).write_text(
             json.dumps(
                 service,
+                indent=4,
+            )
+        )
+
+    def update_store(self, phash, **kwargs) -> None:
+        """Store service."""
+        data = self.get(phash)
+        data.update(**kwargs)
+        (self._services / phash / CONFIG).write_text(
+            json.dumps(
+                data,
                 indent=4,
             )
         )
@@ -491,47 +503,6 @@ class ServiceManager:
             owner_key=self.keys.get(key=owner).get("private_key"),
         )
 
-    def onchain_setup(
-        self,
-        phash: str,
-        rpc: str,
-        custom_addresses: t.Optional[t.Dict] = None,
-    ) -> None:
-        service = self.get(phash=phash)
-        info = self.info(
-            token_id=service["token"],
-            rpc=rpc,
-            custom_addresses=custom_addresses or {},
-        )
-        state = ServiceState(info["service_state"])
-
-        if not self.minted:
-            self.mint()
-
-        if needs_update:
-            if state == OnchainState.DEPLOYED and safe.owner == agent:
-                state = self.safe_swap(operator)
-
-            if state == OnchainState.DEPLOYED:
-                state = self.terminate()
-
-            if state == OnchainState.TERMINATED_BONDED:
-                state = self.unbond()
-
-            if state == OnchainState.PRE_REGISTRATION:
-                state = self.mint(update)
-
-        if state == OnchainState.PRE_REGISTRATION:
-            state = self.activate()
-
-        if state == OnchainState.ACTIVE_REGISTRATION:
-            state = self.register()
-
-        if state == OnchainState.FINISHED_REGISTRATION:
-            reuse_multisig = is_update
-            state = self.deploy(reuse_multisig)
-
-        return state == OnchainState.DEPLOYED
 
     def is_running(self, service_hash: str) -> bool:
         """Check whether a service is running"""
@@ -544,3 +515,70 @@ class ServiceManager:
         agent_hash = config[0]["agent"].split(":")[-1]
         service_tag = f"{service_author}/oar-{service_name}:{agent_hash}"
         return service_tag in running_tags
+
+
+    def is_built(self, service_hash: str) -> bool:
+        """Check whether a service is built"""
+        return (self._services / service_hash / DEPLOYMENT).is_dir()
+
+
+    def get_state(self, phash: str, custom_addresses: t.Optional[t.Dict]) -> OnchainState:
+        """Get the onchain state"""
+        service = self.get(phash=phash)
+        info = self.info(
+            token_id=service["token"],
+            rpc=service["rpc"],
+            custom_addresses=custom_addresses or {},
+        )
+        return OnchainState(info["service_state"])
+
+
+    def update_service(
+        self,
+        phash: str,
+        repo_str: str,
+        custom_addresses: t.Optional[t.Dict] = None,
+    ) -> t.Optional[str]:
+        """Update the service to the latest version"""
+        repo = Repo(repo_str)
+        latest_hash = repo.get_service_hash()
+
+        if not latest_hash:
+            return None
+
+        # Fetch the new service
+        self.fetch(latest_hash)
+
+        # Copy keys and config from the current service
+
+        # Run the onchain update
+        if self.get_state(latest_hash, custom_addresses) == OnchainState.DEPLOYED and safe.owner == agent:
+            self.swap(operator)
+
+        if self.get_state(latest_hash, custom_addresses) == OnchainState.DEPLOYED:
+            self.terminate()
+
+        if self.get_state(latest_hash, custom_addresses) == OnchainState.TERMINATED_BONDED:
+            self.unbond()
+
+        if self.get_state(latest_hash, custom_addresses) == OnchainState.PRE_REGISTRATION:
+            self.mint(update)
+
+        if self.get_state(latest_hash, custom_addresses) == OnchainState.PRE_REGISTRATION:
+            self.activate()
+
+        if self.get_state(latest_hash, custom_addresses) == OnchainState.ACTIVE_REGISTRATION:
+            self.register()
+
+        if self.get_state(latest_hash, custom_addresses) == OnchainState.FINISHED_REGISTRATION:
+            reuse_multisig = is_update
+            self.deploy(reuse_multisig)
+
+        # Check that the service is deployed
+        if self.get_state(latest_hash, custom_addresses) != OnchainState.DEPLOYED:
+            return None
+
+        # Remove previous build
+        # TODO, pending sudo issues with nodes folder
+
+        return latest_hash

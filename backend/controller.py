@@ -62,6 +62,8 @@ class Controller:
 
         for service_hash in services.keys():
             services[service_hash]["running"] = self.manager.is_running(service_hash)
+            services[service_hash]["built"] = self.manager.is_built(service_hash)
+            services[service_hash]["rpc"] = self.manager.get(service_hash)["rpc"]
 
         return services, HTTP_OK
 
@@ -81,7 +83,11 @@ class Controller:
 
         service_config = self.config["services"][service_hash]
         custom_addresses = self.config["chains"][service_config["chain"]]
-        rpc = args.get("rpc")
+        rpc = args.get("rpc", None)
+
+        if not rpc:
+            return {"error": "Missing RPC"}, HTTP_BAD_REQUEST
+
         agent_addresses = [
             self.manager.keys.create() for _ in range(service_config["number_of_keys"])
         ]
@@ -94,6 +100,9 @@ class Controller:
         }
 
         try:
+            # Store the rpc
+            self.manager.update_store(phash=service_hash, rpc=rpc)
+
             published = self.manager.mint(
                 phash=service_hash,
                 rpc=rpc,
@@ -157,7 +166,7 @@ class Controller:
         return {}, HTTP_OK
 
     def stop_service(self, service_hash) -> ServerResponse:
-        """"Stop a service"""
+        """Stop a service"""
 
         if not self.manager.is_running(service_hash):
             return {"error": "Service is already stopped"}, 400
@@ -165,3 +174,10 @@ class Controller:
         self.manager.stop(phash=service_hash)
         return {}, HTTP_OK
 
+    def update_service(self, service_hash) -> ServerResponse:
+        """Update the service to the latest version"""
+        service_config = self.config["services"][service_hash]
+        repo = service_config["repository"]
+        custom_addresses = self.config["chains"][service_config["chain"]]
+        self.manager.update_service(service_hash, repo, custom_addresses)
+        return {}, HTTP_OK
