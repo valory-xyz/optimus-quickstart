@@ -93,10 +93,10 @@ Be sure to kill the Hardhat node once you have completed this step.
 ### Run the development app
 
 ```bash
-yarn dev
+yarn start
 ```
 
-This will run Electron, NextJS, Flask, and Hardhat concurrently.
+This will run Electron, NextJS, Flask, and Hardhat.
 
 ## Resetting the application
 
