@@ -24,24 +24,37 @@ import requests
 BASE_URL = "http://localhost:5000"
 
 
-# Get services
-response = requests.get(f"{BASE_URL}/services")
-print(response.status_code, response.json())
+def test_endpoint_e2e():
+    # Get services
+    response = requests.get(f"{BASE_URL}/services")
+    print(response.status_code, response.json())
 
-trader_hash = list(response.json().keys())[0]
+    if response.status_code != 200:
+        return
 
-# Build
-response = requests.post(
-    f"{BASE_URL}/services/{trader_hash}/build",
-    json={"rpc": "http://localhost:8545"},
-    timeout=120,
-)
-print(response.status_code, response.json())
+    trader_hash = list(response.json().keys())[0]
 
-# Start
-response = requests.post(f"{BASE_URL}/services/{trader_hash}/start", timeout=120)
-print(response.status_code, response.json())
+    # Build
+    response = requests.post(
+        f"{BASE_URL}/services/{trader_hash}/build",
+        json={"rpc": "http://localhost:8545"},
+        timeout=120,
+    )
+    print(response.status_code, response.json())
+    if response.status_code != 200:
+        return
 
-# Stop
-response = requests.post(f"{BASE_URL}/services/{trader_hash}/stop", timeout=120)
-print(response.status_code, response.json())
+    # Start
+    response = requests.post(f"{BASE_URL}/services/{trader_hash}/start", timeout=120)
+    print(response.status_code, response.json())
+    if response.status_code != 200:
+        return
+
+    # Stop
+    response = requests.post(f"{BASE_URL}/services/{trader_hash}/stop", timeout=120)
+    print(response.status_code, response.json())
+    if response.status_code != 200:
+        return
+
+if __name__ == "__main__":
+    test_endpoint_e2e()
