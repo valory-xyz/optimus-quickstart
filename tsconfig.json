@@ -20,7 +20,8 @@
     },
     "resolveJsonModule": true,
     "skipLibCheck": true,
-    "strict": true
+    "strict": true,
+    "types": ["@testing-library/jest-dom"]
   },
   "exclude": [
     "backend",
