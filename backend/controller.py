@@ -25,7 +25,9 @@ import yaml
 from aea.helpers.base import IPFSHash
 from service import ServiceManager
 import typing as t
-
+import threading
+import schedule
+import time
 
 HTTP_OK = 200
 HTTP_BAD_REQUEST = 400
@@ -51,6 +53,20 @@ class Controller:
 
         # Download all supported services
         self.fetch_services()
+
+        # Add the update thread
+        self.update_thread = threading.Thread(target=self.run_update_thread, args=())
+        self.stop_flag = False
+        self.update_thread.start()
+
+    def __del__(self):
+        """Destructor"""
+        self.stop()
+
+    def stop(self):
+        """Stop the controller"""
+        self.stop_flag = True
+        self.update_thread.join()
 
     def fetch_services(self) -> None:
         """Fetch all services"""
@@ -179,9 +195,11 @@ class Controller:
     def update_service(self, service_hash) -> ServerResponse:
         """Update the service to the latest version"""
         service_config = self.config["services"][service_hash]
-        repo = service_config["repository"]
         custom_addresses = self.config["chains"][service_config["chain"]]
-        new_service_hash = self.manager.update_service(service_hash, repo, custom_addresses)
+        new_service_hash = self.manager.update_service(service_hash, service_config, custom_addresses)
+
+        if not new_service_hash:
+            return {"error": "Service could not be updated"}, HTTP_BAD_REQUEST
 
         # Update operate.yaml
         self.config["services"][new_service_hash] = self.config.pop(service_hash)
@@ -189,3 +207,24 @@ class Controller:
             yaml.dump(self.config, config_file)
 
         return {}, HTTP_OK
+
+    def check_updates(self):
+        """Check for service updates"""
+        for service_hash, service_config in self.config["services"].items():
+            repo = service_config["repository"]
+            self.config["services"][service_hash]["updatable"] = self.manager.is_updatable(service_hash, repo)
+
+    def run_update_thread(self) -> None:
+        """Update thread"""
+
+        # Check updates on start
+        self.check_updates()
+
+        # Check updates every hour, starting in 1 hour from now
+        schedule.every().hour.do(self.check_updates)
+
+        while not self.stop_flag:
+            schedule.run_pending()
+            time.sleep(1)
+
+        schedule.clear()

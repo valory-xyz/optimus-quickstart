@@ -359,6 +359,17 @@ files = [
 ]
 
 [[package]]
+name = "cached-property"
+version = "1.5.2"
+description = "A decorator for caching properties in classes."
+optional = false
+python-versions = "*"
+files = [
+    {file = "cached-property-1.5.2.tar.gz", hash = "sha256:9fa5755838eecbb2d234c3aa390bd80fbd3ac6b6869109bfc1b499f7bd89a130"},
+    {file = "cached_property-1.5.2-py2.py3-none-any.whl", hash = "sha256:df4f613cf7ad9a588cc381aaf4a512d26265ecebd5eb9e1ba12f1319eb85a6a0"},
+]
+
+[[package]]
 name = "certifi"
 version = "2023.11.17"
 description = "Python package for providing Mozilla's CA Bundle."
@@ -831,6 +842,25 @@ dev = ["Sphinx (>=1.6.5,<5)", "black (>=22,<23)", "bumpversion (>=0.5.3,<1)", "c
 doc = ["Sphinx (>=1.6.5,<5)", "jinja2 (>=3.0.0,<3.1.0)", "sphinx-rtd-theme (>=0.1.9,<1)", "towncrier (>=21,<22)"]
 lint = ["black (>=22,<23)", "flake8 (==3.7.9)", "isort (>=4.2.15,<5)", "mypy (==0.910)", "pydocstyle (>=5.0.0,<6)"]
 test = ["coverage", "hypothesis (>=4.18.0,<5)", "pytest (>=6.2.5,<7)", "pytest-xdist", "tox (==3.25.0)"]
+
+[[package]]
+name = "eth-bloom"
+version = "3.0.0"
+description = "A python implementation of the bloom filter used by Ethereum"
+optional = false
+python-versions = ">=3.8, <4"
+files = [
+    {file = "eth-bloom-3.0.0.tar.gz", hash = "sha256:94bab384b01f2eb1012abbd6bb504e4c743878414d8695ee5a5d25f4247b3886"},
+    {file = "eth_bloom-3.0.0-py3-none-any.whl", hash = "sha256:bb884ece93d292dfbbe4696744db874a88ac5bfc45f6f1b0ee147d801604a46c"},
+]
+
+[package.dependencies]
+eth-hash = {version = ">=0.4.0", extras = ["pycryptodome"]}
+
+[package.extras]
+dev = ["build (>=0.9.0)", "bumpversion (>=0.5.3)", "hypothesis (>=3.31.2)", "ipython", "pre-commit (>=3.4.0)", "pytest (>=7.0.0)", "pytest-xdist (>=2.4.0)", "towncrier (>=21,<22)", "tox (>=4.0.0)", "twine", "wheel"]
+docs = ["towncrier (>=21,<22)"]
+test = ["hypothesis (>=3.31.2)", "pytest (>=7.0.0)", "pytest-xdist (>=2.4.0)"]
 
 [[package]]
 name = "eth-hash"
@@ -1720,6 +1750,57 @@ files = [
 ]
 
 [[package]]
+name = "py-ecc"
+version = "7.0.0"
+description = "py-ecc: Elliptic curve crypto in python including secp256k1, alt_bn128, and bls12_381"
+optional = false
+python-versions = ">=3.8, <4"
+files = [
+    {file = "py-ecc-7.0.0.tar.gz", hash = "sha256:c141e7330559758d2233adaf0af1f05ec4cade67e7fa35fc118750ce79d83257"},
+    {file = "py_ecc-7.0.0-py3-none-any.whl", hash = "sha256:a655fa499ab2e695c9d4e49be19e40ad195dd61076642edcbcbb5b7c645820cf"},
+]
+
+[package.dependencies]
+cached-property = ">=1.5.1"
+eth-typing = ">=3.0.0"
+eth-utils = ">=2.0.0"
+
+[package.extras]
+dev = ["build (>=0.9.0)", "bumpversion (>=0.5.3)", "ipython", "pre-commit (>=3.4.0)", "pytest (>=7.0.0)", "pytest-xdist (>=2.4.0)", "sphinx (>=6.0.0)", "sphinx-rtd-theme (>=1.0.0)", "towncrier (>=21,<22)", "tox (>=4.0.0)", "twine", "wheel"]
+docs = ["sphinx (>=6.0.0)", "sphinx-rtd-theme (>=1.0.0)", "towncrier (>=21,<22)"]
+test = ["pytest (>=7.0.0)", "pytest-xdist (>=2.4.0)"]
+
+[[package]]
+name = "py-evm"
+version = "0.9.0b1"
+description = "Python implementation of the Ethereum Virtual Machine"
+optional = false
+python-versions = ">=3.8, <4"
+files = [
+    {file = "py-evm-0.9.0b1.tar.gz", hash = "sha256:59c1aa5c179d00067452a0b2347c9cc895c86b8b17595d2fa0cfd81f6346ad90"},
+    {file = "py_evm-0.9.0b1-py3-none-any.whl", hash = "sha256:bc63c84df2cff6b194e71b1256ce5f7894ae6cd3113e0e12ddde477b245ce473"},
+]
+
+[package.dependencies]
+cached-property = ">=1.5.1"
+eth-bloom = ">=1.0.3"
+eth-keys = ">=0.4.0"
+eth-typing = ">=3.3.0"
+eth-utils = ">=2.0.0"
+lru-dict = ">=1.1.6"
+py-ecc = ">=1.4.7"
+rlp = ">=3.0.0"
+trie = ">=2.0.0"
+
+[package.extras]
+benchmark = ["termcolor (>=1.1.0)", "web3 (>=6.0.0)"]
+dev = ["build (>=0.9.0)", "bumpversion (>=0.5.3)", "cached-property (>=1.5.1)", "eth-bloom (>=1.0.3)", "eth-keys (>=0.4.0)", "eth-typing (>=3.3.0)", "eth-utils (>=2.0.0)", "factory-boy (>=3.0.0)", "hypothesis (>=5,<6)", "ipython", "lru-dict (>=1.1.6)", "pre-commit (>=3.4.0)", "py-ecc (>=1.4.7)", "py-evm (>=0.8.0b1)", "pytest (>=7.0.0)", "pytest-asyncio (>=0.20.0)", "pytest-cov (>=4.0.0)", "pytest-timeout (>=2.0.0)", "pytest-xdist (>=3.0)", "rlp (>=3.0.0)", "sphinx (>=6.0.0)", "sphinx-rtd-theme (>=1.0.0)", "sphinxcontrib-asyncio (>=0.2.0)", "towncrier (>=21,<22)", "tox (>=4.0.0)", "trie (>=2.0.0)", "twine", "wheel"]
+docs = ["py-evm (>=0.8.0b1)", "sphinx (>=6.0.0)", "sphinx-rtd-theme (>=1.0.0)", "sphinxcontrib-asyncio (>=0.2.0)", "towncrier (>=21,<22)"]
+eth = ["cached-property (>=1.5.1)", "eth-bloom (>=1.0.3)", "eth-keys (>=0.4.0)", "eth-typing (>=3.3.0)", "eth-utils (>=2.0.0)", "lru-dict (>=1.1.6)", "py-ecc (>=1.4.7)", "rlp (>=3.0.0)", "trie (>=2.0.0)"]
+eth-extra = ["blake2b-py (>=0.2.0)", "coincurve (>=18.0.0)"]
+test = ["factory-boy (>=3.0.0)", "hypothesis (>=5,<6)", "pytest (>=7.0.0)", "pytest-asyncio (>=0.20.0)", "pytest-cov (>=4.0.0)", "pytest-timeout (>=2.0.0)", "pytest-xdist (>=3.0)"]
+
+[[package]]
 name = "py-multibase"
 version = "1.0.3"
 description = "Multibase implementation for Python"
@@ -2170,6 +2251,48 @@ rust-backend = ["rusty-rlp (>=0.2.1,<0.3)"]
 test = ["hypothesis (==5.19.0)", "pytest (>=6.2.5,<7)", "tox (>=2.9.1,<3)"]
 
 [[package]]
+name = "safe-eth-py"
+version = "5.8.0"
+description = "Safe Ecosystem Foundation utilities for Ethereum projects"
+optional = false
+python-versions = ">=3.8"
+files = [
+    {file = "safe-eth-py-5.8.0.tar.gz", hash = "sha256:ec65c8885d410bc218a289b0d690078c50e9cd3a43397919ea5409c3b080663f"},
+    {file = "safe_eth_py-5.8.0-py3-none-any.whl", hash = "sha256:aa99fabddef61d76a29ccb2d5cc2158967fbb1a65e2fecd6900b2efc3b65c363"},
+]
+
+[package.dependencies]
+packaging = "*"
+py-evm = ">=0.7.0a1"
+requests = ">=2"
+safe-pysha3 = {version = ">=1.0.0", markers = "python_version >= \"3.9\""}
+web3 = ">=6.2.0"
+
+[package.extras]
+django = ["django (>=2)", "django-filter (>=2)", "djangorestframework (>=2)"]
+
+[[package]]
+name = "safe-pysha3"
+version = "1.0.4"
+description = "SHA-3 (Keccak) for Python 3.9 - 3.11"
+optional = false
+python-versions = "*"
+files = [
+    {file = "safe-pysha3-1.0.4.tar.gz", hash = "sha256:e429146b1edd198b2ca934a2046a65656c5d31b0ec894bbd6055127f4deaff17"},
+]
+
+[[package]]
+name = "schedule"
+version = "1.2.1"
+description = "Job scheduling for humans."
+optional = false
+python-versions = ">=3.7"
+files = [
+    {file = "schedule-1.2.1-py2.py3-none-any.whl", hash = "sha256:14cdeb083a596aa1de6dc77639a1b2ac8bf6eaafa82b1c9279d3612823063d01"},
+    {file = "schedule-1.2.1.tar.gz", hash = "sha256:843bc0538b99c93f02b8b50e3e39886c06f2d003b24f48e1aa4cadfa3f341279"},
+]
+
+[[package]]
 name = "semver"
 version = "2.13.0"
 description = "Python helper for Semantic Versioning (http://semver.org/)"
@@ -2200,6 +2323,17 @@ python-versions = ">=3.7"
 files = [
     {file = "sniffio-1.3.0-py3-none-any.whl", hash = "sha256:eecefdce1e5bbfb7ad2eeaabf7c1eeb404d7757c379bd1f7e5cce9d8bf425384"},
     {file = "sniffio-1.3.0.tar.gz", hash = "sha256:e60305c5e5d314f5389259b7f22aaa33d8f7dee49763119234af3755c55b9101"},
+]
+
+[[package]]
+name = "sortedcontainers"
+version = "2.4.0"
+description = "Sorted Containers -- Sorted List, Sorted Dict, Sorted Set"
+optional = false
+python-versions = "*"
+files = [
+    {file = "sortedcontainers-2.4.0-py2.py3-none-any.whl", hash = "sha256:a163dcaede0f1c021485e957a39245190e74249897e2ae4b2aa38595db237ee0"},
+    {file = "sortedcontainers-2.4.0.tar.gz", hash = "sha256:25caa5a06cc30b6b83d11423433f65d1f9d76c4c6a0c90e3379eaa43b9bfdb88"},
 ]
 
 [[package]]
@@ -2234,6 +2368,29 @@ files = [
     {file = "toolz-0.12.1-py3-none-any.whl", hash = "sha256:d22731364c07d72eea0a0ad45bafb2c2937ab6fd38a3507bf55eae8744aa7d85"},
     {file = "toolz-0.12.1.tar.gz", hash = "sha256:ecca342664893f177a13dac0e6b41cbd8ac25a358e5f215316d43e2100224f4d"},
 ]
+
+[[package]]
+name = "trie"
+version = "3.0.0"
+description = "Python implementation of the Ethereum Trie structure"
+optional = false
+python-versions = ">=3.8, <4"
+files = [
+    {file = "trie-3.0.0-py3-none-any.whl", hash = "sha256:a061507aa3a0076c61a65c0d70de528508a66d948f09054de51f6560fd59c454"},
+    {file = "trie-3.0.0.tar.gz", hash = "sha256:180205883dc614cade519b38b3e4ffecb8184e53d594556b38f43446c5cda840"},
+]
+
+[package.dependencies]
+eth-hash = ">=0.1.0"
+eth-utils = ">=2.0.0"
+hexbytes = ">=0.2.0,<0.4.0"
+rlp = ">=3"
+sortedcontainers = ">=2.1.0"
+
+[package.extras]
+dev = ["build (>=0.9.0)", "bumpversion (>=0.5.3)", "eth-hash (>=0.1.0,<1.0.0)", "hypothesis (>=6.56.4,<7)", "ipython", "pre-commit (>=3.4.0)", "pycryptodome", "pytest (>=7.0.0)", "pytest-xdist (>=2.4.0)", "towncrier (>=21,<22)", "tox (>=4.0.0)", "twine", "wheel"]
+docs = ["towncrier (>=21,<22)"]
+test = ["hypothesis (>=6.56.4,<7)", "pycryptodome", "pytest (>=7.0.0)", "pytest-xdist (>=2.4.0)"]
 
 [[package]]
 name = "typing-extensions"
@@ -2589,4 +2746,4 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.10"
-content-hash = "c2c6efd302ecda3e986735751ba43822a30600d8147cd9b26bced8fdd041cb7c"
+content-hash = "387583c3704b391ad4ba05768087eb71861560343a53157257d52df235c78905"

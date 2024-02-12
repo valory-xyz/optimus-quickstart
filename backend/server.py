@@ -64,6 +64,8 @@ def create_app():
             }
         }
         """
+        logging.info(f"request headers {request.headers}")
+        logging.info(f"request json {request.json}")
         return controller.build_deployment(service_hash, request.json)
 
     # Delete deployment

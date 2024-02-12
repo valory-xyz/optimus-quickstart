@@ -46,6 +46,9 @@ from protocol import OnChainManager, OnchainState
 from enum import Enum
 import yaml
 from repo import Repo
+from gnosis.eth import EthereumClient
+from gnosis.safe import Safe
+import shutil
 
 logging.basicConfig(level=logging.DEBUG)
 
@@ -532,53 +535,116 @@ class ServiceManager:
         )
         return OnchainState(info["service_state"])
 
+    def is_updatable(self, service_hash: str, repo_str: str) -> bool:
+        """Check if the service is updatable"""
+        repo = Repo(repo_str)
+        latest_hash = repo.get_service_hash()
+        return service_hash != latest_hash
 
     def update_service(
         self,
-        phash: str,
-        repo_str: str,
+        service_hash: str,
+        service_config: dict,
         custom_addresses: t.Optional[t.Dict] = None,
     ) -> t.Optional[str]:
         """Update the service to the latest version"""
-        repo = Repo(repo_str)
+        service = self.get(service_hash)
+        repo = Repo(service_config["repository"])
         latest_hash = repo.get_service_hash()
 
         if not latest_hash:
             return None
 
+        if service_hash == latest_hash:
+            return None
+
         # Fetch the new service
         self.fetch(latest_hash)
 
-        # Copy keys and config from the current service
+        rpc = service["rpc"]
+
+        safe_owners = Safe(
+            service["multisig"],
+            EthereumClient(rpc)
+        ).retrieve_all_info().owners
 
         # Run the onchain update
-        if self.get_state(latest_hash, custom_addresses) == OnchainState.DEPLOYED and safe.owner == agent:
-            self.swap(operator)
+        if self.get_state(latest_hash, custom_addresses) == OnchainState.DEPLOYED and safe_owners == service["instances"]:
+            self.swap(  # TODO: ensure this swaps the multisig back to the operator (master key)
+                phash=service_hash,
+                rpc=rpc,
+                custom_addresses=custom_addresses,
+            )
 
         if self.get_state(latest_hash, custom_addresses) == OnchainState.DEPLOYED:
-            self.terminate()
+            self.terminate(
+                service_hash,
+                rpc,
+                custom_addresses
+            )
 
         if self.get_state(latest_hash, custom_addresses) == OnchainState.TERMINATED_BONDED:
-            self.unbond()
+            self.unbond(
+                service_hash,
+                rpc,
+                custom_addresses
+            )
 
         if self.get_state(latest_hash, custom_addresses) == OnchainState.PRE_REGISTRATION:
-            self.mint(update)
+            self.mint(
+                service_hash,
+                service_config["agent_id"],
+                service_config["number_of_slots"],
+                service_config["cost_of_bond"],
+                service_config["threshold"],
+                service_config["nft"],
+                rpc,
+                service["token"], # TODO: same token as before?
+                custom_addresses
+            )
 
         if self.get_state(latest_hash, custom_addresses) == OnchainState.PRE_REGISTRATION:
-            self.activate()
+            self.activate(
+                service_hash,
+                rpc,
+                custom_addresses
+            )
 
         if self.get_state(latest_hash, custom_addresses) == OnchainState.ACTIVE_REGISTRATION:
-            self.register()
+            self.register(
+                service_hash,
+                service["instances"],
+                [service_config["agent_id"]],
+                rpc,
+                custom_addresses,
+            )
 
         if self.get_state(latest_hash, custom_addresses) == OnchainState.FINISHED_REGISTRATION:
-            reuse_multisig = is_update
-            self.deploy(reuse_multisig)
+            self.deploy(
+                service_hash,
+                rpc,
+                True,
+                custom_addresses,
+            )
 
         # Check that the service is deployed
         if self.get_state(latest_hash, custom_addresses) != OnchainState.DEPLOYED:
             return None
 
+        # Copy keys and config from the current service
+        shutil.copy(
+            self._services / service_hash / KEYS_JSON,
+            self._services / latest_hash / KEYS_JSON
+        )
+
+        # Build the new deployment
+        self.build(
+            phash=latest_hash,
+            environment={},
+            volumes={"data": "/data"},
+        )
+
         # Remove previous build
-        # TODO: pending sudo issues with nodes folder
+        # TODO: pending tm permission issues
 
         return latest_hash
