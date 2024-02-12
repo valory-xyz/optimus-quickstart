@@ -26,6 +26,9 @@ from flask_cors import CORS
 import logging
 import sys
 
+DEFAULT_HOST = "0.0.0.0"
+DEFAULT_PORT = 5000
+
 
 def create_app():
     """Create operate app"""
@@ -98,9 +101,11 @@ if __name__ == "__main__":
     operate = create_app()
     operate.logger.addHandler(handler)
     CORS(operate)
+    port = int(sys.argv[1]) if len(sys.argv) > 1 else DEFAULT_PORT
     operate.run(
         debug=True,
-        host="0.0.0.0",
+        host=DEFAULT_HOST,
+        port=port,
         # We need this to avoid issues with Flask reloading while building
         # A potential solution is to move the .operate folder outside the backend folder
         use_reloader=False

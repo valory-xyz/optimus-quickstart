@@ -62,6 +62,8 @@ class Controller:
 
         for service_hash in services.keys():
             services[service_hash]["running"] = self.manager.is_running(service_hash)
+            services[service_hash]["built"] = self.manager.is_built(service_hash)
+            services[service_hash]["rpc"] = self.manager.get(service_hash)["rpc"]
 
         return services, HTTP_OK
 

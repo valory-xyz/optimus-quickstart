@@ -42,7 +42,6 @@ from autonomy.deploy.constants import (
     VENVS_DIR,
 )
 from autonomy.deploy.generators.docker_compose.base import DockerComposeGenerator
-from backend.controller import ServerResponse
 from protocol import OnChainManager, OnchainState
 from enum import Enum
 import yaml
@@ -516,6 +515,11 @@ class ServiceManager:
         agent_hash = config[0]["agent"].split(":")[-1]
         service_tag = f"{service_author}/oar-{service_name}:{agent_hash}"
         return service_tag in running_tags
+
+
+    def is_built(self, service_hash: str) -> bool:
+        """Check whether a service is built"""
+        return (self._services / service_hash / DEPLOYMENT).is_dir()
 
 
     def get_state(self, phash: str, custom_addresses: t.Optional[t.Dict]) -> OnchainState:
