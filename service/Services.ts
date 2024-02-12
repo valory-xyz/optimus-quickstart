@@ -46,6 +46,9 @@ const buildService = async (
   fetch(`${BACKEND_URL}/services/${serviceHash}/build`, {
     method: "POST",
     body: JSON.stringify({ rpc }),
+    headers: {
+      "Content-Type": "application/json",
+    },
   })
     .then((response) => response.json())
     .then((data) => data);
@@ -60,6 +63,9 @@ const deleteService = async (serviceHash: string) =>
 const startService = async (serviceHash: string) =>
   fetch(`${BACKEND_URL}/services/${serviceHash}/start`, {
     method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
   })
     .then((response) => response.json())
     .then((data) => {
