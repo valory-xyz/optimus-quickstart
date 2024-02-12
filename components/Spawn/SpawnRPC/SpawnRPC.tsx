@@ -1,12 +1,24 @@
 import { Button, Flex, Input, Timeline, Typography, message } from "antd";
 import { NODIES_URL } from "@/constants/urls";
-import { useCallback, useMemo, useState } from "react";
+import {
+  Dispatch,
+  SetStateAction,
+  useCallback,
+  useMemo,
+  useState,
+} from "react";
 import { useSpawn } from "@/hooks/useSpawn";
 import { useServices } from "@/hooks/useServices";
 import { SpawnState } from "@/enums";
 import { BuildServiceResponse } from "@/types/BuildServiceResponse";
 
-export const SpawnRPC = ({ serviceHash }: { serviceHash: string }) => {
+export const SpawnRPC = ({
+  serviceHash,
+  setFundRequirements,
+}: {
+  serviceHash: string;
+  setFundRequirements: Dispatch<SetStateAction<{ [address: string]: number }>>;
+}) => {
   const { setSpawnState } = useSpawn();
   const { buildService, startService } = useServices();
 
@@ -23,6 +35,7 @@ export const SpawnRPC = ({ serviceHash }: { serviceHash: string }) => {
     setContinueIsLoading(true);
     buildService(serviceHash, rpc)
       .then((res: BuildServiceResponse) => {
+        setFundRequirements(res.fundRequirements);
         startService(serviceHash)
           .then(() => {
             setSpawnState(SpawnState.FUNDS);
@@ -38,6 +51,7 @@ export const SpawnRPC = ({ serviceHash }: { serviceHash: string }) => {
     continueIsLoading,
     rpc,
     serviceHash,
+    setFundRequirements,
     setSpawnState,
     startService,
   ]);

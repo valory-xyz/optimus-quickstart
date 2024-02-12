@@ -2,7 +2,7 @@ import { SpawnState } from "@/enums/SpawnState";
 import { copyToClipboard } from "@/helpers/copyToClipboard";
 import { useSpawn } from "@/hooks/useSpawn";
 import { Button, Flex, Timeline, Typography, message } from "antd";
-import { Dispatch, SetStateAction, useMemo } from "react";
+import { useMemo } from "react";
 
 const mockRequiresFunds = [
   { amount: 0.1, currency: "xDAI", to: "0xTest", recieved: true },
@@ -10,10 +10,8 @@ const mockRequiresFunds = [
 
 export const SpawnFunds = ({
   fundRequirements,
-  setFundRequirements,
 }: {
   fundRequirements: { [address: string]: number };
-  setFundRequirements: Dispatch<SetStateAction<{ [address: string]: number }>>;
 }) => {
   const { setSpawnState } = useSpawn();
 
