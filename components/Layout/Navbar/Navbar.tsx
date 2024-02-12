@@ -8,7 +8,7 @@ export const Navbar = () => {
     <Flex vertical={false} justify="space-between" style={{ minWidth: "100%" }}>
       <Image src={"/olas-logo.png"} alt="" width={100} height={25} />
       <Flex gap={4}>
-        <NotificationButton disabled={true} />
+        <NotificationButton disabled />
         <SettingsButton disabled />
       </Flex>
     </Flex>
