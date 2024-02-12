@@ -45,9 +45,6 @@ const buildService = async (
 ): Promise<BuildServiceResponse> =>
   fetch(`${BACKEND_URL}/services/${serviceHash}/build`, {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
     body: JSON.stringify({ rpc }),
   })
     .then((response) => response.json())
@@ -56,9 +53,6 @@ const buildService = async (
 const deleteService = async (serviceHash: string) =>
   fetch(`${BACKEND_URL}/services/${serviceHash}/delete`, {
     method: "DELETE",
-    headers: {
-      "Content-Type": "application/json",
-    },
   })
     .then((response) => response.json())
     .then((data) => data);
@@ -75,9 +69,6 @@ const startService = async (serviceHash: string) =>
 const stopService = async (serviceHash: string) =>
   fetch(`${BACKEND_URL}/services/${serviceHash}/stop`, {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
   })
     .then((response) => response.json())
     .then((data) => {
