@@ -10,7 +10,7 @@ export const YourAgents = () => {
   const { services } = useServices();
 
   const hasAgents = services.reduce(
-    (acc: boolean, service: Service) => (acc || service.running ? true : acc),
+    (acc: boolean, service: Service) => (acc || service.built ? true : acc),
     false,
   );
 
