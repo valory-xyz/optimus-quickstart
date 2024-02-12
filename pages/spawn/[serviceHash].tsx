@@ -25,15 +25,15 @@ export const SpawnPage = ({ serviceHash }: { serviceHash: string }) => {
 
   const spawnScreen = useMemo(() => {
     if (spawnState === SpawnState.RPC) {
-      return <SpawnRPC serviceHash={serviceHash} />;
-    }
-    if (spawnState === SpawnState.FUNDS) {
       return (
-        <SpawnFunds
-          fundRequirements={fundRequirements}
+        <SpawnRPC
+          serviceHash={serviceHash}
           setFundRequirements={setFundRequirements}
         />
       );
+    }
+    if (spawnState === SpawnState.FUNDS) {
+      return <SpawnFunds fundRequirements={fundRequirements} />;
     }
     if (spawnState === SpawnState.DONE) {
       return <SpawnDone />;
