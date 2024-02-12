@@ -45,6 +45,3 @@ data/
 __pycache__/
 backend/tmp/
 
-# text files
-keys.txt
-rpcs.txt
