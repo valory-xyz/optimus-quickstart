@@ -85,7 +85,9 @@ const launchProcesses = async () => {
     app.quit();
   }
 
-  hardhatProcess = exec(`npx hardhat node --port ${hardhatPort}`);
+  hardhatProcess = exec(
+    `npx hardhat node --port ${hardhatPort} --fork https://lb.nodies.app/v1/406d8dcc043f4cb3959ed7d6673d311a`,
+  );
   processList.push(hardhatProcess);
   hardhatProcess.stdout.on("data", (data) =>
     console.log("[HARDHAT]: ", data.toString()),
