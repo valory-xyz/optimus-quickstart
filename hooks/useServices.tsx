@@ -1,4 +1,4 @@
-import { ServicesContext } from "@/context/ServicesProvider";
+import { ServicesContext } from "@/context";
 import ServicesService from "@/service/Services";
 import { useContext } from "react";
 
