@@ -35,6 +35,8 @@ MASTER_KEY = "master-key"
 
 ServerResponse = t.Tuple[t.Dict, int]
 
+OPERATE = "operate.yaml"
+
 
 class Controller:
     """Controller class"""
@@ -44,7 +46,7 @@ class Controller:
         self.manager = ServiceManager()
 
         # Load configuration
-        with open(Path("operate.yaml"), "r") as config_file:
+        with open(Path(OPERATE), "r") as config_file:
             self.config = [doc for doc in yaml.safe_load_all(config_file)][0]
 
         # Download all supported services
@@ -83,7 +85,7 @@ class Controller:
 
         service_config = self.config["services"][service_hash]
         custom_addresses = self.config["chains"][service_config["chain"]]
-        rpc = args.get("rpc", None)
+        rpc = args.get("rpc", None) if args else None
 
         if not rpc:
             return {"error": "Missing RPC"}, HTTP_BAD_REQUEST
@@ -179,5 +181,11 @@ class Controller:
         service_config = self.config["services"][service_hash]
         repo = service_config["repository"]
         custom_addresses = self.config["chains"][service_config["chain"]]
-        self.manager.update_service(service_hash, repo, custom_addresses)
+        new_service_hash = self.manager.update_service(service_hash, repo, custom_addresses)
+
+        # Update operate.yaml
+        self.config["services"][new_service_hash] = self.config.pop(service_hash)
+        with open(Path(OPERATE), "w") as config_file:
+            yaml.dump(self.config, config_file)
+
         return {}, HTTP_OK
