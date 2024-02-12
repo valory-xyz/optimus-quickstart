@@ -11,7 +11,7 @@ export const Marketplace = () => {
 
   const marketPlaceItems = useMemo(
     () =>
-      services.map((service) => ({
+      services.map((service: Service) => ({
         serviceMeta: SERVICE_META[service.name],
         service,
       })),

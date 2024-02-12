@@ -1,5 +1,5 @@
 import { SpawnContext } from "@/context";
-import { SpawnState } from "@/enums/SpawnState";
+import { SpawnState } from "@/enums";
 import { useContext, useMemo } from "react";
 
 export const useSpawn = () => {

@@ -4,12 +4,13 @@ import { Button, Flex, Typography } from "antd";
 
 import { useServices } from "@/hooks/useServices";
 import { ServiceCard } from "./ServiceCard/ServiceCard";
+import { Service } from "@/types/Service";
 
 export const YourAgents = () => {
   const { services } = useServices();
 
   const hasAgents = services.reduce(
-    (acc, service) => (acc || service.running ? true : acc),
+    (acc: boolean, service: Service) => (acc || service.running ? true : acc),
     false,
   );
 
