@@ -10,7 +10,8 @@ type ServiceCardProps = {
 };
 
 export const ServiceCard = ({ service }: ServiceCardProps) => {
-  const { stopService, startService, deleteService } = useServices();
+  const { stopService, startService, deleteService, updateServices } =
+    useServices();
 
   const [isStopping, setIsStopping] = useState(false);
   const [isStarting, setIsStarting] = useState(false);
@@ -18,24 +19,36 @@ export const ServiceCard = ({ service }: ServiceCardProps) => {
 
   const handleStart = useCallback(() => {
     setIsStarting(true);
-    startService(service.hash).finally(() => {
-      setIsStarting(false);
-    });
-  }, [service.hash, startService]);
+    startService(service.hash)
+      .then(async () => {
+        await updateServices();
+      })
+      .finally(() => {
+        setIsStarting(false);
+      });
+  }, [service.hash, startService, updateServices]);
 
   const handleStop = useCallback(() => {
     setIsStopping(true);
-    stopService(service.hash).finally(() => {
-      setIsStopping(false);
-    });
-  }, [service.hash, stopService]);
+    stopService(service.hash)
+      .then(async () => {
+        await updateServices();
+      })
+      .finally(() => {
+        setIsStopping(false);
+      });
+  }, [service.hash, stopService, updateServices]);
 
   const handleDelete = useCallback(() => {
     setIsDeleting(true);
-    deleteService(service.hash).finally(() => {
-      setIsDeleting(false);
-    });
-  }, [deleteService, service.hash]);
+    deleteService(service.hash)
+      .then(async () => {
+        await updateServices();
+      })
+      .finally(() => {
+        setIsDeleting(false);
+      });
+  }, [deleteService, service.hash, updateServices]);
 
   const button = useMemo(() => {
     if (service.running) {
