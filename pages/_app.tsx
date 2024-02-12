@@ -1,7 +1,9 @@
-import { ModalsProvider } from "@/context/ModalsProvider";
-import { ServicesProvider } from "@/context/ServicesProvider";
-import { SpawnProvider } from "@/context/SpawnContext";
-import { TabsProvider } from "@/context/TabsProvider";
+import {
+  ModalsProvider,
+  ServicesProvider,
+  SpawnProvider,
+  TabsProvider,
+} from "@/context";
 import { mainTheme } from "@/theme/mainTheme";
 import { ConfigProvider } from "antd";
 import type { AppProps } from "next/app";

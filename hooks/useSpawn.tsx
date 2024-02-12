@@ -1,4 +1,4 @@
-import { SpawnContext } from "@/context/SpawnContext";
+import { SpawnContext } from "@/context";
 import { SpawnState } from "@/enums/SpawnState";
 import { useContext, useMemo } from "react";
 
