@@ -33,7 +33,12 @@ export const SpawnPage = ({ serviceHash }: { serviceHash: string }) => {
       );
     }
     if (spawnState === SpawnState.FUNDS) {
-      return <SpawnFunds fundRequirements={fundRequirements} />;
+      return (
+        <SpawnFunds
+          serviceHash={serviceHash}
+          fundRequirements={fundRequirements}
+        />
+      );
     }
     if (spawnState === SpawnState.DONE) {
       return <SpawnDone />;
