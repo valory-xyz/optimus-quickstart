@@ -8,7 +8,8 @@
     "react": "^18",
     "react-dom": "^18",
     "swr": "^2.2.4",
-    "usehooks-ts": "^2.14.0"
+    "usehooks-ts": "^2.14.0",
+    "ethers": "5.7.2"
   },
   "devDependencies": {
     "@testing-library/jest-dom": "^6.4.2",
