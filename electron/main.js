@@ -15,6 +15,7 @@ const DEFAULT_PORTS = {
 
 const killAllProcesses = () =>
   processList.forEach((p) => {
+    console.log("Killing process: ", p.pid);
     p.kill();
   });
 
@@ -160,6 +161,19 @@ const createMainWindow = (nextPort) => {
   });
 };
 
+// Main process events
+
+process.on("SIGINT", () => {
+  console.log(
+    "Main process received SIGINT signal. Killing all child processes...",
+  );
+  killAllProcesses();
+  app.quit();
+  process.exit();
+});
+
+// App events
+
 app.on("ready", async () => {
   createSplashWindow();
   const { nextPort } = await launchProcesses();
@@ -203,13 +217,4 @@ app.whenReady().then(() => {
   tray.on("click", () => {
     mainWindow.show();
   });
-});
-
-process.on("SIGINT", () => {
-  console.log(
-    "Main process received SIGINT signal. Killing all child processes...",
-  );
-  killAllProcesses();
-  app.quit();
-  process.exit();
 });
