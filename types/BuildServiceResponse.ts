@@ -1,5 +1,5 @@
 export type BuildServiceResponse = {
-  fundRequirements: {
+  fund_requirements: {
     [address: string]: number;
   };
 };
