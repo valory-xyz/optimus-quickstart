@@ -35,12 +35,9 @@ export const SpawnRPC = ({
     setContinueIsLoading(true);
     buildService(serviceHash, rpc)
       .then((res: BuildServiceResponse) => {
-        setFundRequirements(res.fundRequirements);
-        startService(serviceHash)
-          .then(() => {
-            setSpawnState(SpawnState.FUNDS);
-          })
-          .catch((err) => message.error(err.message));
+        console.log(res);
+        setFundRequirements(res.fund_requirements);
+        setSpawnState(SpawnState.FUNDS);
       })
       .catch((err) => {
         message.error(err.message);
@@ -53,7 +50,6 @@ export const SpawnRPC = ({
     serviceHash,
     setFundRequirements,
     setSpawnState,
-    startService,
   ]);
 
   const items = useMemo(

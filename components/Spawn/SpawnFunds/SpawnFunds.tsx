@@ -1,74 +1,58 @@
-import { SpawnState } from "@/enums/SpawnState";
+import { SpawnState } from "@/enums";
 import { copyToClipboard } from "@/helpers/copyToClipboard";
-import { useSpawn } from "@/hooks/useSpawn";
-import { Button, Flex, Timeline, Typography, message } from "antd";
-import { useMemo } from "react";
-
-const mockRequiresFunds = [
-  { amount: 0.1, currency: "xDAI", to: "0xTest", recieved: true },
-];
+import { useServices, useSpawn } from "@/hooks";
+import { useEthers } from "@/hooks/useEthers";
+import { Button, Flex, Spin, Timeline, Typography, message } from "antd";
+import { Dispatch, SetStateAction, useMemo, useState } from "react";
+import { useInterval } from "usehooks-ts";
 
 export const SpawnFunds = ({
+  serviceHash,
   fundRequirements,
 }: {
+  serviceHash: string;
   fundRequirements: { [address: string]: number };
 }) => {
   const { setSpawnState } = useSpawn();
+
+  const [receivedFunds, setReceivedFunds] = useState<{
+    [address: string]: boolean;
+  }>({
+    ...Object.keys(fundRequirements).reduce(
+      (acc: { [address: string]: boolean }, address) => {
+        acc[address] = false;
+        return acc;
+      },
+      {},
+    ),
+  });
 
   const handleContinue = () => {
     setSpawnState(SpawnState.DONE);
   };
 
-  // Temporary transformation of fundRequirements until backend updated
-  const transformedFundRequirements: {
-    address: string;
-    required: number;
-    received: boolean;
-  }[] = useMemo(
-    () =>
-      Object.keys(fundRequirements).map((address) => ({
-        address,
-        required: fundRequirements[address],
-        received: false,
-      })),
-    [fundRequirements],
-  );
-
   const items = useMemo(
     () =>
-      transformedFundRequirements.map((fundRequirement) => ({
+      Object.keys(fundRequirements).map((address) => ({
         children: (
-          <>
-            <Flex gap={8} vertical key={fundRequirement.address}>
-              <Typography.Text>
-                Send {fundRequirement.required} XDAI to:{" "}
-                {fundRequirement.address}
-              </Typography.Text>
-              <Flex gap={8}>
-                <Button
-                  type="primary"
-                  onClick={() => {
-                    copyToClipboard(fundRequirement.address);
-                    message.success("Copied to clipboard");
-                  }}
-                >
-                  Copy address
-                </Button>
-                <Button type="default" disabled>
-                  Show QR
-                </Button>
-              </Flex>
-            </Flex>
-          </>
+          <FundRequirement
+            setReceivedFunds={setReceivedFunds}
+            serviceHash={serviceHash}
+            address={address}
+            requirement={fundRequirements[address]}
+          />
         ),
       })),
-    [transformedFundRequirements],
+    [fundRequirements, serviceHash],
   );
 
-  const hasSentAllFunds = useMemo(
-    () => mockRequiresFunds.every((mock) => mock.recieved),
-    [],
-  );
+  const hasSentAllFunds = useMemo(() => {
+    if (Object.keys(fundRequirements).length === 0) return false;
+    return Object.keys(receivedFunds).reduce(
+      (acc: boolean, address) => acc && receivedFunds[address],
+      true,
+    );
+  }, [fundRequirements, receivedFunds]);
 
   return (
     <>
@@ -84,5 +68,61 @@ export const SpawnFunds = ({
         </Button>
       </Flex>
     </>
+  );
+};
+
+const FundRequirement = ({
+  setReceivedFunds,
+  serviceHash,
+  address,
+  requirement,
+}: {
+  setReceivedFunds: Dispatch<SetStateAction<{ [address: string]: boolean }>>;
+  serviceHash: string;
+  address: string;
+  requirement: number;
+}) => {
+  const [isPollingBalance, setIsPollingBalance] = useState(true);
+  const { getETHBalance } = useEthers();
+  const { getService } = useServices();
+  const rpc = useMemo(
+    () => getService(serviceHash).rpc,
+    [getService, serviceHash],
+  );
+
+  useInterval(
+    () =>
+      getETHBalance(address, rpc || "").then((balance) => {
+        if (balance && balance >= requirement) {
+          setIsPollingBalance(false);
+          setReceivedFunds((prev: { [address: string]: boolean }) => ({
+            ...prev,
+            [address]: true,
+          }));
+        }
+      }),
+    isPollingBalance ? 1000 : null,
+  );
+
+  return (
+    <Flex gap={8} vertical key={address}>
+      <Typography.Text>
+        Send {requirement} XDAI to: {address} {isPollingBalance && <Spin />}
+      </Typography.Text>
+      <Flex gap={8}>
+        <Button
+          type="primary"
+          onClick={() => {
+            copyToClipboard(address);
+            message.success("Copied to clipboard");
+          }}
+        >
+          Copy address
+        </Button>
+        <Button type="default" disabled>
+          Show QR
+        </Button>
+      </Flex>
+    </Flex>
   );
 };
