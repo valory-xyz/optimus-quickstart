@@ -1,4 +1,4 @@
-import { Button, Flex, Input, Timeline, Typography, message } from "antd";
+import { Button, Flex, Input, Spin, Timeline, Typography, message } from "antd";
 import { NODIES_URL } from "@/constants/urls";
 import {
   Dispatch,
@@ -11,6 +11,18 @@ import { useSpawn } from "@/hooks/useSpawn";
 import { useServices } from "@/hooks/useServices";
 import { SpawnState } from "@/enums";
 import { BuildServiceResponse } from "@/types/BuildServiceResponse";
+import { useEthers } from "@/hooks/useEthers";
+import {
+  CheckSquareTwoTone,
+  WarningFilled,
+  WarningOutlined,
+} from "@ant-design/icons";
+
+enum RPCState {
+  LOADING,
+  VALID,
+  INVALID,
+}
 
 export const SpawnRPC = ({
   serviceHash,
@@ -20,14 +32,31 @@ export const SpawnRPC = ({
   setFundRequirements: Dispatch<SetStateAction<{ [address: string]: number }>>;
 }) => {
   const { setSpawnState } = useSpawn();
-  const { buildService, startService } = useServices();
+  const { buildService } = useServices();
+  const { checkRPC } = useEthers();
 
   const [rpc, setRpc] = useState("http://localhost:8545"); // default to hardhat node
   const [continueIsLoading, setContinueIsLoading] = useState(false);
+  const [rpcState, setRpcState] = useState<RPCState>(RPCState.INVALID);
 
   const handlePaste = () => {
     navigator.clipboard.readText().then((text) => setRpc(text));
   };
+
+  const handleRpcChange = useCallback(
+    async (e: React.ChangeEvent<HTMLInputElement>) => {
+      setRpcState(RPCState.LOADING);
+      setRpc(e.target.value);
+      checkRPC(e.target.value).then((isValid) => {
+        try {
+          isValid ? setRpcState(RPCState.VALID) : setRpcState(RPCState.INVALID);
+        } catch (e) {
+          setRpcState(RPCState.INVALID);
+        }
+      });
+    },
+    [checkRPC],
+  );
 
   const handleContinue = useCallback(async () => {
     if (continueIsLoading)
@@ -51,6 +80,20 @@ export const SpawnRPC = ({
     setFundRequirements,
     setSpawnState,
   ]);
+
+  const inputStatus = useMemo(() => {
+    if (rpcState === RPCState.VALID) return undefined;
+    if (rpcState === RPCState.INVALID) return "error";
+    return undefined;
+  }, [rpcState]);
+
+  const inputSuffix = useMemo(() => {
+    if (rpcState === RPCState.LOADING) return <Spin />;
+    if (rpcState === RPCState.VALID)
+      return <CheckSquareTwoTone twoToneColor="#52c41a" />;
+    if (rpcState === RPCState.INVALID) return <WarningOutlined color="red" />;
+    return <WarningFilled color="orange" />;
+  }, [rpcState]);
 
   const items = useMemo(
     () => [
@@ -92,21 +135,21 @@ export const SpawnRPC = ({
         children: (
           <Flex gap={8} vertical>
             <Typography.Text>Paste endpoint</Typography.Text>
-            <Flex gap={8}>
-              <Input
-                value={rpc}
-                placeholder={"https://..."}
-                onChange={(e) => setRpc(e.target.value)}
-              ></Input>
-              <Button type="primary" onClick={handlePaste}>
-                Paste
-              </Button>
-            </Flex>
+            <Input
+              value={rpc}
+              placeholder={"https://..."}
+              onChange={handleRpcChange}
+              suffix={inputSuffix}
+              status={inputStatus}
+            ></Input>
+            <Button type="primary" onClick={handlePaste}>
+              Paste
+            </Button>
           </Flex>
         ),
       },
     ],
-    [rpc],
+    [handleRpcChange, inputStatus, inputSuffix, rpc],
   );
 
   return (

@@ -1,12 +1,22 @@
 import { ServicesContext } from "@/context";
 import ServicesService from "@/service/Services";
+import { BuildServiceResponse } from "@/types/BuildServiceResponse";
 import { Service } from "@/types/Service";
 import { useContext } from "react";
 
 export const useServices = () => {
   const { services, updateServices } = useContext(ServicesContext);
 
-  const buildService = async (serviceHash: string, rpc: string) => {
+  /**
+   * Build a service
+   * @param serviceHash string
+   * @param rpc string
+   * @returns Promise<BuildServiceResponse>
+   */
+  const buildService = async (
+    serviceHash: string,
+    rpc: string,
+  ): Promise<BuildServiceResponse> => {
     return ServicesService.buildService(serviceHash, rpc);
   };
 
