@@ -84,44 +84,6 @@ def build_dirs(build_dir: Path) -> None:
             continue
 
 
-class KeysManager:
-    """Keys manager."""
-
-    def __init__(self, path: Path) -> None:
-        """Initialize object."""
-        self._path = path
-
-    def get(self, key: str) -> t.Dict:
-        """Get key object."""
-        return json.loads((self._path / key).read_text(encoding="utf-8"))
-
-    def create(self, name=None) -> str:
-        """Creates new key."""
-        crypto = EthereumCrypto()
-        name = name or crypto.address
-        key_path = self._path / name
-
-        if key_path.is_file():
-            return crypto.address
-
-        key_path.write_text(
-            json.dumps(
-                {
-                    "address": crypto.address,
-                    "private_key": crypto.private_key,
-                    "ledger": "ethereum",
-                },
-                indent=4,
-            ),
-            encoding="utf-8",
-        )
-        return crypto.address
-
-    def delete(self, key: str) -> None:
-        """Delete key."""
-        os.remove(self._path / key)
-
-
 class GetServices(ServicesType):
     """Get payload."""
 
@@ -132,6 +94,9 @@ class PostServices(ServiceTemplate):
 
 class PutServices(TypedDict):
     """Create payload."""
+
+    old: str
+    new: ServiceTemplate
 
 
 class DeleteServicesPayload(TypedDict):
@@ -193,7 +158,7 @@ class Services(
         contracts = data["ledger"]["contracts"]
         phash = data["hash"]
 
-        if (self.path / phash).exists():
+        if (self.path / phash).exists():  # For testing only
             shutil.rmtree(self.path / phash)
 
         service = Service.new(
@@ -250,6 +215,109 @@ class Services(
         deployment = service.deployment()
         deployment.create({})
         deployment.store()
+
+        return service.json
+
+    def update(self, data: PutServices) -> ServiceType:
+        """Update service using a template."""
+        # NOTE: This method contains a lot of repetative code
+
+        # Load old service
+        old = Service.load(path=self.path / data["old"])
+
+        data = data["new"]
+        instances = old.chain_data["instances"]
+        keys = [self.keys.get(key=key) for key in instances]
+        rpc = data["ledger"]["rpc"]
+        contracts = data["ledger"]["contracts"]
+        phash = data["hash"]
+
+        if (self.path / phash).exists():  # For testing only
+            shutil.rmtree(self.path / phash)
+
+        ocm = OnChainManager(
+            rpc=rpc,
+            key=self.key,
+            chain_type=ChainType.CUSTOM,
+            contracts=contracts,
+        )
+
+        # Terminate old service
+        ocm.terminate(
+            service_id=old.chain_data["token"],
+        )
+
+        # Unbond old service
+        ocm.unbond(
+            service_id=old.chain_data["token"],
+        )
+
+        # Swap owners on the old safe
+        owner, *_ = old.chain_data["instances"]
+        owner_key = self.keys.get(owner).get("private_key")
+        ocm.swap(
+            service_id=old.chain_data["token"],
+            multisig=old.chain_data["multisig"],
+            owner_key=owner_key,
+        )
+
+        service = Service.new(
+            path=self.path,
+            phash=phash,
+            keys=keys,
+            chain_data=ChainData(),
+            deployment_config=DeploymentConfig(
+                {
+                    "variables": data["deployments"]["local"]["variables"],
+                    "volumes": data["deployments"]["local"]["volumes"],
+                }
+            ),
+            ledger=data["ledger"],
+        )
+
+        # Mint service on-chain
+        service_id = t.cast(
+            int,
+            ocm.mint(
+                package_path=service.service_path,
+                agent_id=data["deployments"]["chain"]["agent_id"],
+                number_of_slots=data["number_of_agents"],
+                cost_of_bond=data["deployments"]["chain"]["cost_of_bond"],
+                threshold=data["deployments"]["chain"]["threshold"],
+                nft=IPFSHash(data["deployments"]["chain"]["nft"]),
+                update_token=old.chain_data["token"],
+            ).get("token"),
+        )
+
+        ocm.activate(service_id=service_id)
+        ocm.register(
+            service_id=service_id,
+            instances=instances,
+            agents=[data["deployments"]["chain"]["agent_id"] for _ in instances],
+        )
+        ocm.deploy(
+            service_id=service_id,
+            reuse_multisig=True,
+        )
+        info = ocm.info(token_id=service_id)
+        service.chain_data = ChainData(
+            {
+                "token": service_id,
+                "instances": info["instances"],
+                "multisig": info["multisig"],
+            }
+        )
+        service.store()
+
+        # Build docker-compose deployment
+        deployment = service.deployment()
+        deployment.create({})
+        deployment.store()
+
+        # try:
+        #     shutil.rmtree(old.path)
+        # except Exception as e:
+        #     print(e)
 
         return service.json
 

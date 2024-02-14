@@ -39,7 +39,7 @@ gnosis = {
 
 manager = ServiceManager()
 ledger_api = EthereumApi(address="http://localhost:8545")
-crypto = EthereumCrypto(".operate/master-key.txt")
+crypto = EthereumCrypto(".operate/key")
 agent = manager.keys.create()
 
 print("Fetching...")
