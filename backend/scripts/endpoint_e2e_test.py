@@ -56,5 +56,6 @@ def test_endpoint_e2e():
     if response.status_code != 200:
         return
 
+
 if __name__ == "__main__":
     test_endpoint_e2e()

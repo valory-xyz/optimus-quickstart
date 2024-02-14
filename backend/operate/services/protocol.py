@@ -41,6 +41,7 @@ from autonomy.cli.helpers.chain import OnChainHelper
 from autonomy.cli.helpers.chain import ServiceHelper as ServiceManager
 from hexbytes import HexBytes
 
+from ._subgraph import SubgraphClient
 
 NULL_ADDRESS: str = "0x" + "0" * 40
 MAX_UINT256 = 2**256 - 1
@@ -153,19 +154,6 @@ def skill_input_hex_to_payload(payload: str) -> dict:
     return tx_params
 
 
-class OnchainState(Enum):
-    """
-    Service state
-    """
-
-    NON_EXISTENT = 0
-    PRE_REGISTRATION = 1
-    ACTIVE_REGISTRATION = 2
-    FINISHED_REGISTRATION = 3
-    DEPLOYED = 4
-    TERMINATED_BONDED = 5
-
-
 class OnChainManager:
     """On chain service management."""
 
@@ -174,13 +162,13 @@ class OnChainManager:
         rpc: str,
         key: Path,
         chain_type: ChainType,
-        custom_addresses: t.Dict,
+        contracts: t.Dict,
     ) -> None:
         """On chain manager."""
         self.rpc = rpc
         self.key = key
         self.chain_type = chain_type
-        self.custom_addresses = custom_addresses
+        self.contracts = contracts
 
     def _patch(self) -> None:
         """Patch contract and chain config."""
@@ -188,7 +176,7 @@ class OnChainManager:
         if self.chain_type != ChainType.CUSTOM:
             return
 
-        for name, address in self.custom_addresses.items():
+        for name, address in self.contracts.items():
             ContractConfigs.get(name=name).contracts[self.chain_type] = address
 
     def info(self, token_id: int) -> t.Dict:
@@ -218,12 +206,12 @@ class OnChainManager:
         ).get("agentInstances", [])
         return dict(
             security_deposit=security_deposit,
-            multisig_address=multisig_address,
+            multisig=multisig_address,
             config_hash=config_hash.hex(),
             threshold=threshold,
             max_agents=max_agents,
             number_of_agent_instances=number_of_agent_instances,
-            service_state=OnchainState(service_state),
+            service_state=service_state,
             cannonical_agents=cannonical_agents,
             instances=instances,
         )
@@ -240,18 +228,17 @@ class OnChainManager:
     ):
         "Mint service."
         # TODO: Support for update
-
-        logging.info(f"Minting {package_path}...")
-
         self._patch()
+        manager = MintManager(
+            chain_type=self.chain_type,
+            key=self.key,
+            update_token=update_token,
+        )
+        manager.subgraph = SubgraphClient()
 
-        manager = (
-            MintManager(
-                chain_type=self.chain_type,
-                key=self.key,
-                update_token=update_token,
-            )
-            .load_package_configuration(
+        # Prepare for minting
+        (
+            manager.load_package_configuration(
                 package_path=package_path, package_type=PackageType.SERVICE
             )
             .load_metadata()
