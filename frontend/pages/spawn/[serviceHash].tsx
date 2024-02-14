@@ -17,6 +17,7 @@ export const getServerSideProps = async (
 };
 
 export const SpawnPage = ({ serviceHash }: { serviceHash: string }) => {
+  // potential to change to templateHash
   const { spawnState } = useSpawn();
 
   const [fundRequirements, setFundRequirements] = useState<{

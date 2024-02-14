@@ -38,13 +38,13 @@ const launchProcesses = async () => {
     app.quit();
   }
 
-  flaskProcess = exec(`yarn dev:python`);
+  flaskProcess = exec(`yarn dev:backend`);
   processList.push(flaskProcess);
   flaskProcess.stdout.on("data", (data) =>
-    console.log("[FLASK]: ", data.toString()),
+    console.log("[BACKEND]: ", data.toString()),
   );
   flaskProcess.stderr.on("data", (data) =>
-    console.error("[FLASK]: ", data.toString()),
+    console.error("[BACKEND]: ", data.toString()),
   );
 
   // next
@@ -62,14 +62,14 @@ const launchProcesses = async () => {
   }
 
   nextProcess = exec(
-    `cross-env NEXT_PUBLIC_FLASK_PORT=${flaskPort} next dev --port=${nextPort}`,
+    `cross-env NEXT_PUBLIC_FLASK_PORT=${flaskPort} yarn dev:frontend --port=${nextPort}`,
   );
   processList.push(nextProcess);
   nextProcess.stdout.on("data", (data) =>
-    console.log("[NEXT]: ", data.toString()),
+    console.log("[FRONTEND]: ", data.toString()),
   );
   nextProcess.stderr.on("data", (data) =>
-    console.error("[NEXT]: ", data.toString()),
+    console.error("[FRONTEND]: ", data.toString()),
   );
 
   // hardhat
@@ -138,9 +138,9 @@ const createMainWindow = (nextPort) => {
 
   mainWindow.webContents.openDevTools();
 
-  mainWindow.webContents.on("did-fail-load", () => {
-    mainWindow.webContents.reloadIgnoringCache();
-  });
+  // mainWindow.webContents.on("did-fail-load", () => {
+  //   mainWindow.webContents.reloadIgnoringCache();
+  // });
 
   mainWindow.on("ready-to-show", () => {
     splashWindow.destroy();

@@ -11,7 +11,6 @@ Electron + NextJS + Flask application to one-click run Agents.
 - Poetry
 - Docker v24
 
-
 ## Getting Started
 
 ### Application must run on a Linux instance
@@ -50,6 +49,7 @@ source ~/.bashrc
 #### Install NodeJS LTS
 ```bash
 nvm install --lts
+nvm use --lts
 ```
 
 ### Ensure Yarn package manager is installed
@@ -73,12 +73,12 @@ docker run hello-world
 ### Install project dependencies
 
 ```bash
-yarn
+yarn install-deps
 ```
 
 ### Set master key in the backend folder
 
-Currently the project runs using a Gnosis hardhat node.
+The project runs a Gnosis hardhat node -- this is temporary for early development phase.
 
 On running the following command we are presented with a number of public and private keys. 
 
@@ -92,43 +92,15 @@ Be sure to kill the Hardhat node once you have completed this step.
 
 ### Run the development app
 
+In the root directory, run:
+
 ```bash
 yarn start
 ```
 
-This will run Electron, NextJS, Flask, and Hardhat.
-
-## Resetting the application
-
-### Checking for lingering Docker containers
-
-Ensure that there are no Docker containers left running by the application.
-
-We can stop all containers by running the following command:
-```bash
-docker stop $(docker ps -a -q)
-```
-
-Then we can prune all the containers by running:
-```bash
-docker system prune
-```
-
-### Check for lingering processes on quit
-
-Known bug where Next & Flask processes may linger after killing the application.
-
-Check for lingering processes by running:
-```bash
-ps -a
-```
-
-Kill all lingering processes by running
-```bash
-killall electron python node next-server
-``` 
+This will run Electron, which launches NextJS, Backend, and Hardhat as child processes.
 
 ## Further notes
 
 - Only one agent can be run at a time.
-- Hardhat node RPC is prepopulated for ease of use.
+- Hardhat node RPC is pre-populated during Spawn process for ease of use.
