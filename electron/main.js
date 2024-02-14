@@ -112,10 +112,10 @@ const createSplashWindow = () => {
     width: 856,
     height: 1321,
     resizable: false,
-    title: "Olas Operate",
+    show: false,
+    title: "Olas Operate",    
   });
-  splashWindow.loadURL("file://" + __dirname + "/loading.html");
-  splashWindow.on("", () => (splashWindow = null));
+  splashWindow.loadURL("file://" + __dirname + "/loading.html").then(()=>splashWindow.show());
 };
 
 const createMainWindow = (nextPort) => {
@@ -138,9 +138,9 @@ const createMainWindow = (nextPort) => {
 
   mainWindow.webContents.openDevTools();
 
-  // mainWindow.webContents.on("did-fail-load", () => {
-  //   mainWindow.webContents.reloadIgnoringCache();
-  // });
+  mainWindow.webContents.on("did-fail-load", () => {
+    mainWindow.webContents.reloadIgnoringCache();
+  });
 
   mainWindow.on("ready-to-show", () => {
     splashWindow.destroy();
@@ -176,13 +176,13 @@ process.on("SIGINT", () => {
 
 app.on("ready", async () => {
   createSplashWindow();
-  // const { nextPort } = await launchProcesses();
-  // createMainWindow(nextPort);
-  // app.on("activate", () => {
-  //   if (BrowserWindow.getAllWindows().length === 0) {
-  //     createMainWindow();
-  //   }
-  // });
+  const { nextPort } = await launchProcesses();
+  createMainWindow(nextPort);
+  app.on("activate", () => {
+    if (BrowserWindow.getAllWindows().length === 0) {
+      createMainWindow();
+    }
+  });
 });
 
 app.on("window-all-closed", () => {
