@@ -36,7 +36,10 @@ TRADER_TEMPLATE = {
     },
     "deployments": {
         "chain": {
-            "required_funds": 0.1,
+            "required_funds": {
+                "agent": 0.1,
+                "safe": 0.5,
+            },
             "agent_id": 14,
             "cost_of_bond": 10000000000000000,
             "threshold": 1,
