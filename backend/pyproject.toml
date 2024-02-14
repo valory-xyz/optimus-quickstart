@@ -15,7 +15,10 @@ flask-cors = "^4.0.0"
 docker = "6.1.2"
 schedule = "^1.2.1"
 safe-eth-py = "^5.8.0"
-
+clea = "^0.1.0rc4"
+starlette = ">=0.36.3"
+uvicorn = ">=0.27.0"
+requests-toolbelt = "1.0.0"
 
 [build-system]
 requires = ["poetry-core"]
