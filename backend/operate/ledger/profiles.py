@@ -29,5 +29,7 @@ CONTRACTS = {
         "gnosis_safe_proxy_factory": "0x3C1fF68f5aa342D296d4DEe4Bb1cACCA912D95fE",
         "gnosis_safe_same_address_multisig": "0x6e7f594f680f7aBad18b7a63de50F0FeE47dfD06",
         "multisend": "0x40A2aCCbd92BCA938b02010E17A5b8929b49130D",
+        "ServiceStakingToken": "0x2Ef503950Be67a98746F484DA0bBAdA339DF3326",
+        "ERC20": "0x0000000000000000000000000000000000000000",  # just for encoding
     }
 }
