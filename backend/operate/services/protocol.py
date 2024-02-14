@@ -161,13 +161,12 @@ class OnChainManager:
         self,
         rpc: str,
         key: Path,
-        chain_type: ChainType,
         contracts: t.Dict,
     ) -> None:
         """On chain manager."""
         self.rpc = rpc
         self.key = key
-        self.chain_type = chain_type
+        self.chain_type = ChainType.CUSTOM
         self.contracts = contracts
 
     def _patch(self) -> None:

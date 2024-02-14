@@ -19,7 +19,6 @@
 # ------------------------------------------------------------------------------
 """Service manager."""
 
-import json
 import logging
 import os
 import shutil
@@ -27,8 +26,6 @@ import typing as t
 from pathlib import Path
 
 from aea.helpers.base import IPFSHash
-from aea_ledger_ethereum.ethereum import EthereumCrypto
-from autonomy.chain.config import ChainType
 from autonomy.deploy.constants import (
     AGENT_KEYS_DIR,
     BENCHMARKS_DIR,
@@ -38,6 +35,7 @@ from autonomy.deploy.constants import (
     VENVS_DIR,
 )
 from operate.http import Resource
+from operate.ledger.profiles import CONTRACTS
 from operate.keys import Keys
 from operate.services.protocol import OnChainManager
 from operate.services.service import Service
@@ -47,6 +45,7 @@ from operate.types import (
     ServicesType,
     ServiceTemplate,
     ServiceType,
+    ChainType,
 )
 from starlette.types import Receive, Scope, Send
 from typing_extensions import TypedDict
@@ -155,7 +154,6 @@ class Services(
         instances = [self.keys.create() for _ in range(data.get("number_of_agents", 1))]
         keys = [self.keys.get(key=key) for key in instances]
         rpc = data["ledger"]["rpc"]
-        contracts = data["ledger"]["contracts"]
         phash = data["hash"]
 
         if (self.path / phash).exists():  # For testing only
@@ -178,8 +176,7 @@ class Services(
         ocm = OnChainManager(
             rpc=rpc,
             key=self.key,
-            chain_type=ChainType.CUSTOM,
-            contracts=contracts,
+            contracts=CONTRACTS[ChainType.from_string(data["ledger"]["chain"])],
         )
 
         # Mint service on-chain
@@ -229,7 +226,6 @@ class Services(
         instances = old.chain_data["instances"]
         keys = [self.keys.get(key=key) for key in instances]
         rpc = data["ledger"]["rpc"]
-        contracts = data["ledger"]["contracts"]
         phash = data["hash"]
 
         if (self.path / phash).exists():  # For testing only
@@ -238,8 +234,7 @@ class Services(
         ocm = OnChainManager(
             rpc=rpc,
             key=self.key,
-            chain_type=ChainType.CUSTOM,
-            contracts=contracts,
+            contracts=CONTRACTS[ChainType.from_string(data["ledger"]["chain"])],
         )
 
         # Terminate old service

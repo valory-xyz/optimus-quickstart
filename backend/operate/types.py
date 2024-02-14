@@ -32,6 +32,14 @@ _ACTIONS = {
 }
 
 
+_CHAINS = {
+    "ethereum": 0,
+    "goerli": 1,
+    "gnosis": 2,
+    "solana": 3,
+}
+
+
 class LedgerType(enum.IntEnum):
     """Ledger type enum."""
 
@@ -46,6 +54,11 @@ class ChainType(enum.IntEnum):
     GOERLI = 1
     GNOSIS = 2
     SOLANA = 3
+
+    @classmethod
+    def from_string(cls, chain: str) -> "ChainType":
+        """Load from string."""
+        return cls(_CHAINS[chain.lower()])
 
 
 class ContractAddresses(TypedDict):
@@ -172,6 +185,7 @@ class ServiceTemplate(TypedDict):
 
     name: str
     hash: str
+    image: str
     repository: str
     number_of_agents: int
     ledger: LedgerTemplate
