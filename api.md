@@ -1,3 +1,12 @@
+```ts
+ServiceHash: string
+
+ServiceUpdateTemplate {
+    old: ServiceHash;
+    new: ServiceTemplate;
+}
+```
+
 * Get the list of available services
 ```js
 GET /api/services -> ServicesType
