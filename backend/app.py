@@ -71,15 +71,15 @@ class App(Resource):
         return {"name": "Operate HTTP server", "version": "0.1.0.rc0"}
 
 
-@command(name="perpetua")
-def _perpetua(
+@command(name="operate")
+def _operate(
     host: Annotated[str, params.String(help="HTTP server host string")] = "localhost",
     port: Annotated[int, params.Integer(help="HTTP server port")] = 8000,
     home: Annotated[
         int, params.Directory(long_flag="--home", help="Home directory")
     ] = None,
 ) -> None:
-    """Perpetua - deploy autonomous services."""
+    """Operate - deploy autonomous services."""
     app = App(home=home)
     uvicorn(
         app=Starlette(
@@ -105,7 +105,7 @@ def _perpetua(
 
 def main() -> None:
     """CLI entry point."""
-    run(cli=_perpetua)
+    run(cli=_operate)
 
 
 if __name__ == "__main__":
