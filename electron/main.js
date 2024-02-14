@@ -111,11 +111,11 @@ const createSplashWindow = () => {
   splashWindow = new BrowserWindow({
     width: 856,
     height: 1321,
-    frame: false,
-    alwaysOnTop: false,
+    resizable: false,
+    title: "Olas Operate",
   });
-
   splashWindow.loadURL("file://" + __dirname + "/loading.html");
+  splashWindow.on("", () => (splashWindow = null));
 };
 
 const createMainWindow = (nextPort) => {
@@ -176,13 +176,13 @@ process.on("SIGINT", () => {
 
 app.on("ready", async () => {
   createSplashWindow();
-  const { nextPort } = await launchProcesses();
-  createMainWindow(nextPort);
-  app.on("activate", () => {
-    if (BrowserWindow.getAllWindows().length === 0) {
-      createMainWindow();
-    }
-  });
+  // const { nextPort } = await launchProcesses();
+  // createMainWindow(nextPort);
+  // app.on("activate", () => {
+  //   if (BrowserWindow.getAllWindows().length === 0) {
+  //     createMainWindow();
+  //   }
+  // });
 });
 
 app.on("window-all-closed", () => {
