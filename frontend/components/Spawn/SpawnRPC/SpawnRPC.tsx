@@ -152,7 +152,7 @@ export const SpawnRPC = ({
       },
     ],
     [handleRpcChange, inputStatus, inputSuffix, rpc],
-  );
+  );  
 
   return (
     <Flex gap={8} vertical>
