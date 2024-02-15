@@ -87,7 +87,7 @@ const launchProcesses = async () => {
   }
 
   hardhatProcess = exec(
-    `npx hardhat node --port ${hardhatPort} --fork https://lb.nodies.app/v1/406d8dcc043f4cb3959ed7d6673d311a`,
+    `yarn dev:hardhat --port ${hardhatPort}`,
   );
   processList.push(hardhatProcess);
   hardhatProcess.stdout.on("data", (data) =>
