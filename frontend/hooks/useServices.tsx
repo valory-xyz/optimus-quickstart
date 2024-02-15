@@ -14,7 +14,7 @@ export const useServices = () => {
 
   // SERVICES SERVICE METHODS
   const createService = async (
-    serviceTemplate: ServiceTemplate,
+    serviceTemplate: Required<ServiceTemplate>,
   ): Promise<Service> => ServicesService.createService(serviceTemplate);
 
   const deployService = async (serviceHash: ServiceHash) =>
