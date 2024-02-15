@@ -23,12 +23,15 @@ import json
 import os
 import shutil
 import typing as t
+from copy import deepcopy
 from pathlib import Path
 
+from aea.configurations.data_types import PackageType
 from aea.helpers.yaml_utils import yaml_dump, yaml_load, yaml_load_all
 from aea_cli_ipfs.ipfs_utils import IPFSTool
 from autonomy.cli.helpers.deployment import run_deployment, stop_deployment
-from autonomy.deploy.base import ServiceBuilder
+from autonomy.configurations.loader import load_service_config
+from autonomy.deploy.base import ServiceBuilder as BaseServiceBuilder
 from autonomy.deploy.constants import (
     AGENT_KEYS_DIR,
     BENCHMARKS_DIR,
@@ -50,9 +53,11 @@ from operate.http.exceptions import NotAllowed, ResourceAlreadyExists
 from operate.types import (
     Action,
     ChainData,
+    ChainType,
     DeploymentConfig,
     KeysType,
     LedgerConfig,
+    LedgerType,
     ServiceType,
     Status,
 )
@@ -111,6 +116,47 @@ class StopDeployment(TypedDict):
     delete: bool
 
 
+# TODO: Backport to autonomy
+class ServiceBuilder(BaseServiceBuilder):
+    """Service builder patch."""
+
+    def try_update_ledger_params(self, chain: str, address: str) -> None:
+        """Try to update the ledger params."""
+
+        for override in deepcopy(self.service.overrides):
+            (
+                override,
+                component_id,
+                _,
+            ) = self.service.process_metadata(
+                configuration=override,
+            )
+
+            if (
+                component_id.package_type == PackageType.CONNECTION
+                and component_id.name == "ledger"
+            ):
+                ledger_connection_overrides = deepcopy(override)
+                break
+        else:
+            return
+
+        # TODO: Support for multiple overrides
+        ledger_connection_overrides["config"]["ledger_apis"][chain]["address"] = address
+        service_overrides = deepcopy(self.service.overrides)
+        service_overrides = [
+            override
+            for override in service_overrides
+            if override["public_id"] != str(component_id.public_id)
+            or override["type"] != PackageType.CONNECTION.value
+        ]
+
+        ledger_connection_overrides["type"] = PackageType.CONNECTION.value
+        ledger_connection_overrides["public_id"] = str(component_id.public_id)
+        service_overrides.append(ledger_connection_overrides)
+        self.service.overrides = service_overrides
+
+
 class Deployment(
     Resource[
         DeploymentType,
@@ -158,33 +204,6 @@ class Deployment(
         keys_file = self.path / KEYS_JSON
         keys_file.write_text(json.dumps(service.keys, indent=4), encoding="utf-8")
 
-        def _serialize(var: t.Any) -> str:
-            """Serialize variable for exporting."""
-            if not isinstance(var, str):
-                return json.dumps(var, separators=(",", ":"))
-            if not (var.startswith("${") and var.endswith("}")):
-                return var
-
-            # NOTE: This is a hacky implementation for runtime variable substitution
-            obj, attr, key = (
-                t.cast(str, var).replace("${", "").replace("}", "").split(".")
-            )
-            if obj != "service":
-                return var
-            val = getattr(service, attr).get(key)
-            if isinstance(val, str):
-                return val
-            return json.dumps(val, separators=(",", ":"))
-
-        # Update environment
-        _environ = dict(os.environ)
-        os.environ.update(
-            {
-                variable["key"]: _serialize(var=variable["value"])
-                for variable in service.deployment_config.get("variables", [])
-            }
-        )
-
         try:
             builder = ServiceBuilder.from_dir(
                 path=service.service_path,
@@ -197,6 +216,11 @@ class Deployment(
                 multisig_address=service.chain_data.get("multisig"),
                 agent_instances=service.chain_data.get("instances"),
                 consensus_threshold=None,
+            )
+            # TODO: Support for multiledger
+            builder.try_update_ledger_params(
+                chain=LedgerType(service.ledger["type"]).name.lower(),
+                address=service.ledger["rpc"],
             )
 
             # build deployment
@@ -214,9 +238,6 @@ class Deployment(
         except Exception:
             shutil.rmtree(build)
             raise
-        finally:
-            os.environ.clear()
-            os.environ.update(_environ)
 
         compose = build / DOCKER_COMPOSE_YAML
         with compose.open("r", encoding="utf-8") as stream:
@@ -229,7 +250,12 @@ class Deployment(
         ]
 
         _volumes = []
-        for volume, mount in service.deployment_config.get("volumes", {}).items():
+        for volume, mount in (
+            service.helper.deployment_config()
+            .get("local", {})
+            .get("volumes", {})
+            .items()
+        ):
             (build / volume).mkdir(exist_ok=True)
             _volumes.append(f"./{volume}:{mount}:Z")
         for service in deployment["services"]:
@@ -302,6 +328,35 @@ class Deployment(
         )
 
 
+class ServiceHelper:
+    """Service config helper."""
+
+    def __init__(self, path: Path) -> None:
+        """Initialize object."""
+        self.path = path
+        self.config = load_service_config(service_path=path)
+
+    def ledger_config(self) -> LedgerConfig:
+        """Get ledger config."""
+        # TODO: Multiledger/Multiagent support
+        for override in self.config.overrides:
+            if (
+                override["type"] == "connection"
+                and "valory/ledger" in override["public_id"]
+            ):
+                (ledger, config), *_ = override["config"]["ledger_apis"].items()
+                return LedgerConfig(
+                    rpc=config["address"],
+                    chain=ChainType.from_id(cid=config["chain_id"]),
+                    type=LedgerType.ETHEREUM,
+                )
+        raise ValueError("No ledger config found.")
+
+    def deployment_config(self) -> DeploymentConfig:
+        """Returns deployment config."""
+        return DeploymentConfig(self.config.json.get("deployment", {}))
+
+
 class Service(
     Resource[
         ServiceType,
@@ -318,9 +373,8 @@ class Service(
     name: t.Optional[str]
     hash: str
     keys: KeysType
-    ledger: t.Optional[LedgerConfig]
-    chain_data: t.Optional[ChainData]
-    deployment_config: t.Optional[DeploymentConfig]
+    ledger: LedgerConfig
+    chain_data: ChainData
 
     service_path: Path
     path: Path
@@ -332,18 +386,17 @@ class Service(
         keys: KeysType,
         ledger: t.Optional[LedgerConfig] = None,
         chain_data: t.Optional[ChainData] = None,
-        deployment_config: t.Optional[DeploymentConfig] = None,
         name: t.Optional[str] = None,
     ) -> None:
         """Initialize object."""
         super().__init__()
-        self.hash = phash
-        self.keys = keys
-        self.ledger = ledger
         self.name = name
-        self.chain_data = chain_data or {}
-        self.deployment_config = deployment_config or {}
+        self.keys = keys
+        self.hash = phash
+        self.ledger = ledger
         self.service_path = service_path
+        self.helper = ServiceHelper(path=self.service_path)
+        self.chain_data = chain_data or {}
         self.path = self.service_path.parent
 
     def deployment(self) -> Deployment:
@@ -374,7 +427,6 @@ class Service(
                 "keys": self.keys,
                 "ledger": self.ledger,
                 "chain_data": self.chain_data,
-                "deployment_config": self.deployment_config,
                 "service_path": str(self.service_path),
                 "readme": (
                     readme.read_text(encoding="utf-8") if readme.exists() else None
@@ -398,7 +450,6 @@ class Service(
             keys=config["keys"],
             ledger=config["ledger"],
             chain_data=config.get("chain_data"),
-            deployment_config=config.get("deployment_config"),
             service_path=Path(config["service_path"]),
             name=config["name"],
         )
@@ -411,7 +462,6 @@ class Service(
         keys: KeysType,
         ledger: LedgerConfig,
         chain_data: t.Optional[ChainData] = None,
-        deployment_config: t.Optional[DeploymentConfig] = None,
         name: t.Optional[str] = None,
     ) -> "Service":
         """Create a new service."""
@@ -429,7 +479,6 @@ class Service(
             phash=phash,
             keys=keys,
             chain_data=chain_data,
-            deployment_config=deployment_config,
             ledger=ledger,
             service_path=Path(downloaded),
             name=name,
