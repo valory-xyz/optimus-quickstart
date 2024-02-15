@@ -54,7 +54,7 @@ const getServices = async (): Promise<Services> =>
  */
 const deployService = async (
   serviceHash: ServiceHash,
-): Promise<DeleteServicesResponse> =>
+): Promise<DeploymentType> =>
   fetch(`${BACKEND_URL}/services/${serviceHash}/deploy`, {
     method: "POST",
     headers: {
