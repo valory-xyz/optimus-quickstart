@@ -79,7 +79,7 @@ const deleteServices = async (
  * Creates a service
  */
 const createService = async (
-  serviceTemplate: ServiceTemplate,
+  serviceTemplate: Required<ServiceTemplate>,
 ): Promise<Service> =>
   fetch(`${BACKEND_URL}/services`, {
     method: "POST",
