@@ -1,8 +1,7 @@
-#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2024 Valory AG
+#   Copyright 2023 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -17,4 +16,5 @@
 #   limitations under the License.
 #
 # ------------------------------------------------------------------------------
-"""This module implements the Olas Operate App backend."""
+
+"""Services endpoint."""
