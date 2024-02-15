@@ -219,3 +219,17 @@ class Status(enum.IntEnum):
     STOPPING = 4
     STOPPED = 5
     DELETED = 6
+
+
+class DeployedNodes(TypedDict):
+    """Deployed nodes type."""
+
+    agent: t.List[str]
+    tendermint: t.List[str]
+
+
+class DeploymentType(TypedDict):
+    """Deployment type."""
+
+    status: Status
+    nodes: DeployedNodes

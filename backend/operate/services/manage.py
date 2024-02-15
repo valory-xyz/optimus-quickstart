@@ -39,15 +39,9 @@ from operate.keys import Keys
 from operate.ledger.profiles import CONTRACTS
 from operate.services.protocol import OnChainManager
 from operate.services.service import Service
-from operate.types import (
-    ChainData,
-    ServicesType,
-    ServiceTemplate,
-    ServiceType,
-)
+from operate.types import ChainData, ServicesType, ServiceTemplate, ServiceType
 from starlette.types import Receive, Scope, Send
 from typing_extensions import TypedDict
-
 
 OPERATE = ".operate"
 CONFIG = "config.json"

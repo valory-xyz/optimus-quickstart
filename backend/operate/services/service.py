@@ -54,7 +54,9 @@ from operate.types import (
     Action,
     ChainData,
     ChainType,
+    DeployedNodes,
     DeploymentConfig,
+    DeploymentType,
     KeysType,
     LedgerConfig,
     LedgerType,
@@ -90,20 +92,6 @@ class DeleteServicePayload(TypedDict):
 
 class DeleteServiceResponse(TypedDict):
     """Delete response."""
-
-
-class DeployedNodes(TypedDict):
-    """Deployed nodes type."""
-
-    agent: t.List[str]
-    tendermint: t.List[str]
-
-
-class DeploymentType(TypedDict):
-    """Deployment type."""
-
-    status: Status
-    nodes: DeployedNodes
 
 
 class GetDeployment(TypedDict):
@@ -486,8 +474,9 @@ class Service(
         service.store()
         return service
 
-    def update(self, data: ServiceType) -> ServiceType:
+    def __update(self, data: ServiceType) -> ServiceType:
         """Update service."""
+        # TODO: Finish implementation
         self.hash = data["hash"]
         self.keys = data["keys"]
         self.variables = data.get("variables", self.variables)

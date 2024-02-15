@@ -19,15 +19,17 @@
 
 """Chain profiles."""
 
-from operate.types import ChainType
+from operate.types import ChainType, ContractAddresses
 
 CONTRACTS = {
-    ChainType.GNOSIS: {
-        "service_manager": "0x04b0007b2aFb398015B76e5f22993a1fddF83644",
-        "service_registry": "0x9338b5153AE39BB89f50468E608eD9d764B755fD",
-        "service_registry_token_utility": "0xa45E64d13A30a51b91ae0eb182e88a40e9b18eD8",
-        "gnosis_safe_proxy_factory": "0x3C1fF68f5aa342D296d4DEe4Bb1cACCA912D95fE",
-        "gnosis_safe_same_address_multisig": "0x6e7f594f680f7aBad18b7a63de50F0FeE47dfD06",
-        "multisend": "0x40A2aCCbd92BCA938b02010E17A5b8929b49130D",
-    }
+    ChainType.GNOSIS: ContractAddresses(
+        {
+            "service_manager": "0x04b0007b2aFb398015B76e5f22993a1fddF83644",
+            "service_registry": "0x9338b5153AE39BB89f50468E608eD9d764B755fD",
+            "service_registry_token_utility": "0xa45E64d13A30a51b91ae0eb182e88a40e9b18eD8",
+            "gnosis_safe_proxy_factory": "0x3C1fF68f5aa342D296d4DEe4Bb1cACCA912D95fE",
+            "gnosis_safe_same_address_multisig": "0x6e7f594f680f7aBad18b7a63de50F0FeE47dfD06",
+            "multisend": "0x40A2aCCbd92BCA938b02010E17A5b8929b49130D",
+        }
+    )
 }
