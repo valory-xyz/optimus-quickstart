@@ -1,6 +1,7 @@
 {
   "extends": [
     "next/core-web-vitals",
+    "next/babel",
     "eslint:recommended",
     "plugin:jest/recommended",
     "plugin:react/recommended",
