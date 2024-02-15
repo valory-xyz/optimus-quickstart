@@ -64,7 +64,7 @@ export const SpawnRPC = ({
     if (continueIsLoading)
       return message.info("Please wait for the current action to complete");
     setContinueIsLoading(true);
-    createService(serviceTemplate)
+    createService({ ...serviceTemplate, rpc })
       .then((_service: Service) => {
         setService(_service);
         setSpawnScreenState(SpawnScreenState.FUNDS);
@@ -76,6 +76,7 @@ export const SpawnRPC = ({
   }, [
     continueIsLoading,
     createService,
+    rpc,
     serviceTemplate,
     setService,
     setSpawnScreenState,
