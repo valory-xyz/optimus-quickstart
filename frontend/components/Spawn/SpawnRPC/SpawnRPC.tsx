@@ -37,7 +37,7 @@ export const SpawnRPC = ({
   const { createService } = useServices();
   const { checkRPC } = useEthers();
 
-  const [rpc, setRpc] = useState("http://localhost:8545"); // default to hardhat node
+  const [rpc, setRpc] = useState("http://localhost:8545"); // default to hardhat node during development
   const [continueIsLoading, setContinueIsLoading] = useState(false);
   const [rpcState, setRpcState] = useState<RPCState>(RPCState.INVALID);
 
