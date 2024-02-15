@@ -1,0 +1,29 @@
+# TBA
+name: Frontend Workflow
+
+on: [pull_request]
+
+jobs:
+    build:
+        runs-on: ubuntu-latest
+        steps:
+           
+            - uses: actions/checkout@v2
+
+            - name: Install Node.js
+              uses: actions/setup-node@v1
+              with:
+                  node-version: 12
+
+            # Python
+            -   uses: actions/setup-python@v4
+                with:
+                    python-version: "3.10"
+
+            -   uses: snok/install-poetry@v1
+                with:
+                    version: "1.7.1"
+                    virtualenvs-create: true
+                    virtualenvs-in-project: false
+                    virtualenvs-path: ~/my-custom-path
+                    installer-parallel: true
