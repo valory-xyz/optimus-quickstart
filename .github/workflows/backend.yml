@@ -28,5 +28,8 @@ jobs:
                     virtualenvs-path: ~/my-custom-path
                     installer-parallel: true
 
-            # Run command
+            # Install backend dependencies
             -   run: yarn install:backend
+
+            # Run backend
+            -   run: yarn start:backend
