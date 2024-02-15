@@ -19,6 +19,7 @@
     "install-deps": "yarn; concurrently \"yarn install:backend\" \"yarn install:frontend\" ",
     "install:backend": "cd backend; poetry install --no-root",
     "install:frontend": "cd frontend; yarn",
+    "lint:frontend": "cd frontend; yarn lint",
     "start": "electron .",
     "start:frontend": "cd frontend; yarn start",
     "test:frontend": "cd frontend; yarn test"
