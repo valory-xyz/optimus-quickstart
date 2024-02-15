@@ -25,81 +25,9 @@ from aea_ledger_ethereum.ethereum import EthereumApi, EthereumCrypto
 TRADER_TEMPLATE = {
     "name": "Trader Agent",
     "description": "Trader agent for omen prediction markets",
-    "hash": "bafybeifhq2udyttnuidkc7nmtjcfzivbbnfcayixzps7fa5x3cg353bvfe",
-    "repository": "valory-xyz/trader",
+    "hash": "bafybeigiwlvm6ey4dmlztg3z4xyvpol23n444vliivx2ybuki7xo4f3pae",
     "image": "https://operate.olas.network/_next/image?url=%2Fimages%2Fprediction-agent.png&w=3840&q=75",
-    "number_of_agents": 1,
-    "ledger": {
-        "type": "ethereum",
-        "chain": "gnosis",
-        "rpc": "http://localhost:8545",
-    },
-    "deployments": {
-        "chain": {
-            "required_funds": {
-                "agent": 0.1,
-                "safe": 0.5,
-            },
-            "agent_id": 14,
-            "cost_of_bond": 10000000000000000,
-            "threshold": 1,
-            "nft": "bafybeig64atqaladigoc3ds4arltdu63wkdrk3gesjfvnfdmz35amv7faq",
-        },
-        "local": {
-            "volumes": {"data": "/data"},
-            "variables": [
-                {
-                    "key": "MECH_AGENT_ADDRESS",
-                    "value": "0x77af31De935740567Cf4fF1986D04B2c964A786a",
-                },
-                {
-                    "key": "WXDAI_ADDRESS",
-                    "value": "0xe91D153E0b41518A2Ce8Dd3D7944Fa863463a97d",
-                },
-                {"key": "CHAIN_ID", "value": 100},
-                {
-                    "key": "ON_CHAIN_SERVICE_ID",
-                    "value": "${service.chain_data.token}",  # allows for runtime variable substituion
-                },
-                {
-                    "key": "ALL_PARTICIPANTS",
-                    "value": "${service.chain_data.instances}",  # allows for runtime variable substituion
-                },
-                {
-                    "key": "OMEN_CREATORS",
-                    "value": ["0x89c5cc945dd550BcFfb72Fe42BfF002429F46Fec"],
-                },
-                {"key": "BET_THRESHOLD", "value": 5000000000000000},
-                {"key": "TRADING_STRATEGY", "value": "kelly_criterion"},
-                {
-                    "key": "PROMPT_TEMPLATE",
-                    "value": 'Please take over the role of a Data Scientist to evaluate the given question. With the given question "@{question}" and the \`yes\` option represented by \`@{yes}\` and the \`no\` option represented by \`@{no}\`, what are the respective probabilities of \`p_yes\` and \`p_no\` occurring?',
-                },
-                {
-                    "key": "IRRELEVANT_TOOLS",
-                    "value": [
-                        "openai-gpt-3.5-turbo-instruct",
-                        "prediction-online-summarized-info",
-                        "prediction-online-sum-url-content",
-                        "prediction-online",
-                        "openai-text-davinci-002",
-                        "openai-text-davinci-003",
-                        "openai-gpt-3.5-turbo",
-                        "openai-gpt-4",
-                        "stabilityai-stable-diffusion-v1-5",
-                        "stabilityai-stable-diffusion-xl-beta-v2-2-2",
-                        "stabilityai-stable-diffusion-512-v2-1",
-                        "stabilityai-stable-diffusion-768-v2-1",
-                        "deepmind-optimization-strong",
-                        "deepmind-optimization",
-                        "claude-prediction-offline",
-                        "prediction-offline",
-                        "prediction-offline-sme",
-                    ],
-                },
-            ],
-        },
-    },
+    "rpc": "http://localhost:8545",  # User provided
 }
 
 BASE_URL = "http://localhost:8000/api"
@@ -116,14 +44,14 @@ def test_endpoint_e2e():
     input("> Press enter to start")
     print(
         requests.get(
-            url=f"{BASE_URL}/services/bafybeifhq2udyttnuidkc7nmtjcfzivbbnfcayixzps7fa5x3cg353bvfe/deploy/",
+            url=f"{BASE_URL}/services/bafybeigiwlvm6ey4dmlztg3z4xyvpol23n444vliivx2ybuki7xo4f3pae/deploy/",
         ).content.decode()
     )
 
     input("> Press enter to stop")
     print(
         requests.get(
-            url=f"{BASE_URL}/services/bafybeifhq2udyttnuidkc7nmtjcfzivbbnfcayixzps7fa5x3cg353bvfe/stop/",
+            url=f"{BASE_URL}/services/bafybeigiwlvm6ey4dmlztg3z4xyvpol23n444vliivx2ybuki7xo4f3pae/stop/",
         ).content.decode()
     )
 
@@ -146,7 +74,7 @@ def test_endpoint_e2e():
 
     old = TRADER_TEMPLATE["hash"]
     TRADER_TEMPLATE["hash"] = (
-        "bafybeihn5f3w6n5j72imfdxrjwdxbzszqxgylhk6a4i6fm5wkotp4bldzu"
+        "bafybeicxdpkuk5z5zfbkso7v5pywf4v7chxvluyht7dtgalg6dnhl7ejoe"
     )
     print(
         requests.put(

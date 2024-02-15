@@ -35,22 +35,13 @@ from autonomy.deploy.constants import (
     VENVS_DIR,
 )
 from operate.http import Resource
-from operate.ledger.profiles import CONTRACTS
 from operate.keys import Keys
+from operate.ledger.profiles import CONTRACTS
 from operate.services.protocol import OnChainManager
 from operate.services.service import Service
-from operate.types import (
-    ChainData,
-    DeploymentConfig,
-    ServicesType,
-    ServiceTemplate,
-    ServiceType,
-    ChainType,
-)
+from operate.types import ChainData, ServicesType, ServiceTemplate, ServiceType
 from starlette.types import Receive, Scope, Send
 from typing_extensions import TypedDict
-
-logging.basicConfig(level=logging.DEBUG)
 
 OPERATE = ".operate"
 CONFIG = "config.json"
@@ -151,54 +142,61 @@ class Services(
 
     def create(self, data: PostServices) -> PostServices:
         """Create a service."""
-        instances = [self.keys.create() for _ in range(data.get("number_of_agents", 1))]
-        keys = [self.keys.get(key=key) for key in instances]
-        rpc = data["ledger"]["rpc"]
         phash = data["hash"]
-
         if (self.path / phash).exists():  # For testing only
             shutil.rmtree(self.path / phash)
 
+        logging.info(f"Fetching service {phash}")
         service = Service.new(
             path=self.path,
             phash=phash,
-            keys=keys,
+            keys=[],
             chain_data=ChainData(),
-            deployment_config=DeploymentConfig(
-                {
-                    "variables": data["deployments"]["local"]["variables"],
-                    "volumes": data["deployments"]["local"]["volumes"],
-                }
-            ),
-            ledger=data["ledger"],
+            ledger={},
         )
 
+        ledger = service.helper.ledger_config()
+        deployment = service.helper.deployment_config()
+        instances = [
+            self.keys.create() for _ in range(service.helper.config.number_of_agents)
+        ]
         ocm = OnChainManager(
-            rpc=rpc,
+            rpc=data["rpc"],
             key=self.key,
-            contracts=CONTRACTS[ChainType.from_string(data["ledger"]["chain"])],
+            contracts=CONTRACTS[ledger["chain"]],
         )
 
-        # Mint service on-chain
+        # Update to user provided RPC
+        ledger["rpc"] = data["rpc"]
+
+        logging.info(f"Minting service {phash}")
         service_id = t.cast(
             int,
             ocm.mint(
                 package_path=service.service_path,
-                agent_id=data["deployments"]["chain"]["agent_id"],
-                number_of_slots=data["number_of_agents"],
-                cost_of_bond=data["deployments"]["chain"]["cost_of_bond"],
-                threshold=data["deployments"]["chain"]["threshold"],
-                nft=IPFSHash(data["deployments"]["chain"]["nft"]),
+                agent_id=deployment["chain"]["agent_id"],
+                number_of_slots=service.helper.config.number_of_agents,
+                cost_of_bond=deployment["chain"]["cost_of_bond"],
+                threshold=deployment["chain"]["threshold"],
+                nft=IPFSHash(deployment["chain"]["nft"]),
             ).get("token"),
         )
+
+        logging.info(f"Activating service {phash}")
         ocm.activate(service_id=service_id)
         ocm.register(
             service_id=service_id,
             instances=instances,
-            agents=[data["deployments"]["chain"]["agent_id"] for _ in instances],
+            agents=[deployment["chain"]["agent_id"] for _ in instances],
         )
+
+        logging.info(f"Deploying service {phash}")
         ocm.deploy(service_id=service_id)
+
+        logging.info(f"Updating service {phash}")
         info = ocm.info(token_id=service_id)
+        service.ledger = ledger
+        service.keys = [self.keys.get(key=key) for key in instances]
         service.chain_data = ChainData(
             {
                 "token": service_id,
@@ -208,7 +206,7 @@ class Services(
         )
         service.store()
 
-        # Build docker-compose deployment
+        logging.info(f"Building deployment for service {phash}")
         deployment = service.deployment()
         deployment.create({})
         deployment.store()
@@ -222,19 +220,17 @@ class Services(
         # Load old service
         old = Service.load(path=self.path / data["old"])
 
-        data = data["new"]
-        instances = old.chain_data["instances"]
-        keys = [self.keys.get(key=key) for key in instances]
-        rpc = data["ledger"]["rpc"]
-        phash = data["hash"]
+        rpc = data["new"]["rpc"]
+        phash = data["new"]["hash"]
 
         if (self.path / phash).exists():  # For testing only
             shutil.rmtree(self.path / phash)
 
+        instances = old.chain_data["instances"]
         ocm = OnChainManager(
             rpc=rpc,
             key=self.key,
-            contracts=CONTRACTS[ChainType.from_string(data["ledger"]["chain"])],
+            contracts=CONTRACTS[old.ledger["chain"]],
         )
 
         # Terminate old service
@@ -256,45 +252,53 @@ class Services(
             owner_key=owner_key,
         )
 
+        logging.info(f"Fetching service {phash}")
         service = Service.new(
             path=self.path,
             phash=phash,
-            keys=keys,
+            keys=[],
             chain_data=ChainData(),
-            deployment_config=DeploymentConfig(
-                {
-                    "variables": data["deployments"]["local"]["variables"],
-                    "volumes": data["deployments"]["local"]["volumes"],
-                }
-            ),
-            ledger=data["ledger"],
+            ledger={},
         )
 
-        # Mint service on-chain
+        ledger = service.helper.ledger_config()
+        deployment = service.helper.deployment_config()
+
+        # Update to user provided RPC
+        ledger["rpc"] = data["new"]["rpc"]
+
+        logging.info(f"Minting service {phash}")
         service_id = t.cast(
             int,
             ocm.mint(
                 package_path=service.service_path,
-                agent_id=data["deployments"]["chain"]["agent_id"],
-                number_of_slots=data["number_of_agents"],
-                cost_of_bond=data["deployments"]["chain"]["cost_of_bond"],
-                threshold=data["deployments"]["chain"]["threshold"],
-                nft=IPFSHash(data["deployments"]["chain"]["nft"]),
+                agent_id=deployment["chain"]["agent_id"],
+                number_of_slots=service.helper.config.number_of_agents,
+                cost_of_bond=deployment["chain"]["cost_of_bond"],
+                threshold=deployment["chain"]["threshold"],
+                nft=IPFSHash(deployment["chain"]["nft"]),
                 update_token=old.chain_data["token"],
             ).get("token"),
         )
 
+        logging.info(f"Activating service {phash}")
         ocm.activate(service_id=service_id)
         ocm.register(
             service_id=service_id,
             instances=instances,
-            agents=[data["deployments"]["chain"]["agent_id"] for _ in instances],
+            agents=[deployment["chain"]["agent_id"] for _ in instances],
         )
+
+        logging.info(f"Deploying service {phash}")
         ocm.deploy(
             service_id=service_id,
             reuse_multisig=True,
         )
+
+        logging.info(f"Updating service {phash}")
         info = ocm.info(token_id=service_id)
+        service.ledger = ledger
+        service.keys = [self.keys.get(key=key) for key in instances]
         service.chain_data = ChainData(
             {
                 "token": service_id,
