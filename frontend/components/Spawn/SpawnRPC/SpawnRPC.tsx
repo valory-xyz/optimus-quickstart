@@ -159,7 +159,7 @@ export const SpawnRPC = ({
       <Button
         type="default"
         onClick={handleContinue}        
-        disabled={!rpc}
+        disabled={!rpc || rpcState !== RPCState.VALID}
         loading={continueIsLoading}
       >
         Continue
