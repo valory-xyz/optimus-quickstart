@@ -1,6 +1,6 @@
 import {
   DeleteServicesResponse,
-  DeploymentType,
+  Deployment,
   Service,
   ServiceHash,
   ServiceTemplate,
@@ -33,7 +33,7 @@ export const useServices = () => {
 
   const getServiceStatus = (
     serviceHash: ServiceHash,
-  ): Promise<DeploymentType> => ServicesService.getServiceStatus(serviceHash);
+  ): Promise<Deployment> => ServicesService.getServiceStatus(serviceHash);
 
   // STATE METHODS
   const getServiceFromState = (serviceHash: ServiceHash): Service | undefined =>

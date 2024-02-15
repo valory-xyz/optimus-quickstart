@@ -2,7 +2,7 @@ import { Action } from "./enums";
 import {
   HttpResponse,
   ClientResponse,
-  DeploymentType,
+  Deployment,
   EmptyPayload,
   StopDeployment,
   Service,
@@ -117,13 +117,13 @@ export class HttpClient<
 }
 
 export class DeploymentEndpoint extends HttpClient<
-  DeploymentType,
+  Deployment,
   EmptyPayload,
-  DeploymentType,
+  Deployment,
   EmptyPayload,
-  DeploymentType,
+  Deployment,
   StopDeployment,
-  DeploymentType
+  Deployment
 > {}
 
 export class ServiceEndpoint extends HttpClient<

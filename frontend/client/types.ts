@@ -46,7 +46,7 @@ export type DeployedNodes = {
   tendermint: string[];
 };
 
-export type DeploymentType = {
+export type Deployment = {
   status: DeploymentStatus;
   nodes: DeployedNodes;
 };

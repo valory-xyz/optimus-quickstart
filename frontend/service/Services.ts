@@ -1,7 +1,7 @@
 import {
   DeleteServicesPayload,
   DeleteServicesResponse,
-  DeploymentType,
+  Deployment,
   Service,
   ServiceHash,
   ServiceTemplate,
@@ -16,7 +16,7 @@ import { BACKEND_URL } from "@/constants/urls";
  */
 const getServiceStatus = async (
   serviceHash: ServiceHash,
-): Promise<DeploymentType> => {
+): Promise<Deployment> => {
   return fetch(`${BACKEND_URL}/services/${serviceHash}/status`, {
     method: "POST",
     headers: {
@@ -54,7 +54,7 @@ const getServices = async (): Promise<Services> =>
  */
 const deployService = async (
   serviceHash: ServiceHash,
-): Promise<DeploymentType> =>
+): Promise<Deployment> =>
   fetch(`${BACKEND_URL}/services/${serviceHash}/deploy`, {
     method: "POST",
     headers: {
@@ -94,7 +94,7 @@ const createService = async (
  * @param serviceHash
  * @returns
  */
-const stopService = async (serviceHash: ServiceHash): Promise<DeploymentType> =>
+const stopService = async (serviceHash: ServiceHash): Promise<Deployment> =>
   fetch(`${BACKEND_URL}/services/${serviceHash}/stop`, {
     method: "POST",
   })
