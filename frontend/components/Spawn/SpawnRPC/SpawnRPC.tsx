@@ -3,6 +3,7 @@ import { NODIES_URL } from "@/constants/urls";
 import {
   Dispatch,
   SetStateAction,
+  use,
   useCallback,
   useMemo,
   useState,
@@ -158,7 +159,7 @@ export const SpawnRPC = ({
       <Timeline items={items} />
       <Button
         type="default"
-        onClick={handleContinue}
+        onClick={handleContinue}        
         disabled={!rpc}
         loading={continueIsLoading}
       >
