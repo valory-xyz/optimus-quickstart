@@ -32,11 +32,23 @@ _ACTIONS = {
 }
 
 
-_CHAINS = {
+_CHAIN_NAME_TO_ENUM = {
     "ethereum": 0,
     "goerli": 1,
     "gnosis": 2,
     "solana": 3,
+}
+
+_CHAIN_ID_TO_CHAIN_NAME = {
+    1: "ethereum",
+    5: "goerli",
+    100: "gnosis",
+    1399811149: "solana",
+}
+
+_LEDGER_TYPE_TO_ENUM = {
+    "ethereum": 0,
+    "solana": 1,
 }
 
 
@@ -45,6 +57,11 @@ class LedgerType(enum.IntEnum):
 
     ETHEREUM = 0
     SOLANA = 1
+
+    @classmethod
+    def from_string(cls, chain: str) -> "LedgerType":
+        """Load from string."""
+        return cls(_LEDGER_TYPE_TO_ENUM[chain.lower()])
 
 
 class ChainType(enum.IntEnum):
@@ -58,7 +75,12 @@ class ChainType(enum.IntEnum):
     @classmethod
     def from_string(cls, chain: str) -> "ChainType":
         """Load from string."""
-        return cls(_CHAINS[chain.lower()])
+        return cls(_CHAIN_NAME_TO_ENUM[chain.lower()])
+
+    @classmethod
+    def from_id(cls, cid: int) -> "ChainType":
+        """Load from chain ID."""
+        return cls(_CHAIN_NAME_TO_ENUM[_CHAIN_ID_TO_CHAIN_NAME[cid]])
 
 
 class ContractAddresses(TypedDict):
@@ -78,7 +100,6 @@ class LedgerConfig(TypedDict):
     rpc: str
     type: LedgerType
     chain: ChainType
-    contracts: ContractAddresses
 
 
 LedgerConfigs = t.List[LedgerConfig]
@@ -126,37 +147,7 @@ class ChainData(TypedDict):
     multisig: NotRequired[str]
 
 
-class DeploymentConfig(TypedDict):
-    """Deployment config."""
-
-    volumes: NotRequired[t.Dict[str, str]]
-    variables: NotRequired[VariablesType]
-
-
-class ServiceType(TypedDict):
-    """Service payload."""
-
-    name: str
-    hash: str
-    keys: KeysType
-    chain_data: NotRequired[ChainData]
-    deployment_config: NotRequired[DeploymentConfig]
-    ledger: NotRequired[LedgerConfig]
-    readme: NotRequired[str]
-
-
-ServicesType = t.List[ServiceType]
-
-
-class LedgerTemplate(TypedDict):
-    """Ledger template."""
-
-    type: LedgerType
-    chain: ChainType
-    rpc: str
-
-
-class ChainDeploymentTemplate(TypedDict):
+class ChainDeployment(TypedDict):
     """Chain deployment template."""
 
     nft: str
@@ -166,30 +157,42 @@ class ChainDeploymentTemplate(TypedDict):
     required_funds: float
 
 
-class LocalDeploymentTemplate(TypedDict):
+class LocalDeployment(TypedDict):
     """Local deployment template."""
 
+    ports: t.Dict
     volumes: t.Dict[str, str]
-    variables: VariablesType
 
 
-class DeploymentsTemplate(TypedDict):
+class DeploymentConfig(TypedDict):
     """Deployments template."""
 
-    chain: ChainDeploymentTemplate
-    local: LocalDeploymentTemplate
+    chain: ChainDeployment
+    local: LocalDeployment
+
+
+class ServiceType(TypedDict):
+    """Service payload."""
+
+    name: str
+    hash: str
+    keys: KeysType
+    readme: NotRequired[str]
+    ledger: NotRequired[LedgerConfig]
+    chain_data: NotRequired[ChainData]
+
+
+ServicesType = t.List[ServiceType]
 
 
 class ServiceTemplate(TypedDict):
     """Service template."""
 
+    rpc: str
     name: str
     hash: str
     image: str
-    repository: str
-    number_of_agents: int
-    ledger: LedgerTemplate
-    deployments: DeploymentsTemplate
+    description: str
 
 
 class Action(enum.IntEnum):
