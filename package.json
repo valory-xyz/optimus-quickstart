@@ -1,13 +1,13 @@
 {
   "author": "Valory AG",
-  "dependencies": {
-  },
+  "dependencies": {},
   "devDependencies": {
     "child_process": "^1.0.2",
     "concurrently": "^8.2.2",
     "cross-env": "^7.0.3",
     "electron": "^28.2.1",
-    "net": "^1.0.2"    
+    "hardhat": "^2.20.0",
+    "net": "^1.0.2"
   },
   "main": "electron/main.js",
   "name": "olas-operate-app",
