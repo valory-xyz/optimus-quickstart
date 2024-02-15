@@ -13,17 +13,17 @@
   "name": "olas-operate-app",
   "private": true,
   "scripts": {
-    "build:frontend": "cd frontend; yarn build",
-    "dev:backend": "cd backend; poetry run python app.py",
-    "dev:frontend": "cd frontend; yarn dev",
-    "dev:hardhat": "npx hardhat node --fork https://lb.nodies.app/v1/406d8dcc043f4cb3959ed7d6673d311a",
-    "install-deps": "yarn; concurrently \"yarn install:backend\" \"yarn install:frontend\" ",
-    "install:backend": "cd backend; poetry install --no-root",
-    "install:frontend": "cd frontend; yarn",
-    "lint:frontend": "cd frontend; yarn lint",
+    "build:frontend": "cd frontend && yarn build",
+    "dev:backend": "cd backend && poetry run python app.py",
+    "dev:frontend": "cd frontend && yarn dev",
+    "dev:hardhat": "npx hardhat node",
+    "install-deps": "yarn && concurrently \"yarn install:backend\" \"yarn install:frontend\" ",
+    "install:backend": "cd backend && poetry install --no-root",
+    "install:frontend": "cd frontend && yarn",
+    "lint:frontend": "cd frontend && yarn lint",
     "start": "electron .",
-    "start:frontend": "cd frontend; yarn start",
-    "test:frontend": "cd frontend; yarn test"
+    "start:frontend": "cd frontend && yarn start",
+    "test:frontend": "cd frontend && yarn test"
   },
   "version": "0.1.0"
 }
