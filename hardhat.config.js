@@ -1,3 +1,4 @@
+// temporary during development
 module.exports = {
   defaultNetwork: "hardhat",
   networks: {
