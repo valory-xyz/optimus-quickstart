@@ -1,4 +1,4 @@
-import { SpawnState } from "@/enums/SpawnState";
+import { SpawnScreenState } from "@/enums/SpawnState";
 import { Tab } from "@/enums/Tabs";
 import { useSpawn } from "@/hooks/useSpawn";
 import { useTabs } from "@/hooks/useTabs";
@@ -8,13 +8,13 @@ import { useRouter } from "next/router";
 export const SpawnDone = () => {
   const router = useRouter();
 
-  const { setSpawnState } = useSpawn();
+  const { setSpawnScreenState } = useSpawn();
   const { setActiveTab } = useTabs();
 
   const handleViewAgent = () => {
     router.push("/").then(() => {
       setActiveTab(Tab.YOUR_AGENTS);
-      setSpawnState(SpawnState.RPC);
+      setSpawnScreenState(SpawnScreenState.RPC);
     });
   };
 

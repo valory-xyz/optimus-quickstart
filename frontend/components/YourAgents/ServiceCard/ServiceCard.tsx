@@ -1,17 +1,30 @@
+import { DeploymentStatus, Service } from "@/client";
 import { SERVICE_META } from "@/constants/serviceMeta";
 import { useServices } from "@/hooks/useServices";
-import { Service } from "@/types/Service";
-import { Card, Flex, Typography, Button, Badge } from "antd";
+import { Card, Flex, Typography, Button, Badge, Spin } from "antd";
 import Image from "next/image";
 import { useCallback, useMemo, useState } from "react";
+import useSWR from "swr";
 
 type ServiceCardProps = {
   service: Service;
 };
 
 export const ServiceCard = ({ service }: ServiceCardProps) => {
-  const { stopService, startService, deleteService, updateServices } =
-    useServices();
+  const {
+    stopService,
+    deployService,
+    deleteServices,
+    updateServicesState,
+    getServiceStatus,
+  } = useServices();
+
+  const { data: serviceStatusData } = useSWR(
+    service.hash,
+    () => getServiceStatus(service.hash),
+    {},
+  );
+  const serviceStatus = serviceStatusData?.status;
 
   const [isStopping, setIsStopping] = useState(false);
   const [isStarting, setIsStarting] = useState(false);
@@ -19,39 +32,39 @@ export const ServiceCard = ({ service }: ServiceCardProps) => {
 
   const handleStart = useCallback(() => {
     setIsStarting(true);
-    startService(service.hash)
+    deployService(service.hash)
       .then(async () => {
-        await updateServices();
+        await updateServicesState();
       })
       .finally(() => {
         setIsStarting(false);
       });
-  }, [service.hash, startService, updateServices]);
+  }, [service.hash, deployService, updateServicesState]);
 
   const handleStop = useCallback(() => {
     setIsStopping(true);
     stopService(service.hash)
       .then(async () => {
-        await updateServices();
+        await updateServicesState();
       })
       .finally(() => {
         setIsStopping(false);
       });
-  }, [service.hash, stopService, updateServices]);
+  }, [service.hash, stopService, updateServicesState]);
 
   const handleDelete = useCallback(() => {
     setIsDeleting(true);
-    deleteService(service.hash)
+    deleteServices([service.hash])
       .then(async () => {
-        await updateServices();
+        await updateServicesState();
       })
       .finally(() => {
         setIsDeleting(false);
       });
-  }, [deleteService, service.hash, updateServices]);
+  }, [deleteServices, service.hash, updateServicesState]);
 
   const button = useMemo(() => {
-    if (service.running) {
+    if (serviceStatus === DeploymentStatus.DEPLOYED) {
       return (
         <Button
           danger
@@ -63,7 +76,7 @@ export const ServiceCard = ({ service }: ServiceCardProps) => {
         </Button>
       );
     }
-    if (!service.running) {
+    if (serviceStatus === DeploymentStatus.STOPPED) {
       return (
         <Flex gap={16}>
           <Button
@@ -85,7 +98,7 @@ export const ServiceCard = ({ service }: ServiceCardProps) => {
         </Flex>
       );
     }
-    return null;
+    return <Spin />;
   }, [
     handleDelete,
     handleStart,
@@ -93,18 +106,18 @@ export const ServiceCard = ({ service }: ServiceCardProps) => {
     isDeleting,
     isStarting,
     isStopping,
-    service.running,
+    serviceStatus,
   ]);
 
-  const serviceStatus = useMemo(() => {
-    if (service.running) {
+  const serviceStatusBadge = useMemo(() => {
+    if (serviceStatus === DeploymentStatus.DEPLOYED) {
       return <Badge status="success" text="Running" />;
     }
-    if (!service.running) {
+    if (serviceStatus === DeploymentStatus.STOPPED) {
       return <Badge status="error" text="Stopped" />;
     }
     return <Badge status="warning" text="Error" />;
-  }, [service.running]);
+  }, [serviceStatus]);
 
   const serviceMeta = useMemo(() => SERVICE_META[service.name], [service.name]);
 
@@ -125,14 +138,14 @@ export const ServiceCard = ({ service }: ServiceCardProps) => {
               <Typography.Text strong>STATUS</Typography.Text>
               <Typography.Text>{serviceStatus}</Typography.Text>
             </Flex>
-            <Flex vertical>
+            {/* <Flex vertical>
               <Typography.Text strong>EARNINGS 24H</Typography.Text>
               <Typography.Text>$ {service.earnings_24h || 0}</Typography.Text>
             </Flex>
             <Flex vertical>
               <Typography.Text strong>TOTAL BALANCE</Typography.Text>
               <Typography.Text>$ {service.total_balance || 0}</Typography.Text>
-            </Flex>
+            </Flex> */}
           </Flex>
           <Flex style={{ marginTop: "auto" }}>{button}</Flex>
         </Flex>

@@ -4,13 +4,13 @@ import { Button, Flex, Typography } from "antd";
 
 import { useServices } from "@/hooks/useServices";
 import { ServiceCard } from "./ServiceCard/ServiceCard";
-import { Service } from "@/types/Service";
+import { Service } from "@/client";
 
 export const YourAgents = () => {
   const { services } = useServices();
 
   const hasAgents = services.reduce(
-    (acc: boolean, service: Service) => (acc || service.built ? true : acc),
+    (acc: boolean, service: Service) => (acc || service ? true : acc),
     false,
   );
 
@@ -20,8 +20,8 @@ export const YourAgents = () => {
 const HasServices = ({ services }: { services: any[] }) => {
   return (
     <Flex vertical gap={16}>
-      {services.map((service) => (
-        <ServiceCard key={service.id} service={service} />
+      {services.map((service: Service) => (
+        <ServiceCard key={service.hash} service={service} />
       ))}
     </Flex>
   );

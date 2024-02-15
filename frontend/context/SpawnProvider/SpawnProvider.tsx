@@ -1,4 +1,4 @@
-import { SpawnState } from "@/enums/SpawnState";
+import { SpawnScreenState } from "@/enums/SpawnState";
 import {
   Dispatch,
   PropsWithChildren,
@@ -8,19 +8,26 @@ import {
 } from "react";
 
 type SpawnContextType = {
-  spawnState: SpawnState;
-  setSpawnState: Dispatch<SetStateAction<SpawnState>>;
+  spawnScreenState: SpawnScreenState;
+  setSpawnScreenState: Dispatch<SetStateAction<SpawnScreenState>>;
 };
 
 export const SpawnContext = createContext<SpawnContextType>({
-  spawnState: SpawnState.RPC,
-  setSpawnState: () => {},
+  spawnScreenState: SpawnScreenState.RPC,
+  setSpawnScreenState: () => {},
 });
 
 export const SpawnProvider = ({ children }: PropsWithChildren) => {
-  const [spawnState, setSpawnState] = useState<SpawnState>(SpawnState.RPC);
+  const [spawnScreenState, setSpawnScreenState] = useState<SpawnScreenState>(
+    SpawnScreenState.RPC,
+  );
   return (
-    <SpawnContext.Provider value={{ spawnState, setSpawnState }}>
+    <SpawnContext.Provider
+      value={{
+        spawnScreenState: spawnScreenState,
+        setSpawnScreenState: setSpawnScreenState,
+      }}
+    >
       {children}
     </SpawnContext.Provider>
   );

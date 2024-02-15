@@ -1,5 +1,5 @@
+import { Services } from "@/client";
 import ServicesService from "@/service/Services";
-import { Service } from "@/types/Service";
 import {
   Dispatch,
   PropsWithChildren,
@@ -11,35 +11,38 @@ import {
 } from "react";
 
 type ServicesProviderProps = {
-  services: Service[];
-  setServices: Dispatch<SetStateAction<Service[]>>;
-  updateServices: () => Promise<void>;
+  services: Services;
+  setServices: Dispatch<SetStateAction<Services>>;
+  updateServicesState: () => Promise<void>;
 };
 
 export const ServicesContext = createContext<ServicesProviderProps>({
   services: [],
   setServices: () => {},
-  updateServices: async () => {},
+  updateServicesState: async () => {},
 });
 
 export const ServicesProvider = ({ children }: PropsWithChildren) => {
-  const [services, setServices] = useState<Service[]>([]);
+  const [services, setServices] = useState<Services>([]);
 
-  const updateServices = useCallback(
+  const updateServicesState = useCallback(
     async () =>
-      ServicesService.getServices().then((data: Service[]) => {
+      ServicesService.getServices().then((data: Services) => {
         setServices(data);
       }),
     [],
   );
 
   useEffect(() => {
-    updateServices();
+    // Update on load
+    updateServicesState();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (
-    <ServicesContext.Provider value={{ services, setServices, updateServices }}>
+    <ServicesContext.Provider
+      value={{ services, setServices, updateServicesState }}
+    >
       {children}
     </ServicesContext.Provider>
   );

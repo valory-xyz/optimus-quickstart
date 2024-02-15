@@ -1,94 +1,114 @@
+import {
+  DeleteServicesPayload,
+  DeleteServicesResponse,
+  DeploymentType,
+  Service,
+  ServiceHash,
+  ServiceTemplate,
+  Services,
+} from "@/client";
 import { BACKEND_URL } from "@/constants/urls";
-import { BuildServiceResponse } from "@/types/BuildServiceResponse";
 
-const getServices = async () =>
+/**
+ * Get the status of a service
+ * @param serviceHash
+ * @returns
+ */
+const getServiceStatus = async (
+  serviceHash: ServiceHash,
+): Promise<DeploymentType> => {
+  return fetch(`${BACKEND_URL}/services/${serviceHash}/status`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+  }).then((response) => response.json());
+};
+
+/**
+ * Get a single service from the backend
+ * @param serviceHash
+ * @returns
+ */
+const getService = async (serviceHash: ServiceHash): Promise<Service> =>
+  fetch(`${BACKEND_URL}/services/${serviceHash}`).then((response) =>
+    response.json(),
+  );
+
+/**
+ * Gets an array of services from the backend
+ * @returns An array of services
+ */
+const getServices = async (): Promise<Services> =>
   fetch(`${BACKEND_URL}/services`, {
     method: "GET",
     headers: {
       "Content-Type": "application/json",
     },
-  })
-    .then((response) => response.json())
-    .then((data) => {
-      let array: any = [];
-      Object.keys(data).map((key) => {
-        array.push({ ...data[key], hash: key });
-      });
-      return array;
-    });
+  }).then((response) => response.json());
 
-const getServiceVars = async (serviceHash: string) =>
-  fetch(`${BACKEND_URL}/services/${serviceHash}/vars`, {
-    method: "GET",
-    headers: {
-      "Content-Type": "application/json",
-    },
-  })
-    .then((response) => response.json())
-    .then((data) => data);
-
-const getServiceKeys = async (serviceHash: string) =>
-  fetch(`${BACKEND_URL}/services/${serviceHash}/keys`, {
-    method: "GET",
-    headers: {
-      "Content-Type": "application/json",
-    },
-  })
-    .then((response) => response.json())
-    .then((data) => {
-      data;
-    });
-
-const buildService = async (
-  serviceHash: string,
-  rpc: string,
-): Promise<BuildServiceResponse> =>
-  fetch(`${BACKEND_URL}/services/${serviceHash}/build`, {
+/**
+ * Deploys a service to the backend
+ * @param payload
+ * @returns
+ */
+const deployService = async (
+  serviceHash: ServiceHash,
+): Promise<DeleteServicesResponse> =>
+  fetch(`${BACKEND_URL}/services/${serviceHash}/deploy`, {
     method: "POST",
-    body: JSON.stringify({ rpc }),
     headers: {
       "Content-Type": "application/json",
     },
-  })
-    .then((response) => response.json())
-    .then((data) => data);
+  }).then((response) => response.json());
 
-const deleteService = async (serviceHash: string) =>
-  fetch(`${BACKEND_URL}/services/${serviceHash}/delete`, {
+/**
+ * Deletes services from the backend
+ * @param payload An array of service hashes to delete
+ * @returns An array of deleted service hashes
+ */
+const deleteServices = async (
+  payload: DeleteServicesPayload,
+): Promise<DeleteServicesResponse> =>
+  fetch(`${BACKEND_URL}/services`, {
     method: "DELETE",
-  })
-    .then((response) => response.json())
-    .then((data) => data);
+    body: JSON.stringify(payload),
+  }).then((response) => response.json());
 
-const startService = async (serviceHash: string) =>
-  fetch(`${BACKEND_URL}/services/${serviceHash}/start`, {
+/**
+ * Creates a service
+ */
+const createService = async (
+  serviceTemplate: ServiceTemplate,
+): Promise<Service> =>
+  fetch(`${BACKEND_URL}/services`, {
     method: "POST",
+    body: JSON.stringify(serviceTemplate),
     headers: {
       "Content-Type": "application/json",
     },
-  })
-    .then((response) => response.json())
-    .then((data) => {
-      return data;
-    });
+  }).then((response) => response.json());
 
-const stopService = async (serviceHash: string) =>
+/**
+ * Stops a service
+ * @param serviceHash
+ * @returns
+ */
+const stopService = async (serviceHash: ServiceHash): Promise<DeploymentType> =>
   fetch(`${BACKEND_URL}/services/${serviceHash}/stop`, {
     method: "POST",
   })
     .then((response) => response.json())
-    .then((data) => {
-      return data;
-    });
+    .then((data) => data);
 
 const ServicesService = {
+  getService,
   getServices,
-  getServiceVars,
-  getServiceKeys,
-  buildService,
-  deleteService,
-  startService,
+  getServiceStatus,
+  deleteServices,
   stopService,
+  deployService,
+  createService,
 };
 
 export default ServicesService;

@@ -1,47 +1,53 @@
+import {
+  DeleteServicesResponse,
+  DeploymentType,
+  Service,
+  ServiceHash,
+  ServiceTemplate,
+} from "@/client";
 import { ServicesContext } from "@/context";
 import ServicesService from "@/service/Services";
-import { BuildServiceResponse } from "@/types/BuildServiceResponse";
-import { Service } from "@/types/Service";
 import { useContext } from "react";
 
 export const useServices = () => {
-  const { services, updateServices } = useContext(ServicesContext);
+  const { services, updateServicesState } = useContext(ServicesContext);
 
-  /**
-   * Build a service
-   * @param serviceHash string
-   * @param rpc string
-   * @returns Promise<BuildServiceResponse>
-   */
-  const buildService = async (
-    serviceHash: string,
-    rpc: string,
-  ): Promise<BuildServiceResponse> => {
-    return ServicesService.buildService(serviceHash, rpc);
-  };
+  // SERVICES SERVICE METHODS
+  const createService = async (
+    serviceTemplate: ServiceTemplate,
+  ): Promise<Service> => ServicesService.createService(serviceTemplate);
 
-  const startService = async (serviceHash: string) => {
-    return ServicesService.startService(serviceHash);
-  };
+  const deployService = async (serviceHash: ServiceHash) =>
+    ServicesService.deployService(serviceHash);
 
-  const stopService = async (serviceHash: string) => {
-    return ServicesService.stopService(serviceHash);
-  };
+  const stopService = async (serviceHash: string) =>
+    ServicesService.stopService(serviceHash);
 
-  const deleteService = async (serviceHash: string) => {
-    return ServicesService.deleteService(serviceHash);
-  };
+  const deleteServices = async (
+    hashes: ServiceHash[],
+  ): Promise<DeleteServicesResponse> =>
+    ServicesService.deleteServices({ hashes });
 
-  const getService = (serviceHash: string): Service =>
-    services.find((s) => s.hash === serviceHash) as Service;
+  const getService = (serviceHash: ServiceHash): Promise<Service> =>
+    ServicesService.getService(serviceHash);
+
+  const getServiceStatus = (
+    serviceHash: ServiceHash,
+  ): Promise<DeploymentType> => ServicesService.getServiceStatus(serviceHash);
+
+  // STATE METHODS
+  const getServiceFromState = (serviceHash: ServiceHash): Service | undefined =>
+    services.find((service) => service.hash === serviceHash);
 
   return {
     services,
     getService,
-    updateServices,
-    buildService,
-    startService,
+    getServiceFromState,
+    getServiceStatus,
+    updateServicesState,
+    createService,
+    deployService,
     stopService,
-    deleteService,
+    deleteServices,
   };
 };

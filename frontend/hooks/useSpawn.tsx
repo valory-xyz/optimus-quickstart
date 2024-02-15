@@ -1,16 +1,21 @@
 import { SpawnContext } from "@/context";
-import { SpawnState } from "@/enums";
+import { SpawnScreenState } from "@/enums";
 import { useContext, useMemo } from "react";
 
 export const useSpawn = () => {
-  const { spawnState, setSpawnState } = useContext(SpawnContext);
+  const { spawnScreenState, setSpawnScreenState: setSpawnScreenState } =
+    useContext(SpawnContext);
 
   const spawnPercentage = useMemo(() => {
-    if (spawnState === SpawnState.RPC) return 33;
-    if (spawnState === SpawnState.FUNDS) return 66;
-    if (spawnState === SpawnState.DONE) return 100;
+    if (spawnScreenState === SpawnScreenState.RPC) return 33;
+    if (spawnScreenState === SpawnScreenState.FUNDS) return 66;
+    if (spawnScreenState === SpawnScreenState.DONE) return 100;
     return 0;
-  }, [spawnState]);
+  }, [spawnScreenState]);
 
-  return { spawnState, setSpawnState, spawnPercentage };
+  return {
+    spawnScreenState,
+    setSpawnScreenState,
+    spawnPercentage,
+  };
 };

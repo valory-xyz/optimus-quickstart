@@ -1,98 +1,20 @@
-type ServiceHash = string;
+import { Action } from "./enums";
+import {
+  HttpResponse,
+  ClientResponse,
+  DeploymentType,
+  EmptyPayload,
+  StopDeployment,
+  Service,
+  EmptyResponse,
+  Services,
+  ServiceTemplate,
+  UpdateServicePayload,
+  DeleteServicesPayload,
+  DeleteServicesResponse,
+} from "./types";
 
-enum Action {
-  STATUS = 0,
-  BUILD = 1,
-  DEPLOY = 2,
-  STOP = 3,
-}
-
-enum ChainType {
-  ETHEREUM = 0,
-  GOERLI = 1,
-  GNOSIS = 2,
-  SOLANA = 3,
-}
-
-enum LedgerType {
-  ETHEREUM = 0,
-  SOLANA = 1,
-}
-
-type LedgerConfig = {
-  rpc: string;
-  type: LedgerType;
-  chain: ChainType;
-};
-
-type Key = {
-  address: string;
-  private_key: string;
-  ledger: ChainType;
-};
-
-type KeysType = Key[];
-
-type ChainData = {
-  instances?: string[];
-  token?: number;
-  multisig?: string;
-};
-
-type ServiceType = {
-  name: string;
-  hash: string;
-  keys: KeysType;
-  readme?: string;
-  ledger?: LedgerConfig;
-  chain_data?: ChainData;
-};
-
-type ServicesType = ServiceType[];
-
-type ServiceTemplate = {
-  rpc: string;
-  name: string;
-  hash: string;
-  image: string;
-  description: string;
-};
-
-enum Status {
-  CREATED = 0,
-  BUILT = 1,
-  DEPLOYING = 2,
-  DEPLOYED = 3,
-  STOPPING = 4,
-  STOPPED = 5,
-  DELETED = 6,
-}
-
-type DeployedNodes = {
-  agent: string[];
-  tendermint: string[];
-};
-
-type DeploymentType = {
-  status: Status;
-  nodes: DeployedNodes;
-};
-
-type EmptyPayload = {};
-
-type EmptyResponse = {};
-
-type HttpResponse = {
-  error?: string;
-  data?: string;
-};
-
-type ClientResponse<ResponseType> = {
-  error?: string;
-  data?: ResponseType;
-};
-
-class HttpClient<
+export class HttpClient<
   GetResponse,
   PostRequest,
   PostResponse,
@@ -194,11 +116,7 @@ class HttpClient<
   }
 }
 
-type StopDeployment = {
-  delete: boolean /* Delete deployment*/;
-};
-
-class DeploymentEndpoint extends HttpClient<
+export class DeploymentEndpoint extends HttpClient<
   DeploymentType,
   EmptyPayload,
   DeploymentType,
@@ -208,20 +126,20 @@ class DeploymentEndpoint extends HttpClient<
   DeploymentType
 > {}
 
-class ServiceEndpoint extends HttpClient<
-  ServiceType,
+export class ServiceEndpoint extends HttpClient<
+  Service,
   EmptyPayload,
   EmptyResponse,
-  ServiceType,
-  ServiceType,
+  Service,
+  Service,
   EmptyPayload,
   EmptyResponse
 > {
   actions = {
-    0: "status",
-    1: "build",
-    2: "deploy",
-    3: "stop",
+    [Action.STATUS]: "status",
+    [Action.BUILD]: "build",
+    [Action.DEPLOY]: "deploy",
+    [Action.STOP]: "stop",
   };
 
   constructor(endpoint: string) {
@@ -233,25 +151,12 @@ class ServiceEndpoint extends HttpClient<
   }
 }
 
-type UpdateServicePayload = {
-  old: ServiceHash;
-  new: ServiceTemplate;
-};
-
-type DeleteServicesPayload = {
-  hashes: Array<ServiceHash>;
-};
-
-type DeleteServicesResponse = {
-  hashes: Array<ServiceHash>;
-};
-
-class ServicesEndpoint extends HttpClient<
-  ServicesType,
+export class ServicesEndpoint extends HttpClient<
+  Services,
   ServiceTemplate,
-  ServiceType,
+  Service,
   UpdateServicePayload,
-  ServiceType,
+  Service,
   DeleteServicesPayload,
   DeleteServicesResponse
 > {
@@ -264,12 +169,10 @@ class ServicesEndpoint extends HttpClient<
   }
 }
 
-function getClient(url: string) {
+export function getClient(url: string) {
   const services = new ServicesEndpoint(`${url}/services`);
   return {
     url: url,
     services: services,
   };
 }
-
-export { getClient, Action };

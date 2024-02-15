@@ -1,7 +1,7 @@
 import React from "react";
 import { render, fireEvent } from "@testing-library/react";
 import { SpawnContext, SpawnProvider } from "./SpawnProvider";
-import { SpawnState } from "@/enums/SpawnState";
+import { SpawnScreenState } from "@/enums/SpawnState";
 import "@testing-library/jest-dom";
 
 describe("SpawnProvider", () => {
@@ -18,11 +18,11 @@ describe("SpawnProvider", () => {
     const { getByTestId } = render(
       <SpawnContext.Consumer>
         {(context) => (
-          <div data-testid="context-value">{context.spawnState}</div>
+          <div data-testid="context-value">{context.spawnScreenState}</div>
         )}
       </SpawnContext.Consumer>,
     );
-    expect(getByTestId("context-value")).toHaveTextContent(SpawnState.RPC); // Using toHaveTextContent matcher
+    expect(getByTestId("context-value")).toHaveTextContent(SpawnScreenState.RPC); // Using toHaveTextContent matcher
   });
 
   it("updates spawn state when setSpawnState is called", () => {
@@ -32,7 +32,7 @@ describe("SpawnProvider", () => {
           {(context) => (
             <button
               data-testid="button"
-              onClick={() => context.setSpawnState(SpawnState.LOADING)}
+              onClick={() => context.setSpawnScreenState(SpawnScreenState.LOADING)}
             >
               Update Spawn State
             </button>
@@ -40,18 +40,18 @@ describe("SpawnProvider", () => {
         </SpawnContext.Consumer>
         <SpawnContext.Consumer>
           {(context) => (
-            <div data-testid="context-value">{context.spawnState}</div>
+            <div data-testid="context-value">{context.spawnScreenState}</div>
           )}
         </SpawnContext.Consumer>
       </SpawnProvider>,
     );
 
     // Before clicking the button, context-value should have the initial value
-    expect(getByTestId("context-value")).toHaveTextContent(SpawnState.RPC);
+    expect(getByTestId("context-value")).toHaveTextContent(SpawnScreenState.RPC);
 
     fireEvent.click(getByTestId("button"));
 
     // After clicking the button, context-value should have the updated value
-    expect(getByTestId("context-value")).toHaveTextContent(SpawnState.LOADING);
+    expect(getByTestId("context-value")).toHaveTextContent(SpawnScreenState.LOADING);
   });
 });

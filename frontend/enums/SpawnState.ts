@@ -1,4 +1,4 @@
-export enum SpawnState {
+export enum SpawnScreenState {
   RPC = "rpc",
   FUNDS = "funds",
   DONE = "done",

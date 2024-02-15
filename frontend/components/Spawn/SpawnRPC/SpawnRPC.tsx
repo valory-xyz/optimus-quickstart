@@ -9,14 +9,14 @@ import {
 } from "react";
 import { useSpawn } from "@/hooks/useSpawn";
 import { useServices } from "@/hooks/useServices";
-import { SpawnState } from "@/enums";
-import { BuildServiceResponse } from "@/types/BuildServiceResponse";
+import { SpawnScreenState } from "@/enums";
 import { useEthers } from "@/hooks/useEthers";
 import {
   CheckSquareTwoTone,
   WarningFilled,
   WarningOutlined,
 } from "@ant-design/icons";
+import { Service, ServiceTemplate } from "@/client";
 
 enum RPCState {
   LOADING,
@@ -25,14 +25,16 @@ enum RPCState {
 }
 
 export const SpawnRPC = ({
-  serviceHash,
+  serviceTemplate,
   setFundRequirements,
+  setService,
 }: {
-  serviceHash: string;
+  serviceTemplate: ServiceTemplate;
   setFundRequirements: Dispatch<SetStateAction<{ [address: string]: number }>>;
+  setService: Dispatch<SetStateAction<Service | undefined>>;
 }) => {
-  const { setSpawnState } = useSpawn();
-  const { buildService } = useServices();
+  const { setSpawnScreenState } = useSpawn();
+  const { createService } = useServices();
   const { checkRPC } = useEthers();
 
   const [rpc, setRpc] = useState("http://localhost:8545"); // default to hardhat node
@@ -62,23 +64,21 @@ export const SpawnRPC = ({
     if (continueIsLoading)
       return message.info("Please wait for the current action to complete");
     setContinueIsLoading(true);
-    buildService(serviceHash, rpc)
-      .then((res: BuildServiceResponse) => {
-        console.log(res);
-        setFundRequirements(res.fund_requirements);
-        setSpawnState(SpawnState.FUNDS);
+    createService(serviceTemplate)
+      .then((_service: Service) => {
+        setService(_service);
+        setSpawnScreenState(SpawnScreenState.FUNDS);
       })
       .catch((err) => {
         message.error(err.message);
       })
       .finally(() => setContinueIsLoading(false));
   }, [
-    buildService,
     continueIsLoading,
-    rpc,
-    serviceHash,
-    setFundRequirements,
-    setSpawnState,
+    createService,
+    serviceTemplate,
+    setService,
+    setSpawnScreenState,
   ]);
 
   const inputStatus = useMemo(() => {

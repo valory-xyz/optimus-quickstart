@@ -1,4 +1,5 @@
-import { SpawnState } from "@/enums";
+import { Service } from "@/client";
+import { SpawnScreenState } from "@/enums";
 import { copyToClipboard } from "@/helpers/copyToClipboard";
 import { useServices, useSpawn } from "@/hooks";
 import { useEthers } from "@/hooks/useEthers";
@@ -7,13 +8,13 @@ import { Dispatch, SetStateAction, useMemo, useState } from "react";
 import { useInterval } from "usehooks-ts";
 
 export const SpawnFunds = ({
-  serviceHash,
+  service,
   fundRequirements,
 }: {
-  serviceHash: string;
+  service: Service;
   fundRequirements: { [address: string]: number };
 }) => {
-  const { setSpawnState } = useSpawn();
+  const { setSpawnScreenState } = useSpawn();
 
   const [receivedFunds, setReceivedFunds] = useState<{
     [address: string]: boolean;
@@ -28,7 +29,7 @@ export const SpawnFunds = ({
   });
 
   const handleContinue = () => {
-    setSpawnState(SpawnState.DONE);
+    setSpawnScreenState(SpawnScreenState.DONE);
   };
 
   const items = useMemo(
@@ -37,13 +38,13 @@ export const SpawnFunds = ({
         children: (
           <FundRequirement
             setReceivedFunds={setReceivedFunds}
-            serviceHash={serviceHash}
+            serviceHash={service.hash}
             address={address}
             requirement={fundRequirements[address]}
           />
         ),
       })),
-    [fundRequirements, serviceHash],
+    [fundRequirements, service.hash],
   );
 
   const hasSentAllFunds = useMemo(() => {
@@ -84,15 +85,17 @@ const FundRequirement = ({
 }) => {
   const [isPollingBalance, setIsPollingBalance] = useState(true);
   const { getETHBalance } = useEthers();
-  const { getService } = useServices();
-  const rpc = useMemo(
-    () => getService(serviceHash).rpc,
-    [getService, serviceHash],
-  );
+  const { getServiceFromState } = useServices();
+
+  const rpc = useMemo(() => {
+    const service = getServiceFromState(serviceHash);
+    if (!service) return "";
+    return service.ledger?.rpc || "";
+  }, [getServiceFromState, serviceHash]);
 
   useInterval(
     () =>
-      getETHBalance(address, rpc || "").then((balance) => {
+      getETHBalance(address, rpc).then((balance) => {
         if (balance && balance >= requirement) {
           setIsPollingBalance(false);
           setReceivedFunds((prev: { [address: string]: boolean }) => ({
