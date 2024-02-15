@@ -32,4 +32,4 @@ jobs:
             -   run: yarn install:backend
 
             # Run backend
-            -   run: yarn start:backend
+            -   run: yarn dev:backend
