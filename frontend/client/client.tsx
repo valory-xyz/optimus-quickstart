@@ -151,7 +151,7 @@ class HttpClient<
       };
     } catch {
       return {
-        error: "Error connecting to studio server",
+        error: "Error connecting to server",
         data: undefined,
       };
     }
