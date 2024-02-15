@@ -1,5 +1,5 @@
 import { DeploymentStatus, Service } from "@/client";
-import { SERVICE_META } from "@/constants/serviceMeta";
+import { useMarketplace } from "@/hooks/useMarketplace";
 import { useServices } from "@/hooks/useServices";
 import { Card, Flex, Typography, Button, Badge, Spin } from "antd";
 import Image from "next/image";
@@ -18,6 +18,7 @@ export const ServiceCard = ({ service }: ServiceCardProps) => {
     updateServicesState,
     getServiceStatus,
   } = useServices();
+  const { getServiceTemplates } = useMarketplace();
 
   const { data: serviceStatusData } = useSWR(
     service.hash,
@@ -76,7 +77,10 @@ export const ServiceCard = ({ service }: ServiceCardProps) => {
         </Button>
       );
     }
-    if (serviceStatus === DeploymentStatus.STOPPED) {
+    if (
+      serviceStatus === DeploymentStatus.STOPPED ||
+      serviceStatus === DeploymentStatus.BUILT
+    ) {
       return (
         <Flex gap={16}>
           <Button
@@ -119,20 +123,26 @@ export const ServiceCard = ({ service }: ServiceCardProps) => {
     return <Badge status="warning" text="Error" />;
   }, [serviceStatus]);
 
-  const serviceMeta = useMemo(() => SERVICE_META[service.name], [service.name]);
+  const serviceTemplate = useMemo(
+    () =>
+      getServiceTemplates().find(
+        (serviceTemplate) => serviceTemplate.hash === service.hash,
+      ),
+    [getServiceTemplates, service.hash],
+  );
 
   return (
     <Card>
       <Flex gap={16}>
         <Image
-          src={serviceMeta.image_src}
+          src={serviceTemplate!.image}
           alt="Image"
           width={200}
           height={200}
         />
         <Flex vertical>
-          <Typography.Title level={3}>{serviceMeta.name}</Typography.Title>
-          <Typography.Text>{serviceMeta.description}</Typography.Text>
+          <Typography.Title level={3}>{serviceTemplate!.name}</Typography.Title>
+          <Typography.Text>{serviceTemplate!.description}</Typography.Text>
           <Flex gap={"large"} justify="space-between">
             <Flex vertical>
               <Typography.Text strong>STATUS</Typography.Text>
