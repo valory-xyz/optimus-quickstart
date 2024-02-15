@@ -1,5 +1,5 @@
 # TBA
-name: Frontend Workflow
+name: Backend
 
 on: [pull_request]
 
@@ -10,10 +10,10 @@ jobs:
            
             - uses: actions/checkout@v2
 
-            - name: Install Node.js
-              uses: actions/setup-node@v1
-              with:
-                  node-version: 12
+            # Node.js (for package scripts)
+            -   uses: actions/setup-node@v1
+                with:
+                    node-version: 20
 
             # Python
             -   uses: actions/setup-python@v4
@@ -27,3 +27,6 @@ jobs:
                     virtualenvs-in-project: false
                     virtualenvs-path: ~/my-custom-path
                     installer-parallel: true
+
+            # Run command
+            -   run: yarn install:backend

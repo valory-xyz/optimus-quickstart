@@ -1,5 +1,5 @@
 # TBA
-name: Frontend Workflow
+name: Frontend
 
 on: [pull_request]
 
