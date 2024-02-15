@@ -1,5 +1,5 @@
 # Olas Operate
-Electron + NextJS + Flask application to one-click run Agents.
+Electron + NextJS + Backend application to one-click run Agents.
 
 ## Technologies Used
 - NextJS
@@ -7,7 +7,6 @@ Electron + NextJS + Flask application to one-click run Agents.
 - AntD
 - TypeScript
 - Python
-- Flask
 - Poetry
 - Docker v24
 
