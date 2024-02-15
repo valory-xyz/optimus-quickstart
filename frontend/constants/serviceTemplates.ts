@@ -5,7 +5,7 @@ type ServiceTemplate = {
   description: string;
   hash: ServiceHash;
   image: string;
-  rpc: string | undefined;
+  rpc?: string;
 };
 
 export const serviceTemplates: ServiceTemplate[] = [
@@ -15,6 +15,5 @@ export const serviceTemplates: ServiceTemplate[] = [
     hash: "bafybeigiwlvm6ey4dmlztg3z4xyvpol23n444vliivx2ybuki7xo4f3pae",
     image:
       "https://operate.olas.network/_next/image?url=%2Fimages%2Fprediction-agent.png&w=3840&q=75",
-    rpc: undefined,
   },
 ];
