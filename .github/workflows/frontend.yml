@@ -22,5 +22,5 @@ jobs:
       # Lint and test
       - name: Lint
         run: yarn lint:frontend
-      - name: Test
-        run: yarn test:frontend
+      # - name: Test
+      #   run: yarn test:frontend

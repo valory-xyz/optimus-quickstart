@@ -4,12 +4,12 @@ const { exec } = require("child_process");
 const { isPortAvailable, portRange, findAvailablePort } = require("./ports");
 
 let tray, mainWindow, splashWindow;
-let flaskProcess, nextProcess, hardhatProcess;
+let backendProcess, frontendProcess, hardhatProcess;
 let processList = [];
 
 const DEFAULT_PORTS = {
-  flask: 5000,
-  next: 3000,
+  backend: 8000,
+  frontend: 3000,
   hardhat: 8545,
 };
 
@@ -20,38 +20,38 @@ const killAllProcesses = () =>
   });
 
 const launchProcesses = async () => {
-  let flaskPort = DEFAULT_PORTS.flask,
-    nextPort = DEFAULT_PORTS.next,
+  let backendPort = DEFAULT_PORTS.backend,
+    frontendPort = DEFAULT_PORTS.frontend,
     hardhatPort = DEFAULT_PORTS.hardhat;
 
-  // flask
+  // backend
   try {
-    const flaskPortAvailable = await isPortAvailable(flaskPort);
-    if (!flaskPortAvailable) {
-      flaskPort = await findAvailablePort(
+    const backendPortAvailable = await isPortAvailable(backendPort);
+    if (!backendPortAvailable) {
+      backendPort = await findAvailablePort(
         portRange.startPort,
         portRange.endPort,
       );
     }
   } catch (error) {
-    console.error("Error checking Flask port: ", error);
+    console.error("Error checking Backend port: ", error);
     app.quit();
   }
 
-  flaskProcess = exec(`yarn dev:backend`);
-  processList.push(flaskProcess);
-  flaskProcess.stdout.on("data", (data) =>
+  backendProcess = exec(`yarn dev:backend`);
+  processList.push(backendProcess);
+  backendProcess.stdout.on("data", (data) =>
     console.log("[BACKEND]: ", data.toString()),
   );
-  flaskProcess.stderr.on("data", (data) =>
+  backendProcess.stderr.on("data", (data) =>
     console.error("[BACKEND]: ", data.toString()),
   );
 
-  // next
+  // frontend
   try {
-    const nextPortAvailable = await isPortAvailable(DEFAULT_PORTS.next);
-    if (!nextPortAvailable) {
-      nextPort = await findAvailablePort(
+    const frontendPortAvailable = await isPortAvailable(DEFAULT_PORTS.frontend);
+    if (!frontendPortAvailable) {
+      frontendPort = await findAvailablePort(
         portRange.startPort,
         portRange.endPort,
       );
@@ -61,14 +61,14 @@ const launchProcesses = async () => {
     app.quit();
   }
 
-  nextProcess = exec(
-    `cross-env NEXT_PUBLIC_FLASK_PORT=${flaskPort} yarn dev:frontend --port=${nextPort}`,
+  frontendProcess = exec(
+    `cross-env NEXT_PUBLIC_BACKEND_PORT=${backendPort} yarn dev:frontend --port=${frontendPort}`,
   );
-  processList.push(nextProcess);
-  nextProcess.stdout.on("data", (data) =>
+  processList.push(frontendProcess);
+  frontendProcess.stdout.on("data", (data) =>
     console.log("[FRONTEND]: ", data.toString()),
   );
-  nextProcess.stderr.on("data", (data) =>
+  frontendProcess.stderr.on("data", (data) =>
     console.error("[FRONTEND]: ", data.toString()),
   );
 
@@ -98,11 +98,11 @@ const launchProcesses = async () => {
   );
 
   return {
-    flaskProcess,
-    nextProcess,
+    backendProcess,
+    frontendProcess,
     hardhatProcess,
-    flaskPort,
-    nextPort,
+    backendPort,
+    frontendPort,
     hardhatPort,
   };
 };
@@ -118,7 +118,7 @@ const createSplashWindow = () => {
   splashWindow.loadURL("file://" + __dirname + "/loading.html").then(()=>splashWindow.show());
 };
 
-const createMainWindow = (nextPort) => {
+const createMainWindow = (frontendPort) => {
   mainWindow = new BrowserWindow({
     width: 856,
     height: 1321,
@@ -134,7 +134,7 @@ const createMainWindow = (nextPort) => {
   });
 
   mainWindow.setMenuBarVisibility(false);
-  mainWindow.loadURL(`http://localhost:${nextPort}`);
+  mainWindow.loadURL(`http://localhost:${frontendPort}`);
 
   mainWindow.webContents.openDevTools();
 
@@ -176,8 +176,8 @@ process.on("SIGINT", () => {
 
 app.on("ready", async () => {
   createSplashWindow();
-  const { nextPort } = await launchProcesses();
-  createMainWindow(nextPort);
+  const { frontendPort } = await launchProcesses();
+  createMainWindow(frontendPort);
   app.on("activate", () => {
     if (BrowserWindow.getAllWindows().length === 0) {
       createMainWindow();

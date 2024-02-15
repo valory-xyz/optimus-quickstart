@@ -14,7 +14,7 @@
   "private": true,
   "scripts": {
     "build:frontend": "cd frontend; yarn build",
-    "dev:backend": "cd backend; poetry run python server.py",
+    "dev:backend": "cd backend; poetry run python app.py",
     "dev:frontend": "cd frontend; yarn dev",
     "install-deps": "yarn; concurrently \"yarn install:backend\" \"yarn install:frontend\" ",
     "install:backend": "cd backend; poetry install --no-root",
