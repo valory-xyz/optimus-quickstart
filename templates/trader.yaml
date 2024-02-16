@@ -1,5 +1,17 @@
 name: "Trader Agent"
 description: "Trader agent for omen prediction markets"
-hash: bafybeifpttju2bwc4w5btg2ijdpoajvr3axjnxr3pivb7dt7okfrrse3iu
+hash: bafybeieagxzdbmea3nttlve3yxjne5z7tt7mp26tfpgepm7p2ezovtdx4a
 image: https://operate.olas.network/_next/image?url=%2Fimages%2Fprediction-agent.png&w=3840&q=75
-rpc: http://localhost:8545 # User provided
+configuration:
+  nft: bafybeig64atqaladigoc3ds4arltdu63wkdrk3gesjfvnfdmz35amv7faq
+  rpc: http://localhost:8545 # User provided
+  agent_id: 14
+  threshold: 1 # TODO: Move to service component
+  use_staking: false # User provided
+  cost_of_bond: 10000000000000000
+  olas_cost_of_bond: 10000000000000000000
+  olas_required_to_bond: 10000000000000000000
+  olas_required_to_stake: 10000000000000000000
+  fund_requirements:
+    agent: 0.1
+    safe: 0.5

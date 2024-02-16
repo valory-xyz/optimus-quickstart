@@ -50,12 +50,29 @@ type ServiceType = {
 
 type ServicesType = ServiceType[];
 
-type ServiceTemplate = {
+type FundRequirementsTemplate = {
+  agent: number;
+  safe: number;
+};
+
+type ConfigurationTemplate = {
+  nft: string;
   rpc: string;
+  agent_id: number;
+  threshold: number;
+  use_staking: number;
+  cost_of_bond: number;
+  olas_required_to_bond: number;
+  olas_required_to_stake: number;
+  fund_requirements: FundRequirementsTemplate;
+};
+
+type ServiceTemplate = {
   name: string;
   hash: string;
   image: string;
   description: string;
+  configuration: ConfigurationTemplate;
 };
 
 enum Status {
