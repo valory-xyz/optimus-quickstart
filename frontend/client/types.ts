@@ -34,11 +34,28 @@ export type Service = {
 export type Services = Service[];
 
 export type ServiceTemplate = {
-  rpc?: string;
   name: string;
   hash: string;
   image: string;
   description: string;
+  configuration: ConfigurationTemplate;
+};
+
+export type ConfigurationTemplate = {
+  nft: string;
+  rpc?: string; // added by user
+  agent_id: number;
+  threshold: number;
+  use_staking: boolean;
+  cost_of_bond: number;
+  olas_required_to_bond: number;
+  olas_required_to_stake: number;
+  fund_requirements: FundRequirementsTemplate;
+};
+
+export type FundRequirementsTemplate = {
+  agent: number;
+  safe: number;
 };
 
 export type DeployedNodes = {
