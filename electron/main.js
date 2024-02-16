@@ -1,16 +1,16 @@
 const { app, BrowserWindow, Tray, Menu, shell } = require("electron");
 const path = require("path");
 const { exec } = require("child_process");
-const { isPortAvailable, portRange, findAvailablePort } = require("./ports");
+const { isPortAvailable, portRange, findAvailablePort } = require("./ports")
 
 let tray, mainWindow, splashWindow;
-let backendProcess, frontendProcess, hardhatProcess;
 let processList = [];
 
-const DEFAULT_PORTS = {
-  backend: 8000,
-  frontend: 3000,
-  hardhat: 8545,
+
+let processes = {
+  backend: {port: 8000, ready: false},
+  frontend: {port: 3000, ready: false},
+  hardhat: {port: 8545, ready: false}, //temporary
 };
 
 const killAllProcesses = () =>
@@ -19,16 +19,19 @@ const killAllProcesses = () =>
     p.kill();
   });
 
-const launchProcesses = async () => {
-  let backendPort = DEFAULT_PORTS.backend,
-    frontendPort = DEFAULT_PORTS.frontend,
-    hardhatPort = DEFAULT_PORTS.hardhat;
+const checkServersReadyThenMain = () => {
+  const allReady = Object.values(processes).every((p) => p.ready);
+  if (allReady) {
+    createMainWindow();
+  }
+};
 
+const launchProcesses = async () => {
   // backend
   try {
-    const backendPortAvailable = await isPortAvailable(backendPort);
+    const backendPortAvailable = await isPortAvailable(processes.backend.port);
     if (!backendPortAvailable) {
-      backendPort = await findAvailablePort(
+      processes.backend.port = await findAvailablePort(
         portRange.startPort,
         portRange.endPort,
       );
@@ -38,45 +41,54 @@ const launchProcesses = async () => {
     app.quit();
   }
 
-  backendProcess = exec(`yarn dev:backend`);
+  const backendProcess = exec(`yarn dev:backend`);
   processList.push(backendProcess);
-  backendProcess.stdout.on("data", (data) =>
-    console.log("[BACKEND]: ", data.toString()),
-  );
-  backendProcess.stderr.on("data", (data) =>
+  backendProcess.stdout?.on("data", (data) => {
+    // if(data.toString().includes("Uvicorn running on")) {
+    //   processes.backend.ready = true;
+    //   checkServersReadyThenMain()
+    // };
+    console.log("[BACKEND]: ", data.toString())
+  });
+  backendProcess.stderr?.on("data", (data) =>
     console.error("[BACKEND]: ", data.toString()),
   );
 
   // frontend
   try {
-    const frontendPortAvailable = await isPortAvailable(DEFAULT_PORTS.frontend);
+    const frontendPortAvailable = await isPortAvailable(processes.frontend.port);
     if (!frontendPortAvailable) {
-      frontendPort = await findAvailablePort(
+      processes.frontend.port = await findAvailablePort(
         portRange.startPort,
         portRange.endPort,
       );
     }
   } catch (error) {
-    console.error("Error checking Next port: ", error);
+    console.error("Error checking Frontend port: ", error);
     app.quit();
   }
 
-  frontendProcess = exec(
-    `cross-env NEXT_PUBLIC_BACKEND_PORT=${backendPort} yarn dev:frontend --port=${frontendPort}`,
+  const frontendProcess = exec(
+    `cross-env NEXT_PUBLIC_BACKEND_PORT=${processes.backend.port} yarn dev:frontend --port=${processes.frontend.port}`,
   );
   processList.push(frontendProcess);
-  frontendProcess.stdout.on("data", (data) =>
-    console.log("[FRONTEND]: ", data.toString()),
+  frontendProcess.stdout?.on("data", (data) => {
+    // if (data.toString().includes("Ready in")) {
+    //   processes.frontend.ready = true;
+    //   checkServersReadyThenMain()
+    // };
+    console.log("[FRONTEND]: ", data.toString())
+  }
   );
-  frontendProcess.stderr.on("data", (data) =>
+  frontendProcess.stderr?.on("data", (data) =>
     console.error("[FRONTEND]: ", data.toString()),
   );
 
   // hardhat
   try {
-    const hardhatPortAvailable = await isPortAvailable(DEFAULT_PORTS.hardhat);
+    const hardhatPortAvailable = await isPortAvailable(processes.hardhat.port);
     if (!hardhatPortAvailable) {
-      hardhatPort = await findAvailablePort(
+      processes.hardhat.port = await findAvailablePort(
         portRange.startPort,
         portRange.endPort,
       );
@@ -86,25 +98,20 @@ const launchProcesses = async () => {
     app.quit();
   }
 
-  hardhatProcess = exec(
-    `yarn dev:hardhat --port ${hardhatPort}`,
+  const hardhatProcess = exec(
+    `yarn dev:hardhat --port ${processes.hardhat.port}`,
   );
   processList.push(hardhatProcess);
-  hardhatProcess.stdout.on("data", (data) =>
-    console.log("[HARDHAT]: ", data.toString()),
-  );
-  hardhatProcess.stderr.on("data", (data) =>
+  hardhatProcess.stdout?.on("data", (data) => {
+    // if (data.toString().includes("Started HTTP and WebSocket JSON-RPC server at")) {
+    //   processes.hardhat.ready = true;
+    //   checkServersReadyThenMain();
+    // }
+    console.log("[HARDHAT]: ", data.toString())
+  });
+  hardhatProcess.stderr?.on("data", (data) =>
     console.error("[HARDHAT]: ", data.toString()),
   );
-
-  return {
-    backendProcess,
-    frontendProcess,
-    hardhatProcess,
-    backendPort,
-    frontendPort,
-    hardhatPort,
-  };
 };
 
 const createSplashWindow = () => {
@@ -115,10 +122,10 @@ const createSplashWindow = () => {
     show: false,
     title: "Olas Operate",    
   });
-  splashWindow.loadURL("file://" + __dirname + "/loading.html").then(()=>splashWindow.show());
+  splashWindow.loadURL("file://" + __dirname + "/loading.html").then();
 };
 
-const createMainWindow = (frontendPort) => {
+const createMainWindow = () => {
   mainWindow = new BrowserWindow({
     width: 856,
     height: 1321,
@@ -134,7 +141,7 @@ const createMainWindow = (frontendPort) => {
   });
 
   mainWindow.setMenuBarVisibility(false);
-  mainWindow.loadURL(`http://localhost:${frontendPort}`);
+  mainWindow.loadURL(`http://localhost:${processes.frontend.port}`);
 
   mainWindow.webContents.openDevTools();
 
@@ -153,11 +160,8 @@ const createMainWindow = (frontendPort) => {
   });
 
   mainWindow.on("close", function (event) {
-    if (!app.isQuiting) {
       event.preventDefault();
       mainWindow.hide();
-    }
-    return false;
   });
 };
 
@@ -176,8 +180,8 @@ process.on("SIGINT", () => {
 
 app.on("ready", async () => {
   createSplashWindow();
-  const { frontendPort } = await launchProcesses();
-  createMainWindow(frontendPort);
+  await launchProcesses();
+  createMainWindow();
   app.on("activate", () => {
     if (BrowserWindow.getAllWindows().length === 0) {
       createMainWindow();
@@ -192,12 +196,11 @@ app.on("window-all-closed", () => {
 });
 
 app.on("before-quit", () => {
-  app.isQuiting = true;
   killAllProcesses();
 });
 
 app.whenReady().then(() => {
-  tray = new Tray(path.join(__dirname, "icons/robot-head.png"));
+  tray = new Tray(path.join(__dirname, "assets/icons/robot-head.png"));
   const contextMenu = Menu.buildFromTemplate([
     {
       label: "Show App",
