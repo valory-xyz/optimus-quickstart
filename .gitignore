@@ -44,3 +44,5 @@ data/
 __pycache__/
 tmp/
 temp/
+
+!backend/operate/data
