@@ -17,6 +17,8 @@ For development, we have been using Ubuntu 22.04.
 
 ### Ensure Docker v24 is installed
 
+You can change the ubuntu.XX.XX~XX version to your OS.
+
 ```bash
 VERSION_STRING=5:24.0.7-1~ubuntu.22.04~jammy
 sudo apt-get install docker-ce=$VERSION_STRING docker-ce-cli=$VERSION_STRING containerd.io docker-buildx-plugin docker-compose-plugin

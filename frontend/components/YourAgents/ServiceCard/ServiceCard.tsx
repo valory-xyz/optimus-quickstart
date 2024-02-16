@@ -5,6 +5,7 @@ import { Card, Flex, Typography, Button, Badge, Spin } from "antd";
 import Image from "next/image";
 import { useCallback, useMemo, useState } from "react";
 import useSWR from "swr";
+import { useInterval } from "usehooks-ts";
 
 type ServiceCardProps = {
   service: Service;
@@ -20,12 +21,10 @@ export const ServiceCard = ({ service }: ServiceCardProps) => {
   } = useServices();
   const { getServiceTemplates } = useMarketplace();
 
-  const { data: serviceStatusData } = useSWR(
-    service.hash,
-    () => getServiceStatus(service.hash),
-    {},
-  );
-  const serviceStatus = serviceStatusData?.status;
+  const [serviceStatus, setServiceStatus] = useState<DeploymentStatus|undefined>();
+  const updateServiceStatus = useCallback(()=> getServiceStatus(service.hash).then(r=> setServiceStatus(r.status)), [service.hash]);
+
+  useInterval(()=> updateServiceStatus(), 5000);
 
   const [isStopping, setIsStopping] = useState(false);
   const [isStarting, setIsStarting] = useState(false);
@@ -38,7 +37,7 @@ export const ServiceCard = ({ service }: ServiceCardProps) => {
         await updateServicesState();
       })
       .finally(() => {
-        setIsStarting(false);
+        updateServiceStatus().finally(()=> setIsStarting(false));
       });
   }, [service.hash, deployService, updateServicesState]);
 
@@ -49,7 +48,7 @@ export const ServiceCard = ({ service }: ServiceCardProps) => {
         await updateServicesState();
       })
       .finally(() => {
-        setIsStopping(false);
+        updateServiceStatus().finally(()=> setIsStopping(false));
       });
   }, [service.hash, stopService, updateServicesState]);
 
@@ -60,7 +59,7 @@ export const ServiceCard = ({ service }: ServiceCardProps) => {
         await updateServicesState();
       })
       .finally(() => {
-        setIsDeleting(false);
+        updateServiceStatus().finally(()=> setIsDeleting(false));
       });
   }, [deleteServices, service.hash, updateServicesState]);
 
