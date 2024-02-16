@@ -19,25 +19,24 @@
 # ------------------------------------------------------------------------------
 """This module contains e2e tests."""
 
-import requests
-from aea_ledger_ethereum.ethereum import EthereumApi, EthereumCrypto
+from pathlib import Path
 
-TRADER_TEMPLATE = {
-    "name": "Trader Agent",
-    "description": "Trader agent for omen prediction markets",
-    "hash": "bafybeigiwlvm6ey4dmlztg3z4xyvpol23n444vliivx2ybuki7xo4f3pae",
-    "image": "https://operate.olas.network/_next/image?url=%2Fimages%2Fprediction-agent.png&w=3840&q=75",
-    "rpc": "http://localhost:8545",  # User provided
-}
+import requests
+from aea.helpers.yaml_utils import yaml_load
+from aea_ledger_ethereum.ethereum import EthereumApi, EthereumCrypto
 
 BASE_URL = "http://localhost:8000/api"
 
 
 def test_endpoint_e2e():
+    with Path("templates/trader.yaml").open("r", encoding="utf-8") as stream:
+        trader_template = yaml_load(stream=stream)
+    trader_template["configuration"]["use_staking"] = True
+
     print("Creating service using template")
     response = requests.post(
         url=f"{BASE_URL}/services",
-        json=TRADER_TEMPLATE,
+        json=trader_template,
     ).json()
     print(response)
 
@@ -72,8 +71,8 @@ def test_endpoint_e2e():
     digest = ledger_api.send_signed_transaction(stx)
     ledger_api.get_transaction_receipt(tx_digest=digest)
 
-    old = TRADER_TEMPLATE["hash"]
-    TRADER_TEMPLATE["hash"] = (
+    old = trader_template["hash"]
+    trader_template["hash"] = (
         "bafybeicxdpkuk5z5zfbkso7v5pywf4v7chxvluyht7dtgalg6dnhl7ejoe"
     )
     print(
@@ -81,7 +80,7 @@ def test_endpoint_e2e():
             url=f"{BASE_URL}/services",
             json={
                 "old": old,
-                "new": TRADER_TEMPLATE,
+                "new": trader_template,
             },
         ).content.decode()
     )
