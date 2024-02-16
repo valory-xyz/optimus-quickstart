@@ -1,19 +1,24 @@
-import { ServiceHash } from "@/client";
-
-type ServiceTemplate = {
-  name: string;
-  description: string;
-  hash: ServiceHash;
-  image: string;
-  rpc?: string;
-};
+import { ServiceTemplate } from "@/client";
 
 export const serviceTemplates: ServiceTemplate[] = [
   {
     name: "Trader Agent",
-    description: "Trader agent for omen prediction markets",
     hash: "bafybeigiwlvm6ey4dmlztg3z4xyvpol23n444vliivx2ybuki7xo4f3pae",
+    description: "Trader agent for omen prediction markets",
     image:
       "https://operate.olas.network/_next/image?url=%2Fimages%2Fprediction-agent.png&w=3840&q=75",
+    configuration: {
+        nft: "bafybeig64atqaladigoc3ds4arltdu63wkdrk3gesjfvnfdmz35amv7faq",
+        agent_id: 14,
+        threshold: 1,
+        use_staking: false,
+        cost_of_bond: 10000000000000000,
+        olas_required_to_bond: 10000000000000000000,
+        olas_required_to_stake: 10000000000000000000,
+        fund_requirements: {
+          agent: 0.1,
+          safe: 0.5
+        }
+      }
   },
 ];
