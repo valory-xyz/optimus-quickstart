@@ -1,4 +1,4 @@
-import { DeploymentStatus, Service } from "@/client";
+import { DeploymentStatus, Service, ServiceTemplate } from "@/client";
 import { useMarketplace } from "@/hooks/useMarketplace";
 import { useServices } from "@/hooks/useServices";
 import { Card, Flex, Typography, Button, Badge, Spin } from "antd";
@@ -64,7 +64,7 @@ export const ServiceCard = ({ service }: ServiceCardProps) => {
       });
   }, [deleteServices, service.hash, updateServicesState]);
 
-  const button = useMemo(() => {
+  const buttons = useMemo(() => {
     if (serviceStatus === DeploymentStatus.DEPLOYED) {
       return (
         <Button
@@ -94,7 +94,7 @@ export const ServiceCard = ({ service }: ServiceCardProps) => {
           <Button
             danger
             onClick={handleDelete}
-            disabled={isDeleting}
+            disabled//={isDeleting} disabled until /delete endpoint is implemented
             loading={isDeleting}
           >
             Delete this agent
@@ -114,16 +114,27 @@ export const ServiceCard = ({ service }: ServiceCardProps) => {
   ]);
 
   const serviceStatusBadge = useMemo(() => {
-    if (serviceStatus === DeploymentStatus.DEPLOYED) {
-      return <Badge status="success" text="Running" />;
+    switch (serviceStatus) {
+      case DeploymentStatus.CREATED:
+        return <Badge status="processing" text="Created" />;
+      case DeploymentStatus.BUILT:
+        return <Badge status="processing" text="Built" />;
+      case DeploymentStatus.DEPLOYING:
+        return <Badge status="processing" text="Deploying" />;
+      case DeploymentStatus.DEPLOYED:
+        return <Badge status="success" text="Running" />;
+      case DeploymentStatus.STOPPING:
+        return <Badge status="processing" text="Stopping" />;
+      case DeploymentStatus.STOPPED:
+        return <Badge status="error" text="Stopped" />;
+      case DeploymentStatus.DELETED:
+        return <Badge status="error" text="Deleted" />;
+      default:
+        return <Badge status="warning" text="Error" />;
     }
-    if (serviceStatus === DeploymentStatus.STOPPED) {
-      return <Badge status="error" text="Stopped" />;
-    }
-    return <Badge status="warning" text="Error" />;
   }, [serviceStatus]);
 
-  const serviceTemplate = useMemo(
+  const serviceTemplate: ServiceTemplate | undefined = useMemo(
     () =>
       getServiceTemplates().find(
         (serviceTemplate) => serviceTemplate.hash === service.hash,
@@ -146,7 +157,7 @@ export const ServiceCard = ({ service }: ServiceCardProps) => {
           <Flex gap={"large"} justify="space-between">
             <Flex vertical>
               <Typography.Text strong>STATUS</Typography.Text>
-              <Typography.Text>{serviceStatus}</Typography.Text>
+              <Typography.Text>{serviceStatusBadge}</Typography.Text>
             </Flex>
             {/* <Flex vertical>
               <Typography.Text strong>EARNINGS 24H</Typography.Text>
@@ -157,7 +168,7 @@ export const ServiceCard = ({ service }: ServiceCardProps) => {
               <Typography.Text>$ {service.total_balance || 0}</Typography.Text>
             </Flex> */}
           </Flex>
-          <Flex style={{ marginTop: "auto" }}>{button}</Flex>
+          <Flex style={{ marginTop: "auto" }}>{buttons}</Flex>
         </Flex>
       </Flex>
     </Card>
