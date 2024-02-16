@@ -33,3 +33,11 @@ CONTRACTS = {
         }
     )
 }
+
+STAKING = {
+    ChainType.GNOSIS: "0x2Ef503950Be67a98746F484DA0bBAdA339DF3326",
+}
+
+OLAS = {
+    ChainType.GNOSIS: "0xcE11e14225575945b8E6Dc0D4F2dD4C570f79d9f",
+}
