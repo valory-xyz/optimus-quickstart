@@ -9,6 +9,7 @@ import {
   useEffect,
   useState,
 } from "react";
+import { useInterval } from "usehooks-ts";
 
 type ServicesProviderProps = {
   services: Services;
@@ -38,6 +39,8 @@ export const ServicesProvider = ({ children }: PropsWithChildren) => {
     updateServicesState();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  useInterval(updateServicesState, 5000);
 
   return (
     <ServicesContext.Provider
