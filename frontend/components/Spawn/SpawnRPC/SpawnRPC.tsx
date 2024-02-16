@@ -17,6 +17,7 @@ import {
   WarningOutlined,
 } from "@ant-design/icons";
 import { Service, ServiceTemplate } from "@/client";
+import { InputStatus } from "antd/es/_util/statusUtils";
 
 enum RPCState {
   LOADING,
@@ -64,9 +65,12 @@ export const SpawnRPC = ({
     if (continueIsLoading)
       return message.info("Please wait for the current action to complete");
     setContinueIsLoading(true);
-    createService({ ...serviceTemplate, rpc })
+    createService({ ...serviceTemplate, configuration: { ...serviceTemplate.configuration, rpc }})
       .then((_service: Service) => {
         setService(_service);
+        const multisigEntry: {[address: string]: number} = { [_service.chain_data?.multisig!]: serviceTemplate.configuration.fund_requirements.safe };
+        const agentEntries: {[address: string]: number} | undefined = _service.chain_data?.instances!.reduce((acc: {[address:string]: number}, address: string) => ({...acc, [address]: serviceTemplate.configuration.fund_requirements.agent }), {});
+        setFundRequirements({...multisigEntry, ...agentEntries});
         setSpawnScreenState(SpawnScreenState.FUNDS);
       })
       .catch((err) => {
@@ -82,13 +86,15 @@ export const SpawnRPC = ({
     setSpawnScreenState,
   ]);
 
-  const inputStatus = useMemo(() => {
-    if (rpcState === RPCState.VALID) return undefined;
+  const isContinueDisabled = useMemo(() => !rpc || rpcState !== RPCState.VALID, [rpc, rpcState]);
+
+  const inputStatus: InputStatus = useMemo(() => {
+    if (rpcState === RPCState.VALID) return "";
     if (rpcState === RPCState.INVALID) return "error";
-    return undefined;
+    return "";
   }, [rpcState]);
 
-  const inputSuffix = useMemo(() => {
+  const inputSuffix: JSX.Element = useMemo(() => {
     if (rpcState === RPCState.LOADING) return <Spin />;
     if (rpcState === RPCState.VALID)
       return <CheckSquareTwoTone twoToneColor="#52c41a" />;
@@ -159,7 +165,7 @@ export const SpawnRPC = ({
       <Button
         type="default"
         onClick={handleContinue}        
-        disabled={!rpc || rpcState !== RPCState.VALID}
+        disabled={isContinueDisabled}
         loading={continueIsLoading}
       >
         Continue
