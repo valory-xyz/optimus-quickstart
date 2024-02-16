@@ -239,10 +239,7 @@ class Deployment(
 
         _volumes = []
         for volume, mount in (
-            service.helper.deployment_config()
-            .get("local", {})
-            .get("volumes", {})
-            .items()
+            service.helper.deployment_config().get("volumes", {}).items()
         ):
             (build / volume).mkdir(exist_ok=True)
             _volumes.append(f"./{volume}:{mount}:Z")

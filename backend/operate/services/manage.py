@@ -26,6 +26,7 @@ import typing as t
 from pathlib import Path
 
 from aea.helpers.base import IPFSHash
+from autonomy.chain.base import registry_contracts
 from autonomy.deploy.constants import (
     AGENT_KEYS_DIR,
     BENCHMARKS_DIR,
@@ -35,11 +36,18 @@ from autonomy.deploy.constants import (
     VENVS_DIR,
 )
 from operate.http import Resource
+from operate.http.exceptions import BadRequest
 from operate.keys import Keys
-from operate.ledger.profiles import CONTRACTS
+from operate.ledger.profiles import CONTRACTS, OLAS, STAKING
 from operate.services.protocol import OnChainManager
 from operate.services.service import Service
-from operate.types import ChainData, ServicesType, ServiceTemplate, ServiceType
+from operate.types import (
+    ChainData,
+    ConfigurationTemplate,
+    ServicesType,
+    ServiceTemplate,
+    ServiceType,
+)
 from starlette.types import Receive, Scope, Send
 from typing_extensions import TypedDict
 
@@ -140,9 +148,18 @@ class Services(
             data.append(Service.load(path=service).json)
         return data
 
-    def create(self, data: PostServices) -> PostServices:
-        """Create a service."""
-        phash = data["hash"]
+    def _stake(self) -> None:
+        """Stake a service."""
+
+    def _create(
+        self,
+        phash: str,
+        configuration: ConfigurationTemplate,
+        instances: t.Optional[t.List[str]] = None,
+        update_token: t.Optional[int] = None,
+        reuse_multisig: bool = False,
+    ) -> Service:
+        """Create a new service."""
         if (self.path / phash).exists():  # For testing only
             shutil.rmtree(self.path / phash)
 
@@ -156,42 +173,79 @@ class Services(
         )
 
         ledger = service.helper.ledger_config()
-        deployment = service.helper.deployment_config()
-        instances = [
+        instances = instances or [
             self.keys.create() for _ in range(service.helper.config.number_of_agents)
         ]
         ocm = OnChainManager(
-            rpc=data["rpc"],
+            rpc=configuration["rpc"],
             key=self.key,
             contracts=CONTRACTS[ledger["chain"]],
         )
 
+        if configuration["use_staking"] and not ocm.staking_slots_available(
+            staking_address=STAKING[ledger["chain"]],
+        ):
+            raise ValueError("No staking slots available")
+
         # Update to user provided RPC
-        ledger["rpc"] = data["rpc"]
+        ledger["rpc"] = configuration["rpc"]
 
         logging.info(f"Minting service {phash}")
         service_id = t.cast(
             int,
             ocm.mint(
                 package_path=service.service_path,
-                agent_id=deployment["chain"]["agent_id"],
+                agent_id=configuration["agent_id"],
                 number_of_slots=service.helper.config.number_of_agents,
-                cost_of_bond=deployment["chain"]["cost_of_bond"],
-                threshold=deployment["chain"]["threshold"],
-                nft=IPFSHash(deployment["chain"]["nft"]),
+                cost_of_bond=(
+                    configuration["olas_required_to_bond"]
+                    if configuration["use_staking"]
+                    else configuration["cost_of_bond"]
+                ),
+                threshold=configuration["threshold"],
+                nft=IPFSHash(configuration["nft"]),
+                update_token=update_token,
+                token=OLAS[ledger["chain"]] if configuration["use_staking"] else None,
             ).get("token"),
         )
 
         logging.info(f"Activating service {phash}")
-        ocm.activate(service_id=service_id)
+        if configuration["use_staking"]:
+            required_olas = (
+                configuration["olas_cost_of_bond"]
+                + configuration["olas_required_to_stake"]
+            )
+            balance = (
+                registry_contracts.erc20.get_instance(
+                    ledger_api=ocm.ledger_api,
+                    contract_address=OLAS[ledger["chain"]],
+                )
+                .functions.balanceOf(ocm.crypto.address)
+                .call()
+            )
+            if balance < required_olas:
+                raise BadRequest(
+                    "You don't have enough olas to stake, "
+                    f"required olas: {required_olas}; your balance {balance}"
+                )
+
+        ocm.activate(
+            service_id=service_id,
+            token=OLAS[ledger["chain"]] if configuration["use_staking"] else None,
+        )
         ocm.register(
             service_id=service_id,
             instances=instances,
-            agents=[deployment["chain"]["agent_id"] for _ in instances],
+            agents=[configuration["agent_id"] for _ in instances],
+            token=OLAS[ledger["chain"]] if configuration["use_staking"] else None,
         )
 
         logging.info(f"Deploying service {phash}")
-        ocm.deploy(service_id=service_id)
+        ocm.deploy(
+            service_id=service_id,
+            reuse_multisig=reuse_multisig,
+            token=OLAS[ledger["chain"]] if configuration["use_staking"] else None,
+        )
 
         logging.info(f"Updating service {phash}")
         info = ocm.info(token_id=service_id)
@@ -206,26 +260,38 @@ class Services(
         )
         service.store()
 
+        if configuration["use_staking"]:
+            ocm.stake(
+                service_id=service_id,
+                service_registry=CONTRACTS[ledger["chain"]]["service_registry"],
+                staking_contract=STAKING[ledger["chain"]],
+            )
+
         logging.info(f"Building deployment for service {phash}")
         deployment = service.deployment()
         deployment.create({})
         deployment.store()
 
+        return service
+
+    def create(self, data: PostServices) -> PostServices:
+        """Create a service."""
+        service = self._create(
+            phash=data["hash"],
+            configuration=data["configuration"],
+        )
         return service.json
 
     def update(self, data: PutServices) -> ServiceType:
         """Update service using a template."""
         # NOTE: This method contains a lot of repetative code
-
-        # Load old service
-        old = Service.load(path=self.path / data["old"])
-
-        rpc = data["new"]["rpc"]
-        phash = data["new"]["hash"]
-
+        rpc = data["new"]["configuration"]["rpc"]
+        phash = data["new"]["configuration"]["hash"]
         if (self.path / phash).exists():  # For testing only
             shutil.rmtree(self.path / phash)
 
+        # Load old service
+        old = Service.load(path=self.path / data["old"])
         instances = old.chain_data["instances"]
         ocm = OnChainManager(
             rpc=rpc,
@@ -251,67 +317,13 @@ class Services(
             multisig=old.chain_data["multisig"],
             owner_key=owner_key,
         )
-
-        logging.info(f"Fetching service {phash}")
-        service = Service.new(
-            path=self.path,
+        service = self._create(
             phash=phash,
-            keys=[],
-            chain_data=ChainData(),
-            ledger={},
-        )
-
-        ledger = service.helper.ledger_config()
-        deployment = service.helper.deployment_config()
-
-        # Update to user provided RPC
-        ledger["rpc"] = data["new"]["rpc"]
-
-        logging.info(f"Minting service {phash}")
-        service_id = t.cast(
-            int,
-            ocm.mint(
-                package_path=service.service_path,
-                agent_id=deployment["chain"]["agent_id"],
-                number_of_slots=service.helper.config.number_of_agents,
-                cost_of_bond=deployment["chain"]["cost_of_bond"],
-                threshold=deployment["chain"]["threshold"],
-                nft=IPFSHash(deployment["chain"]["nft"]),
-                update_token=old.chain_data["token"],
-            ).get("token"),
-        )
-
-        logging.info(f"Activating service {phash}")
-        ocm.activate(service_id=service_id)
-        ocm.register(
-            service_id=service_id,
+            rpc=rpc,
             instances=instances,
-            agents=[deployment["chain"]["agent_id"] for _ in instances],
-        )
-
-        logging.info(f"Deploying service {phash}")
-        ocm.deploy(
-            service_id=service_id,
             reuse_multisig=True,
+            update_token=old.chain_data["token"],
         )
-
-        logging.info(f"Updating service {phash}")
-        info = ocm.info(token_id=service_id)
-        service.ledger = ledger
-        service.keys = [self.keys.get(key=key) for key in instances]
-        service.chain_data = ChainData(
-            {
-                "token": service_id,
-                "instances": info["instances"],
-                "multisig": info["multisig"],
-            }
-        )
-        service.store()
-
-        # Build docker-compose deployment
-        deployment = service.deployment()
-        deployment.create({})
-        deployment.store()
 
         # try:
         #     shutil.rmtree(old.path)
