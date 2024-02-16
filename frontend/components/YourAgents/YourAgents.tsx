@@ -17,7 +17,7 @@ export const YourAgents = () => {
   return hasAgents ? <HasServices services={services} /> : <NoAgents />;
 };
 
-const HasServices = ({ services }: { services: any[] }) => {
+const HasServices = ({ services }: { services: Service[] }) => {
   return (
     <Flex vertical gap={16}>
       {services.map((service: Service) => (
