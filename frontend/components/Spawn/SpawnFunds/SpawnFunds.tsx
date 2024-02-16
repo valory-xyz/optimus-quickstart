@@ -1,8 +1,7 @@
 import { Service } from "@/client";
 import { SpawnScreenState } from "@/enums";
 import { copyToClipboard } from "@/helpers/copyToClipboard";
-import { useServices, useSpawn } from "@/hooks";
-import { useEthers } from "@/hooks/useEthers";
+import { useServices, useSpawn, useEthers } from "@/hooks";
 import { Button, Flex, Spin, Timeline, Typography, message } from "antd";
 import { Dispatch, SetStateAction, useMemo, useState } from "react";
 import { useInterval } from "usehooks-ts";
@@ -83,6 +82,7 @@ const FundRequirement = ({
   address: string;
   requirement: number;
 }) => {
+  
   const [isPollingBalance, setIsPollingBalance] = useState(true);
   const { getETHBalance } = useEthers();
   const { getServiceFromState } = useServices();
@@ -104,7 +104,7 @@ const FundRequirement = ({
           }));
         }
       }),
-    isPollingBalance ? 1000 : null,
+    isPollingBalance ? 3000 : null,
   );
 
   return (
