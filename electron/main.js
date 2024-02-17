@@ -1,31 +1,27 @@
 const { app, BrowserWindow, Tray, Menu, shell } = require("electron");
 const path = require("path");
-const { exec } = require("child_process");
-const { isPortAvailable, portRange, findAvailablePort } = require("./ports")
+const { spawn } = require("child_process");
+const { isPortAvailable, portRange, findAvailablePort } = require("./ports");
+const psTree = require("ps-tree");
 
 let tray, mainWindow, splashWindow;
 let processList = [];
 
-
 let processes = {
-  backend: {port: 8000, ready: false},
-  frontend: {port: 3000, ready: false},
-  hardhat: {port: 8545, ready: false}, //temporary
+  backend: { port: 8000, ready: false },
+  frontend: { port: 3000, ready: false },
+  hardhat: { port: 8545, ready: false }, //temporary
 };
 
-const killAllProcesses = () =>
-  processList.forEach((p) => {
-    console.log("Killing process: ", p.pid);
-    p.kill();
-  });
+// Attempt to acquire the single instance lock
+const singleInstanceLock = app.requestSingleInstanceLock();
+if (!singleInstanceLock) app.quit();
 
-const checkServersReadyThenMain = () => {
-  const allReady = Object.values(processes).every((p) => p.ready);
-  if (allReady) {
-    createMainWindow();
-  }
-};
+// PROCESS FUNCTIONS
 
+/**
+ * Launches the backend, frontend and hardhat processes
+ */
 const launchProcesses = async () => {
   // backend
   try {
@@ -41,22 +37,26 @@ const launchProcesses = async () => {
     app.quit();
   }
 
-  const backendProcess = exec(`yarn dev:backend`);
+  const backendProcess = spawn("yarn", ["dev:backend"], {
+    maxBuffer: 1000,
+    shell: true,
+    detached: false,
+  }); // need to assign port
   processList.push(backendProcess);
-  backendProcess.stdout?.on("data", (data) => {
-    // if(data.toString().includes("Uvicorn running on")) {
-    //   processes.backend.ready = true;
-    //   checkServersReadyThenMain()
-    // };
-    console.log("[BACKEND]: ", data.toString())
+  // use stderr to capture logs
+  backendProcess.stderr.on("data", (data) => {
+    if (data.toString().includes("Uvicorn running on")) {
+      console.log("Backend ready");
+      processes.backend.ready = true;
+      checkProcessesReadyThenMain();
+    }
   });
-  backendProcess.stderr?.on("data", (data) =>
-    console.error("[BACKEND]: ", data.toString()),
-  );
 
   // frontend
   try {
-    const frontendPortAvailable = await isPortAvailable(processes.frontend.port);
+    const frontendPortAvailable = await isPortAvailable(
+      processes.frontend.port,
+    );
     if (!frontendPortAvailable) {
       processes.frontend.port = await findAvailablePort(
         portRange.startPort,
@@ -68,21 +68,28 @@ const launchProcesses = async () => {
     app.quit();
   }
 
-  const frontendProcess = exec(
-    `cross-env NEXT_PUBLIC_BACKEND_PORT=${processes.backend.port} yarn dev:frontend --port=${processes.frontend.port}`,
+  const frontendProcess = spawn(
+    "cross-env",
+    [
+      `NEXT_PUBLIC_BACKEND_PORT=${processes.backend.port}`,
+      "yarn",
+      "dev:frontend",
+      `--port=${processes.frontend.port}`,
+    ],
+    {
+      maxBuffer: 1000,
+      shell: true,
+      detached: false,
+    },
   );
   processList.push(frontendProcess);
-  frontendProcess.stdout?.on("data", (data) => {
-    // if (data.toString().includes("Ready in")) {
-    //   processes.frontend.ready = true;
-    //   checkServersReadyThenMain()
-    // };
-    console.log("[FRONTEND]: ", data.toString())
-  }
-  );
-  frontendProcess.stderr?.on("data", (data) =>
-    console.error("[FRONTEND]: ", data.toString()),
-  );
+  frontendProcess.stdout.on("data", (data) => {
+    if (data.toString().includes("Ready in")) {
+      console.log("Frontend ready");
+      processes.frontend.ready = true;
+      checkProcessesReadyThenMain();
+    }
+  });
 
   // hardhat
   try {
@@ -98,40 +105,93 @@ const launchProcesses = async () => {
     app.quit();
   }
 
-  const hardhatProcess = exec(
-    `yarn dev:hardhat --port ${processes.hardhat.port}`,
+  const hardhatProcess = spawn(
+    "cross-env",
+    [`PORT=${processes.hardhat.port}`, `yarn`, `dev:hardhat`],
+    {
+      maxBuffer: 1000,
+      shell: true,
+      detached: false,
+    },
   );
   processList.push(hardhatProcess);
-  hardhatProcess.stdout?.on("data", (data) => {
-    // if (data.toString().includes("Started HTTP and WebSocket JSON-RPC server at")) {
-    //   processes.hardhat.ready = true;
-    //   checkServersReadyThenMain();
-    // }
-    console.log("[HARDHAT]: ", data.toString())
+  hardhatProcess.stdout.on("data", (data) => {
+    if (
+      data.toString().includes("Started HTTP and WebSocket JSON-RPC server at")
+    ) {
+      console.log("Hardhat ready");
+      processes.hardhat.ready = true;
+      checkProcessesReadyThenMain();
+    }
   });
-  hardhatProcess.stderr?.on("data", (data) =>
-    console.error("[HARDHAT]: ", data.toString()),
-  );
 };
 
+/**
+ * Kills all child processes
+ */
+const killAllProcesses = () =>
+  processList.forEach((p) => {
+    try {
+      console.log("Killing process: ", p.pid);
+      psTree(p.pid, (err, children) => {
+        if (err) {
+          console.error("Error getting children of process: ", err);
+        } else {
+          children.forEach((c) => {
+            try {
+              process.kill(c.PID, "SIGKILL");
+            } catch (error) {
+              console.error("Error killing child process: ", error);
+            }
+          });
+        }
+      });
+    } catch (error) {
+      console.error("Error killing process: ", error);
+    }
+  });
+
+/**
+ * Checks if all processes are ready and if so, creates the main window and tray
+ */
+const checkProcessesReadyThenMain = () => {
+  const allReady = Object.values(processes).every((p) => p?.ready);
+  if (allReady) {
+    if (!mainWindow) createMainWindow(); // only create main window once
+    if (!tray) createTray(); // only create tray once
+  }
+};
+
+//  CREATE FUNCTIONS
+
+/**
+ * Creates the splash window
+ */
 const createSplashWindow = () => {
   splashWindow = new BrowserWindow({
-    width: 856,
-    height: 1321,
+    width: 600,
+    height: 1000,
     resizable: false,
-    show: false,
-    title: "Olas Operate",    
+    show: true,
+    title: "Olas Operate",
+    frame: false,
   });
-  splashWindow.loadURL("file://" + __dirname + "/loading.html").then();
+  splashWindow.loadURL("file://" + __dirname + "/loading.html");
 };
 
+/**
+ * Creates the main window
+ */
 const createMainWindow = () => {
   mainWindow = new BrowserWindow({
-    width: 856,
-    height: 1321,
+    width: 600,
+    height: 1000,
     show: false,
     title: "Olas Operate",
     resizable: false,
+    webPreferences: {
+      nodeIntegration: true,
+    },
   });
 
   // Ensure that external links are opened in native browser
@@ -160,47 +220,15 @@ const createMainWindow = () => {
   });
 
   mainWindow.on("close", function (event) {
-      event.preventDefault();
-      mainWindow.hide();
+    event.preventDefault();
+    mainWindow.hide();
   });
 };
 
-// Main process events
-
-process.on("SIGINT", () => {
-  console.log(
-    "Main process received SIGINT signal. Killing all child processes...",
-  );
-  killAllProcesses();
-  app.quit();
-  process.exit();
-});
-
-// App events
-
-app.on("ready", async () => {
-  createSplashWindow();
-  await launchProcesses();
-  createMainWindow();
-  app.on("activate", () => {
-    if (BrowserWindow.getAllWindows().length === 0) {
-      createMainWindow();
-    }
-  });
-});
-
-app.on("window-all-closed", () => {
-  if (process.platform !== "darwin") {
-    app.quit();
-  }
-});
-
-app.on("before-quit", () => {
-  app.isQuitting = true;
-  killAllProcesses();
-});
-
-app.whenReady().then(() => {
+/**
+ * Creates the tray
+ */
+const createTray = () => {
   tray = new Tray(path.join(__dirname, "assets/icons/robot-head.png"));
   const contextMenu = Menu.buildFromTemplate([
     {
@@ -221,4 +249,29 @@ app.whenReady().then(() => {
   tray.on("click", () => {
     mainWindow.show();
   });
+};
+
+// APP-SPECIFIC EVENTS
+
+app.on("ready", async () => {
+  createSplashWindow();
+  await launchProcesses();
+  app.on("activate", () => {
+    if (BrowserWindow.getAllWindows().length === 0) {
+      createMainWindow();
+    }
+  });
+});
+
+app.on("window-all-closed", () => {
+  if (process.platform !== "darwin") {
+    app.quit();
+  }
+});
+
+app.on("before-quit", () => {
+  console.log("Main process received before-quit signal.");
+  killAllProcesses();
+  tray && tray.destroy();
+  mainWindow && mainWindow.destroy();
 });
