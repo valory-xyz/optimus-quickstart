@@ -269,7 +269,10 @@ app.on("window-all-closed", () => {
   }
 });
 
+let beforeQuitOnceCheck = false;
 app.on("before-quit", () => {
+  if (beforeQuitOnceCheck) return;
+  beforeQuitOnceCheck = true;
   console.log("Main process received before-quit signal.");
   killAllProcesses();
   tray && tray.destroy();
