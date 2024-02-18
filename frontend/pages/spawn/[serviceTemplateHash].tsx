@@ -1,14 +1,14 @@
 import { Service, ServiceTemplate } from "@/client";
 import {
   SpawnDone,
-  SpawnFunds,
+  SpawnAgentFunding,
   SpawnHeader,
   SpawnRPC,
+  SpawnStakingCheck,
+  SpawnStakingFunding,
 } from "@/components/Spawn";
 import { SpawnScreenState } from "@/enums/SpawnState";
-import { useMarketplace } from "@/hooks/useMarketplace";
-import { useSpawn } from "@/hooks/useSpawn";
-import { message } from "antd";
+import { useMarketplace, useSpawn } from "@/hooks";
 import { GetServerSidePropsContext } from "next";
 import { useMemo, useState } from "react";
 
@@ -24,44 +24,81 @@ export const SpawnPage = ({
 }: {
   serviceTemplateHash: string;
 }) => {
-  const { spawnScreenState } = useSpawn();
+  const { spawnScreenState, setSpawnScreenState } = useSpawn();
   const { getServiceTemplate } = useMarketplace();
 
   const [service, setService] = useState<Service | undefined>();
+  const [isStaking, setIsStaking] = useState<boolean>(false);
 
   const serviceTemplate = useMemo(
     () => getServiceTemplate(serviceTemplateHash),
     [getServiceTemplate, serviceTemplateHash],
   ) as ServiceTemplate;
 
-  const [fundRequirements, setFundRequirements] = useState<{
+  const [agentFundRequirements, setAgentFundRequirements] = useState<{
+    [address: string]: number;
+  }>({});
+
+  const [stakingFundRequirements, setStakingFundRequirements] = useState<{
     [address: string]: number;
   }>({});
 
   const spawnScreen = useMemo(() => {
-    if (spawnScreenState === SpawnScreenState.RPC) {
+    if (spawnScreenState === SpawnScreenState.STAKING_CHECK) {
       return (
-        <SpawnRPC
-          serviceTemplate={serviceTemplate}
-          setFundRequirements={setFundRequirements}
-          setService={setService}
+        <SpawnStakingCheck
+          setSpawnScreenState={setSpawnScreenState}
+          setIsStaking={setIsStaking}
+          nextPage={SpawnScreenState.RPC}
         />
       );
     }
-    if (spawnScreenState === SpawnScreenState.FUNDS) {
-      if (!service) {
-        message.error("Service not found");
-        return null; // TODO: handle error
-      }
+    if (spawnScreenState === SpawnScreenState.RPC) {
       return (
-        <SpawnFunds service={service} fundRequirements={fundRequirements} />
+        <SpawnRPC
+          {...{
+            serviceTemplate,
+            setService,
+            isStaking,
+            setAgentFundRequirements,
+            setStakingFundRequirements,
+          }}
+          nextPage={
+            isStaking
+              ? SpawnScreenState.STAKING_FUNDING
+              : SpawnScreenState.AGENT_FUNDING
+          }
+        />
       );
     }
+    if (spawnScreenState === SpawnScreenState.STAKING_FUNDING)
+      return (
+        <SpawnStakingFunding
+          {...{ service, stakingFundRequirements }}
+          nextPage={SpawnScreenState.AGENT_FUNDING}
+        />
+      );
+    if (spawnScreenState === SpawnScreenState.AGENT_FUNDING)
+      return (
+        <SpawnAgentFunding
+          {...{ service, agentFundRequirements }}
+          nextPage={SpawnScreenState.DONE}
+        />
+      );
+
     if (spawnScreenState === SpawnScreenState.DONE) {
       return <SpawnDone />;
     }
     return null;
-  }, [fundRequirements, service, serviceTemplate, spawnScreenState]);
+  }, [
+    agentFundRequirements,
+    isStaking,
+    service,
+    serviceTemplate,
+    setSpawnScreenState,
+    spawnScreenState,
+    stakingFundRequirements,
+  ]);
 
   return (
     <>
