@@ -1,9 +1,9 @@
 import { Service } from "@/client";
-import { SpawnScreenState } from "@/enums";
 import { useSpawn } from "@/hooks";
-import { Button, Flex, Timeline, Typography } from "antd";
-import { useMemo, useState } from "react";
+import { Flex, Timeline, TimelineItemProps, Typography } from "antd";
+import { useEffect, useMemo, useState } from "react";
 import { FundRequirement } from "./FundRequirement";
+import { SpawnScreenState } from "@/enums";
 
 export const SpawnFunds = ({
   service,
@@ -26,11 +26,7 @@ export const SpawnFunds = ({
     ),
   });
 
-  const handleContinue = () => {
-    setSpawnScreenState(SpawnScreenState.DONE);
-  };
-
-  const items = useMemo(
+  const items: TimelineItemProps[] = useMemo(
     () =>
       Object.keys(fundRequirements).map((address) => ({
         children: (
@@ -41,8 +37,9 @@ export const SpawnFunds = ({
             requirement={fundRequirements[address]}
           />
         ),
-      })),
-    [fundRequirements, service.hash],
+        color: receivedFunds[address] ? "green" : "red",
+      })) as TimelineItemProps[],
+    [fundRequirements, receivedFunds, service.hash],
   );
 
   const hasSentAllFunds = useMemo(() => {
@@ -53,18 +50,15 @@ export const SpawnFunds = ({
     );
   }, [fundRequirements, receivedFunds]);
 
+  useEffect(() => {
+    hasSentAllFunds && setSpawnScreenState(SpawnScreenState.DONE);
+  }, [hasSentAllFunds, setSpawnScreenState]);
+
   return (
     <>
       <Flex gap={8} vertical>
-        <Typography.Text>Your agent needs funds!</Typography.Text>
+        <Typography.Text strong>Your agent needs funds!</Typography.Text>
         <Timeline items={items} />
-        <Button
-          type="default"
-          disabled={!hasSentAllFunds}
-          onClick={handleContinue}
-        >
-          Continue
-        </Button>
       </Flex>
     </>
   );
