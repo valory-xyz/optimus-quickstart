@@ -12,15 +12,16 @@ type SpawnContextType = {
   setSpawnScreenState: Dispatch<SetStateAction<SpawnScreenState>>;
 };
 
+const FIRST_PAGE = SpawnScreenState.STAKING_CHECK;
+
 export const SpawnContext = createContext<SpawnContextType>({
-  spawnScreenState: SpawnScreenState.RPC,
+  spawnScreenState: FIRST_PAGE,
   setSpawnScreenState: () => {},
 });
 
 export const SpawnProvider = ({ children }: PropsWithChildren) => {
-  const [spawnScreenState, setSpawnScreenState] = useState<SpawnScreenState>(
-    SpawnScreenState.RPC,
-  );
+  const [spawnScreenState, setSpawnScreenState] =
+    useState<SpawnScreenState>(FIRST_PAGE);
   return (
     <SpawnContext.Provider
       value={{

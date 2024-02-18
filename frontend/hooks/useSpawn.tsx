@@ -7,13 +7,13 @@ export const useSpawn = () => {
 
   const spawnPercentage = useMemo(() => {
     if (spawnScreenState === SpawnScreenState.RPC) return 33;
-    if (spawnScreenState === SpawnScreenState.FUNDS) return 66;
+    if (spawnScreenState === SpawnScreenState.AGENT_FUNDING) return 66;
     if (spawnScreenState === SpawnScreenState.DONE) return 100;
     return 0;
   }, [spawnScreenState]);
 
   const resetSpawn = () => {
-    setSpawnScreenState(SpawnScreenState.RPC);
+    setSpawnScreenState(SpawnScreenState.STAKING_CHECK);
   };
 
   return {
