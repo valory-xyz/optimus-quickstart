@@ -4,12 +4,14 @@ import { useServices } from "@/hooks/useServices";
 import { Card, Flex, Typography, Button, Badge, Spin } from "antd";
 import Image from "next/image";
 import { useCallback, useMemo, useState } from "react";
-import useSWR from "swr";
 import { useInterval } from "usehooks-ts";
+import { ServiceCardTotalBalance } from "./ServiceCardTotalBalance";
 
 type ServiceCardProps = {
   service: Service;
 };
+
+const STATUS_POLLING_INTERVAL = 5000;
 
 export const ServiceCard = ({ service }: ServiceCardProps) => {
   const {
@@ -21,10 +23,16 @@ export const ServiceCard = ({ service }: ServiceCardProps) => {
   } = useServices();
   const { getServiceTemplates } = useMarketplace();
 
-  const [serviceStatus, setServiceStatus] = useState<DeploymentStatus|undefined>();
-  const updateServiceStatus = useCallback(()=> getServiceStatus(service.hash).then(r=> setServiceStatus(r.status)), [service.hash]);
+  const [serviceStatus, setServiceStatus] = useState<
+    DeploymentStatus | undefined
+  >();
+  const updateServiceStatus = useCallback(
+    () =>
+      getServiceStatus(service.hash).then((r) => setServiceStatus(r.status)),
+    [getServiceStatus, service.hash],
+  );
 
-  useInterval(()=> updateServiceStatus(), 5000);
+  useInterval(() => updateServiceStatus(), STATUS_POLLING_INTERVAL);
 
   const [isStopping, setIsStopping] = useState(false);
   const [isStarting, setIsStarting] = useState(false);
@@ -37,9 +45,9 @@ export const ServiceCard = ({ service }: ServiceCardProps) => {
         await updateServicesState();
       })
       .finally(() => {
-        updateServiceStatus().finally(()=> setIsStarting(false));
+        updateServiceStatus().finally(() => setIsStarting(false));
       });
-  }, [service.hash, deployService, updateServicesState]);
+  }, [deployService, service.hash, updateServicesState, updateServiceStatus]);
 
   const handleStop = useCallback(() => {
     setIsStopping(true);
@@ -48,9 +56,9 @@ export const ServiceCard = ({ service }: ServiceCardProps) => {
         await updateServicesState();
       })
       .finally(() => {
-        updateServiceStatus().finally(()=> setIsStopping(false));
+        updateServiceStatus().finally(() => setIsStopping(false));
       });
-  }, [service.hash, stopService, updateServicesState]);
+  }, [service.hash, stopService, updateServiceStatus, updateServicesState]);
 
   const handleDelete = useCallback(() => {
     setIsDeleting(true);
@@ -59,9 +67,9 @@ export const ServiceCard = ({ service }: ServiceCardProps) => {
         await updateServicesState();
       })
       .finally(() => {
-        updateServiceStatus().finally(()=> setIsDeleting(false));
+        updateServiceStatus().finally(() => setIsDeleting(false));
       });
-  }, [deleteServices, service.hash, updateServicesState]);
+  }, [deleteServices, service.hash, updateServiceStatus, updateServicesState]);
 
   const buttons = useMemo(() => {
     if (serviceStatus === DeploymentStatus.DEPLOYED) {
@@ -93,7 +101,7 @@ export const ServiceCard = ({ service }: ServiceCardProps) => {
           <Button
             danger
             onClick={handleDelete}
-            disabled//={isDeleting} disabled until /delete endpoint is implemented
+            disabled //={isDeleting} disabled until /delete endpoint is implemented
             loading={isDeleting}
           >
             Delete this agent
@@ -117,7 +125,7 @@ export const ServiceCard = ({ service }: ServiceCardProps) => {
       case DeploymentStatus.CREATED:
         return <Badge status="processing" text="Created" />;
       case DeploymentStatus.BUILT:
-        return <Badge status="processing" text="Built" />;
+        return <Badge status="processing" text="Ready" />;
       case DeploymentStatus.DEPLOYING:
         return <Badge status="processing" text="Deploying" />;
       case DeploymentStatus.DEPLOYED:
@@ -129,7 +137,7 @@ export const ServiceCard = ({ service }: ServiceCardProps) => {
       case DeploymentStatus.DELETED:
         return <Badge status="error" text="Deleted" />;
       default:
-        return <Badge status="warning" text="Error" />;
+        return <Badge status="processing" text="Loading" />;
     }
   }, [serviceStatus]);
 
@@ -162,10 +170,8 @@ export const ServiceCard = ({ service }: ServiceCardProps) => {
               <Typography.Text strong>EARNINGS 24H</Typography.Text>
               <Typography.Text>$ {service.earnings_24h || 0}</Typography.Text>
             </Flex>
-            <Flex vertical>
-              <Typography.Text strong>TOTAL BALANCE</Typography.Text>
-              <Typography.Text>$ {service.total_balance || 0}</Typography.Text>
-            </Flex> */}
+             */}
+            <ServiceCardTotalBalance service={service} />
           </Flex>
           <Flex style={{ marginTop: "auto" }}>{buttons}</Flex>
         </Flex>
