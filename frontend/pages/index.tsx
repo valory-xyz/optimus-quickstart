@@ -31,7 +31,7 @@ export default function Home() {
         items={tabs}
         centered
         activeKey={activeTab}
-        onChange={(activeKey: string) => setActiveTab(activeKey)}
+        onChange={setActiveTab}
       />
     </Layout>
   );

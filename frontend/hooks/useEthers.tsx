@@ -1,4 +1,4 @@
-import { BigNumber, providers, utils } from "ethers";
+import { BigNumber, ethers, providers, utils } from "ethers";
 export const useEthers = () => {
   /**
    * Returns the ETH balance of the given address
@@ -14,6 +14,38 @@ export const useEthers = () => {
     return provider
       .getBalance(address)
       .then((balance: BigNumber) => Number(utils.formatEther(balance)));
+  };
+
+  /**
+   * Returns the ERC20 balance of the given address
+   * @param address string
+   * @param rpc string
+   * @param contractAddress string
+   * @returns Promise<number>
+   */
+  const getERC20Balance = async (
+    address: string,
+    rpc: string,
+    contractAddress?: string,
+  ): Promise<number> => {
+    if (!contractAddress) return 0;
+    const provider = new providers.JsonRpcProvider(rpc, {
+      name: "Gnosis",
+      chainId: 100, // we currently only support Gnosis Trader agent
+    });
+    const contract = new ethers.Contract(
+      contractAddress,
+      [
+        "function balanceOf(address) view returns (uint256)",
+        "function decimals() view returns (uint8)",
+      ],
+      provider,
+    );
+    const [balance, decimals] = await Promise.all([
+      contract.balanceOf(address),
+      contract.decimals(),
+    ]);
+    return Number(utils.formatUnits(balance, decimals));
   };
 
   /**
@@ -35,5 +67,5 @@ export const useEthers = () => {
     return false;
   };
 
-  return { getETHBalance, checkRPC };
+  return { getETHBalance, checkRPC, getERC20Balance };
 };
