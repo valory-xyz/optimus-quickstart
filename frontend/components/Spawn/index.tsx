@@ -1,4 +1,6 @@
 export * from "./SpawnDone/SpawnDone";
-export * from "./SpawnFunds/SpawnFunds";
+export * from "./SpawnAgentFunding/SpawnAgentFunding";
 export * from "./SpawnHeader/SpawnHeader";
 export * from "./SpawnRPC/SpawnRPC";
+export * from "./SpawnStakingCheck/SpawnStakingCheck";
+export * from "./SpawnStakingFunding/SpawnStakingFunding";
