@@ -7,7 +7,7 @@ import {
   SpawnStakingCheck,
   SpawnStakingFunding,
 } from "@/components/Spawn";
-import { SpawnScreenState } from "@/enums/SpawnState";
+import { SpawnScreenState } from "@/enums";
 import { useMarketplace, useSpawn } from "@/hooks";
 import { GetServerSidePropsContext } from "next";
 import { useMemo, useState } from "react";
