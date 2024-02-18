@@ -71,22 +71,18 @@ export const SpawnRPC = ({
     })
       .then((_service: Service) => {
         setService(_service);
-        const multisigEntry: { [address: string]: number } = _service.chain_data
-          ?.multisig
-          ? {
-              [_service.chain_data.multisig]:
-                serviceTemplate.configuration.fund_requirements.safe,
-            }
-          : {};
-        const agentEntries: { [address: string]: number } | undefined =
-          _service.chain_data?.instances!.reduce(
-            (acc: { [address: string]: number }, address: string) => ({
-              ...acc,
-              [address]: serviceTemplate.configuration.fund_requirements.agent,
-            }),
-            {},
+        if (_service.chain_data?.instances) {
+          setFundRequirements(
+            _service.chain_data.instances.reduce(
+              (acc: { [address: string]: number }, address: string) => ({
+                ...acc,
+                [address]:
+                  serviceTemplate.configuration.fund_requirements.agent,
+              }),
+              {},
+            ),
           );
-        setFundRequirements({ ...multisigEntry, ...agentEntries });
+        }
         setSpawnScreenState(SpawnScreenState.FUNDS);
       })
       .catch((err) => {
@@ -152,7 +148,7 @@ export const SpawnRPC = ({
           <Flex gap={8} vertical>
             <Typography.Text>Copy endpoint</Typography.Text>
             <Typography.Text color="grey">
-              Copy the endpoint from the nodies site
+              Copy the endpoint from the Nodies site
             </Typography.Text>
           </Flex>
         ),
@@ -181,6 +177,7 @@ export const SpawnRPC = ({
 
   return (
     <Flex gap={8} vertical>
+      <Typography.Text strong>Get an RPC</Typography.Text>
       <Timeline items={items} />
       <Button
         type="default"
