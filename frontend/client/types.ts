@@ -68,9 +68,9 @@ export type Deployment = {
   nodes: DeployedNodes;
 };
 
-export type EmptyPayload = {};
+export type EmptyPayload = Record<string, never>;
 
-export type EmptyResponse = {};
+export type EmptyResponse = Record<string, never>;
 
 export type HttpResponse = {
   error?: string;
