@@ -1,5 +1,3 @@
-import { SpawnScreenState } from "@/enums/SpawnState";
-import { Tab } from "@/enums/Tabs";
 import { useServices, useSpawn, useTabs } from "@/hooks";
 import { Button, Flex } from "antd";
 import { useRouter } from "next/router";
@@ -7,20 +5,19 @@ import { useRouter } from "next/router";
 export const SpawnDone = () => {
   const router = useRouter();
 
-  const { setSpawnScreenState } = useSpawn();
-  const { setActiveTab } = useTabs();
+  const { resetSpawn } = useSpawn();
+  const { resetTabs } = useTabs();
   const { updateServicesState } = useServices();
 
-  const handleViewAgent = () => {
+  const handleViewAgent = () =>
     router.push("/").then(() => {
+      resetSpawn();
+      resetTabs();
       updateServicesState();
-      setActiveTab(Tab.YOUR_AGENTS);
-      setSpawnScreenState(SpawnScreenState.RPC);
     });
-  };
 
   return (
-    <Flex gap={8} vertical>
+    <Flex justify="center">
       <Button type="primary" onClick={handleViewAgent}>
         View agent
       </Button>
