@@ -10,7 +10,7 @@ let processList = [];
 let processes = {
   backend: { port: 8000, ready: false },
   frontend: { port: 3000, ready: false },
-  hardhat: { port: 8545, ready: false }, //temporary
+  hardhat: { port: 8545, ready: false }, // temporary
 };
 
 // Attempt to acquire the single instance lock
