@@ -15,20 +15,22 @@ export const FundRequirement = ({
   serviceHash,
   address,
   requirement,
+  contractAddress,
+  symbol,
   getBalance,
   setReceivedFunds,
-  contractAddress,
 }: {
   serviceHash?: string;
   address: string;
   requirement: number;
+  contractAddress?: string;
+  symbol: string;
   getBalance: (
     address: string,
     rpc: string,
     contractAddress?: string,
   ) => Promise<number>;
   setReceivedFunds: Dispatch<SetStateAction<{ [address: string]: boolean }>>;
-  contractAddress?: string;
 }) => {
   const { qrModalOpen } = useModals();
   const { getServiceFromState } = useServices();
@@ -68,7 +70,7 @@ export const FundRequirement = ({
   return (
     <Flex gap={8} vertical key={address}>
       <Typography.Text>
-        Send {requirement} XDAI to: {address}
+        Send {requirement} {symbol} to: {address}
       </Typography.Text>
       <Flex gap={8}>
         <Button type="primary" onClick={handleCopy}>

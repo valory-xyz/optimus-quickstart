@@ -2,17 +2,27 @@ import { Service } from "@/client";
 import { SpawnScreenState } from "@/enums";
 import { useSpawn } from "@/hooks/useSpawn";
 import { TimelineItemProps, Flex, Typography, Timeline } from "antd";
-import { useState, useMemo, useEffect } from "react";
-import { FundRequirementETH } from "./FundRequirement/FundRequirementETH";
+import { useState, useMemo, useEffect, SetStateAction, Dispatch } from "react";
 
 export const Funding = ({
   service,
   fundRequirements,
+  FundRequirementComponent,
   nextPage,
+  symbol,
 }: {
-  service?: Service;
+  service: Service;
   fundRequirements: { [address: string]: number };
+  FundRequirementComponent: (props: {
+    setReceivedFunds: Dispatch<SetStateAction<{ [address: string]: boolean }>>;
+    serviceHash: string;
+    address: string;
+    requirement: number;
+    contractAddress?: string;
+    symbol: string;
+  }) => JSX.Element;
   nextPage: SpawnScreenState;
+  symbol: string;
 }) => {
   const { setSpawnScreenState } = useSpawn();
 
@@ -32,16 +42,23 @@ export const Funding = ({
     () =>
       Object.keys(fundRequirements).map((address) => ({
         children: (
-          <FundRequirementETH
+          <FundRequirementComponent
             setReceivedFunds={setReceivedFunds}
-            serviceHash={service?.hash}
+            serviceHash={service.hash}
             address={address}
             requirement={fundRequirements[address]}
+            symbol={symbol}
           />
         ),
         color: receivedFunds[address] ? "green" : "red",
       })) as TimelineItemProps[],
-    [fundRequirements, receivedFunds, service?.hash],
+    [
+      FundRequirementComponent,
+      fundRequirements,
+      receivedFunds,
+      service.hash,
+      symbol,
+    ],
   );
 
   const hasSentAllFunds = useMemo(() => {

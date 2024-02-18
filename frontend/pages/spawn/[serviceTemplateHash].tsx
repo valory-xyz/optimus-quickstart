@@ -74,14 +74,14 @@ export const SpawnPage = ({
     if (spawnScreenState === SpawnScreenState.STAKING_FUNDING)
       return (
         <SpawnStakingFunding
-          {...{ service, stakingFundRequirements }}
+          {...{ service: service as Service, stakingFundRequirements }}
           nextPage={SpawnScreenState.AGENT_FUNDING}
         />
       );
     if (spawnScreenState === SpawnScreenState.AGENT_FUNDING)
       return (
         <SpawnAgentFunding
-          {...{ service, agentFundRequirements }}
+          {...{ service: service as Service, agentFundRequirements }}
           nextPage={SpawnScreenState.DONE}
         />
       );

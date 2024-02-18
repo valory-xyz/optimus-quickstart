@@ -6,6 +6,7 @@ export const FundRequirementETH = (props: {
   setReceivedFunds: Dispatch<SetStateAction<{ [address: string]: boolean }>>;
   serviceHash?: string;
   address: string;
+  symbol: string;
   requirement: number;
 }) => {
   const { getETHBalance } = useEthers();
