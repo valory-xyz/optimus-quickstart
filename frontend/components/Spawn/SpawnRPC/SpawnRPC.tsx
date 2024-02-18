@@ -65,12 +65,28 @@ export const SpawnRPC = ({
     if (continueIsLoading)
       return message.info("Please wait for the current action to complete");
     setContinueIsLoading(true);
-    createService({ ...serviceTemplate, configuration: { ...serviceTemplate.configuration, rpc }})
+    createService({
+      ...serviceTemplate,
+      configuration: { ...serviceTemplate.configuration, rpc },
+    })
       .then((_service: Service) => {
         setService(_service);
-        const multisigEntry: {[address: string]: number} = { [_service.chain_data?.multisig!]: serviceTemplate.configuration.fund_requirements.safe };
-        const agentEntries: {[address: string]: number} | undefined = _service.chain_data?.instances!.reduce((acc: {[address:string]: number}, address: string) => ({...acc, [address]: serviceTemplate.configuration.fund_requirements.agent }), {});
-        setFundRequirements({...multisigEntry, ...agentEntries});
+        const multisigEntry: { [address: string]: number } = _service.chain_data
+          ?.multisig
+          ? {
+              [_service.chain_data.multisig]:
+                serviceTemplate.configuration.fund_requirements.safe,
+            }
+          : {};
+        const agentEntries: { [address: string]: number } | undefined =
+          _service.chain_data?.instances!.reduce(
+            (acc: { [address: string]: number }, address: string) => ({
+              ...acc,
+              [address]: serviceTemplate.configuration.fund_requirements.agent,
+            }),
+            {},
+          );
+        setFundRequirements({ ...multisigEntry, ...agentEntries });
         setSpawnScreenState(SpawnScreenState.FUNDS);
       })
       .catch((err) => {
@@ -82,11 +98,15 @@ export const SpawnRPC = ({
     createService,
     rpc,
     serviceTemplate,
+    setFundRequirements,
     setService,
     setSpawnScreenState,
   ]);
 
-  const isContinueDisabled = useMemo(() => !rpc || rpcState !== RPCState.VALID, [rpc, rpcState]);
+  const isContinueDisabled = useMemo(
+    () => !rpc || rpcState !== RPCState.VALID,
+    [rpc, rpcState],
+  );
 
   const inputStatus: InputStatus = useMemo(() => {
     if (rpcState === RPCState.VALID) return "";
@@ -157,14 +177,14 @@ export const SpawnRPC = ({
       },
     ],
     [handleRpcChange, inputStatus, inputSuffix, rpc],
-  );  
+  );
 
   return (
     <Flex gap={8} vertical>
       <Timeline items={items} />
       <Button
         type="default"
-        onClick={handleContinue}        
+        onClick={handleContinue}
         disabled={isContinueDisabled}
         loading={continueIsLoading}
       >
