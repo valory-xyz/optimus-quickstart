@@ -8,7 +8,10 @@ export const FundRequirementETH = (props: {
   address: string;
   symbol: string;
   requirement: number;
+  hasReceivedFunds: boolean;
 }) => {
   const { getETHBalance } = useEthers();
-  return <FundRequirement getBalance={getETHBalance} {...props} />;
+  return (
+    <FundRequirement getBalance={getETHBalance} isERC20={false} {...props} />
+  );
 };

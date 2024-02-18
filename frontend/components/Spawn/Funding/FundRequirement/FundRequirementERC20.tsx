@@ -8,9 +8,11 @@ export const FundRequirementERC20 = (props: {
   requirement: number;
   symbol: string;
   contractAddress?: string;
+  hasReceivedFunds: boolean;
   setReceivedFunds: Dispatch<SetStateAction<{ [address: string]: boolean }>>;
 }) => {
   const { getERC20Balance } = useEthers();
-  if (!props.contractAddress) return <></>;
-  return <FundRequirement getBalance={getERC20Balance} {...props} />;
+  return (
+    <FundRequirement getBalance={getERC20Balance} isERC20={true} {...props} />
+  );
 };

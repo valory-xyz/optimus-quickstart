@@ -25,21 +25,18 @@ export const ModalsContext = createContext<{
     address: undefined,
     amount: undefined,
     chainId: undefined,
+    isERC20: false,
   },
   setQrModalData: () => {},
 });
 
 export const ModalsProvider = ({ children }: PropsWithChildren) => {
-  const [qrModalData, setQrModalData] = useState<{
-    open: boolean;
-    address?: string;
-    amount?: number;
-    chainId?: number;
-  }>({
+  const [qrModalData, setQrModalData] = useState<QRModalData>({
     open: false,
     address: undefined,
     amount: undefined,
     chainId: undefined,
+    isERC20: false,
   });
   return (
     <ModalsContext.Provider

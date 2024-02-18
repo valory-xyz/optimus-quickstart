@@ -10,7 +10,7 @@ export const SpawnAgentFunding = (props: {
 }) => (
   <Funding
     fundRequirements={props.agentFundRequirements}
-    symbol={"ETH"}
+    symbol={"XDAI"} // hardcoded while only trader is available
     FundRequirementComponent={FundRequirementETH}
     {...props}
   />

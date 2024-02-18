@@ -10,6 +10,7 @@ export const Funding = ({
   FundRequirementComponent,
   nextPage,
   symbol,
+  contractAddress,
 }: {
   service: Service;
   fundRequirements: { [address: string]: number };
@@ -20,9 +21,11 @@ export const Funding = ({
     requirement: number;
     contractAddress?: string;
     symbol: string;
+    hasReceivedFunds: boolean;
   }) => JSX.Element;
   nextPage: SpawnScreenState;
   symbol: string;
+  contractAddress?: string;
 }) => {
   const { setSpawnScreenState } = useSpawn();
 
@@ -48,12 +51,15 @@ export const Funding = ({
             address={address}
             requirement={fundRequirements[address]}
             symbol={symbol}
+            hasReceivedFunds={receivedFunds[address]}
+            contractAddress={contractAddress}
           />
         ),
         color: receivedFunds[address] ? "green" : "red",
       })) as TimelineItemProps[],
     [
       FundRequirementComponent,
+      contractAddress,
       fundRequirements,
       receivedFunds,
       service.hash,

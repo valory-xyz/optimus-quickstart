@@ -17,6 +17,8 @@ export const FundRequirement = ({
   requirement,
   contractAddress,
   symbol,
+  hasReceivedFunds,
+  isERC20,
   getBalance,
   setReceivedFunds,
 }: {
@@ -25,6 +27,8 @@ export const FundRequirement = ({
   requirement: number;
   contractAddress?: string;
   symbol: string;
+  hasReceivedFunds: boolean;
+  isERC20: boolean;
   getBalance: (
     address: string,
     rpc: string,
@@ -49,8 +53,8 @@ export const FundRequirement = ({
   }, [address]);
 
   const handleQr = useCallback(
-    () => qrModalOpen({ amount: requirement, chainId: 100, address }),
-    [address, qrModalOpen, requirement],
+    () => qrModalOpen({ amount: requirement, chainId: 100, address, isERC20 }),
+    [address, isERC20, qrModalOpen, requirement],
   );
 
   useInterval(
@@ -67,11 +71,17 @@ export const FundRequirement = ({
     isPollingBalance ? 3000 : null,
   );
 
+  const userActionText = useMemo(
+    () =>
+      hasReceivedFunds
+        ? `Received ${requirement} ${symbol} at: ${address}`
+        : `Send ${requirement} ${symbol} to: ${address}`,
+    [address, hasReceivedFunds, requirement, symbol],
+  );
+
   return (
     <Flex gap={8} vertical key={address}>
-      <Typography.Text>
-        Send {requirement} {symbol} to: {address}
-      </Typography.Text>
+      <Typography.Text>{userActionText}</Typography.Text>
       <Flex gap={8}>
         <Button type="primary" onClick={handleCopy}>
           Copy address

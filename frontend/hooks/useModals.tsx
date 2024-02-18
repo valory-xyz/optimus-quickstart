@@ -13,10 +13,11 @@ export const useModals = () => {
       address: undefined,
       amount: undefined,
       chainId: undefined,
+      isERC20: false,
     });
 
   const qrModalOpen = (data: Omit<Required<QRModalData>, "open">) =>
-    setQrModalData({ open: true, ...data });
+    setQrModalData({ ...data, open: true });
 
   return { qrModalData, setQrModalData, qrModalReset, qrModalOpen };
 };
