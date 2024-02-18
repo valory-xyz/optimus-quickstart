@@ -1,5 +1,6 @@
 import { Services } from "@/client";
 import ServicesService from "@/service/Services";
+import { message } from "antd";
 import {
   Dispatch,
   PropsWithChildren,
@@ -28,9 +29,13 @@ export const ServicesProvider = ({ children }: PropsWithChildren) => {
 
   const updateServicesState = useCallback(
     async () =>
-      ServicesService.getServices().then((data: Services) => {
-        setServices(data);
-      }),
+      ServicesService.getServices()
+        .then((data: Services) => {
+          setServices(data);
+        })
+        .catch(() => {
+          message.error("Failed to fetch services");
+        }),
     [],
   );
 
