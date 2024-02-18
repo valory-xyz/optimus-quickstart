@@ -27,12 +27,22 @@ enum RPCState {
 
 export const SpawnRPC = ({
   serviceTemplate,
-  setFundRequirements,
+  isStaking,
+  setAgentFundRequirements,
+  setStakingFundRequirements,
   setService,
+  nextPage,
 }: {
   serviceTemplate: ServiceTemplate;
-  setFundRequirements: Dispatch<SetStateAction<{ [address: string]: number }>>;
+  isStaking: boolean;
+  setAgentFundRequirements: Dispatch<
+    SetStateAction<{ [address: string]: number }>
+  >;
+  setStakingFundRequirements: Dispatch<
+    SetStateAction<{ [address: string]: number }>
+  >;
   setService: Dispatch<SetStateAction<Service | undefined>>;
+  nextPage: SpawnScreenState;
 }) => {
   const { setSpawnScreenState } = useSpawn();
   const { createService } = useServices();
@@ -67,12 +77,18 @@ export const SpawnRPC = ({
     setContinueIsLoading(true);
     createService({
       ...serviceTemplate,
-      configuration: { ...serviceTemplate.configuration, rpc },
+      configuration: {
+        ...serviceTemplate.configuration,
+        rpc,
+        use_staking: isStaking,
+      },
     })
       .then((_service: Service) => {
         setService(_service);
+
+        //  Set agent funding requirements
         if (_service.chain_data?.instances) {
-          setFundRequirements(
+          setAgentFundRequirements(
             _service.chain_data.instances.reduce(
               (acc: { [address: string]: number }, address: string) => ({
                 ...acc,
@@ -83,7 +99,17 @@ export const SpawnRPC = ({
             ),
           );
         }
-        setSpawnScreenState(SpawnScreenState.FUNDS);
+
+        // Set staking funding requirements from multisig/safe
+        if (isStaking && _service.chain_data?.multisig) {
+          setStakingFundRequirements({
+            [_service.chain_data.multisig]:
+              serviceTemplate.configuration.fund_requirements.safe,
+          });
+        }
+
+        // Then goto next screen
+        return setSpawnScreenState(nextPage);
       })
       .catch((err) => {
         message.error(err.message);
@@ -92,11 +118,14 @@ export const SpawnRPC = ({
   }, [
     continueIsLoading,
     createService,
+    isStaking,
+    nextPage,
     rpc,
     serviceTemplate,
-    setFundRequirements,
+    setAgentFundRequirements,
     setService,
     setSpawnScreenState,
+    setStakingFundRequirements,
   ]);
 
   const isContinueDisabled = useMemo(
