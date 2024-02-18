@@ -1,9 +1,10 @@
+import { QRModalData } from "@/types/QRModalData";
 import dynamic from "next/dynamic";
 import {
   createContext,
   Dispatch,
-  SetStateAction,
   PropsWithChildren,
+  SetStateAction,
   useState,
 } from "react";
 
@@ -16,29 +17,38 @@ const QRModal = dynamic(
 );
 
 export const ModalsContext = createContext<{
-  qrModalOpen: boolean;
-  setQrModalOpen: Dispatch<SetStateAction<boolean>>;
-  setQrModalAddress: Dispatch<SetStateAction<string | undefined>>;
+  qrModalData: QRModalData;
+  setQrModalData: Dispatch<SetStateAction<QRModalData>>;
 }>({
-  qrModalOpen: false,
-  setQrModalOpen: () => {},
-  setQrModalAddress: () => {},
+  qrModalData: {
+    open: false,
+    address: undefined,
+    amount: undefined,
+    chainId: undefined,
+  },
+  setQrModalData: () => {},
 });
 
 export const ModalsProvider = ({ children }: PropsWithChildren) => {
-  const [qrModalOpen, setQrModalOpen] = useState(false);
-  const [qrModalAddress, setQrModalAddress] = useState<string | undefined>();
+  const [qrModalData, setQrModalData] = useState<{
+    open: boolean;
+    address?: string;
+    amount?: number;
+    chainId?: number;
+  }>({
+    open: false,
+    address: undefined,
+    amount: undefined,
+    chainId: undefined,
+  });
   return (
     <ModalsContext.Provider
       value={{
-        qrModalOpen,
-        setQrModalOpen,
-        setQrModalAddress,
+        qrModalData,
+        setQrModalData,
       }}
     >
-      {qrModalAddress && (
-        <QRModal address={qrModalAddress} open={qrModalOpen} />
-      )}
+      <QRModal data={qrModalData} />
       {children}
     </ModalsContext.Provider>
   );

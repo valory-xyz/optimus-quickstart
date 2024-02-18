@@ -5,8 +5,8 @@ import { ModalsContext, ModalsProvider } from "./ModalsProvider";
 describe("ModalsProvider", () => {
   it("renders children properly", () => {
     const ChildComponent = () => {
-      const { qrModalOpen } = useContext(ModalsContext);
-      return <div data-testid="child">{qrModalOpen.toString()}</div>;
+      const { qrModalData } = useContext(ModalsContext);
+      return <div data-testid="child">{qrModalData.open.toString()}</div>;
     };
 
     const { getByTestId } = render(
@@ -20,13 +20,15 @@ describe("ModalsProvider", () => {
 
   it("correctly sets qrModalOpen value", () => {
     const ChildComponent = () => {
-      const { qrModalOpen, setQrModalOpen } = useContext(ModalsContext);
+      const { qrModalData, setQrModalData } = useContext(ModalsContext);
       return (
         <button
           data-testid="toggle"
-          onClick={() => setQrModalOpen(!qrModalOpen)}
+          onClick={() =>
+            setQrModalData((prev) => ({ ...prev, open: !prev.open }))
+          }
         >
-          {qrModalOpen ? "open" : "closed"}
+          {qrModalData.open ? "open" : "closed"}
         </button>
       );
     };
