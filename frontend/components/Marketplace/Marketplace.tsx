@@ -13,17 +13,12 @@ export const Marketplace = () => {
 
   return (
     <Flex vertical>
-      {serviceTemplates.map((serviceTemplate) => {
-        if (!serviceTemplate) {
-          return;
-        }
-        return (
-          <MarketplaceItemCard
-            key={serviceTemplate.hash}
-            serviceTemplate={serviceTemplate}
-          />
-        );
-      })}
+      {serviceTemplates.map((serviceTemplate) => (
+        <MarketplaceItemCard
+          key={serviceTemplate.hash}
+          serviceTemplate={serviceTemplate}
+        />
+      ))}
     </Flex>
   );
 };
