@@ -37,14 +37,14 @@ export class HttpClient<
     method: string;
   }): Promise<HttpResponse> {
     try {
-      let result = await fetch(this.endpoint, {
+      const result = await fetch(this.endpoint, {
         method: method,
         body: data,
         headers: {
           "Content-Type": "application/json",
         },
       });
-      let response = await result.json();
+      const response = await result.json();
       if (response.error) {
         return {
           error: response.error,
@@ -65,8 +65,8 @@ export class HttpClient<
 
   async get(): Promise<ClientResponse<GetResponse>> {
     try {
-      let result = await fetch(this.endpoint);
-      let response = await result.json();
+      const result = await fetch(this.endpoint);
+      const response = await result.json();
       return {
         error: undefined,
         data: response,
@@ -84,7 +84,7 @@ export class HttpClient<
   }: {
     data: PostRequest;
   }): Promise<ClientResponse<PostResponse>> {
-    let response = await this.request({
+    const response = await this.request({
       data: JSON.stringify(data),
       method: "POST",
     });
@@ -96,7 +96,7 @@ export class HttpClient<
   }: {
     data: PutRequest;
   }): Promise<ClientResponse<PutResponse>> {
-    let response = await this.request({
+    const response = await this.request({
       data: JSON.stringify(data),
       method: "PUT",
     });
@@ -108,7 +108,7 @@ export class HttpClient<
   }: {
     data: DeleteRequest;
   }): Promise<ClientResponse<DeleteResponse>> {
-    let response = await this.request({
+    const response = await this.request({
       data: JSON.stringify(data),
       method: "DELETE",
     });

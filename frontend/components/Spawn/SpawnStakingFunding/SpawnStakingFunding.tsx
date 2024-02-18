@@ -17,7 +17,7 @@ export const SpawnStakingFunding = ({
     <Funding
       fundRequirements={stakingFundRequirements}
       symbol={"OLAS"} // hardcoded while only trader is available
-      contractAddress={TOKENS.GNOSIS.OLAS} // same as above
+      contractAddress={TOKENS.gnosis.OLAS} // same as above
       service={service}
       nextPage={nextPage}
       FundRequirementComponent={FundRequirementERC20}

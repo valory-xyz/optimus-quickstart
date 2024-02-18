@@ -3,12 +3,12 @@ import { Dispatch, SetStateAction } from "react";
 import { FundRequirement } from "./FundRequirement";
 
 export const FundRequirementETH = (props: {
-  setReceivedFunds: Dispatch<SetStateAction<{ [address: string]: boolean }>>;
   serviceHash?: string;
   address: string;
   symbol: string;
   requirement: number;
   hasReceivedFunds: boolean;
+  setReceivedFunds: Dispatch<SetStateAction<{ [address: string]: boolean }>>;
 }) => {
   const { getETHBalance } = useEthers();
   return (
