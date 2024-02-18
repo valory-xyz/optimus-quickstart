@@ -52,9 +52,7 @@ const getServices = async (): Promise<Services> =>
  * @param payload
  * @returns
  */
-const deployService = async (
-  serviceHash: ServiceHash,
-): Promise<Deployment> =>
+const deployService = async (serviceHash: ServiceHash): Promise<Deployment> =>
   fetch(`${BACKEND_URL}/services/${serviceHash}/deploy`, {
     method: "POST",
     headers: {
