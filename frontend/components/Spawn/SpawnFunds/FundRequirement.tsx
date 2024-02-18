@@ -23,11 +23,11 @@ export const FundRequirement = ({
 }) => {
   const { getETHBalance } = useEthers();
   const { getServiceFromState } = useServices();
-  const { setQrModalOpen, setQrModalAddress } = useModals();
+  const { qrModalOpen } = useModals();
 
   const [isPollingBalance, setIsPollingBalance] = useState(true);
 
-  const rpc = useMemo(() => {
+  const rpc: string = useMemo(() => {
     const service = getServiceFromState(serviceHash);
     if (!service) return "";
     return service.ledger?.rpc || "";
@@ -38,10 +38,10 @@ export const FundRequirement = ({
     message.success("Copied to clipboard");
   }, [address]);
 
-  const handleShowQr = useCallback(() => {
-    setQrModalAddress(address);
-    setQrModalOpen(true);
-  }, [address, setQrModalAddress, setQrModalOpen]);
+  const handleShowQr = useCallback(
+    () => qrModalOpen({ amount: requirement, chainId: 100, address }),
+    [address, qrModalOpen, requirement],
+  );
 
   useInterval(
     () =>
