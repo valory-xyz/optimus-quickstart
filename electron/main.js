@@ -50,6 +50,7 @@ const launchProcesses = async () => {
       processes.backend.ready = true;
       checkProcessesReadyThenMain();
     }
+    console.log(data.toString());
   });
 
   // frontend
