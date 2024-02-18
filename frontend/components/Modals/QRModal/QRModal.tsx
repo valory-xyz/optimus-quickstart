@@ -1,20 +1,36 @@
-import { ModalsContext } from "@/context";
-import { Modal, QRCode } from "antd";
-import { useContext } from "react";
+import { useModals } from "@/hooks";
+import { QRModalData } from "@/types/QRModalData";
+import { Flex, Modal, QRCode, Typography } from "antd";
+import { ethers } from "ethers";
+import { useMemo } from "react";
 
 export const QRModal = ({
-  address,
-  open,
+  data: { amount, chainId, address, open },
 }: {
-  address: string;
-  open: boolean;
+  data: QRModalData;
 }) => {
-  const { setQrModalOpen, setQrModalAddress } = useContext(ModalsContext);
+  const { setQrModalData } = useModals();
 
   const handleCancel = () => {
-    setQrModalOpen(false);
-    setQrModalAddress(undefined);
+    setQrModalData((prev: QRModalData) => ({
+      ...prev,
+      open: false,
+      address: undefined,
+      amount: undefined,
+      chainId: undefined,
+    }));
   };
+
+  const parsedAmount = useMemo(
+    () => amount && ethers.utils.parseEther(`${amount}`),
+    [amount],
+  );
+
+  const qrCodeAddress = useMemo(
+    () =>
+      `https://metamask.app.link/send/${address}@${chainId}?value=${parsedAmount}`,
+    [address, chainId, parsedAmount],
+  );
 
   return (
     <Modal
@@ -23,7 +39,13 @@ export const QRModal = ({
       footer={null}
       onCancel={handleCancel}
     >
-      <QRCode value={`ethereum:${address}`} />
+      <Flex vertical gap={5}>
+        <Typography.Text>
+          This QR code is currently only supported by{" "}
+          <strong>Metamask Mobile</strong>.
+        </Typography.Text>
+        <QRCode value={qrCodeAddress} style={{ margin: "auto 0" }} />
+      </Flex>
     </Modal>
   );
 };
