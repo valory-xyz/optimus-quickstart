@@ -5,7 +5,7 @@ import { useRouter } from "next/router";
 export const SpawnDone = () => {
   const router = useRouter();
 
-  const { resetSpawn } = useSpawn();
+  const { resetSpawnScreenState: resetSpawn } = useSpawn();
   const { resetTabs } = useTabs();
   const { updateServicesState } = useServices();
 

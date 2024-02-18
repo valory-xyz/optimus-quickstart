@@ -18,6 +18,7 @@ import {
 } from "@ant-design/icons";
 import { Service, ServiceTemplate } from "@/client";
 import { InputStatus } from "antd/es/_util/statusUtils";
+import _ from "lodash";
 
 enum RPCState {
   LOADING,
@@ -44,32 +45,41 @@ export const SpawnRPC = ({
   setService: Dispatch<SetStateAction<Service | undefined>>;
   nextPage: SpawnScreenState;
 }) => {
-  const { setSpawnScreenState } = useSpawn();
+  const { setSpawnScreenState } = useSpawn(isStaking);
   const { createService } = useServices();
   const { checkRPC } = useEthers();
 
   const [rpc, setRpc] = useState("http://localhost:8545"); // default to hardhat node during development
   const [continueIsLoading, setContinueIsLoading] = useState(false);
+  const [isCheckingRpc, setIsCheckingRpc] = useState(false);
   const [rpcState, setRpcState] = useState<RPCState>(RPCState.INVALID);
 
   const handlePaste = () => {
     navigator.clipboard.readText().then((text) => setRpc(text));
   };
 
-  const handleRpcChange = useCallback(
-    async (e: React.ChangeEvent<HTMLInputElement>) => {
-      setRpcState(RPCState.LOADING);
-      setRpc(e.target.value);
-      checkRPC(e.target.value).then((isValid) => {
-        try {
-          isValid ? setRpcState(RPCState.VALID) : setRpcState(RPCState.INVALID);
-        } catch (e) {
-          setRpcState(RPCState.INVALID);
-        }
-      });
-    },
-    [checkRPC],
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const debounceCheckRpc = useCallback(
+    _.debounce((rpc: string) => {
+      if (isCheckingRpc) return;
+      setIsCheckingRpc(true);
+      checkRPC(rpc)
+        .then((valid) => setRpcState(valid ? RPCState.VALID : RPCState.INVALID))
+        .catch(() => {
+          message.error("Failed to check RPC");
+        })
+        .finally(() => setIsCheckingRpc(false));
+    }, 1000),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [],
   );
+
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const handleRpcChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setRpc(e.target.value);
+    setRpcState(RPCState.LOADING);
+    debounceCheckRpc(e.target.value);
+  };
 
   const handleContinue = useCallback(async () => {
     if (continueIsLoading)

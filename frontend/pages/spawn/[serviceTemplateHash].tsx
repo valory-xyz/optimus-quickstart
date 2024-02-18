@@ -27,13 +27,13 @@ export const SpawnPage = ({
   const { spawnScreenState, setSpawnScreenState } = useSpawn();
   const { getServiceTemplate } = useMarketplace();
 
-  const [service, setService] = useState<Service | undefined>();
+  const [service, setService] = useState<Service>();
   const [isStaking, setIsStaking] = useState<boolean>(false);
 
-  const serviceTemplate = useMemo(
+  const serviceTemplate: ServiceTemplate = useMemo(
     () => getServiceTemplate(serviceTemplateHash),
     [getServiceTemplate, serviceTemplateHash],
-  ) as ServiceTemplate;
+  );
 
   const [agentFundRequirements, setAgentFundRequirements] = useState<{
     [address: string]: number;

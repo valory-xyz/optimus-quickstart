@@ -22,10 +22,14 @@ export const SpawnStakingCheck = ({
   };
 
   return (
-    <Flex gap={8} vertical justify="center">
-      <Typography.Text strong>Would you like to stake OLAS?</Typography.Text>
+    <Flex gap={8} vertical>
+      <Flex justify="center">
+        <Typography.Text strong>Would you like to stake OLAS?</Typography.Text>
+      </Flex>
       <Flex gap={8} justify="center">
-        <Button onClick={handleYes}>Yes</Button>
+        <Button type="primary" onClick={handleYes}>
+          Yes
+        </Button>
         <Button onClick={handleNo}>No</Button>
       </Flex>
     </Flex>

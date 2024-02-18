@@ -1,0 +1,15 @@
+{
+  "compilerOptions": {
+    "target": "es6",
+    "module": "ESNext",
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    // "resolveJsonModule": true,
+    "moduleResolution": "Bundler",
+    "outDir": "./dist" // Output directory for compiled JavaScript files
+  },
+  "include": ["electron/**/*.ts", "electron/main.js"], // Path to your TypeScript source files
+  "exclude": ["node_modules", "backend", "frontend", "dist"]
+}

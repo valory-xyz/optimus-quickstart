@@ -9,6 +9,7 @@ import {
 
 type SpawnContextType = {
   spawnScreenState: SpawnScreenState;
+  firstSpawnScreenState: SpawnScreenState;
   setSpawnScreenState: Dispatch<SetStateAction<SpawnScreenState>>;
 };
 
@@ -16,6 +17,7 @@ const FIRST_PAGE = SpawnScreenState.STAKING_CHECK;
 
 export const SpawnContext = createContext<SpawnContextType>({
   spawnScreenState: FIRST_PAGE,
+  firstSpawnScreenState: FIRST_PAGE,
   setSpawnScreenState: () => {},
 });
 
@@ -25,8 +27,9 @@ export const SpawnProvider = ({ children }: PropsWithChildren) => {
   return (
     <SpawnContext.Provider
       value={{
-        spawnScreenState: spawnScreenState,
-        setSpawnScreenState: setSpawnScreenState,
+        firstSpawnScreenState: FIRST_PAGE,
+        spawnScreenState,
+        setSpawnScreenState,
       }}
     >
       {children}

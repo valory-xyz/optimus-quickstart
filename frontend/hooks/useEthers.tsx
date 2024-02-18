@@ -6,7 +6,10 @@ export const useEthers = () => {
    * @param rpc string
    * @returns Promise<number>
    */
-  const getETHBalance = (address: string, rpc: string): Promise<number> => {
+  const getETHBalance = async (
+    address: string,
+    rpc: string,
+  ): Promise<number> => {
     const provider = new providers.JsonRpcProvider(rpc, {
       name: "Gnosis",
       chainId: 100, // we currently only support Gnosis Trader agent
@@ -54,6 +57,7 @@ export const useEthers = () => {
    * @returns Promise<boolean>
    */
   const checkRPC = async (rpc: string): Promise<boolean> => {
+    if (!rpc) return false;
     const provider = new providers.JsonRpcProvider(rpc, {
       name: "Gnosis",
       chainId: 100, // we currently only support Gnosis Trader agent
