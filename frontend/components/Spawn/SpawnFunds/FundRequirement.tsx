@@ -1,6 +1,6 @@
 import { copyToClipboard } from "@/helpers/copyToClipboard";
 import { useEthers, useServices, useModals } from "@/hooks";
-import { message, Flex, Typography, Spin, Button } from "antd";
+import { message, Flex, Typography, Button } from "antd";
 import {
   Dispatch,
   SetStateAction,
@@ -60,8 +60,7 @@ export const FundRequirement = ({
   return (
     <Flex gap={8} vertical key={address}>
       <Typography.Text>
-        Send {requirement} XDAI to: {address}{" "}
-        {isPollingBalance && <Spin size="small" />}
+        Send {requirement} XDAI to: {address}
       </Typography.Text>
       <Flex gap={8}>
         <Button type="primary" onClick={handleCopy}>
