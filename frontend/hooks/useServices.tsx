@@ -7,10 +7,12 @@ import {
 } from "@/client";
 import { ServicesContext } from "@/context";
 import ServicesService from "@/service/Services";
+import { message } from "antd";
 import { useContext } from "react";
 
 export const useServices = () => {
-  const { services, updateServicesState } = useContext(ServicesContext);
+  const { services, updateServicesState, hasInitialLoaded } =
+    useContext(ServicesContext);
 
   // SERVICES SERVICE METHODS
   const createService = async (
@@ -31,13 +33,19 @@ export const useServices = () => {
   const getService = (serviceHash: ServiceHash): Promise<Service> =>
     ServicesService.getService(serviceHash);
 
-  const getServiceStatus = (
-    serviceHash: ServiceHash,
-  ): Promise<Deployment> => ServicesService.getServiceStatus(serviceHash);
+  const getServiceStatus = (serviceHash: ServiceHash): Promise<Deployment> =>
+    ServicesService.getServiceStatus(serviceHash);
 
   // STATE METHODS
-  const getServiceFromState = (serviceHash: ServiceHash): Service | undefined =>
-    services.find((service) => service.hash === serviceHash);
+  const getServiceFromState = (
+    serviceHash: ServiceHash,
+  ): Service | undefined => {
+    if (!hasInitialLoaded) {
+      message.error("Services not loaded yet");
+      return;
+    }
+    return services.find((service) => service.hash === serviceHash);
+  };
 
   return {
     services,
@@ -49,5 +57,6 @@ export const useServices = () => {
     deployService,
     stopService,
     deleteServices,
+    hasInitialLoaded,
   };
 };
