@@ -183,33 +183,10 @@ class Services(
         )
 
         if configuration["use_staking"] and not ocm.staking_slots_available(
-            staking_address=STAKING[ledger["chain"]],
+            staking_contract=STAKING[ledger["chain"]]
         ):
             raise ValueError("No staking slots available")
 
-        # Update to user provided RPC
-        ledger["rpc"] = configuration["rpc"]
-
-        logging.info(f"Minting service {phash}")
-        service_id = t.cast(
-            int,
-            ocm.mint(
-                package_path=service.service_path,
-                agent_id=configuration["agent_id"],
-                number_of_slots=service.helper.config.number_of_agents,
-                cost_of_bond=(
-                    configuration["olas_required_to_bond"]
-                    if configuration["use_staking"]
-                    else configuration["cost_of_bond"]
-                ),
-                threshold=configuration["threshold"],
-                nft=IPFSHash(configuration["nft"]),
-                update_token=update_token,
-                token=OLAS[ledger["chain"]] if configuration["use_staking"] else None,
-            ).get("token"),
-        )
-
-        logging.info(f"Activating service {phash}")
         if configuration["use_staking"]:
             required_olas = (
                 configuration["olas_cost_of_bond"]
@@ -223,12 +200,36 @@ class Services(
                 .functions.balanceOf(ocm.crypto.address)
                 .call()
             )
+
             if balance < required_olas:
                 raise BadRequest(
                     "You don't have enough olas to stake, "
                     f"required olas: {required_olas}; your balance {balance}"
                 )
 
+        # Update to user provided RPC
+        ledger["rpc"] = configuration["rpc"]
+
+        logging.info(f"Minting service {phash}")
+        service_id = t.cast(
+            int,
+            ocm.mint(
+                package_path=service.service_path,
+                agent_id=configuration["agent_id"],
+                number_of_slots=service.helper.config.number_of_agents,
+                cost_of_bond=(
+                    configuration["olas_cost_of_bond"]
+                    if configuration["use_staking"]
+                    else configuration["cost_of_bond"]
+                ),
+                threshold=configuration["threshold"],
+                nft=IPFSHash(configuration["nft"]),
+                update_token=update_token,
+                token=OLAS[ledger["chain"]] if configuration["use_staking"] else None,
+            ).get("token"),
+        )
+
+        logging.info(f"Activating service {phash}")
         ocm.activate(
             service_id=service_id,
             token=OLAS[ledger["chain"]] if configuration["use_staking"] else None,

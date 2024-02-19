@@ -193,7 +193,7 @@ class StakingManager(OnChainHelper):
                 ledger_api=self.ledger_api,
                 contract_address=staking_contract,
             )
-            .getServiceStakingState(service_id)
+            .functions.getServiceStakingState(service_id)
             .call()
         )
 
@@ -203,12 +203,17 @@ class StakingManager(OnChainHelper):
             ledger_api=self.ledger_api,
             contract_address=staking_contract,
         )
-        return instance.maxNumServices().call() - len(instance.getServiceIds().call())
+        available = instance.functions.maxNumServices().call() - len(
+            instance.functions.getServiceIds().call()
+        )
+        return available > 0
 
     def onchain_info(self, staking_contract: str, service_id: int) -> dict:
         """Get the service onchain info"""
         return self.staking_ctr.get_service_info(
-            self.ledger_api, staking_contract, service_id
+            self.ledger_api,
+            staking_contract,
+            service_id,
         )
 
     def stake(
@@ -246,6 +251,7 @@ class StakingManager(OnChainHelper):
                 ledger_api=self.ledger_api,
                 contract_address=service_registry,
                 spender=staking_contract,
+                sender=self.crypto.address,
                 amount=service_id,
             )
 
@@ -258,15 +264,18 @@ class StakingManager(OnChainHelper):
         )
 
         def _build_staking_tx(*args, **kargs) -> t.Dict:
-            return {
-                "data": self.staking_ctr.build_stake_tx(
+            return self.ledger_api.build_transaction(
+                contract_instance=self.staking_ctr.get_instance(
                     ledger_api=self.ledger_api,
                     contract_address=staking_contract,
-                    service_id=service_id,
-                ).pop("data"),
-                "to": staking_contract,
-                "value": ZERO_ETH,
-            }
+                ),
+                method_name="stake",
+                method_args={"serviceId": service_id},
+                tx_args={
+                    "sender_address": self.crypto.address,
+                },
+                raise_on_try=True,
+            )
 
         setattr(tx_settler, "build", _build_staking_tx)
         tx_settler.transact(
@@ -647,9 +656,10 @@ class OnChainManager:
                 token=token,
             ).unbond_service()
 
-    def staking_slots_available(self, staking_contract: str) -> None:
+    def staking_slots_available(self, staking_contract: str) -> bool:
         """Stake service."""
-        StakingManager(
+        self._patch()
+        return StakingManager(
             key=self.key,
             chain_type=self.chain_type,
         ).slots_available(
@@ -663,6 +673,7 @@ class OnChainManager:
         staking_contract: str,
     ) -> None:
         """Stake service."""
+        self._patch()
         StakingManager(
             key=self.key,
             chain_type=self.chain_type,
@@ -674,6 +685,7 @@ class OnChainManager:
 
     def unstake(self, service_id: int, staking_contract: str) -> None:
         """Unstake service."""
+        self._patch()
         StakingManager(
             key=self.key,
             chain_type=self.chain_type,
