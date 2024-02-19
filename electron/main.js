@@ -190,9 +190,6 @@ const createMainWindow = () => {
     show: false,
     title: "Olas Operate",
     resizable: false,
-    webPreferences: {
-      nodeIntegration: true,
-    },
   });
 
   // Ensure that external links are opened in native browser
