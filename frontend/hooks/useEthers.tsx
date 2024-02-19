@@ -1,4 +1,5 @@
 import { BigNumber, ethers, providers, utils } from "ethers";
+
 export const useEthers = () => {
   /**
    * Returns the ETH balance of the given address
@@ -10,13 +11,17 @@ export const useEthers = () => {
     address: string,
     rpc: string,
   ): Promise<number> => {
-    const provider = new providers.JsonRpcProvider(rpc, {
-      name: "Gnosis",
-      chainId: 100, // we currently only support Gnosis Trader agent
-    });
-    return provider
-      .getBalance(address)
-      .then((balance: BigNumber) => Number(utils.formatEther(balance)));
+    try {
+      const provider = new providers.JsonRpcProvider(rpc, {
+        name: "Gnosis",
+        chainId: 100, // we currently only support Gnosis Trader agent
+      });
+      return provider
+        .getBalance(address)
+        .then((balance: BigNumber) => Number(utils.formatEther(balance)));
+    } catch (e) {
+      return Promise.reject("Failed to get ETH balance");
+    }
   };
 
   /**
@@ -31,24 +36,31 @@ export const useEthers = () => {
     rpc: string,
     contractAddress?: string,
   ): Promise<number> => {
-    if (!contractAddress) return 0;
-    const provider = new providers.JsonRpcProvider(rpc, {
-      name: "Gnosis",
-      chainId: 100, // we currently only support Gnosis Trader agent
-    });
-    const contract = new ethers.Contract(
-      contractAddress,
-      [
-        "function balanceOf(address) view returns (uint256)",
-        "function decimals() view returns (uint8)",
-      ],
-      provider,
-    );
-    const [balance, decimals] = await Promise.all([
-      contract.balanceOf(address),
-      contract.decimals(),
-    ]);
-    return Number(utils.formatUnits(balance, decimals));
+    try {
+      if (!contractAddress)
+        throw new Error("Contract address is required for ERC20 balance");
+      const provider = new providers.JsonRpcProvider(rpc, {
+        name: "Gnosis",
+        chainId: 100, // we currently only support Gnosis Trader agent
+      });
+      const contract = new ethers.Contract(
+        contractAddress,
+        [
+          "function balanceOf(address) view returns (uint256)",
+          "function decimals() view returns (uint8)",
+        ],
+        provider,
+      );
+      const [balance, decimals] = await Promise.all([
+        contract.balanceOf(address),
+        contract.decimals(),
+      ]);
+      if (!balance || !decimals)
+        throw new Error("Failed to resolve balance or decimals");
+      return Number(utils.formatUnits(balance, decimals));
+    } catch (e) {
+      return Promise.reject(e);
+    }
   };
 
   /**
@@ -57,18 +69,21 @@ export const useEthers = () => {
    * @returns Promise<boolean>
    */
   const checkRPC = async (rpc: string): Promise<boolean> => {
-    if (!rpc) return false;
-    const provider = new providers.JsonRpcProvider(rpc, {
-      name: "Gnosis",
-      chainId: 100, // we currently only support Gnosis Trader agent
-    });
     try {
+      if (!rpc) throw new Error("RPC is required");
+
+      const provider = new providers.JsonRpcProvider(rpc, {
+        name: "Gnosis",
+        chainId: 100, // we currently only support Gnosis Trader agent
+      });
+
       const networkId = (await provider.getNetwork()).chainId;
-      if (networkId) return true;
+      if (!networkId) throw new Error("Failed to get network ID");
+
+      return Promise.resolve(true);
     } catch (e) {
-      return false;
+      return Promise.resolve(false);
     }
-    return false;
   };
 
   return { getETHBalance, checkRPC, getERC20Balance };

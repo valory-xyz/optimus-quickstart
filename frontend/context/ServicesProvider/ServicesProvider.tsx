@@ -30,25 +30,30 @@ export const ServicesProvider = ({ children }: PropsWithChildren) => {
   const [services, setServices] = useState<Services>([]);
   const [hasInitialLoaded, setHasInitialLoaded] = useState(false);
 
-  const updateServicesState = useCallback(
-    async () =>
-      ServicesService.getServices()
-        .then((data: Services) => {
-          setServices(data);
-        })
-        .catch(() => {
-          message.error("Failed to fetch services");
-        }),
-    [],
-  );
+  const updateServicesState = useCallback(async (): Promise<void> => {
+    try {
+      return ServicesService.getServices().then((data: Services) => {
+        setServices(data);
+      });
+    } catch (e) {
+      Promise.reject(e);
+    }
+  }, []);
 
   useEffect(() => {
     // Update on load
-    updateServicesState().then(() => setHasInitialLoaded(true));
+    updateServicesState()
+      .catch(() => {
+        message.error("Inital services update failed.");
+      })
+      .then(() => setHasInitialLoaded(true));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  useInterval(updateServicesState, hasInitialLoaded ? 5000 : null);
+  useInterval(
+    () => updateServicesState().catch((e) => message.error(e.message)),
+    hasInitialLoaded ? 5000 : null,
+  );
 
   return (
     <ServicesContext.Provider

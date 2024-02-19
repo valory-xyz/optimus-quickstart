@@ -21,12 +21,11 @@ export const QRModal = ({
     }));
   };
 
-  const parsedAmount = useMemo(
-    () => amount && ethers.utils.parseEther(`${amount}`),
-    [amount],
-  );
+  const parsedAmount: string | undefined = useMemo(() => {
+    if (Number(amount)) return ethers.utils.parseUnits(`${amount}`).toString();
+  }, [amount]);
 
-  const metamaskAddress = useMemo(() => {
+  const metamaskAddress: string | undefined = useMemo(() => {
     if (!address || !chainId || !parsedAmount) return "";
     if (isERC20) {
       return `https://metamask.app.link/send/token/${address}@${chainId}?value=${parsedAmount}`;
@@ -34,11 +33,15 @@ export const QRModal = ({
     return `https://metamask.app.link/send/${address}@${chainId}?value=${parsedAmount}`;
   }, [address, chainId, isERC20, parsedAmount]);
 
+  const modalParamsValid: boolean = useMemo(
+    () => Boolean(address && chainId && parsedAmount),
+    [address, chainId, parsedAmount],
+  );
+
   return (
     <Modal
-      open={open}
+      open={open && modalParamsValid}
       title="Scan QR code"
-      footer={null}
       onCancel={handleCancel}
     >
       <Flex vertical gap={5}>

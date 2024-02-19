@@ -1,7 +1,12 @@
-import { DeploymentStatus, Service, ServiceTemplate } from "@/client";
+import {
+  Deployment,
+  DeploymentStatus,
+  Service,
+  ServiceTemplate,
+} from "@/client";
 import { useMarketplace } from "@/hooks/useMarketplace";
 import { useServices } from "@/hooks/useServices";
-import { Card, Flex, Typography, Button, Badge, Spin } from "antd";
+import { Card, Flex, Typography, Button, Badge, Spin, message } from "antd";
 import Image from "next/image";
 import { useCallback, useMemo, useState } from "react";
 import { useInterval } from "usehooks-ts";
@@ -26,52 +31,97 @@ export const ServiceCard = ({ service }: ServiceCardProps) => {
   const [serviceStatus, setServiceStatus] = useState<
     DeploymentStatus | undefined
   >();
-  const updateServiceStatus = useCallback(
-    () =>
-      getServiceStatus(service.hash).then((r) => setServiceStatus(r.status)),
-    [getServiceStatus, service.hash],
-  );
-
-  useInterval(() => updateServiceStatus(), STATUS_POLLING_INTERVAL);
 
   const [isStopping, setIsStopping] = useState(false);
   const [isStarting, setIsStarting] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
 
+  const updateServiceStatus = useCallback(
+    (): Promise<void> =>
+      getServiceStatus(service.hash)
+        .then((r: Deployment) => setServiceStatus(r.status))
+        .catch(() => {
+          setServiceStatus(undefined);
+          message.error("Failed to update service status");
+        }),
+    [getServiceStatus, service.hash],
+  );
+
+  useInterval(updateServiceStatus, STATUS_POLLING_INTERVAL);
+
   const handleStart = useCallback(() => {
+    if (isStarting) return;
     setIsStarting(true);
     deployService(service.hash)
       .then(async () => {
-        await updateServicesState();
+        message.success("Service started successfully");
+        updateServicesState().catch(() =>
+          message.error("Failed to update services"),
+        );
+      })
+      .catch(() => {
+        message.error("Failed to start service");
       })
       .finally(() => {
-        updateServiceStatus().finally(() => setIsStarting(false));
+        updateServiceStatus()
+          .catch(() => message.error("Failed to update service status"))
+          .finally(() => setIsStarting(false));
       });
-  }, [deployService, service.hash, updateServicesState, updateServiceStatus]);
+  }, [
+    isStarting,
+    deployService,
+    service.hash,
+    updateServicesState,
+    updateServiceStatus,
+  ]);
 
-  const handleStop = useCallback(() => {
+  const handleStop = useCallback(async (): Promise<void> => {
+    if (isStopping) return;
     setIsStopping(true);
     stopService(service.hash)
-      .then(async () => {
-        await updateServicesState();
+      .then(() => {
+        updateServicesState().catch(() =>
+          message.error("Failed to update services"),
+        );
+      })
+      .catch(() => {
+        message.error("Failed to stop service");
       })
       .finally(() => {
-        updateServiceStatus().finally(() => setIsStopping(false));
+        updateServiceStatus()
+          .catch(() => message.error("Failed to update service status"))
+          .finally(() => setIsStopping(false));
       });
-  }, [service.hash, stopService, updateServiceStatus, updateServicesState]);
+  }, [
+    isStopping,
+    service.hash,
+    stopService,
+    updateServiceStatus,
+    updateServicesState,
+  ]);
 
   const handleDelete = useCallback(() => {
+    if (isDeleting) return;
     setIsDeleting(true);
     deleteServices([service.hash])
       .then(async () => {
-        await updateServicesState();
+        updateServicesState().catch(() =>
+          message.error("Failed to update services"),
+        );
       })
+      .catch(() => message.error("Failed to delete service"))
       .finally(() => {
         updateServiceStatus().finally(() => setIsDeleting(false));
       });
-  }, [deleteServices, service.hash, updateServiceStatus, updateServicesState]);
+  }, [
+    deleteServices,
+    isDeleting,
+    service.hash,
+    updateServiceStatus,
+    updateServicesState,
+  ]);
 
-  const buttons = useMemo(() => {
+  const buttons: JSX.Element = useMemo(() => {
     if (serviceStatus === DeploymentStatus.DEPLOYED) {
       return (
         <Button
@@ -120,7 +170,7 @@ export const ServiceCard = ({ service }: ServiceCardProps) => {
     serviceStatus,
   ]);
 
-  const serviceStatusBadge = useMemo(() => {
+  const serviceStatusBadge: JSX.Element = useMemo(() => {
     switch (serviceStatus) {
       case DeploymentStatus.CREATED:
         return <Badge status="processing" text="Created" />;
@@ -148,6 +198,15 @@ export const ServiceCard = ({ service }: ServiceCardProps) => {
       ),
     [getServiceTemplates, service.hash],
   );
+
+  if (!serviceTemplate)
+    return (
+      <Card>
+        <Flex gap={16}>
+          <Typography.Text>Service template not found</Typography.Text>
+        </Flex>
+      </Card>
+    );
 
   return (
     <Card>

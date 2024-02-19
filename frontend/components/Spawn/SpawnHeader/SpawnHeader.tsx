@@ -7,7 +7,7 @@ import { useMemo } from "react";
 export const SpawnHeader = () => {
   const { spawnPercentage } = useSpawn();
 
-  const title = useMemo(
+  const title: string = useMemo(
     () => (spawnPercentage === 100 ? "Agent Spawned" : "Spawning your Agent"),
     [spawnPercentage],
   );

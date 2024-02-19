@@ -1,5 +1,5 @@
 import { useServices, useSpawn, useTabs } from "@/hooks";
-import { Button, Flex } from "antd";
+import { Button, Flex, message } from "antd";
 import { useRouter } from "next/router";
 
 export const SpawnDone = () => {
@@ -13,7 +13,9 @@ export const SpawnDone = () => {
     router.push("/").then(() => {
       resetSpawn();
       resetTabs();
-      updateServicesState();
+      updateServicesState().catch(() =>
+        message.error("Failed to update services"),
+      );
     });
 
   return (

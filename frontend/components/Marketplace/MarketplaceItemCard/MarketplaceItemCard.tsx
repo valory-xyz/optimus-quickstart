@@ -19,13 +19,12 @@ export const MarketplaceItemCard = ({
 
     const service = getServiceFromState(hash);
 
-    if (!service) {
+    if (!service)
       return (
         <Button type="primary" href={`/spawn/${hash}`}>
           Run Agent
         </Button>
       );
-    }
 
     return (
       <Button type="primary" disabled>

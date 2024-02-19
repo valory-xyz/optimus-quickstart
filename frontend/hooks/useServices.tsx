@@ -1,7 +1,6 @@
 import { Service, ServiceHash, ServiceTemplate } from "@/client";
 import { ServicesContext } from "@/context";
 import ServicesService from "@/service/Services";
-import { message } from "antd";
 import { useContext } from "react";
 
 export const useServices = () => {
@@ -10,50 +9,40 @@ export const useServices = () => {
 
   // SERVICES SERVICE METHODS
   const createService = async (serviceTemplate: Required<ServiceTemplate>) =>
-    ServicesService.createService(serviceTemplate).catch(() => {
-      message.error("Failed to create service");
-    });
+    ServicesService.createService(serviceTemplate);
 
   const deployService = async (serviceHash: ServiceHash) =>
-    ServicesService.deployService(serviceHash).catch(() => {
-      message.error("Failed to deploy service");
-    });
+    ServicesService.deployService(serviceHash);
 
   const stopService = async (serviceHash: string) =>
-    ServicesService.stopService(serviceHash).catch(() => {
-      message.error("Failed to stop service");
-    });
+    ServicesService.stopService(serviceHash);
 
   const deleteServices = async (hashes: ServiceHash[]) =>
-    ServicesService.deleteServices({ hashes }).catch(() => {
-      message.error("Failed to delete services");
-    });
+    ServicesService.deleteServices({ hashes });
 
   const getService = (serviceHash: ServiceHash) =>
-    ServicesService.getService(serviceHash).catch(() =>
-      message.error("Failed to get service"),
-    );
+    ServicesService.getService(serviceHash);
 
   const getServiceStatus = (serviceHash: ServiceHash) =>
-    ServicesService.getServiceStatus(serviceHash).catch(() =>
-      message.error("Failed to get service status"),
-    );
+    ServicesService.getServiceStatus(serviceHash);
 
   // STATE METHODS
   const getServiceFromState = (
     serviceHash: ServiceHash,
   ): Service | undefined => {
     if (!hasInitialLoaded) {
-      message.error("Services not loaded yet");
-      return;
+      return undefined;
     }
     return services.find((service) => service.hash === serviceHash);
   };
 
+  const getServicesFromState = (): Service[] =>
+    hasInitialLoaded ? services : [];
+
   return {
-    services,
     getService,
     getServiceFromState,
+    getServicesFromState,
     getServiceStatus,
     updateServicesState,
     createService,

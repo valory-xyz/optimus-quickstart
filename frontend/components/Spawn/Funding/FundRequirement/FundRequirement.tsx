@@ -10,7 +10,11 @@ import {
 } from "react";
 import { useInterval } from "usehooks-ts";
 
-// Called by FundRequirementETH or FundRequirementERC20 only
+/**
+ * Should be called by FundRequirementERC20 or FundRequirementETH only
+ * @param { serviceHash, address, requirement, contractAddress, symbol, hasReceivedFunds, isERC20, getBalance, setReceivedFunds }
+ * @returns JSX.Element
+ */
 export const FundRequirement = ({
   serviceHash,
   address,
@@ -41,33 +45,48 @@ export const FundRequirement = ({
 
   const [isPollingBalance, setIsPollingBalance] = useState(true);
 
-  const rpc: string = useMemo(() => {
-    const service = getServiceFromState(serviceHash as string);
-    if (!service) return "";
-    return service.ledger?.rpc || "";
+  const rpc: string | undefined = useMemo(() => {
+    if (!serviceHash) return;
+    const service = getServiceFromState(serviceHash);
+    if (!service) return;
+    return service.ledger?.rpc;
   }, [getServiceFromState, serviceHash]);
 
-  const handleCopy = useCallback(() => {
-    copyToClipboard(address);
-    message.success("Copied to clipboard");
-  }, [address]);
+  const handleCopy = useCallback(
+    (): Promise<void> =>
+      copyToClipboard(address)
+        .then(() => {
+          message.success("Copied to clipboard");
+        })
+        .catch(() => {
+          message.error("Failed to copy to clipboard");
+        }),
+    [address],
+  );
 
   const handleQr = useCallback(
-    () => qrModalOpen({ amount: requirement, chainId: 100, address, isERC20 }),
+    (): void =>
+      qrModalOpen({ amount: requirement, chainId: 100, address, isERC20 }), // hardcoded chainId for now
     [address, isERC20, qrModalOpen, requirement],
   );
 
   useInterval(
     () =>
-      getBalance(address, rpc, contractAddress).then((balance: number) => {
-        if (balance && balance >= requirement) {
-          setIsPollingBalance(false);
-          setReceivedFunds((prev: { [address: string]: boolean }) => ({
-            ...prev,
-            [address]: true,
-          }));
-        }
-      }),
+      rpc &&
+      getBalance(address, rpc, contractAddress)
+        .then((balance: number) => {
+          if (balance >= requirement) {
+            setIsPollingBalance(false);
+            setReceivedFunds((prev: { [address: string]: boolean }) => ({
+              ...prev,
+              [address]: true,
+            }));
+            message.success(`Funded ${address}`);
+          }
+        })
+        .catch(() => {
+          message.error(`Failed to get balance for ${address}`);
+        }),
     isPollingBalance ? 3000 : null,
   );
 

@@ -5,19 +5,29 @@ import { Button, Flex, Typography } from "antd";
 import { useServices } from "@/hooks/useServices";
 import { ServiceCard } from "./ServiceCard/ServiceCard";
 import { Service } from "@/client";
+import { useMemo } from "react";
 
 export const YourAgents = () => {
-  const { services } = useServices();
+  const { getServicesFromState } = useServices();
 
-  const hasAgents = services.reduce(
-    (acc: boolean, service: Service) => (acc || service ? true : acc),
-    false,
+  const services: Service[] = useMemo(
+    () => getServicesFromState(),
+    [getServicesFromState],
+  );
+
+  const hasAgents: boolean = useMemo(
+    () =>
+      services.reduce(
+        (acc: boolean, service: Service) => (acc || service ? true : acc),
+        false,
+      ),
+    [services],
   );
 
   return hasAgents ? <HasServices services={services} /> : <NoAgents />;
 };
 
-const HasServices = ({ services }: { services: Service[] }) => {
+const HasServices = ({ services }: { services: Service[] }): JSX.Element => {
   return (
     <Flex vertical gap={16}>
       {services.map((service: Service) => (
@@ -27,7 +37,7 @@ const HasServices = ({ services }: { services: Service[] }) => {
   );
 };
 
-const NoAgents = () => {
+const NoAgents = (): JSX.Element => {
   const { setActiveTab } = useTabs();
   return (
     <Flex vertical justify="center" align="center">

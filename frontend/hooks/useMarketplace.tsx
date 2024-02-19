@@ -3,10 +3,8 @@ import { serviceTemplates } from "@/constants/serviceTemplates";
 
 export const useMarketplace = () => {
   const getServiceTemplates = (): ServiceTemplate[] => serviceTemplates;
-  const getServiceTemplate = (hash: string): ServiceTemplate =>
-    serviceTemplates.find(
-      (template) => template.hash === hash,
-    ) as ServiceTemplate;
+  const getServiceTemplate = (hash: string): ServiceTemplate | undefined =>
+    serviceTemplates.find((template) => template.hash === hash);
 
   return {
     getServiceTemplate,

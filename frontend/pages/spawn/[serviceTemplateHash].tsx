@@ -1,12 +1,13 @@
 import { Service, ServiceTemplate } from "@/client";
 import {
-  SpawnDone,
   SpawnAgentFunding,
+  SpawnDone,
   SpawnHeader,
   SpawnRPC,
   SpawnStakingCheck,
   SpawnStakingFunding,
 } from "@/components/Spawn";
+import { SpawnError } from "@/components/Spawn/SpawnError/SpawnError";
 import { SpawnScreenState } from "@/enums";
 import { useMarketplace, useSpawn } from "@/hooks";
 import { GetServerSidePropsContext } from "next";
@@ -16,6 +17,9 @@ export const getServerSideProps = async (
   context: GetServerSidePropsContext,
 ) => {
   const { serviceTemplateHash } = context.query;
+  if (!serviceTemplateHash) {
+    return { redirect: { destination: "/", permanent: false } };
+  }
   return { props: { serviceTemplateHash } };
 };
 
@@ -30,7 +34,7 @@ export const SpawnPage = ({
   const [service, setService] = useState<Service>();
   const [isStaking, setIsStaking] = useState<boolean>(false);
 
-  const serviceTemplate: ServiceTemplate = useMemo(
+  const serviceTemplate: ServiceTemplate | undefined = useMemo(
     () => getServiceTemplate(serviceTemplateHash),
     [getServiceTemplate, serviceTemplateHash],
   );
@@ -43,53 +47,65 @@ export const SpawnPage = ({
     [address: string]: number;
   }>({});
 
-  const spawnScreen = useMemo(() => {
-    if (spawnScreenState === SpawnScreenState.STAKING_CHECK) {
-      return (
-        <SpawnStakingCheck
-          setSpawnScreenState={setSpawnScreenState}
-          setIsStaking={setIsStaking}
-          nextPage={SpawnScreenState.RPC}
-        />
-      );
-    }
-    if (spawnScreenState === SpawnScreenState.RPC) {
-      return (
-        <SpawnRPC
-          {...{
-            serviceTemplate,
-            setService,
-            isStaking,
-            setAgentFundRequirements,
-            setStakingFundRequirements,
-          }}
-          nextPage={
-            isStaking
-              ? SpawnScreenState.STAKING_FUNDING
-              : SpawnScreenState.AGENT_FUNDING
-          }
-        />
-      );
-    }
-    if (spawnScreenState === SpawnScreenState.STAKING_FUNDING)
-      return (
-        <SpawnStakingFunding
-          {...{ service: service as Service, stakingFundRequirements }}
-          nextPage={SpawnScreenState.AGENT_FUNDING}
-        />
-      );
-    if (spawnScreenState === SpawnScreenState.AGENT_FUNDING)
-      return (
-        <SpawnAgentFunding
-          {...{ service: service as Service, agentFundRequirements }}
-          nextPage={SpawnScreenState.DONE}
-        />
-      );
+  const spawnScreen: JSX.Element = useMemo(() => {
+    if (!serviceTemplate)
+      return <SpawnError message="Invalid service template" />;
 
-    if (spawnScreenState === SpawnScreenState.DONE) {
-      return <SpawnDone />;
+    // STAKING CHECK & RPC
+    switch (spawnScreenState) {
+      case SpawnScreenState.STAKING_CHECK:
+        return (
+          <SpawnStakingCheck
+            setSpawnScreenState={setSpawnScreenState}
+            setIsStaking={setIsStaking}
+            nextPage={SpawnScreenState.RPC}
+          />
+        );
+      case SpawnScreenState.RPC: {
+        const nextPage: SpawnScreenState = isStaking
+          ? SpawnScreenState.STAKING_FUNDING
+          : SpawnScreenState.AGENT_FUNDING;
+        return (
+          <SpawnRPC
+            {...{
+              serviceTemplate,
+              setService,
+              isStaking,
+              setAgentFundRequirements,
+              setStakingFundRequirements,
+            }}
+            nextPage={nextPage}
+          />
+        );
+      }
+      default:
+        break;
     }
-    return null;
+
+    if (!service) return <SpawnError message="Invalid service" />;
+
+    // FUNDING SCREENS & DONE
+    switch (spawnScreenState) {
+      case SpawnScreenState.STAKING_FUNDING: {
+        return (
+          <SpawnStakingFunding
+            {...{ service, stakingFundRequirements }}
+            nextPage={SpawnScreenState.AGENT_FUNDING}
+          />
+        );
+      }
+      case SpawnScreenState.AGENT_FUNDING:
+        return (
+          <SpawnAgentFunding
+            {...{ service, agentFundRequirements }}
+            nextPage={SpawnScreenState.DONE}
+          />
+        );
+      case SpawnScreenState.DONE:
+        return <SpawnDone />;
+      default:
+        return <SpawnError message="Invalid spawn page" />;
+    }
   }, [
     agentFundRequirements,
     isStaking,

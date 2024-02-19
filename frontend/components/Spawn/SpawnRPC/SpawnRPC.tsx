@@ -1,4 +1,13 @@
-import { Button, Flex, Input, Spin, Timeline, Typography, message } from "antd";
+import {
+  Button,
+  Flex,
+  Input,
+  Spin,
+  Timeline,
+  TimelineItemProps,
+  Typography,
+  message,
+} from "antd";
 import { NODIES_URL } from "@/constants/urls";
 import {
   Dispatch,
@@ -7,15 +16,9 @@ import {
   useMemo,
   useState,
 } from "react";
-import { useSpawn } from "@/hooks/useSpawn";
-import { useServices } from "@/hooks/useServices";
+import { useSpawn, useServices, useEthers } from "@/hooks";
 import { SpawnScreenState } from "@/enums";
-import { useEthers } from "@/hooks/useEthers";
-import {
-  CheckSquareTwoTone,
-  WarningFilled,
-  WarningOutlined,
-} from "@ant-design/icons";
+import { CheckSquareTwoTone, WarningFilled } from "@ant-design/icons";
 import { Service, ServiceTemplate } from "@/client";
 import { InputStatus } from "antd/es/_util/statusUtils";
 import _ from "lodash";
@@ -49,41 +52,56 @@ export const SpawnRPC = ({
   const { createService } = useServices();
   const { checkRPC } = useEthers();
 
-  const [rpc, setRpc] = useState("http://localhost:8545"); // default to hardhat node during development
+  const [rpc, setRpc] = useState("http://localhost:8545"); // hardcoded default for now
   const [continueIsLoading, setContinueIsLoading] = useState(false);
   const [isCheckingRpc, setIsCheckingRpc] = useState(false);
   const [rpcState, setRpcState] = useState<RPCState>(RPCState.INVALID);
 
-  const handlePaste = () => {
-    navigator.clipboard.readText().then((text) => setRpc(text));
-  };
+  const handlePaste = async (): Promise<void> =>
+    navigator.clipboard
+      .readText()
+      .then((text) => setRpc(text))
+      .catch(() => {
+        message.error("Failed to read clipboard");
+      });
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const debounceCheckRpc = useCallback(
-    _.debounce((rpc: string) => {
+    _.debounce((_rpc: string) => {
       if (isCheckingRpc) return;
+      if (!_rpc) return;
       setIsCheckingRpc(true);
-      checkRPC(rpc)
-        .then((valid) => setRpcState(valid ? RPCState.VALID : RPCState.INVALID))
+      checkRPC(_rpc)
+        .then((valid: boolean) =>
+          setRpcState(valid ? RPCState.VALID : RPCState.INVALID),
+        )
         .catch(() => {
+          setRpcState(RPCState.INVALID);
           message.error("Failed to check RPC");
         })
         .finally(() => setIsCheckingRpc(false));
     }, 1000),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
     [],
   );
 
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  const handleRpcChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setRpc(e.target.value);
-    setRpcState(RPCState.LOADING);
-    debounceCheckRpc(e.target.value);
-  };
+  const handleRpcChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      setRpc(e.target.value);
+      setRpcState(RPCState.LOADING);
+      debounceCheckRpc(e.target.value);
+    },
+    [debounceCheckRpc],
+  );
 
   const handleContinue = useCallback(async () => {
-    if (continueIsLoading)
-      return message.info("Please wait for the current action to complete");
+    if (continueIsLoading) {
+      message.info("Please wait for the current action to complete");
+      return;
+    }
+    if (!rpc || rpcState !== RPCState.VALID) {
+      message.error("Invalid RPC");
+      return;
+    }
     setContinueIsLoading(true);
     createService({
       ...serviceTemplate,
@@ -119,10 +137,10 @@ export const SpawnRPC = ({
         }
 
         // Then goto next screen
-        return setSpawnScreenState(nextPage);
+        setSpawnScreenState(nextPage);
       })
-      .catch((err) => {
-        message.error(err.message);
+      .catch(() => {
+        message.error("Failed to create service");
       })
       .finally(() => setContinueIsLoading(false));
   }, [
@@ -131,6 +149,7 @@ export const SpawnRPC = ({
     isStaking,
     nextPage,
     rpc,
+    rpcState,
     serviceTemplate,
     setAgentFundRequirements,
     setService,
@@ -138,26 +157,38 @@ export const SpawnRPC = ({
     setStakingFundRequirements,
   ]);
 
-  const isContinueDisabled = useMemo(
+  const isContinueDisabled: boolean = useMemo(
     () => !rpc || rpcState !== RPCState.VALID,
     [rpc, rpcState],
   );
 
   const inputStatus: InputStatus = useMemo(() => {
-    if (rpcState === RPCState.VALID) return "";
-    if (rpcState === RPCState.INVALID) return "error";
-    return "";
+    switch (rpcState) {
+      case RPCState.LOADING:
+        return "";
+      case RPCState.VALID:
+        return "";
+      case RPCState.INVALID:
+        return "error";
+      default:
+        return "";
+    }
   }, [rpcState]);
 
   const inputSuffix: JSX.Element = useMemo(() => {
-    if (rpcState === RPCState.LOADING) return <Spin />;
-    if (rpcState === RPCState.VALID)
-      return <CheckSquareTwoTone twoToneColor="#52c41a" />;
-    if (rpcState === RPCState.INVALID) return <WarningOutlined color="red" />;
-    return <WarningFilled color="orange" />;
+    switch (rpcState) {
+      case RPCState.LOADING:
+        return <Spin />;
+      case RPCState.VALID:
+        return <CheckSquareTwoTone twoToneColor="#52c41a" />;
+      case RPCState.INVALID:
+        return <WarningFilled color="red" />;
+      default:
+        return <WarningFilled color="orange" />;
+    }
   }, [rpcState]);
 
-  const items = useMemo(
+  const items: TimelineItemProps[] = useMemo(
     () => [
       // Get nodies account
       {
