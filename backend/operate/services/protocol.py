@@ -25,11 +25,12 @@ import io
 import json
 import logging
 import tempfile
+import time
 import typing as t
 from enum import Enum
 from pathlib import Path
 from typing import Optional, Union
-import time
+
 from aea.configurations.data_types import PackageType
 from aea.crypto.base import Crypto, LedgerApi
 from aea.helpers.base import IPFSHash, cd
@@ -206,8 +207,9 @@ class StakingManager(OnChainHelper):
 
     def onchain_info(self, staking_contract: str, service_id: int) -> dict:
         """Get the service onchain info"""
-        return self.staking_ctr.get_service_info(self.ledger_api, staking_contract, service_id)
-
+        return self.staking_ctr.get_service_info(
+            self.ledger_api, staking_contract, service_id
+        )
 
     def stake(
         self,
@@ -276,7 +278,10 @@ class StakingManager(OnChainHelper):
 
     def unstake(self, service_id: int, staking_contract: str) -> None:
         """Unstake the service"""
-        if self.status(service_id=service_id, staking_contract=staking_contract) != StakingState.STAKED:
+        if (
+            self.status(service_id=service_id, staking_contract=staking_contract)
+            != StakingState.STAKED
+        ):
             raise ValueError("Service not staked.")
 
         if not self.check_unstaking_availability(service_id, staking_contract):
@@ -310,14 +315,31 @@ class StakingManager(OnChainHelper):
             dry_run=False,
         )
 
-    def check_unstaking_availability(self, service_id: int, staking_contract: str) -> bool:
+    def check_unstaking_availability(
+        self, service_id: int, staking_contract: str
+    ) -> bool:
         """Check unstaking availability"""
-        ts_start = t.cast(int, self.onchain_info(staking_contract, service_id)["data"][3])
-        available_rewards = t.cast(int, self.staking_ctr.available_rewards(self.ledger_api, staking_contract)["data"])
-        minimum_staking_duration = t.cast(int, self.staking_ctr.get_min_staking_duration(self.ledger_api, staking_contract)["data"])
-        if (time.time() - ts_start) < minimum_staking_duration and available_rewards > 0:
+        ts_start = t.cast(
+            int, self.onchain_info(staking_contract, service_id)["data"][3]
+        )
+        available_rewards = t.cast(
+            int,
+            self.staking_ctr.available_rewards(self.ledger_api, staking_contract)[
+                "data"
+            ],
+        )
+        minimum_staking_duration = t.cast(
+            int,
+            self.staking_ctr.get_min_staking_duration(
+                self.ledger_api, staking_contract
+            )["data"],
+        )
+        if (
+            time.time() - ts_start
+        ) < minimum_staking_duration and available_rewards > 0:
             return False
         return True
+
 
 class OnChainManager:
     """On chain service management."""

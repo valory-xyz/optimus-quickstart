@@ -20,8 +20,9 @@
 """Operate app entrypoint."""
 
 
-from pathlib import Path
 import os
+from pathlib import Path
+
 from aea_ledger_ethereum.ethereum import EthereumCrypto
 from clea import command, params, run
 from operate.constants import KEY, KEYS, OPERATE, SERVICES
