@@ -9,8 +9,8 @@ configuration:
   threshold: 1 # TODO: Move to service component
   use_staking: false # User provided
   cost_of_bond: 10000000000000000
-  olas_cost_of_bond: 1000000000000000000
-  olas_required_to_stake: 1000000000000000000
+  olas_cost_of_bond: 10000000000000000000
+  olas_required_to_stake: 10000000000000000000
   fund_requirements:
     agent: 0.1
     safe: 0.5
