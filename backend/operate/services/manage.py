@@ -319,7 +319,7 @@ class Services(
         )
         service = self._create(
             phash=phash,
-            rpc=rpc,
+            configuration=data["new"]["configuration"],
             instances=instances,
             reuse_multisig=True,
             update_token=old.chain_data["token"],
