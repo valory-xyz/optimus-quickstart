@@ -75,6 +75,8 @@ const deleteServices = async (
 
 /**
  * Creates a service
+ * @param serviceTemplate
+ * @returns Promise<Service>
  */
 const createService = async (
   serviceTemplate: Required<ServiceTemplate>,
@@ -90,14 +92,12 @@ const createService = async (
 /**
  * Stops a service
  * @param serviceHash
- * @returns
+ * @returns Promise<Deployment>
  */
 const stopService = async (serviceHash: ServiceHash): Promise<Deployment> =>
   fetch(`${BACKEND_URL}/services/${serviceHash}/stop`, {
     method: "POST",
-  })
-    .then((response) => response.json())
-    .then((data) => data);
+  }).then((response) => response.json());
 
 const ServicesService = {
   getService,
