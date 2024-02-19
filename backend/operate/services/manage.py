@@ -286,7 +286,7 @@ class Services(
         """Update service using a template."""
         # NOTE: This method contains a lot of repetative code
         rpc = data["new"]["configuration"]["rpc"]
-        phash = data["new"]["configuration"]["hash"]
+        phash = data["new"]["hash"]
         if (self.path / phash).exists():  # For testing only
             shutil.rmtree(self.path / phash)
 
