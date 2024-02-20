@@ -1,4 +1,4 @@
-import { AppInfoContext } from "@/context/AppInfoProvider/AppInfoProvider";
+import { AppInfoContext } from "@/context";
 import { useContext } from "react";
 
 export const useAppInfo = () => {

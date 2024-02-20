@@ -1,6 +1,6 @@
 import { Service, ServiceHash, ServiceTemplate } from "@/client";
 import { ServicesContext } from "@/context";
-import ServicesService from "@/service/Services";
+import { ServicesService } from "@/service";
 import { useContext } from "react";
 
 export const useServices = () => {

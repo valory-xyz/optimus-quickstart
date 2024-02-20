@@ -1,5 +1,5 @@
 import { AppInfo } from "@/client";
-import AppInfoService from "@/service/AppInfo";
+import { AppInfoService } from "@/service";
 import { message } from "antd";
 import {
   Dispatch,

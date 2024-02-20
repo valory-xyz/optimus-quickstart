@@ -5,9 +5,8 @@ import {
   Service,
   ServiceHash,
   ServiceTemplate,
-  Services,
 } from "@/client";
-import { BACKEND_URL } from "@/constants/urls";
+import { BACKEND_URL } from "@/constants";
 
 /**
  * Get the status of a service
@@ -39,7 +38,7 @@ const getService = async (serviceHash: ServiceHash): Promise<Service> =>
  * Gets an array of services from the backend
  * @returns An array of services
  */
-const getServices = async (): Promise<Services> =>
+const getServices = async (): Promise<Service[]> =>
   fetch(`${BACKEND_URL}/services`, {
     method: "GET",
     headers: {
@@ -99,7 +98,7 @@ const stopService = async (serviceHash: ServiceHash): Promise<Deployment> =>
     method: "POST",
   }).then((response) => response.json());
 
-const ServicesService = {
+export const ServicesService = {
   getService,
   getServices,
   getServiceStatus,
@@ -108,5 +107,3 @@ const ServicesService = {
   deployService,
   createService,
 };
-
-export default ServicesService;

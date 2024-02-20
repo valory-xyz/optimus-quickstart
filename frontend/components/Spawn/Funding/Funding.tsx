@@ -1,6 +1,6 @@
 import { Service } from "@/client";
 import { SpawnScreenState } from "@/enums";
-import { useSpawn } from "@/hooks/useSpawn";
+import { useSpawn } from "@/hooks";
 import { TimelineItemProps, Flex, Typography, Timeline } from "antd";
 import { useState, useMemo, useEffect, SetStateAction, Dispatch } from "react";
 

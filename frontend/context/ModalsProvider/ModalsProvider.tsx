@@ -1,4 +1,4 @@
-import { QRModalData } from "@/types/QRModalData";
+import { QRModalData } from "@/types";
 import dynamic from "next/dynamic";
 import {
   createContext,
@@ -45,7 +45,7 @@ export const ModalsProvider = ({ children }: PropsWithChildren) => {
         setQrModalData,
       }}
     >
-      <QRModal data={qrModalData} />
+      {qrModalData.open && <QRModal data={qrModalData} />}
       {children}
     </ModalsContext.Provider>
   );

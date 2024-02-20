@@ -1,4 +1,4 @@
-import { SpawnScreenState } from "@/enums/SpawnState";
+import { SpawnScreenState } from "@/enums";
 import {
   Dispatch,
   PropsWithChildren,

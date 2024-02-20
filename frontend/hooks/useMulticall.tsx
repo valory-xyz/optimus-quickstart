@@ -1,7 +1,7 @@
-import { MULTICALL_CONTRACT } from "@/constants/contracts";
+import { MULTICALL_CONTRACT } from "@/constants";
 import { BigNumber, ethers } from "ethers";
 import { Contract, ContractCall, Provider } from "ethers-multicall";
-import { multicall3Abi } from "@/abi/multicall3Abi";
+import { multicall3Abi } from "@/abi";
 
 export const useMulticall = () => {
   /**

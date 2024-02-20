@@ -1,5 +1,5 @@
-import { useSpawn } from "@/hooks/useSpawn";
-import { mainTheme } from "@/theme/mainTheme";
+import { useSpawn } from "@/hooks";
+import { mainTheme } from "@/theme";
 import { Flex, Progress, Typography } from "antd";
 import Image from "next/image";
 import { useMemo } from "react";

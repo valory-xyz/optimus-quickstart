@@ -1,5 +1,5 @@
-import { Services } from "@/client";
-import ServicesService from "@/service/Services";
+import { Service } from "@/client";
+import { ServicesService } from "@/service";
 import { message } from "antd";
 import {
   Dispatch,
@@ -13,8 +13,8 @@ import {
 import { useInterval } from "usehooks-ts";
 
 type ServicesProviderProps = {
-  services: Services;
-  setServices: Dispatch<SetStateAction<Services>>;
+  services: Service[];
+  setServices: Dispatch<SetStateAction<Service[]>>;
   updateServicesState: () => Promise<void>;
   hasInitialLoaded: boolean;
 };
@@ -27,12 +27,12 @@ export const ServicesContext = createContext<ServicesProviderProps>({
 });
 
 export const ServicesProvider = ({ children }: PropsWithChildren) => {
-  const [services, setServices] = useState<Services>([]);
+  const [services, setServices] = useState<Service[]>([]);
   const [hasInitialLoaded, setHasInitialLoaded] = useState(false);
 
   const updateServicesState = useCallback(async (): Promise<void> => {
     try {
-      return ServicesService.getServices().then((data: Services) => {
+      return ServicesService.getServices().then((data: Service[]) => {
         setServices(data);
       });
     } catch (e) {

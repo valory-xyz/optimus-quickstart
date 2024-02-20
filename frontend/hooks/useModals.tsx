@@ -1,5 +1,5 @@
 import { ModalsContext } from "@/context";
-import { QRModalData } from "@/types/QRModalData";
+import { QRModalData } from "@/types";
 import { useContext } from "react";
 
 export const useModals = () => {

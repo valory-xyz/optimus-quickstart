@@ -1,8 +1,7 @@
 import { Service, ServiceTemplate } from "@/client";
-import { TOKENS } from "@/constants/tokens";
+import { TOKENS } from "@/constants";
 import { SpawnScreenState } from "@/enums";
-import { useEthers, useServices } from "@/hooks";
-import { useAppInfo } from "@/hooks/useAppInfo";
+import { useEthers, useServices, useAppInfo } from "@/hooks";
 import { Button, Flex, Typography, message } from "antd";
 import { ethers } from "ethers";
 import {
@@ -44,7 +43,10 @@ export const SpawnStakingCheck = ({
   const [isCreating, setIsCreating] = useState(false);
   const [buttonClicked, setButtonClicked] = useState<ButtonOptions>();
 
-  const publicKey = useMemo(() => getPublicKey(), [getPublicKey]);
+  const publicKey: string | undefined = useMemo(
+    () => getPublicKey(),
+    [getPublicKey],
+  );
 
   /**
    * Creates service, then performs relevant state updates
@@ -181,18 +183,26 @@ export const SpawnStakingCheck = ({
     setButtonClicked(undefined);
   };
 
+  const stakingRequirement = useMemo(
+    () =>
+      ethers.utils.formatUnits(
+        `${
+          serviceTemplate.configuration.olas_cost_of_bond +
+          serviceTemplate.configuration.olas_required_to_stake
+        }`,
+      ),
+    [
+      serviceTemplate.configuration.olas_cost_of_bond,
+      serviceTemplate.configuration.olas_required_to_stake,
+    ],
+  );
+
   return (
     <Flex gap={8} vertical>
       <Flex vertical justify="center" align="center">
         <Typography.Text strong>Would you like to stake OLAS?</Typography.Text>
         <Typography.Text type="secondary">
-          {ethers.utils.formatUnits(
-            `${
-              serviceTemplate.configuration.olas_cost_of_bond +
-              serviceTemplate.configuration.olas_required_to_stake
-            }`,
-          )}{" "}
-          OLAS required
+          {stakingRequirement} OLAS required
         </Typography.Text>
       </Flex>
       <Flex gap={8} justify="center">

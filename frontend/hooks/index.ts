@@ -5,3 +5,4 @@ export * from "./useTabs";
 export * from "./useMarketplace";
 export * from "./useEthers";
 export * from "./useMulticall";
+export * from "./useAppInfo";

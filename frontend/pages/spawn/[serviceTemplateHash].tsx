@@ -1,16 +1,55 @@
 import { Service, ServiceTemplate } from "@/client";
-import {
-  SpawnAgentFunding,
-  SpawnDone,
-  SpawnHeader,
-  SpawnRPC,
-  SpawnStakingCheck,
-} from "@/components/Spawn";
-import { SpawnError } from "@/components/Spawn/SpawnError/SpawnError";
 import { SpawnScreenState } from "@/enums";
 import { useMarketplace, useSpawn } from "@/hooks";
 import { GetServerSidePropsContext } from "next";
+import dynamic from "next/dynamic";
 import { useMemo, useState } from "react";
+
+const SpawnAgentFunding = dynamic(
+  () =>
+    import("@/components/Spawn/SpawnAgentFunding/SpawnAgentFunding").then(
+      (mod) => mod.SpawnAgentFunding,
+    ),
+  { ssr: false },
+);
+
+const SpawnDone = dynamic(
+  () =>
+    import("@/components/Spawn/SpawnDone/SpawnDone").then(
+      (mod) => mod.SpawnDone,
+    ),
+  { ssr: false },
+);
+
+const SpawnHeader = dynamic(
+  () =>
+    import("@/components/Spawn/SpawnHeader/SpawnHeader").then(
+      (mod) => mod.SpawnHeader,
+    ),
+  { ssr: false },
+);
+
+const SpawnRPC = dynamic(
+  () =>
+    import("@/components/Spawn/SpawnRPC/SpawnRPC").then((mod) => mod.SpawnRPC),
+  { ssr: false },
+);
+
+const SpawnStakingCheck = dynamic(
+  () =>
+    import("@/components/Spawn/SpawnStakingCheck/SpawnStakingCheck").then(
+      (mod) => mod.SpawnStakingCheck,
+    ),
+  { ssr: false },
+);
+
+const SpawnError = dynamic(
+  () =>
+    import("@/components/Spawn/SpawnError/SpawnError").then(
+      (mod) => mod.SpawnError,
+    ),
+  { ssr: false },
+);
 
 export const getServerSideProps = async (
   context: GetServerSidePropsContext,

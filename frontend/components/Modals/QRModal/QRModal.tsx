@@ -1,5 +1,5 @@
 import { useModals } from "@/hooks";
-import { QRModalData } from "@/types/QRModalData";
+import { QRModalData } from "@/types";
 import { Flex, Modal, QRCode, Typography } from "antd";
 import { ethers } from "ethers";
 import { useMemo } from "react";

@@ -1,5 +1,5 @@
 import { AppInfo } from "@/client";
-import { BACKEND_URL } from "@/constants/urls";
+import { BACKEND_URL } from "@/constants";
 
 /**
  * Get the app info, including users public key key
@@ -13,8 +13,6 @@ const getAppInfo = async (): Promise<AppInfo> => {
   }).then((response) => response.json());
 };
 
-const AppInfoService = {
+export const AppInfoService = {
   getAppInfo,
 };
-
-export default AppInfoService;

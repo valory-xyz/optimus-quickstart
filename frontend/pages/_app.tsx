@@ -4,8 +4,8 @@ import {
   SpawnProvider,
   TabsProvider,
 } from "@/context";
-import { AppInfoProvider } from "@/context/AppInfoProvider/AppInfoProvider";
-import { mainTheme } from "@/theme/mainTheme";
+import { AppInfoProvider } from "@/context";
+import { mainTheme } from "@/theme";
 import { ConfigProvider } from "antd";
 import type { AppProps } from "next/app";
 

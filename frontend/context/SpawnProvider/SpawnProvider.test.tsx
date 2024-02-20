@@ -5,7 +5,7 @@ import {
   SpawnContext,
   SpawnProvider,
 } from "./SpawnProvider";
-import { SpawnScreenState } from "@/enums/SpawnState";
+import { SpawnScreenState } from "@/enums";
 import "@testing-library/jest-dom";
 
 describe("SpawnProvider", () => {

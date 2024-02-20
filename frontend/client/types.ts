@@ -31,8 +31,6 @@ export type Service = {
   chain_data?: ChainData;
 };
 
-export type Services = Service[];
-
 export type ServiceTemplate = {
   name: string;
   hash: string;
