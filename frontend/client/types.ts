@@ -102,5 +102,5 @@ export type DeleteServicesResponse = {
 export type AppInfo = {
   account: {
     key: string;
-  }
-}
+  };
+};
