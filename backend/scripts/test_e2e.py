@@ -31,6 +31,7 @@ BASE_URL = "http://localhost:8000/api"
 def test_endpoint_e2e():
     with Path("templates/trader.yaml").open("r", encoding="utf-8") as stream:
         trader_template = yaml_load(stream=stream)
+        phash = trader_template["hash"]
 
     print("Creating service using template")
     response = requests.post(
@@ -42,14 +43,14 @@ def test_endpoint_e2e():
     input("> Press enter to start")
     print(
         requests.get(
-            url=f"{BASE_URL}/services/bafybeigiwlvm6ey4dmlztg3z4xyvpol23n444vliivx2ybuki7xo4f3pae/deploy/",
+            url=f"{BASE_URL}/services/{phash}/deploy/",
         ).content.decode()
     )
 
     input("> Press enter to stop")
     print(
         requests.get(
-            url=f"{BASE_URL}/services/bafybeigiwlvm6ey4dmlztg3z4xyvpol23n444vliivx2ybuki7xo4f3pae/stop/",
+            url=f"{BASE_URL}/services/{phash}/stop/",
         ).content.decode()
     )
 

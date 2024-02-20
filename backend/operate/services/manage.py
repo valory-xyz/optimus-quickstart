@@ -183,33 +183,10 @@ class Services(
         )
 
         if configuration["use_staking"] and not ocm.staking_slots_available(
-            staking_address=STAKING[ledger["chain"]],
+            staking_contract=STAKING[ledger["chain"]]
         ):
             raise ValueError("No staking slots available")
 
-        # Update to user provided RPC
-        ledger["rpc"] = configuration["rpc"]
-
-        logging.info(f"Minting service {phash}")
-        service_id = t.cast(
-            int,
-            ocm.mint(
-                package_path=service.service_path,
-                agent_id=configuration["agent_id"],
-                number_of_slots=service.helper.config.number_of_agents,
-                cost_of_bond=(
-                    configuration["olas_required_to_bond"]
-                    if configuration["use_staking"]
-                    else configuration["cost_of_bond"]
-                ),
-                threshold=configuration["threshold"],
-                nft=IPFSHash(configuration["nft"]),
-                update_token=update_token,
-                token=OLAS[ledger["chain"]] if configuration["use_staking"] else None,
-            ).get("token"),
-        )
-
-        logging.info(f"Activating service {phash}")
         if configuration["use_staking"]:
             required_olas = (
                 configuration["olas_cost_of_bond"]
@@ -223,12 +200,36 @@ class Services(
                 .functions.balanceOf(ocm.crypto.address)
                 .call()
             )
+
             if balance < required_olas:
                 raise BadRequest(
                     "You don't have enough olas to stake, "
                     f"required olas: {required_olas}; your balance {balance}"
                 )
 
+        # Update to user provided RPC
+        ledger["rpc"] = configuration["rpc"]
+
+        logging.info(f"Minting service {phash}")
+        service_id = t.cast(
+            int,
+            ocm.mint(
+                package_path=service.service_path,
+                agent_id=configuration["agent_id"],
+                number_of_slots=service.helper.config.number_of_agents,
+                cost_of_bond=(
+                    configuration["olas_cost_of_bond"]
+                    if configuration["use_staking"]
+                    else configuration["cost_of_bond"]
+                ),
+                threshold=configuration["threshold"],
+                nft=IPFSHash(configuration["nft"]),
+                update_token=update_token,
+                token=OLAS[ledger["chain"]] if configuration["use_staking"] else None,
+            ).get("token"),
+        )
+
+        logging.info(f"Activating service {phash}")
         ocm.activate(
             service_id=service_id,
             token=OLAS[ledger["chain"]] if configuration["use_staking"] else None,
@@ -256,9 +257,9 @@ class Services(
                 "token": service_id,
                 "instances": info["instances"],
                 "multisig": info["multisig"],
+                "staked": False,
             }
         )
-        service.store()
 
         if configuration["use_staking"]:
             ocm.stake(
@@ -266,6 +267,8 @@ class Services(
                 service_registry=CONTRACTS[ledger["chain"]]["service_registry"],
                 staking_contract=STAKING[ledger["chain"]],
             )
+            service.chain_data["staked"] = True
+        service.store()
 
         logging.info(f"Building deployment for service {phash}")
         deployment = service.deployment()
@@ -286,7 +289,7 @@ class Services(
         """Update service using a template."""
         # NOTE: This method contains a lot of repetative code
         rpc = data["new"]["configuration"]["rpc"]
-        phash = data["new"]["configuration"]["hash"]
+        phash = data["new"]["hash"]
         if (self.path / phash).exists():  # For testing only
             shutil.rmtree(self.path / phash)
 
@@ -299,14 +302,24 @@ class Services(
             contracts=CONTRACTS[old.ledger["chain"]],
         )
 
+        if old.chain_data["staked"]:
+            ocm.unstake(
+                service_id=old.chain_data["token"],
+                staking_contract=STAKING[old.ledger["chain"]],
+            )
+            old.chain_data["staked"] = False
+            old.store()
+
         # Terminate old service
         ocm.terminate(
             service_id=old.chain_data["token"],
+            token=OLAS[old.ledger["chain"]] if old.chain_data["staked"] else None,
         )
 
         # Unbond old service
         ocm.unbond(
             service_id=old.chain_data["token"],
+            token=OLAS[old.ledger["chain"]] if old.chain_data["staked"] else None,
         )
 
         # Swap owners on the old safe
@@ -319,7 +332,7 @@ class Services(
         )
         service = self._create(
             phash=phash,
-            rpc=rpc,
+            configuration=data["new"]["configuration"],
             instances=instances,
             reuse_multisig=True,
             update_token=old.chain_data["token"],

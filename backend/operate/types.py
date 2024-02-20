@@ -142,9 +142,10 @@ class ServiceState(enum.IntEnum):
 class ChainData(TypedDict):
     """Chain data for service."""
 
-    instances: NotRequired[t.List[str]]  # Agent instances registered as safe owners
-    token: NotRequired[int]
-    multisig: NotRequired[str]
+    instances: t.List[str]  # Agent instances registered as safe owners
+    token: int
+    multisig: str
+    staked: bool
 
 
 class ChainDeployment(TypedDict):
