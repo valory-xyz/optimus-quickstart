@@ -41,6 +41,7 @@ export const QRModal = ({
   return (
     <Modal
       open={open && modalParamsValid}
+      footer={null}
       title="Scan QR code"
       onCancel={handleCancel}
     >
