@@ -58,6 +58,14 @@ const launchProcesses = async () => {
       processes.backend.ready = true;
       checkProcessesReadyThenMain();
     }
+    if (data.toString().includes("error while attempting to bind on address")) {
+      // port in use
+      new Notification({
+        title: "Port in use",
+        body: `Port ${processes.backend.port} is in use. Please close the process using this port and restart Olas Operate.`,
+      }).show();
+      app.quit();
+    }
     console.log(data.toString());
   });
 
