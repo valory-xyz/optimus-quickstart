@@ -1,7 +1,15 @@
-const { app, BrowserWindow, Tray, Menu, shell } = require("electron");
+const {
+  app,
+  BrowserWindow,
+  Tray,
+  Menu,
+  shell,
+  Notification,
+} = require("electron");
 const path = require("path");
 const { spawn } = require("child_process");
 const { isPortAvailable, portRange, findAvailablePort } = require("./ports");
+const { isDockerRunning } = require("./docker");
 const psTree = require("ps-tree");
 
 let tray, mainWindow, splashWindow;
@@ -252,6 +260,16 @@ const createTray = () => {
 // APP-SPECIFIC EVENTS
 
 app.on("ready", async () => {
+  const dockerRunning = await isDockerRunning().catch(() => false);
+  // Check docker is running
+  if (!dockerRunning) {
+    //
+    new Notification({
+      title: "Docker not running",
+      body: "Please start Docker before running Olas Operate.",
+    }).show();
+    app.quit();
+  }
   createSplashWindow();
   await launchProcesses();
   app.on("activate", () => {
