@@ -13,8 +13,7 @@ type SpawnContextType = {
   setSpawnScreenState: Dispatch<SetStateAction<SpawnScreenState>>;
 };
 
-export const FIRST_SPAWN_SCREEN_STATE: SpawnScreenState =
-  SpawnScreenState.STAKING_CHECK;
+export const FIRST_SPAWN_SCREEN_STATE: SpawnScreenState = SpawnScreenState.RPC;
 
 export const SpawnContext = createContext<SpawnContextType>({
   spawnScreenState: FIRST_SPAWN_SCREEN_STATE,
