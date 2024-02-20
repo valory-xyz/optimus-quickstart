@@ -201,7 +201,7 @@ const createMainWindow = () => {
   mainWindow.setMenuBarVisibility(false);
   mainWindow.loadURL(`http://localhost:${processes.frontend.port}`);
 
-  mainWindow.webContents.openDevTools();
+  // mainWindow.webContents.openDevTools(); //UNCOMMENT FOR DEBUGGING
 
   mainWindow.webContents.on("did-fail-load", () => {
     mainWindow.webContents.reloadIgnoringCache();
