@@ -48,7 +48,7 @@ export type ConfigurationTemplate = {
   threshold: number;
   use_staking: boolean;
   cost_of_bond: number;
-  olas_required_to_bond: number;
+  olas_cost_of_bond: number;
   olas_required_to_stake: number;
   fund_requirements: FundRequirementsTemplate;
 };
