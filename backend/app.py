@@ -77,7 +77,13 @@ class App(Resource):
     @property
     def json(self) -> None:
         """Json representation of the app."""
-        return {"name": "Operate HTTP server", "version": "0.1.0.rc0"}
+        return {
+            "name": "Operate HTTP server",
+            "version": "0.1.0.rc0",
+            "account": {
+                "key": EthereumCrypto(self._key).address,
+            },
+        }
 
 
 @command(name="operate")
