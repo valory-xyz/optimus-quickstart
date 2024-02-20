@@ -12,6 +12,7 @@ import {
   UpdateServicePayload,
   DeleteServicesPayload,
   DeleteServicesResponse,
+  AppInfo
 } from "./types";
 
 export class HttpClient<
@@ -124,7 +125,7 @@ export class DeploymentEndpoint extends HttpClient<
   Deployment,
   StopDeployment,
   Deployment
-> {}
+> { }
 
 export class ServiceEndpoint extends HttpClient<
   Service,
@@ -170,9 +171,19 @@ export class ServicesEndpoint extends HttpClient<
 }
 
 export function getClient(url: string) {
+  const api = new HttpClient<
+    AppInfo,
+    EmptyPayload,
+    EmptyResponse,
+    EmptyPayload,
+    EmptyResponse,
+    EmptyPayload,
+    EmptyResponse
+  >(url)
   const services = new ServicesEndpoint(`${url}/services`);
   return {
     url: url,
+    api: api,
     services: services,
   };
 }

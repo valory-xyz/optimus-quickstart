@@ -98,3 +98,9 @@ export type DeleteServicesPayload = {
 export type DeleteServicesResponse = {
   hashes: Array<ServiceHash>;
 };
+
+export type AppInfo = {
+  account: {
+    key: string;
+  }
+}
