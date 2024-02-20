@@ -142,7 +142,7 @@ export const SpawnStakingCheck = ({
       return false;
     });
     if (!canStake) {
-      message.error("You need more OLAS to stake");
+      message.error(`${publicKey} requires more OLAS to stake`);
       return setButtonClicked(undefined);
     }
     const hasCreated: boolean = await create(true)
@@ -183,8 +183,17 @@ export const SpawnStakingCheck = ({
 
   return (
     <Flex gap={8} vertical>
-      <Flex justify="center">
+      <Flex vertical justify="center" align="center">
         <Typography.Text strong>Would you like to stake OLAS?</Typography.Text>
+        <Typography.Text type="secondary">
+          {ethers.utils.formatUnits(
+            `${
+              serviceTemplate.configuration.olas_cost_of_bond +
+              serviceTemplate.configuration.olas_required_to_stake
+            }`,
+          )}{" "}
+          OLAS required
+        </Typography.Text>
       </Flex>
       <Flex gap={8} justify="center">
         <Button
