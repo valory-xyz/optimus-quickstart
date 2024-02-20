@@ -13,7 +13,7 @@ jobs:
             # Node.js (for package scripts)
             -   uses: actions/setup-node@v1
                 with:
-                    node-version: 20
+                    node-version: "20.11"
 
             # Python
             -   uses: actions/setup-python@v4
