@@ -16,7 +16,7 @@ import {
   useMemo,
   useState,
 } from "react";
-import { useSpawn, useServices, useEthers } from "@/hooks";
+import { useSpawn, useEthers } from "@/hooks";
 import { SpawnScreenState } from "@/enums";
 import { CheckSquareTwoTone, WarningFilled } from "@ant-design/icons";
 import { Service, ServiceTemplate } from "@/client";
@@ -30,36 +30,32 @@ enum RPCState {
 }
 
 export const SpawnRPC = ({
-  serviceTemplate,
-  isStaking,
-  setAgentFundRequirements,
-  setService,
+  rpc,
+  setRpc,
   nextPage,
 }: {
+  rpc: string;
   serviceTemplate: ServiceTemplate;
-  isStaking: boolean;
-  setAgentFundRequirements: Dispatch<
-    SetStateAction<{ [address: string]: number }>
-  >;
+  setRpc: Dispatch<SetStateAction<string>>;
   setService: Dispatch<SetStateAction<Service | undefined>>;
   nextPage: SpawnScreenState;
 }) => {
-  const { setSpawnScreenState } = useSpawn(isStaking);
-  const { createService } = useServices();
+  const { setSpawnScreenState } = useSpawn();
   const { checkRPC } = useEthers();
 
-  const [rpc, setRpc] = useState("http://localhost:8545"); // hardcoded default for now
-  const [continueIsLoading, setContinueIsLoading] = useState(false);
   const [isCheckingRpc, setIsCheckingRpc] = useState(false);
   const [rpcState, setRpcState] = useState<RPCState>(RPCState.INVALID);
 
-  const handlePaste = async (): Promise<void> =>
-    navigator.clipboard
-      .readText()
-      .then((text) => setRpc(text))
-      .catch(() => {
-        message.error("Failed to read clipboard");
-      });
+  const handlePaste = useCallback(
+    async (): Promise<void> =>
+      navigator.clipboard
+        .readText()
+        .then((text) => setRpc(text))
+        .catch(() => {
+          message.error("Failed to read clipboard");
+        }),
+    [setRpc],
+  );
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const debounceCheckRpc = useCallback(
@@ -86,72 +82,16 @@ export const SpawnRPC = ({
       setRpcState(RPCState.LOADING);
       debounceCheckRpc(e.target.value);
     },
-    [debounceCheckRpc],
+    [debounceCheckRpc, setRpc],
   );
 
   const handleContinue = useCallback(async () => {
-    if (continueIsLoading) {
-      message.info("Please wait for the current action to complete");
-      return;
-    }
     if (!rpc || rpcState !== RPCState.VALID) {
       message.error("Invalid RPC");
       return;
     }
-    setContinueIsLoading(true);
-    createService({
-      ...serviceTemplate,
-      configuration: {
-        ...serviceTemplate.configuration,
-        rpc,
-        use_staking: isStaking,
-      },
-    })
-      .then((_service: Service) => {
-        setService(_service);
-
-        //  Set agent funding requirements
-        if (_service.chain_data?.instances) {
-          setAgentFundRequirements(
-            _service.chain_data.instances.reduce(
-              (acc: { [address: string]: number }, address: string) => ({
-                ...acc,
-                [address]:
-                  serviceTemplate.configuration.fund_requirements.agent,
-              }),
-              {},
-            ),
-          );
-        }
-
-        // Set staking funding requirements from multisig/safe
-        if (_service.chain_data?.multisig) {
-          setAgentFundRequirements((prev) => ({
-            ...prev,
-            [_service.chain_data?.multisig as string]:
-              serviceTemplate.configuration.fund_requirements.safe,
-          }));
-        }
-
-        // Then goto next screen
-        setSpawnScreenState(nextPage);
-      })
-      .catch(() => {
-        message.error("Failed to create service");
-      })
-      .finally(() => setContinueIsLoading(false));
-  }, [
-    continueIsLoading,
-    createService,
-    isStaking,
-    nextPage,
-    rpc,
-    rpcState,
-    serviceTemplate,
-    setAgentFundRequirements,
-    setService,
-    setSpawnScreenState,
-  ]);
+    setSpawnScreenState(nextPage);
+  }, [nextPage, rpc, rpcState, setSpawnScreenState]);
 
   const isContinueDisabled: boolean = useMemo(
     () => !rpc || rpcState !== RPCState.VALID,
@@ -238,7 +178,7 @@ export const SpawnRPC = ({
         ),
       },
     ],
-    [handleRpcChange, inputStatus, inputSuffix, rpc],
+    [handlePaste, handleRpcChange, inputStatus, inputSuffix, rpc],
   );
 
   return (
@@ -249,7 +189,6 @@ export const SpawnRPC = ({
         type="default"
         onClick={handleContinue}
         disabled={isContinueDisabled}
-        loading={continueIsLoading}
       >
         Continue
       </Button>
