@@ -9,10 +9,10 @@
     "react": "^18",
     "react-dom": "^18",
     "swr": "^2.2.4",
-    "usehooks-ts": "^2.14.0"
+    "usehooks-ts": "^2.14.0",
+    "@ant-design/cssinjs": "^1.18.4"
   },
   "devDependencies": {
-    "@ant-design/cssinjs": "^1.18.4",
     "@testing-library/jest-dom": "^6.4.2",
     "@testing-library/react": "^14.2.1",
     "@types/jest": "^29.5.12",
