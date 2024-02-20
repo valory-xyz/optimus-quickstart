@@ -25,23 +25,42 @@ import io
 import json
 import logging
 import tempfile
+import time
 import typing as t
 from enum import Enum
 from pathlib import Path
 from typing import Optional, Union
 
 from aea.configurations.data_types import PackageType
+from aea.crypto.base import Crypto, LedgerApi
 from aea.helpers.base import IPFSHash, cd
 from aea_ledger_ethereum.ethereum import EthereumCrypto
 from autonomy.chain.base import registry_contracts
 from autonomy.chain.config import ChainConfigs, ChainType, ContractConfigs
 from autonomy.chain.service import get_agent_instances, get_service_info
+from autonomy.chain.tx import TxSettler
 from autonomy.cli.helpers.chain import MintHelper as MintManager
 from autonomy.cli.helpers.chain import OnChainHelper
 from autonomy.cli.helpers.chain import ServiceHelper as ServiceManager
 from hexbytes import HexBytes
+from operate.data import DATA_DIR
+from operate.data.contracts.service_staking_token.contract import (
+    ServiceStakingTokenContract,
+)
+from operate.ledger.profiles import CONTRACTS
 
 from ._subgraph import SubgraphClient
+
+ZERO_ETH = 0
+
+
+class StakingState(Enum):
+    """Staking state enumeration for the staking."""
+
+    UNSTAKED = 0
+    STAKED = 1
+    EVICTED = 2
+
 
 NULL_ADDRESS: str = "0x" + "0" * 40
 MAX_UINT256 = 2**256 - 1
@@ -154,15 +173,189 @@ def skill_input_hex_to_payload(payload: str) -> dict:
     return tx_params
 
 
+class StakingManager(OnChainHelper):
+    """Helper class for staking a service."""
+
+    def __init__(self, key: Path, chain_type: ChainType = ChainType.CUSTOM) -> None:
+        """Initialize object."""
+        super().__init__(key=key, chain_type=chain_type)
+        self.staking_ctr = t.cast(
+            ServiceStakingTokenContract,
+            ServiceStakingTokenContract.from_dir(
+                directory=str(DATA_DIR / "contracts" / "service_staking_token")
+            ),
+        )
+
+    def status(self, service_id: int, staking_contract: str) -> StakingState:
+        """Is the service staked?"""
+        return StakingState(
+            self.staking_ctr.get_instance(
+                ledger_api=self.ledger_api,
+                contract_address=staking_contract,
+            )
+            .functions.getServiceStakingState(service_id)
+            .call()
+        )
+
+    def slots_available(self, staking_contract: str) -> bool:
+        """Check if there are available slots on the staking contract"""
+        instance = self.staking_ctr.get_instance(
+            ledger_api=self.ledger_api,
+            contract_address=staking_contract,
+        )
+        available = instance.functions.maxNumServices().call() - len(
+            instance.functions.getServiceIds().call()
+        )
+        return available > 0
+
+    def service_info(self, staking_contract: str, service_id: int) -> dict:
+        """Get the service onchain info"""
+        return self.staking_ctr.get_service_info(
+            self.ledger_api,
+            staking_contract,
+            service_id,
+        ).get("data")
+
+    def stake(
+        self,
+        service_id: int,
+        service_registry: str,
+        staking_contract: str,
+    ) -> None:
+        """Stake the service"""
+        status = self.status(service_id, staking_contract)
+        if status == StakingState.STAKED:
+            raise ValueError("Service already stacked")
+
+        if status == StakingState.EVICTED:
+            raise ValueError("Service is evicted")
+
+        if not self.slots_available(staking_contract):
+            raise ValueError("No sataking slots available.")
+
+        tx_settler = TxSettler(
+            ledger_api=self.ledger_api,
+            crypto=self.crypto,
+            chain_type=self.chain_type,
+            timeout=self.timeout,
+            retries=self.retries,
+            sleep=self.sleep,
+        )
+
+        # we make use of the ERC20 contract to build the approval transaction
+        # since it has the same interface as ERC721 we might want to create
+        # a ERC721 contract package
+
+        def _build_approval_tx(*args, **kargs) -> t.Dict:
+            return registry_contracts.erc20.get_approve_tx(
+                ledger_api=self.ledger_api,
+                contract_address=service_registry,
+                spender=staking_contract,
+                sender=self.crypto.address,
+                amount=service_id,
+            )
+
+        setattr(tx_settler, "build", _build_approval_tx)
+        tx_settler.transact(
+            method=lambda: {},
+            contract="",
+            kwargs={},
+            dry_run=False,
+        )
+
+        def _build_staking_tx(*args, **kargs) -> t.Dict:
+            return self.ledger_api.build_transaction(
+                contract_instance=self.staking_ctr.get_instance(
+                    ledger_api=self.ledger_api,
+                    contract_address=staking_contract,
+                ),
+                method_name="stake",
+                method_args={"serviceId": service_id},
+                tx_args={
+                    "sender_address": self.crypto.address,
+                },
+                raise_on_try=True,
+            )
+
+        setattr(tx_settler, "build", _build_staking_tx)
+        tx_settler.transact(
+            method=lambda: {},
+            contract="",
+            kwargs={},
+            dry_run=False,
+        )
+
+    def _can_unstake_service(
+        self,
+        service_id: int,
+        staking_contract: str,
+    ) -> bool:
+        """Check unstaking availability"""
+        ts_start = t.cast(int, self.service_info(staking_contract, service_id)[3])
+        available_rewards = t.cast(
+            int,
+            self.staking_ctr.available_rewards(self.ledger_api, staking_contract).get(
+                "data"
+            ),
+        )
+        minimum_staking_duration = t.cast(
+            int,
+            self.staking_ctr.get_min_staking_duration(
+                self.ledger_api, staking_contract
+            ).get("data"),
+        )
+        staked_duration = time.time() - ts_start
+        if staked_duration < minimum_staking_duration and available_rewards > 0:
+            return False
+        return True
+
+    def unstake(self, service_id: int, staking_contract: str) -> None:
+        """Unstake the service"""
+        if (
+            self.status(service_id=service_id, staking_contract=staking_contract)
+            != StakingState.STAKED
+        ):
+            raise ValueError("Service not staked.")
+
+        if not self._can_unstake_service(service_id, staking_contract):
+            raise ValueError("Service cannot be unstaked yet.")
+
+        tx_settler = TxSettler(
+            ledger_api=self.ledger_api,
+            crypto=self.crypto,
+            chain_type=self.chain_type,
+            timeout=self.timeout,
+            retries=self.retries,
+            sleep=self.sleep,
+        )
+
+        def _build_unstaking_tx(*args, **kargs) -> t.Dict:
+            return self.ledger_api.build_transaction(
+                contract_instance=self.staking_ctr.get_instance(
+                    ledger_api=self.ledger_api,
+                    contract_address=staking_contract,
+                ),
+                method_name="unstake",
+                method_args={"serviceId": service_id},
+                tx_args={
+                    "sender_address": self.crypto.address,
+                },
+                raise_on_try=True,
+            )
+
+        setattr(tx_settler, "build", _build_unstaking_tx)
+        tx_settler.transact(
+            method=lambda: {},
+            contract="",
+            kwargs={},
+            dry_run=False,
+        )
+
+
 class OnChainManager:
     """On chain service management."""
 
-    def __init__(
-        self,
-        rpc: str,
-        key: Path,
-        contracts: t.Dict,
-    ) -> None:
+    def __init__(self, rpc: str, key: Path, contracts: t.Dict) -> None:
         """On chain manager."""
         self.rpc = rpc
         self.key = key
@@ -177,6 +370,26 @@ class OnChainManager:
 
         for name, address in self.contracts.items():
             ContractConfigs.get(name=name).contracts[self.chain_type] = address
+
+    @property
+    def crypto(self) -> Crypto:
+        """Load crypto object."""
+        self._patch()
+        _, crypto = OnChainHelper.get_ledger_and_crypto_objects(
+            chain_type=self.chain_type,
+            key=self.key,
+        )
+        return crypto
+
+    @property
+    def ledger_api(self) -> LedgerApi:
+        """Load ledger api object."""
+        self._patch()
+        ledger_api, _ = OnChainHelper.get_ledger_and_crypto_objects(
+            chain_type=self.chain_type,
+            key=self.key,
+        )
+        return ledger_api
 
     def info(self, token_id: int) -> t.Dict:
         """Get service info."""
@@ -224,6 +437,7 @@ class OnChainManager:
         threshold: int,
         nft: Optional[Union[Path, IPFSHash]],
         update_token: t.Optional[int] = None,
+        token: t.Optional[str] = None,
     ):
         "Mint service."
         # TODO: Support for update
@@ -259,6 +473,7 @@ class OnChainManager:
                     number_of_slots=number_of_slots,
                     cost_of_bond=cost_of_bond,
                     threshold=threshold,
+                    token=token,
                 )
                 (metadata,) = Path(temp).glob("*.json")
                 published = {
@@ -333,6 +548,7 @@ class OnChainManager:
     ) -> None:
         """Swap safe owner."""
         logging.info(f"Swapping safe for service {service_id} [{multisig}]...")
+        self._patch()
         manager = ServiceManager(
             service_id=service_id,
             chain_type=self.chain_type,
@@ -416,13 +632,10 @@ class OnChainManager:
         if receipt["status"] != 1:
             raise RuntimeError("Error swapping owners")
 
-    def terminate(
-        self,
-        service_id: int,
-        token: t.Optional[str] = None,
-    ) -> None:
+    def terminate(self, service_id: int, token: t.Optional[str] = None) -> None:
         """Terminate service."""
         logging.info(f"Terminating service {service_id}...")
+        self._patch()
         with contextlib.redirect_stdout(io.StringIO()):
             ServiceManager(
                 service_id=service_id,
@@ -432,13 +645,10 @@ class OnChainManager:
                 token=token,
             ).terminate_service()
 
-    def unbond(
-        self,
-        service_id: int,
-        token: t.Optional[str] = None,
-    ) -> None:
+    def unbond(self, service_id: int, token: t.Optional[str] = None) -> None:
         """Unbond service."""
         logging.info(f"Unbonding service {service_id}...")
+        self._patch()
         with contextlib.redirect_stdout(io.StringIO()):
             ServiceManager(
                 service_id=service_id,
@@ -447,3 +657,41 @@ class OnChainManager:
             ).check_is_service_token_secured(
                 token=token,
             ).unbond_service()
+
+    def staking_slots_available(self, staking_contract: str) -> bool:
+        """Stake service."""
+        self._patch()
+        return StakingManager(
+            key=self.key,
+            chain_type=self.chain_type,
+        ).slots_available(
+            staking_contract=staking_contract,
+        )
+
+    def stake(
+        self,
+        service_id: int,
+        service_registry: str,
+        staking_contract: str,
+    ) -> None:
+        """Stake service."""
+        self._patch()
+        StakingManager(
+            key=self.key,
+            chain_type=self.chain_type,
+        ).stake(
+            service_id=service_id,
+            service_registry=service_registry,
+            staking_contract=staking_contract,
+        )
+
+    def unstake(self, service_id: int, staking_contract: str) -> None:
+        """Unstake service."""
+        self._patch()
+        StakingManager(
+            key=self.key,
+            chain_type=self.chain_type,
+        ).unstake(
+            service_id=service_id,
+            staking_contract=staking_contract,
+        )

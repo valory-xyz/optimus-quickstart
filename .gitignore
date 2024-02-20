@@ -37,7 +37,6 @@ yarn-error.log*
 next-env.d.ts
 
 # python
-data
 backend/__pycache__/
 backend/scripts/__pycache__/
 .operate/
@@ -45,3 +44,5 @@ data/
 __pycache__/
 tmp/
 temp/
+
+!backend/operate/data

@@ -20,6 +20,7 @@
 """Operate app entrypoint."""
 
 
+import os
 from pathlib import Path
 
 from aea_ledger_ethereum.ethereum import EthereumCrypto
@@ -34,6 +35,10 @@ from starlette.middleware.cors import CORSMiddleware
 from starlette.routing import Route
 from typing_extensions import Annotated
 from uvicorn.main import run as uvicorn
+
+DEFAULT_HARDHAT_KEY = (
+    "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80"
+).encode()
 
 
 class App(Resource):
@@ -63,7 +68,11 @@ class App(Resource):
         self._keys.mkdir(exist_ok=True)
         if not self._key.exists():
             # TODO: Add support for multiple master keys
-            self._key.write_bytes(EthereumCrypto().private_key.encode())
+            self._key.write_bytes(
+                DEFAULT_HARDHAT_KEY
+                if os.environ.get("DEV", "false") == "true"
+                else EthereumCrypto().private_key.encode()
+            )
 
     @property
     def json(self) -> None:

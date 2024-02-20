@@ -142,9 +142,10 @@ class ServiceState(enum.IntEnum):
 class ChainData(TypedDict):
     """Chain data for service."""
 
-    instances: NotRequired[t.List[str]]  # Agent instances registered as safe owners
-    token: NotRequired[int]
-    multisig: NotRequired[str]
+    instances: t.List[str]  # Agent instances registered as safe owners
+    token: int
+    multisig: str
+    staked: bool
 
 
 class ChainDeployment(TypedDict):
@@ -157,18 +158,10 @@ class ChainDeployment(TypedDict):
     required_funds: float
 
 
-class LocalDeployment(TypedDict):
-    """Local deployment template."""
-
-    ports: t.Dict
-    volumes: t.Dict[str, str]
-
-
 class DeploymentConfig(TypedDict):
     """Deployments template."""
 
-    chain: ChainDeployment
-    local: LocalDeployment
+    volumes: t.Dict[str, str]
 
 
 class ServiceType(TypedDict):
@@ -185,14 +178,35 @@ class ServiceType(TypedDict):
 ServicesType = t.List[ServiceType]
 
 
+class FundRequirementsTemplate(TypedDict):
+    """Fund requirement template."""
+
+    agent: float
+    safe: float
+
+
+class ConfigurationTemplate(TypedDict):
+    """Configuration template."""
+
+    nft: str
+    rpc: str
+    agent_id: int
+    threshold: int
+    use_staking: bool
+    cost_of_bond: int
+    olas_required_to_bond: int
+    olas_required_to_stake: int
+    fund_requirements: FundRequirementsTemplate
+
+
 class ServiceTemplate(TypedDict):
     """Service template."""
 
-    rpc: str
     name: str
     hash: str
     image: str
     description: str
+    configuration: ConfigurationTemplate
 
 
 class Action(enum.IntEnum):
