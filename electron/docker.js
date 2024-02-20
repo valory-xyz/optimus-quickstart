@@ -1,5 +1,10 @@
 const Docker = require("dockerode");
-const docker = new Docker();
+
+const docker = new Docker(
+  process.platform === "win32"
+    ? { socketPath: "//./pipe/docker_engine" }
+    : { socketPath: "/var/run/docker.sock" },
+);
 
 function isDockerRunning() {
   return new Promise((resolve, reject) => {
