@@ -3,3 +3,4 @@ export * from "./SpawnAgentFunding/SpawnAgentFunding";
 export * from "./SpawnHeader/SpawnHeader";
 export * from "./SpawnRPC/SpawnRPC";
 export * from "./SpawnStakingCheck/SpawnStakingCheck";
+export * from "./SpawnError/SpawnError";
