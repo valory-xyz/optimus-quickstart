@@ -31,6 +31,7 @@ export const SpawnPage = ({
   const { getServiceTemplate } = useMarketplace();
 
   const [service, setService] = useState<Service>();
+  const [rpc, setRpc] = useState("http://localhost:8545"); // hardcoded default for now
   const [isStaking, setIsStaking] = useState<boolean>(false);
 
   const serviceTemplate: ServiceTemplate | undefined = useMemo(
@@ -48,28 +49,34 @@ export const SpawnPage = ({
 
     // STAKING CHECK & RPC
     switch (spawnScreenState) {
-      case SpawnScreenState.STAKING_CHECK:
-        return (
-          <SpawnStakingCheck
-            setSpawnScreenState={setSpawnScreenState}
-            setIsStaking={setIsStaking}
-            nextPage={SpawnScreenState.RPC}
-          />
-        );
       case SpawnScreenState.RPC: {
-        const nextPage: SpawnScreenState = SpawnScreenState.AGENT_FUNDING;
         return (
           <SpawnRPC
             {...{
+              rpc,
+              setRpc,
               serviceTemplate,
               setService,
               isStaking,
-              setAgentFundRequirements,
             }}
-            nextPage={nextPage}
+            nextPage={SpawnScreenState.STAKING_CHECK}
           />
         );
       }
+      case SpawnScreenState.STAKING_CHECK:
+        return (
+          <SpawnStakingCheck
+            {...{
+              serviceTemplate,
+              rpc,
+              setAgentFundRequirements,
+              setSpawnScreenState,
+              setIsStaking,
+              setService,
+            }}
+            nextPage={SpawnScreenState.AGENT_FUNDING}
+          />
+        );
       default:
         break;
     }
@@ -93,6 +100,7 @@ export const SpawnPage = ({
   }, [
     agentFundRequirements,
     isStaking,
+    rpc,
     service,
     serviceTemplate,
     setSpawnScreenState,
