@@ -5,7 +5,6 @@ import {
   SpawnHeader,
   SpawnRPC,
   SpawnStakingCheck,
-  SpawnStakingFunding,
 } from "@/components/Spawn";
 import { SpawnError } from "@/components/Spawn/SpawnError/SpawnError";
 import { SpawnScreenState } from "@/enums";
@@ -43,10 +42,6 @@ export const SpawnPage = ({
     [address: string]: number;
   }>({});
 
-  const [stakingFundRequirements, setStakingFundRequirements] = useState<{
-    [address: string]: number;
-  }>({});
-
   const spawnScreen: JSX.Element = useMemo(() => {
     if (!serviceTemplate)
       return <SpawnError message="Invalid service template" />;
@@ -62,9 +57,7 @@ export const SpawnPage = ({
           />
         );
       case SpawnScreenState.RPC: {
-        const nextPage: SpawnScreenState = isStaking
-          ? SpawnScreenState.STAKING_FUNDING
-          : SpawnScreenState.AGENT_FUNDING;
+        const nextPage: SpawnScreenState = SpawnScreenState.AGENT_FUNDING;
         return (
           <SpawnRPC
             {...{
@@ -72,7 +65,6 @@ export const SpawnPage = ({
               setService,
               isStaking,
               setAgentFundRequirements,
-              setStakingFundRequirements,
             }}
             nextPage={nextPage}
           />
@@ -86,14 +78,6 @@ export const SpawnPage = ({
 
     // FUNDING SCREENS & DONE
     switch (spawnScreenState) {
-      case SpawnScreenState.STAKING_FUNDING: {
-        return (
-          <SpawnStakingFunding
-            {...{ service, stakingFundRequirements }}
-            nextPage={SpawnScreenState.AGENT_FUNDING}
-          />
-        );
-      }
       case SpawnScreenState.AGENT_FUNDING:
         return (
           <SpawnAgentFunding
@@ -113,7 +97,6 @@ export const SpawnPage = ({
     serviceTemplate,
     setSpawnScreenState,
     spawnScreenState,
-    stakingFundRequirements,
   ]);
 
   return (

@@ -33,16 +33,12 @@ export const SpawnRPC = ({
   serviceTemplate,
   isStaking,
   setAgentFundRequirements,
-  setStakingFundRequirements,
   setService,
   nextPage,
 }: {
   serviceTemplate: ServiceTemplate;
   isStaking: boolean;
   setAgentFundRequirements: Dispatch<
-    SetStateAction<{ [address: string]: number }>
-  >;
-  setStakingFundRequirements: Dispatch<
     SetStateAction<{ [address: string]: number }>
   >;
   setService: Dispatch<SetStateAction<Service | undefined>>;
@@ -129,11 +125,12 @@ export const SpawnRPC = ({
         }
 
         // Set staking funding requirements from multisig/safe
-        if (isStaking && _service.chain_data?.multisig) {
-          setStakingFundRequirements({
-            [_service.chain_data.multisig]:
+        if (_service.chain_data?.multisig) {
+          setAgentFundRequirements((prev) => ({
+            ...prev,
+            [_service.chain_data?.multisig as string]:
               serviceTemplate.configuration.fund_requirements.safe,
-          });
+          }));
         }
 
         // Then goto next screen
@@ -154,7 +151,6 @@ export const SpawnRPC = ({
     setAgentFundRequirements,
     setService,
     setSpawnScreenState,
-    setStakingFundRequirements,
   ]);
 
   const isContinueDisabled: boolean = useMemo(

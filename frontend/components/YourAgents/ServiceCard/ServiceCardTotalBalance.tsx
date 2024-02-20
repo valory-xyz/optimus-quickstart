@@ -25,11 +25,11 @@ export const ServiceCardTotalBalance = ({ service }: { service: Service }) => {
   useInterval(() => {
     if (
       service.chain_data?.instances &&
-      // service.chain_data?.multisig && // multisig not required?
+      service.chain_data?.multisig &&
       service.ledger?.rpc
     )
       getETHBalances(
-        [...service.chain_data.instances], //, service.chain_data.multisig], // multisig not required?
+        [...service.chain_data.instances, service.chain_data.multisig], // multisig not required?
         service.ledger.rpc,
       )
         .then((r) => {
