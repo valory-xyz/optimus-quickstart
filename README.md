@@ -126,6 +126,8 @@ Be sure to kill the Hardhat node once you have completed this step.
 
 ### Run the development app
 
+**Ensure ports: 3000 (for frontend), 8000 (for backend), 8545 (for hardhat node); are free.**
+
 In the root directory, run:
 
 ```bash
@@ -140,3 +142,4 @@ This will run Electron which launches NextJS, Backend, and Hardhat as child proc
 - Hardhat node RPC is pre-populated during Spawn process for ease of development, this will be removed.
 - Uncomment `mainWindow.webContents.openDevTools()` in electron/main.js to display Chromium dev tools in the Electron app
 - "Delete endpoint" not currently avaiable, you must manually delete the relevant service directories from the /backend/operate/services folder to remove them, the app must be restarted after this.
+- Port conflict solution has not been implemented yet.
