@@ -257,9 +257,9 @@ class Services(
                 "token": service_id,
                 "instances": info["instances"],
                 "multisig": info["multisig"],
+                "staked": False,
             }
         )
-        service.store()
 
         if configuration["use_staking"]:
             ocm.stake(
@@ -267,6 +267,8 @@ class Services(
                 service_registry=CONTRACTS[ledger["chain"]]["service_registry"],
                 staking_contract=STAKING[ledger["chain"]],
             )
+            service.chain_data["staked"] = True
+        service.store()
 
         logging.info(f"Building deployment for service {phash}")
         deployment = service.deployment()
@@ -300,14 +302,24 @@ class Services(
             contracts=CONTRACTS[old.ledger["chain"]],
         )
 
+        if old.chain_data["staked"]:
+            ocm.unstake(
+                service_id=old.chain_data["token"],
+                staking_contract=STAKING[old.ledger["chain"]],
+            )
+            old.chain_data["staked"] = False
+            old.store()
+
         # Terminate old service
         ocm.terminate(
             service_id=old.chain_data["token"],
+            token=OLAS[old.ledger["chain"]] if old.chain_data["staked"] else None,
         )
 
         # Unbond old service
         ocm.unbond(
             service_id=old.chain_data["token"],
+            token=OLAS[old.ledger["chain"]] if old.chain_data["staked"] else None,
         )
 
         # Swap owners on the old safe

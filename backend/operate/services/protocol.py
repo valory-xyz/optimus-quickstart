@@ -208,13 +208,13 @@ class StakingManager(OnChainHelper):
         )
         return available > 0
 
-    def onchain_info(self, staking_contract: str, service_id: int) -> dict:
+    def service_info(self, staking_contract: str, service_id: int) -> dict:
         """Get the service onchain info"""
         return self.staking_ctr.get_service_info(
             self.ledger_api,
             staking_contract,
             service_id,
-        )
+        ).get("data")
 
     def stake(
         self,
@@ -285,6 +285,30 @@ class StakingManager(OnChainHelper):
             dry_run=False,
         )
 
+    def _can_unstake_service(
+        self,
+        service_id: int,
+        staking_contract: str,
+    ) -> bool:
+        """Check unstaking availability"""
+        ts_start = t.cast(int, self.service_info(staking_contract, service_id)[3])
+        available_rewards = t.cast(
+            int,
+            self.staking_ctr.available_rewards(self.ledger_api, staking_contract).get(
+                "data"
+            ),
+        )
+        minimum_staking_duration = t.cast(
+            int,
+            self.staking_ctr.get_min_staking_duration(
+                self.ledger_api, staking_contract
+            ).get("data"),
+        )
+        staked_duration = time.time() - ts_start
+        if staked_duration < minimum_staking_duration and available_rewards > 0:
+            return False
+        return True
+
     def unstake(self, service_id: int, staking_contract: str) -> None:
         """Unstake the service"""
         if (
@@ -293,7 +317,7 @@ class StakingManager(OnChainHelper):
         ):
             raise ValueError("Service not staked.")
 
-        if not self.check_unstaking_availability(service_id, staking_contract):
+        if not self._can_unstake_service(service_id, staking_contract):
             raise ValueError("Service cannot be unstaked yet.")
 
         tx_settler = TxSettler(
@@ -305,16 +329,19 @@ class StakingManager(OnChainHelper):
             sleep=self.sleep,
         )
 
-        def _build_unstaking_tx() -> t.Dict:
-            self.staking_ctr.get_instance(
-                ledger_api=self.ledger_api, contract_address=staking_contract
+        def _build_unstaking_tx(*args, **kargs) -> t.Dict:
+            return self.ledger_api.build_transaction(
+                contract_instance=self.staking_ctr.get_instance(
+                    ledger_api=self.ledger_api,
+                    contract_address=staking_contract,
+                ),
+                method_name="unstake",
+                method_args={"serviceId": service_id},
+                tx_args={
+                    "sender_address": self.crypto.address,
+                },
+                raise_on_try=True,
             )
-            data = self.staking_ctr.encodeABI("unstake", args=[service_id])
-            return {
-                "data": bytes.fromhex(data[2:]),
-                "to": CONTRACTS[ChainType.GNOSIS]["ServiceStakingToken"],
-                "value": ZERO_ETH,
-            }
 
         setattr(tx_settler, "build", _build_unstaking_tx)
         tx_settler.transact(
@@ -323,31 +350,6 @@ class StakingManager(OnChainHelper):
             kwargs={},
             dry_run=False,
         )
-
-    def check_unstaking_availability(
-        self, service_id: int, staking_contract: str
-    ) -> bool:
-        """Check unstaking availability"""
-        ts_start = t.cast(
-            int, self.onchain_info(staking_contract, service_id)["data"][3]
-        )
-        available_rewards = t.cast(
-            int,
-            self.staking_ctr.available_rewards(self.ledger_api, staking_contract)[
-                "data"
-            ],
-        )
-        minimum_staking_duration = t.cast(
-            int,
-            self.staking_ctr.get_min_staking_duration(
-                self.ledger_api, staking_contract
-            )["data"],
-        )
-        if (
-            time.time() - ts_start
-        ) < minimum_staking_duration and available_rewards > 0:
-            return False
-        return True
 
 
 class OnChainManager:
