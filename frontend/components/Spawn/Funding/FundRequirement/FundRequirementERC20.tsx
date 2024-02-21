@@ -1,7 +1,7 @@
 import { useEthers } from '@/hooks';
 import { Dispatch, SetStateAction } from 'react';
 import { FundRequirement } from './FundRequirement';
-import { Address } from '@/types';
+import { Address, FundsReceivedMap } from '@/types';
 
 type FundRequirementERC20Props = {
   serviceHash: string;
@@ -10,7 +10,7 @@ type FundRequirementERC20Props = {
   symbol: string;
   contractAddress?: Address;
   hasReceivedFunds: boolean;
-  setReceivedFunds: Dispatch<SetStateAction<{ [address: Address]: boolean }>>;
+  setReceivedFunds: Dispatch<SetStateAction<FundsReceivedMap>>;
 };
 
 export const FundRequirementERC20 = (props: FundRequirementERC20Props) => {
