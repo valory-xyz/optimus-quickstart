@@ -4,10 +4,9 @@ module.exports = {
   defaultNetwork: "hardhat",
   networks: {
     hardhat: {
-      forking: {url: ""},
+      forking: {url: process.env.HARDHAT_GNOSIS_RPC},
       chainId: 100,
       port: process.env.PORT || 8545,      
     },
-  },
-  
+  },  
 };

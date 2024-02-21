@@ -21,8 +21,14 @@ For development, we have been using Ubuntu 22.04.
 
 Create an `.env` file in the root directory, or rename `.env.example` to `.env`.
 
+#### NODE_ENV
 For development usage, set `NODE_ENV=development`.
 For production usage, set `NODE_ENV=production`.
+
+#### HARDHAT_GNOSIS_URL
+Only required for forking Gnosis during development.
+You can get a Gnosis RPC from [Nodies](https://www.nodies.app/).
+Then set `HARDHAT_GNOSIS_URL=https://....`
 
 ### Ensure Docker v24 is installed
 
@@ -131,6 +137,10 @@ Copy any one of these private keys into `/backend/.operate/key.txt`.
 
 Be sure to kill the Hardhat node once you have completed this step.
 
+### Setup hardhat forking RPC (if running development mode)
+
+Update the `hardhat.config.js` file in the root directory to include a Gnosis RPC.
+
 ### Run the development app
 
 **If you are using the app in `production` mode** (having set this in your `.env` file), you will need to build the frontend first. You can achieve this by running: 
@@ -152,7 +162,6 @@ This will run Electron which launches NextJS, Backend, and Hardhat as child proc
 ## Further notes / issues
 
 - Only one agent can be run at a time.
-- Hardhat node RPC is pre-populated during Spawn process for ease of development, this will be removed.
 - Uncomment `mainWindow.webContents.openDevTools()` in electron/main.js to display Chromium dev tools in the Electron app
 - "Delete endpoint" not currently avaiable, you must manually delete the relevant service directories from the /backend/operate/services folder to remove them, the app must be restarted after this.
 - Port conflict solution has not been implemented yet.
