@@ -1,4 +1,5 @@
 import { Service, ServiceTemplate } from "@/client";
+import { SpawnRPC } from "@/components/Spawn";
 import { SpawnScreenState } from "@/enums";
 import { useMarketplace, useSpawn } from "@/hooks";
 import { GetServerSidePropsContext } from "next";
@@ -29,12 +30,6 @@ const SpawnHeader = dynamic(
   { ssr: false },
 );
 
-const SpawnRPC = dynamic(
-  () =>
-    import("@/components/Spawn/SpawnRPC/SpawnRPC").then((mod) => mod.SpawnRPC),
-  { ssr: false },
-);
-
 const SpawnStakingCheck = dynamic(
   () =>
     import("@/components/Spawn/SpawnStakingCheck/SpawnStakingCheck").then(
@@ -55,9 +50,6 @@ export const getServerSideProps = async (
   context: GetServerSidePropsContext,
 ) => {
   const { serviceTemplateHash } = context.query;
-  if (!serviceTemplateHash) {
-    return { redirect: { destination: "/", permanent: false } };
-  }
   return { props: { serviceTemplateHash } };
 };
 
