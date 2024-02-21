@@ -1,7 +1,7 @@
 import { copyToClipboard } from '@/helpers/copyToClipboard';
 import { useModals, useServices } from '@/hooks';
 import { Address } from '@/types';
-import { FundsReceivedMap } from '@/types/Maps';
+import { FundsReceivedMap } from '@/types';
 import { Button, Flex, Typography, message } from 'antd';
 import {
   Dispatch,
