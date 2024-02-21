@@ -44,7 +44,8 @@
     "dev": "next dev",
     "build": "next build",
     "lint": "next lint",
-    "test": "jest"
+    "test": "jest",
+    "start": "next start"
   },
   "version": "0.1.0"
 }
