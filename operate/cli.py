@@ -47,7 +47,7 @@ class App(Resource):
     def __init__(self, home: Path) -> None:
         """Initialize object."""
         super().__init__()
-        self._path = home or (Path.cwd() / OPERATE)
+        self._path = home or (Path.home() / OPERATE)
         self._services = self._path / SERVICES
         self._keys = self._path / KEYS
         self._key = self._path / KEY
