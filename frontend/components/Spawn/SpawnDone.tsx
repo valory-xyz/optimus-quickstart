@@ -5,13 +5,13 @@ import { useRouter } from 'next/router';
 export const SpawnDone = () => {
   const router = useRouter();
 
-  const { resetSpawnScreenState: resetSpawn } = useSpawn();
+  const { resetSpawnScreenState } = useSpawn();
   const { resetTabs } = useTabs();
   const { updateServicesState } = useServices();
 
   const handleViewAgent = () =>
     router.push('/').then(() => {
-      resetSpawn();
+      resetSpawnScreenState();
       resetTabs();
       updateServicesState().catch(() =>
         message.error('Failed to update services'),

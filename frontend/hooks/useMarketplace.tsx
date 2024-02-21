@@ -1,5 +1,5 @@
-import { ServiceTemplate } from "@/client";
-import { serviceTemplates } from "@/constants";
+import { ServiceTemplate } from '@/client';
+import { serviceTemplates } from '@/constants';
 
 export const useMarketplace = () => {
   const getServiceTemplates = (): ServiceTemplate[] => serviceTemplates;

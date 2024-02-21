@@ -1,3 +1,4 @@
+import { Address } from '@/types/Address';
 import { Ledger, Chain, DeploymentStatus } from './enums';
 
 export type ServiceHash = string;
@@ -8,22 +9,22 @@ export type LedgerConfig = {
   chain: Chain;
 };
 
-export type Key = {
-  address: string;
+export type ServiceKeys = {
+  address: Address;
   private_key: string;
   ledger: Chain;
 };
 
 export type ChainData = {
-  instances?: string[];
+  instances?: Address[];
   token?: number;
-  multisig?: string;
+  multisig?: Address;
 };
 
 export type Service = {
   name: string;
   hash: string;
-  keys: Key;
+  keys: ServiceKeys;
   readme?: string;
   ledger: LedgerConfig;
   chain_data: ChainData;
@@ -98,6 +99,6 @@ export type DeleteServicesResponse = {
 
 export type AppInfo = {
   account: {
-    key: string;
+    key: Address;
   };
 };

@@ -18,9 +18,8 @@ export const useSpawn = () => {
       case SpawnScreenState.DONE:
         return 100;
       default:
-        break;
+        return 0;
     }
-    return 0;
   }, [spawnScreenState]);
 
   const resetSpawnScreenState = useCallback(

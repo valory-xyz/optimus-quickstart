@@ -1,8 +1,39 @@
 import { Service } from '@/client';
 import { SpawnScreenState } from '@/enums';
 import { useSpawn } from '@/hooks';
+import { Address } from '@/types';
+import { FundsReceivedMap } from '@/types/Maps';
 import { TimelineItemProps, Flex, Typography, Timeline } from 'antd';
-import { useState, useMemo, useEffect, SetStateAction, Dispatch } from 'react';
+import { isEmpty } from 'lodash';
+import {
+  useState,
+  useMemo,
+  useEffect,
+  SetStateAction,
+  Dispatch,
+  ReactElement,
+} from 'react';
+
+type FundRequirementComponentProps = {
+  setReceivedFunds: Dispatch<SetStateAction<{ [address: Address]: boolean }>>;
+  serviceHash: string;
+  address: Address;
+  requirement: number;
+  contractAddress?: Address;
+  symbol: string;
+  hasReceivedFunds: boolean;
+};
+
+type FundingProps = {
+  service: Service;
+  fundRequirements: { [address: Address]: number };
+  FundRequirementComponent: (
+    props: FundRequirementComponentProps,
+  ) => ReactElement;
+  nextPage: SpawnScreenState;
+  symbol: string;
+  contractAddress?: Address;
+};
 
 export const Funding = ({
   service,
@@ -11,30 +42,15 @@ export const Funding = ({
   nextPage,
   symbol,
   contractAddress,
-}: {
-  service: Service;
-  fundRequirements: { [address: string]: number };
-  FundRequirementComponent: (props: {
-    setReceivedFunds: Dispatch<SetStateAction<{ [address: string]: boolean }>>;
-    serviceHash: string;
-    address: string;
-    requirement: number;
-    contractAddress?: string;
-    symbol: string;
-    hasReceivedFunds: boolean;
-  }) => JSX.Element;
-  nextPage: SpawnScreenState;
-  symbol: string;
-  contractAddress?: string;
-}) => {
+}: FundingProps) => {
   const { setSpawnScreenState } = useSpawn();
 
   const [receivedFunds, setReceivedFunds] = useState<{
-    [address: string]: boolean;
+    [address: Address]: boolean;
   }>({
     ...Object.keys(fundRequirements).reduce(
-      (acc: { [address: string]: boolean }, address) => {
-        acc[address] = false;
+      (acc: FundsReceivedMap, address) => {
+        acc[address as Address] = false;
         return acc;
       },
       {},
@@ -43,20 +59,22 @@ export const Funding = ({
 
   const timelineItems: TimelineItemProps[] = useMemo(
     () =>
-      Object.keys(fundRequirements).map((address) => ({
-        children: (
-          <FundRequirementComponent
-            setReceivedFunds={setReceivedFunds}
-            serviceHash={service.hash}
-            address={address}
-            requirement={fundRequirements[address]}
-            symbol={symbol}
-            hasReceivedFunds={receivedFunds[address]}
-            contractAddress={contractAddress}
-          />
-        ),
-        color: receivedFunds[address] ? 'green' : 'red',
-      })) as TimelineItemProps[],
+      (Object.keys(fundRequirements) as Address[]).map((address) => {
+        return {
+          children: (
+            <FundRequirementComponent
+              setReceivedFunds={setReceivedFunds}
+              serviceHash={service.hash}
+              address={address}
+              requirement={fundRequirements[address]}
+              symbol={symbol}
+              hasReceivedFunds={receivedFunds[address]}
+              contractAddress={contractAddress}
+            />
+          ),
+          color: receivedFunds[address] ? 'green' : 'red',
+        };
+      }) as TimelineItemProps[],
     [
       FundRequirementComponent,
       contractAddress,
@@ -68,8 +86,8 @@ export const Funding = ({
   );
 
   const hasSentAllFunds = useMemo(() => {
-    if (Object.keys(fundRequirements).length === 0) return false;
-    return Object.keys(receivedFunds).reduce(
+    if (isEmpty(fundRequirements)) return false;
+    return (Object.keys(receivedFunds) as Address[]).reduce(
       (acc: boolean, address) => acc && receivedFunds[address],
       true,
     );

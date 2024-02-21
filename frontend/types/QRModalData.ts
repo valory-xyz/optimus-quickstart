@@ -1,6 +1,8 @@
+import { Address } from './Address';
+
 export type QRModalData = {
   open: boolean;
-  address?: string;
+  address?: Address;
   amount?: number;
   chainId?: number;
   isERC20: boolean;

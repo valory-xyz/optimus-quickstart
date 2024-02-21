@@ -1,6 +1,6 @@
 import { Flex } from 'antd';
-import { SettingsButton } from './SettingsButton/SettingsButton';
-import { NotificationButton } from './NotificationButton/NotificationButton';
+import { SettingsButton } from './SettingsButton';
+import { NotificationButton } from './NotificationButton';
 import Image from 'next/image';
 
 export const Navbar = () => {

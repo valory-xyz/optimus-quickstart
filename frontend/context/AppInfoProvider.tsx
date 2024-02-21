@@ -1,6 +1,6 @@
-import { AppInfo } from "@/client";
-import { AppInfoService } from "@/service";
-import { message } from "antd";
+import { AppInfo } from '@/client';
+import { AppInfoService } from '@/service';
+import { message } from 'antd';
 import {
   Dispatch,
   PropsWithChildren,
@@ -8,12 +8,14 @@ import {
   createContext,
   useEffect,
   useState,
-} from "react";
+} from 'react';
 
-export const AppInfoContext = createContext<{
+type AppInfoContextProps = {
   appInfo?: AppInfo;
   setAppInfo: Dispatch<SetStateAction<AppInfo | undefined>>;
-}>({
+};
+
+export const AppInfoContext = createContext<AppInfoContextProps>({
   appInfo: undefined,
   setAppInfo: () => {},
 });
@@ -24,7 +26,7 @@ export const AppInfoProvider = ({ children }: PropsWithChildren) => {
   useEffect(() => {
     AppInfoService.getAppInfo()
       .then(setAppInfo)
-      .catch(() => message.error("Failed to get app info"));
+      .catch(() => message.error('Failed to get app info'));
   }, []);
 
   return (

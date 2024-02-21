@@ -19,7 +19,6 @@ import {
 import { useSpawn, useEthers } from '@/hooks';
 import { SpawnScreenState } from '@/enums';
 import { CheckSquareTwoTone, WarningFilled } from '@ant-design/icons';
-import { Service, ServiceTemplate } from '@/client';
 import { InputStatus } from 'antd/es/_util/statusUtils';
 import _ from 'lodash';
 
@@ -29,17 +28,13 @@ enum RPCState {
   INVALID,
 }
 
-export const SpawnRPC = ({
-  rpc,
-  setRpc,
-  nextPage,
-}: {
+type SpawnRPCProps = {
   rpc: string;
-  serviceTemplate: ServiceTemplate;
   setRpc: Dispatch<SetStateAction<string>>;
-  setService: Dispatch<SetStateAction<Service | undefined>>;
   nextPage: SpawnScreenState;
-}) => {
+};
+
+export const SpawnRPC = ({ rpc, setRpc, nextPage }: SpawnRPCProps) => {
   const { setSpawnScreenState } = useSpawn();
   const { checkRPC } = useEthers();
 
@@ -98,18 +93,10 @@ export const SpawnRPC = ({
     [rpc, rpcState],
   );
 
-  const inputStatus: InputStatus = useMemo(() => {
-    switch (rpcState) {
-      case RPCState.LOADING:
-        return '';
-      case RPCState.VALID:
-        return '';
-      case RPCState.INVALID:
-        return 'error';
-      default:
-        return '';
-    }
-  }, [rpcState]);
+  const inputStatus: InputStatus = useMemo(
+    () => (rpcState === RPCState.INVALID ? 'error' : ''),
+    [rpcState],
+  );
 
   const inputSuffix: JSX.Element = useMemo(() => {
     switch (rpcState) {

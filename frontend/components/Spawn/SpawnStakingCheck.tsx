@@ -2,6 +2,8 @@ import { Service, ServiceTemplate } from '@/client';
 import { TOKENS } from '@/constants';
 import { SpawnScreenState } from '@/enums';
 import { useEthers, useServices, useAppInfo } from '@/hooks';
+import { Address } from '@/types';
+import { FundsRequirementMap } from '@/types/Maps';
 import { Button, Flex, Typography, message } from 'antd';
 import { ethers } from 'ethers';
 import {
@@ -17,6 +19,16 @@ enum ButtonOptions {
   NO,
 }
 
+type SpawnStakingCheckProps = {
+  serviceTemplate: ServiceTemplate;
+  rpc: string;
+  setAgentFundRequirements: Dispatch<SetStateAction<FundsRequirementMap>>;
+  setSpawnScreenState: Dispatch<SetStateAction<SpawnScreenState>>;
+  setIsStaking: Dispatch<SetStateAction<boolean>>;
+  setService: Dispatch<SetStateAction<Service | undefined>>;
+  nextPage: SpawnScreenState;
+};
+
 export const SpawnStakingCheck = ({
   serviceTemplate,
   rpc,
@@ -25,28 +37,13 @@ export const SpawnStakingCheck = ({
   setIsStaking,
   setService,
   nextPage,
-}: {
-  serviceTemplate: ServiceTemplate;
-  rpc: string;
-  setAgentFundRequirements: Dispatch<
-    SetStateAction<{ [address: string]: number }>
-  >;
-  setSpawnScreenState: Dispatch<SetStateAction<SpawnScreenState>>;
-  setIsStaking: Dispatch<SetStateAction<boolean>>;
-  setService: Dispatch<SetStateAction<Service | undefined>>;
-  nextPage: SpawnScreenState;
-}) => {
+}: SpawnStakingCheckProps) => {
   const { createService } = useServices();
-  const { getPublicKey } = useAppInfo();
+  const { userPublicKey } = useAppInfo();
   const { getERC20Balance } = useEthers();
 
   const [isCreating, setIsCreating] = useState(false);
   const [buttonClicked, setButtonClicked] = useState<ButtonOptions>();
-
-  const publicKey: string | undefined = useMemo(
-    () => getPublicKey(),
-    [getPublicKey],
-  );
 
   /**
    * Creates service, then performs relevant state updates
@@ -73,7 +70,7 @@ export const SpawnStakingCheck = ({
           if (_service.chain_data?.instances) {
             setAgentFundRequirements(
               _service.chain_data.instances.reduce(
-                (acc: { [address: string]: number }, address: string) => ({
+                (acc: { [address: Address]: number }, address: Address) => ({
                   ...acc,
                   [address]:
                     serviceTemplate.configuration.fund_requirements.agent,
@@ -85,10 +82,11 @@ export const SpawnStakingCheck = ({
 
           // Set staking funding requirements from multisig/safe
           if (_service.chain_data?.multisig) {
-            setAgentFundRequirements((prev) => ({
+            const { multisig } = _service.chain_data;
+            const { safe } = serviceTemplate.configuration.fund_requirements;
+            setAgentFundRequirements((prev: FundsRequirementMap) => ({
               ...prev,
-              [_service.chain_data?.multisig as string]:
-                serviceTemplate.configuration.fund_requirements.safe,
+              [multisig]: safe,
             }));
           }
           return Promise.resolve();
@@ -112,10 +110,10 @@ export const SpawnStakingCheck = ({
    * Checks if the user has the required OLAS to stake
    */
   const preflightStakingCheck = useCallback((): Promise<boolean> => {
-    if (!publicKey) {
+    if (!userPublicKey) {
       return Promise.reject('No public key found');
     }
-    return getERC20Balance(publicKey, rpc, TOKENS.gnosis.OLAS)
+    return getERC20Balance(userPublicKey, rpc, TOKENS.gnosis.OLAS)
       .then((olasBalance: number) => {
         const { olas_required_to_stake, olas_cost_of_bond } =
           serviceTemplate.configuration;
@@ -135,7 +133,7 @@ export const SpawnStakingCheck = ({
       .catch((e) => {
         return Promise.reject(e);
       });
-  }, [getERC20Balance, publicKey, rpc, serviceTemplate.configuration]);
+  }, [getERC20Balance, userPublicKey, rpc, serviceTemplate.configuration]);
 
   const handleYes = async () => {
     setButtonClicked(ButtonOptions.YES);
@@ -144,7 +142,7 @@ export const SpawnStakingCheck = ({
       return false;
     });
     if (!canStake) {
-      message.error(`${publicKey} requires more OLAS to stake`);
+      message.error(`${userPublicKey} requires more OLAS to stake`);
       return setButtonClicked(undefined);
     }
     const hasCreated: boolean = await create(true)

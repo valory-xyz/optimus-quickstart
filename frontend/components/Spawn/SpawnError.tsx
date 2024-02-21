@@ -1,7 +1,11 @@
 import { Button, Flex, Typography } from 'antd';
 import { useRouter } from 'next/router';
 
-export const SpawnError = ({ message }: { message: string }) => {
+type SpawnErrorProps = {
+  message: string;
+};
+
+export const SpawnError = ({ message }: SpawnErrorProps) => {
   const router = useRouter();
   return (
     <Flex vertical justify="center" align="center">

@@ -1,5 +1,5 @@
 import { Flex } from 'antd';
-import { MarketplaceItemCard } from './MarketplaceItemCard/MarketplaceItemCard';
+import { MarketplaceItemCard } from './MarketplaceItemCard';
 import { useMemo } from 'react';
 import { useMarketplace } from '@/hooks';
 
