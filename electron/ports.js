@@ -2,12 +2,14 @@ const net = require("net");
 
 const portRange = { startPort: 39152, endPort: 65535 }; //only source dynamic and private ports https://www.arubanetworks.com/techdocs/AOS-S/16.10/MRG/YC/content/common%20files/tcp-por-num-ran.htm
 
+const addressInUseCode = "EADDRINUSE";
+
 const isPortAvailable = async (port) => {
   return new Promise((resolve, reject) => {
     const server = net.createServer();
 
     server.once("error", (err) => {
-      if (err.code === "EADDRINUSE") {
+      if (err.code === addressInUseCode) {
         resolve(false);
       } else {
         reject(err);
@@ -28,7 +30,7 @@ const findAvailablePort = async (startPort, endPort) => {
     const server = net.createServer();
 
     server.on("error", (err) => {
-      if (err.code === "EADDRINUSE") {
+      if (err.code === addressInUseCode) {
         if (startPort < endPort) {
           findAvailablePort(startPort + 1, endPort)
             .then(resolve)
