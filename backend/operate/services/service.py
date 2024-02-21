@@ -364,6 +364,8 @@ class Service(
     service_path: Path
     path: Path
 
+    _helper: t.Optional[ServiceHelper]
+
     def __init__(
         self,
         service_path: Path,
@@ -371,6 +373,7 @@ class Service(
         keys: KeysType,
         ledger: t.Optional[LedgerConfig] = None,
         chain_data: t.Optional[ChainData] = None,
+        active: bool = False,
         name: t.Optional[str] = None,
     ) -> None:
         """Initialize object."""
@@ -379,10 +382,18 @@ class Service(
         self.keys = keys
         self.hash = phash
         self.ledger = ledger
+        self.active = active
         self.service_path = service_path
-        self.helper = ServiceHelper(path=self.service_path)
         self.chain_data = chain_data or {}
         self.path = self.service_path.parent
+        self._helper = None
+
+    @property
+    def helper(self) -> ServiceHelper:
+        """Get service helper."""
+        if self._helper is None:
+            self._helper = ServiceHelper(path=self.service_path)
+        return t.cast(ServiceHelper, self._helper)
 
     def deployment(self) -> Deployment:
         """Load deployment object for the service."""
@@ -416,6 +427,7 @@ class Service(
                 "readme": (
                     readme.read_text(encoding="utf-8") if readme.exists() else None
                 ),
+                "active": self.active,
             }
         )
 
@@ -437,6 +449,7 @@ class Service(
             chain_data=config.get("chain_data"),
             service_path=Path(config["service_path"]),
             name=config["name"],
+            active=config["active"],
         )
 
     @classmethod
@@ -467,6 +480,7 @@ class Service(
             ledger=ledger,
             service_path=Path(downloaded),
             name=name,
+            active=True,
         )
         service.store()
         return service
@@ -485,5 +499,12 @@ class Service(
 
     def delete(self, data: DeleteServicePayload) -> DeleteServiceResponse:
         """Delete service."""
-        shutil.rmtree(self.path)
+        try:
+            shutil.rmtree(self.path)
+        except (PermissionError, OSError):
+            # If we get permission error we set the service in-active
+            # user can then run operate prune with admin priviledges
+            # to clean up the cache/unused data
+            self.active = False
+            self.store()
         return DeleteServiceResponse({})

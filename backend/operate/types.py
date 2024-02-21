@@ -173,6 +173,7 @@ class ServiceType(TypedDict):
     readme: NotRequired[str]
     ledger: NotRequired[LedgerConfig]
     chain_data: NotRequired[ChainData]
+    active: bool
 
 
 ServicesType = t.List[ServiceType]
@@ -245,5 +246,6 @@ class DeployedNodes(TypedDict):
 class DeploymentType(TypedDict):
     """Deployment type."""
 
+    version: int
     status: Status
     nodes: DeployedNodes
