@@ -7,21 +7,21 @@ import {
   TimelineItemProps,
   Typography,
   message,
-} from "antd";
-import { NODIES_URL } from "@/constants/urls";
+} from 'antd';
+import { NODIES_URL } from '@/constants/urls';
 import {
   Dispatch,
   SetStateAction,
   useCallback,
   useMemo,
   useState,
-} from "react";
-import { useSpawn, useEthers } from "@/hooks";
-import { SpawnScreenState } from "@/enums";
-import { CheckSquareTwoTone, WarningFilled } from "@ant-design/icons";
-import { Service, ServiceTemplate } from "@/client";
-import { InputStatus } from "antd/es/_util/statusUtils";
-import _ from "lodash";
+} from 'react';
+import { useSpawn, useEthers } from '@/hooks';
+import { SpawnScreenState } from '@/enums';
+import { CheckSquareTwoTone, WarningFilled } from '@ant-design/icons';
+import { Service, ServiceTemplate } from '@/client';
+import { InputStatus } from 'antd/es/_util/statusUtils';
+import _ from 'lodash';
 
 enum RPCState {
   LOADING,
@@ -52,7 +52,7 @@ export const SpawnRPC = ({
         .readText()
         .then((text) => setRpc(text))
         .catch(() => {
-          message.error("Failed to read clipboard");
+          message.error('Failed to read clipboard');
         }),
     [setRpc],
   );
@@ -69,7 +69,7 @@ export const SpawnRPC = ({
         )
         .catch(() => {
           setRpcState(RPCState.INVALID);
-          message.error("Failed to check RPC");
+          message.error('Failed to check RPC');
         })
         .finally(() => setIsCheckingRpc(false));
     }, 1000),
@@ -87,7 +87,7 @@ export const SpawnRPC = ({
 
   const handleContinue = useCallback(async () => {
     if (!rpc || rpcState !== RPCState.VALID) {
-      message.error("Invalid RPC");
+      message.error('Invalid RPC');
       return;
     }
     setSpawnScreenState(nextPage);
@@ -101,13 +101,13 @@ export const SpawnRPC = ({
   const inputStatus: InputStatus = useMemo(() => {
     switch (rpcState) {
       case RPCState.LOADING:
-        return "";
+        return '';
       case RPCState.VALID:
-        return "";
+        return '';
       case RPCState.INVALID:
-        return "error";
+        return 'error';
       default:
-        return "";
+        return '';
     }
   }, [rpcState]);
 
@@ -166,7 +166,7 @@ export const SpawnRPC = ({
             <Typography.Text>Paste endpoint</Typography.Text>
             <Input
               value={rpc}
-              placeholder={"https://..."}
+              placeholder={'https://...'}
               onChange={handleRpcChange}
               suffix={inputSuffix}
               status={inputStatus}

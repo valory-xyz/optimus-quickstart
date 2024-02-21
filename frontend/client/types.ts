@@ -1,4 +1,4 @@
-import { Ledger, Chain, DeploymentStatus } from "./enums";
+import { Ledger, Chain, DeploymentStatus } from './enums';
 
 export type ServiceHash = string;
 

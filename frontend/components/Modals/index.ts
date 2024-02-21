@@ -1,1 +1,1 @@
-export * from "./QRModal/QRModal";
+export * from './QRModal/QRModal';

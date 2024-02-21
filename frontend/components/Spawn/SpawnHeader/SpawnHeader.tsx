@@ -1,14 +1,14 @@
-import { useSpawn } from "@/hooks";
-import { mainTheme } from "@/theme";
-import { Flex, Progress, Typography } from "antd";
-import Image from "next/image";
-import { useMemo } from "react";
+import { useSpawn } from '@/hooks';
+import { mainTheme } from '@/theme';
+import { Flex, Progress, Typography } from 'antd';
+import Image from 'next/image';
+import { useMemo } from 'react';
 
 export const SpawnHeader = () => {
   const { spawnPercentage } = useSpawn();
 
   const title: string = useMemo(
-    () => (spawnPercentage === 100 ? "Agent Spawned" : "Spawning your Agent"),
+    () => (spawnPercentage === 100 ? 'Agent Spawned' : 'Spawning your Agent'),
     [spawnPercentage],
   );
 
@@ -20,7 +20,7 @@ export const SpawnHeader = () => {
         percent={spawnPercentage}
         strokeColor={mainTheme.token?.colorPrimary}
         showInfo={false}
-        style={{ width: "50%" }}
+        style={{ width: '50%' }}
       />
     </Flex>
   );

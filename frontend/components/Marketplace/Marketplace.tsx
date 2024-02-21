@@ -1,7 +1,7 @@
-import { Flex } from "antd";
-import { MarketplaceItemCard } from "./MarketplaceItemCard/MarketplaceItemCard";
-import { useMemo } from "react";
-import { useMarketplace } from "@/hooks";
+import { Flex } from 'antd';
+import { MarketplaceItemCard } from './MarketplaceItemCard/MarketplaceItemCard';
+import { useMemo } from 'react';
+import { useMarketplace } from '@/hooks';
 
 export const Marketplace = () => {
   const { getServiceTemplates } = useMarketplace();

@@ -1,7 +1,7 @@
-import { Service } from "@/client";
-import { Funding } from "../Funding/Funding";
-import { SpawnScreenState } from "@/enums";
-import { FundRequirementETH } from "../Funding/FundRequirement/FundRequirementETH";
+import { Service } from '@/client';
+import { Funding } from '../Funding/Funding';
+import { SpawnScreenState } from '@/enums';
+import { FundRequirementETH } from '../Funding/FundRequirement/FundRequirementETH';
 
 export const SpawnAgentFunding = (props: {
   service: Service;
@@ -10,7 +10,7 @@ export const SpawnAgentFunding = (props: {
 }) => (
   <Funding
     fundRequirements={props.agentFundRequirements}
-    symbol={"XDAI"} // hardcoded while only trader is available
+    symbol={'XDAI'} // hardcoded while only trader is available
     FundRequirementComponent={FundRequirementETH}
     {...props}
   />

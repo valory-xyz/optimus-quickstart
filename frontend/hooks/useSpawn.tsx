@@ -1,6 +1,6 @@
-import { SpawnContext } from "@/context";
-import { SpawnScreenState } from "@/enums";
-import { useCallback, useContext, useMemo } from "react";
+import { SpawnContext } from '@/context';
+import { SpawnScreenState } from '@/enums';
+import { useCallback, useContext, useMemo } from 'react';
 
 export const useSpawn = () => {
   const { spawnScreenState, setSpawnScreenState, firstSpawnScreenState } =

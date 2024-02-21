@@ -1,7 +1,7 @@
-import { MULTICALL_CONTRACT } from "@/constants";
-import { BigNumber, ethers } from "ethers";
-import { Contract, ContractCall, Provider } from "ethers-multicall";
-import { multicall3Abi } from "@/abi";
+import { MULTICALL_CONTRACT } from '@/constants';
+import { BigNumber, ethers } from 'ethers';
+import { Contract, ContractCall, Provider } from 'ethers-multicall';
+import { multicall3Abi } from '@/abi';
 
 export const useMulticall = () => {
   /**
@@ -54,7 +54,7 @@ export const useMulticall = () => {
     const multicallContract = new Contract(MULTICALL_CONTRACT, multicall3Abi);
 
     const callData: ContractCall[] = addresses.map((address: string) =>
-      multicallContract.call(contractAddress, "balanceOf(address):(uint256)", [
+      multicallContract.call(contractAddress, 'balanceOf(address):(uint256)', [
         address,
       ]),
     );

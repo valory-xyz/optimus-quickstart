@@ -1,8 +1,8 @@
-import { Service } from "@/client";
-import { useMulticall } from "@/hooks";
-import { Flex, Typography, message } from "antd";
-import { useMemo, useState } from "react";
-import { useInterval } from "usehooks-ts";
+import { Service } from '@/client';
+import { useMulticall } from '@/hooks';
+import { Flex, Typography, message } from 'antd';
+import { useMemo, useState } from 'react';
+import { useInterval } from 'usehooks-ts';
 
 const BALANCE_POLLING_INTERVAL = 5000;
 

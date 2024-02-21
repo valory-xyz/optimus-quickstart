@@ -1,16 +1,16 @@
-import { Service, ServiceTemplate } from "@/client";
-import { TOKENS } from "@/constants";
-import { SpawnScreenState } from "@/enums";
-import { useEthers, useServices, useAppInfo } from "@/hooks";
-import { Button, Flex, Typography, message } from "antd";
-import { ethers } from "ethers";
+import { Service, ServiceTemplate } from '@/client';
+import { TOKENS } from '@/constants';
+import { SpawnScreenState } from '@/enums';
+import { useEthers, useServices, useAppInfo } from '@/hooks';
+import { Button, Flex, Typography, message } from 'antd';
+import { ethers } from 'ethers';
 import {
   Dispatch,
   SetStateAction,
   useCallback,
   useMemo,
   useState,
-} from "react";
+} from 'react';
 
 enum ButtonOptions {
   YES,
@@ -54,7 +54,7 @@ export const SpawnStakingCheck = ({
   const create = useCallback(
     async (isStaking: boolean) => {
       if (isCreating) {
-        message.error("Service creation already in progress");
+        message.error('Service creation already in progress');
         return;
       }
       setIsCreating(true);
@@ -113,7 +113,7 @@ export const SpawnStakingCheck = ({
    */
   const preflightStakingCheck = useCallback((): Promise<boolean> => {
     if (!publicKey) {
-      return Promise.reject("No public key found");
+      return Promise.reject('No public key found');
     }
     return getERC20Balance(publicKey, rpc, TOKENS.gnosis.OLAS)
       .then((olasBalance: number) => {
@@ -129,7 +129,7 @@ export const SpawnStakingCheck = ({
 
           return Promise.resolve(hasBalance);
         } catch (e) {
-          return Promise.reject("Failed to calculate if user has balance");
+          return Promise.reject('Failed to calculate if user has balance');
         }
       })
       .catch((e) => {
@@ -150,12 +150,12 @@ export const SpawnStakingCheck = ({
     const hasCreated: boolean = await create(true)
       .then(() => {
         {
-          message.success("Service created successfully");
+          message.success('Service created successfully');
           return true;
         }
       })
       .catch(() => {
-        message.error("Failed to create service");
+        message.error('Failed to create service');
         return false;
       });
     if (canStake && hasCreated) {
@@ -169,11 +169,11 @@ export const SpawnStakingCheck = ({
     setButtonClicked(ButtonOptions.NO);
     const hasCreated: boolean = await create(false)
       .then(() => {
-        message.success("Service created successfully");
+        message.success('Service created successfully');
         return true;
       })
       .catch(() => {
-        message.error("Failed to create service");
+        message.error('Failed to create service');
         return false;
       });
     if (hasCreated) {

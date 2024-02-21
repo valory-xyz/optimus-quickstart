@@ -3,14 +3,14 @@ import {
   DeploymentStatus,
   Service,
   ServiceTemplate,
-} from "@/client";
-import { useMarketplace } from "@/hooks/useMarketplace";
-import { useServices } from "@/hooks/useServices";
-import { Card, Flex, Typography, Button, Badge, Spin, message } from "antd";
-import Image from "next/image";
-import { useCallback, useMemo, useState } from "react";
-import { useInterval } from "usehooks-ts";
-import { ServiceCardTotalBalance } from "./ServiceCardTotalBalance";
+} from '@/client';
+import { useMarketplace } from '@/hooks/useMarketplace';
+import { useServices } from '@/hooks/useServices';
+import { Card, Flex, Typography, Button, Badge, Spin, message } from 'antd';
+import Image from 'next/image';
+import { useCallback, useMemo, useState } from 'react';
+import { useInterval } from 'usehooks-ts';
+import { ServiceCardTotalBalance } from './ServiceCardTotalBalance';
 
 type ServiceCardProps = {
   service: Service;
@@ -42,7 +42,7 @@ export const ServiceCard = ({ service }: ServiceCardProps) => {
         .then((r: Deployment) => setServiceStatus(r.status))
         .catch(() => {
           setServiceStatus(undefined);
-          message.error("Failed to update service status");
+          message.error('Failed to update service status');
         }),
     [getServiceStatus, service.hash],
   );
@@ -54,17 +54,17 @@ export const ServiceCard = ({ service }: ServiceCardProps) => {
     setIsStarting(true);
     deployService(service.hash)
       .then(async () => {
-        message.success("Service started successfully");
+        message.success('Service started successfully');
         updateServicesState().catch(() =>
-          message.error("Failed to update services"),
+          message.error('Failed to update services'),
         );
       })
       .catch(() => {
-        message.error("Failed to start service");
+        message.error('Failed to start service');
       })
       .finally(() => {
         updateServiceStatus()
-          .catch(() => message.error("Failed to update service status"))
+          .catch(() => message.error('Failed to update service status'))
           .finally(() => setIsStarting(false));
       });
   }, [
@@ -81,15 +81,15 @@ export const ServiceCard = ({ service }: ServiceCardProps) => {
     stopService(service.hash)
       .then(() => {
         updateServicesState().catch(() =>
-          message.error("Failed to update services"),
+          message.error('Failed to update services'),
         );
       })
       .catch(() => {
-        message.error("Failed to stop service");
+        message.error('Failed to stop service');
       })
       .finally(() => {
         updateServiceStatus()
-          .catch(() => message.error("Failed to update service status"))
+          .catch(() => message.error('Failed to update service status'))
           .finally(() => setIsStopping(false));
       });
   }, [
@@ -106,10 +106,10 @@ export const ServiceCard = ({ service }: ServiceCardProps) => {
     deleteServices([service.hash])
       .then(async () => {
         updateServicesState().catch(() =>
-          message.error("Failed to update services"),
+          message.error('Failed to update services'),
         );
       })
-      .catch(() => message.error("Failed to delete service"))
+      .catch(() => message.error('Failed to delete service'))
       .finally(() => {
         updateServiceStatus().finally(() => setIsDeleting(false));
       });
@@ -220,7 +220,7 @@ export const ServiceCard = ({ service }: ServiceCardProps) => {
         <Flex vertical>
           <Typography.Title level={3}>{serviceTemplate!.name}</Typography.Title>
           <Typography.Text>{serviceTemplate!.description}</Typography.Text>
-          <Flex gap={"large"} justify="space-between">
+          <Flex gap={'large'} justify="space-between">
             <Flex vertical>
               <Typography.Text strong>STATUS</Typography.Text>
               <Typography.Text>{serviceStatusBadge}</Typography.Text>
@@ -232,7 +232,7 @@ export const ServiceCard = ({ service }: ServiceCardProps) => {
              */}
             <ServiceCardTotalBalance service={service} />
           </Flex>
-          <Flex style={{ marginTop: "auto" }}>{buttons}</Flex>
+          <Flex style={{ marginTop: 'auto' }}>{buttons}</Flex>
         </Flex>
       </Flex>
     </Card>

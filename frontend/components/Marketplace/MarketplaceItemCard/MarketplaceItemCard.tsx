@@ -1,8 +1,8 @@
-import { ServiceTemplate } from "@/client";
-import { useServices } from "@/hooks";
-import { Button, Typography, Flex, Card } from "antd";
-import Image from "next/image";
-import { useMemo } from "react";
+import { ServiceTemplate } from '@/client';
+import { useServices } from '@/hooks';
+import { Button, Typography, Flex, Card } from 'antd';
+import Image from 'next/image';
+import { useMemo } from 'react';
 
 export const MarketplaceItemCard = ({
   serviceTemplate,
@@ -38,10 +38,10 @@ export const MarketplaceItemCard = ({
       <Flex gap={16}>
         <Image src={image} alt="Image" width={200} height={200} />
         <Flex vertical>
-          <Flex vertical style={{ height: "100%" }}>
+          <Flex vertical style={{ height: '100%' }}>
             <Typography.Title level={3}>{name}</Typography.Title>
             <Typography.Text>{description}</Typography.Text>
-            <Flex style={{ marginTop: "auto" }}>{button}</Flex>
+            <Flex style={{ marginTop: 'auto' }}>{button}</Flex>
           </Flex>
         </Flex>
       </Flex>

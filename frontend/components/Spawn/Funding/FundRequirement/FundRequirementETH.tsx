@@ -1,6 +1,6 @@
-import { useEthers } from "@/hooks";
-import { Dispatch, SetStateAction } from "react";
-import { FundRequirement } from "./FundRequirement";
+import { useEthers } from '@/hooks';
+import { Dispatch, SetStateAction } from 'react';
+import { FundRequirement } from './FundRequirement';
 
 export const FundRequirementETH = (props: {
   serviceHash?: string;

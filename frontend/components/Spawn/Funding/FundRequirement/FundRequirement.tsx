@@ -1,14 +1,14 @@
-import { copyToClipboard } from "@/helpers/copyToClipboard";
-import { useModals, useServices } from "@/hooks";
-import { Button, Flex, Typography, message } from "antd";
+import { copyToClipboard } from '@/helpers/copyToClipboard';
+import { useModals, useServices } from '@/hooks';
+import { Button, Flex, Typography, message } from 'antd';
 import {
   Dispatch,
   SetStateAction,
   useCallback,
   useMemo,
   useState,
-} from "react";
-import { useInterval } from "usehooks-ts";
+} from 'react';
+import { useInterval } from 'usehooks-ts';
 
 /**
  * Should be called by FundRequirementERC20 or FundRequirementETH only
@@ -56,10 +56,10 @@ export const FundRequirement = ({
     (): Promise<void> =>
       copyToClipboard(address)
         .then(() => {
-          message.success("Copied to clipboard");
+          message.success('Copied to clipboard');
         })
         .catch(() => {
-          message.error("Failed to copy to clipboard");
+          message.error('Failed to copy to clipboard');
         }),
     [address],
   );

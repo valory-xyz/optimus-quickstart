@@ -1,8 +1,8 @@
-import { Service } from "@/client";
-import { SpawnScreenState } from "@/enums";
-import { useSpawn } from "@/hooks";
-import { TimelineItemProps, Flex, Typography, Timeline } from "antd";
-import { useState, useMemo, useEffect, SetStateAction, Dispatch } from "react";
+import { Service } from '@/client';
+import { SpawnScreenState } from '@/enums';
+import { useSpawn } from '@/hooks';
+import { TimelineItemProps, Flex, Typography, Timeline } from 'antd';
+import { useState, useMemo, useEffect, SetStateAction, Dispatch } from 'react';
 
 export const Funding = ({
   service,
@@ -55,7 +55,7 @@ export const Funding = ({
             contractAddress={contractAddress}
           />
         ),
-        color: receivedFunds[address] ? "green" : "red",
+        color: receivedFunds[address] ? 'green' : 'red',
       })) as TimelineItemProps[],
     [
       FundRequirementComponent,

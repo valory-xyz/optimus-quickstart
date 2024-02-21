@@ -1,3 +1,3 @@
 export const CHAINS = {
-  gnosis: { currency: "XDAI", chainId: 100 },
+  gnosis: { currency: 'XDAI', chainId: 100 },
 };

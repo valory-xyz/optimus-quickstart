@@ -1,8 +1,8 @@
-import { useModals } from "@/hooks";
-import { QRModalData } from "@/types";
-import { Flex, Modal, QRCode, Typography } from "antd";
-import { ethers } from "ethers";
-import { useMemo } from "react";
+import { useModals } from '@/hooks';
+import { QRModalData } from '@/types';
+import { Flex, Modal, QRCode, Typography } from 'antd';
+import { ethers } from 'ethers';
+import { useMemo } from 'react';
 
 export const QRModal = ({
   data: { amount, chainId, address, open, isERC20 },
@@ -26,7 +26,7 @@ export const QRModal = ({
   }, [amount]);
 
   const metamaskAddress: string | undefined = useMemo(() => {
-    if (!address || !chainId || !parsedAmount) return "";
+    if (!address || !chainId || !parsedAmount) return '';
     if (isERC20) {
       return `https://metamask.app.link/send/token/${address}@${chainId}?value=${parsedAmount}`;
     }
@@ -47,7 +47,7 @@ export const QRModal = ({
     >
       <Flex vertical gap={5}>
         <Typography.Text>
-          This QR code is currently only supported by{" "}
+          This QR code is currently only supported by{' '}
           <strong>Metamask Mobile</strong>.
         </Typography.Text>
         <Flex justify="center">

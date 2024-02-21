@@ -1,6 +1,6 @@
-import { useServices, useSpawn, useTabs } from "@/hooks";
-import { Button, Flex, message } from "antd";
-import { useRouter } from "next/router";
+import { useServices, useSpawn, useTabs } from '@/hooks';
+import { Button, Flex, message } from 'antd';
+import { useRouter } from 'next/router';
 
 export const SpawnDone = () => {
   const router = useRouter();
@@ -10,11 +10,11 @@ export const SpawnDone = () => {
   const { updateServicesState } = useServices();
 
   const handleViewAgent = () =>
-    router.push("/").then(() => {
+    router.push('/').then(() => {
       resetSpawn();
       resetTabs();
       updateServicesState().catch(() =>
-        message.error("Failed to update services"),
+        message.error('Failed to update services'),
       );
     });
 

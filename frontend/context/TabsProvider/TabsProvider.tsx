@@ -1,11 +1,11 @@
-import { Tab } from "@/enums";
+import { Tab } from '@/enums';
 import {
   Dispatch,
   PropsWithChildren,
   SetStateAction,
   createContext,
   useState,
-} from "react";
+} from 'react';
 
 export const TabsContext = createContext<{
   activeTab: string;

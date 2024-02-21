@@ -1,11 +1,11 @@
-import { SpawnScreenState } from "@/enums";
+import { SpawnScreenState } from '@/enums';
 import {
   Dispatch,
   PropsWithChildren,
   SetStateAction,
   createContext,
   useState,
-} from "react";
+} from 'react';
 
 type SpawnContextType = {
   spawnScreenState: SpawnScreenState;
