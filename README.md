@@ -17,6 +17,13 @@ Electron + NextJS + Backend application to one-click run Agents.
 
 For development, we have been using Ubuntu 22.04.
 
+### Setup ENV file
+
+Create an `.env` file in the root directory, or rename `.env.example` to `.env`.
+
+For development usage, set `NODE_ENV=development`.
+For production usage, set `NODE_ENV=production`.
+
 ### Ensure Docker v24 is installed
 
 You can change the ubuntu.XX.XX~XX version to your OS in the following command:
@@ -125,6 +132,12 @@ Copy any one of these private keys into `/backend/.operate/key.txt`.
 Be sure to kill the Hardhat node once you have completed this step.
 
 ### Run the development app
+
+**If you are using the app in `production` mode** (having set this in your `.env` file), you will need to build the frontend first. You can achieve this by running: 
+
+```bash
+yarn build:frontend
+```
 
 **Ensure ports: 3000 (for frontend), 8000 (for backend), 8545 (for hardhat node); are free.**
 

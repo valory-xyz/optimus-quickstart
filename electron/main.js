@@ -11,14 +11,16 @@ const { spawn } = require("child_process");
 const { isPortAvailable, portRange, findAvailablePort } = require("./ports");
 const { isDockerRunning } = require("./docker");
 const psTree = require("ps-tree");
+require("dotenv").config();
 
 let tray, mainWindow, splashWindow;
-let processList = [];
+
+const isProduction = process.env.NODE_ENV === "production";
 
 let processes = {
-  backend: { port: 8000, ready: false },
-  frontend: { port: 3000, ready: false },
-  hardhat: { port: 8545, ready: false }, // temporary
+  backend: { port: 8000, ready: false, pid: null },
+  frontend: { port: 3000, ready: false, pid: null },
+  ...(!isProduction && { hardhat: { port: 8545, ready: false, pid: null } }),
 };
 
 // Attempt to acquire the single instance lock
@@ -50,7 +52,7 @@ const launchProcesses = async () => {
     shell: true,
     detached: false,
   }); // need to assign port
-  processList.push(backendProcess);
+  processes.backend.pid = backendProcess.pid;
   // use stderr to capture logs
   backendProcess.stderr.on("data", (data) => {
     if (data.toString().includes("Uvicorn running on")) {
@@ -90,7 +92,7 @@ const launchProcesses = async () => {
     [
       `NEXT_PUBLIC_BACKEND_PORT=${processes.backend.port}`,
       "yarn",
-      "dev:frontend",
+      `${isProduction ? "start" : "dev"}:frontend`,
       `--port=${processes.frontend.port}`,
     ],
     {
@@ -99,7 +101,7 @@ const launchProcesses = async () => {
       detached: false,
     },
   );
-  processList.push(frontendProcess);
+  processes.frontend.pid = frontendProcess.pid;
   frontendProcess.stdout.on("data", (data) => {
     if (data.toString().includes("Ready in")) {
       console.log("Frontend ready");
@@ -109,45 +111,52 @@ const launchProcesses = async () => {
   });
 
   // hardhat
-  try {
-    const hardhatPortAvailable = await isPortAvailable(processes.hardhat.port);
-    if (!hardhatPortAvailable) {
-      processes.hardhat.port = await findAvailablePort(
-        portRange.startPort,
-        portRange.endPort,
+  if (!isProduction) {
+    // don't launch hardhat in production
+    try {
+      const hardhatPortAvailable = await isPortAvailable(
+        processes.hardhat.port,
       );
+      if (!hardhatPortAvailable) {
+        processes.hardhat.port = await findAvailablePort(
+          portRange.startPort,
+          portRange.endPort,
+        );
+      }
+    } catch (error) {
+      console.error("Error checking Hardhat port: ", error);
+      app.quit();
     }
-  } catch (error) {
-    console.error("Error checking Hardhat port: ", error);
-    app.quit();
-  }
 
-  const hardhatProcess = spawn(
-    "cross-env",
-    [`PORT=${processes.hardhat.port}`, `yarn`, `dev:hardhat`],
-    {
-      maxBuffer: 1000,
-      shell: true,
-      detached: false,
-    },
-  );
-  processList.push(hardhatProcess);
-  hardhatProcess.stdout.on("data", (data) => {
-    if (
-      data.toString().includes("Started HTTP and WebSocket JSON-RPC server at")
-    ) {
-      console.log("Hardhat ready");
-      processes.hardhat.ready = true;
-      checkProcessesReadyThenMain();
-    }
-  });
+    const hardhatProcess = spawn(
+      "cross-env",
+      [`PORT=${processes?.hardhat?.port}`, `yarn`, `dev:hardhat`],
+      {
+        maxBuffer: 1000,
+        shell: true,
+        detached: false,
+      },
+    );
+    processes.hardhat.pid = hardhatProcess.pid;
+    hardhatProcess.stdout.on("data", (data) => {
+      if (
+        data
+          .toString()
+          .includes("Started HTTP and WebSocket JSON-RPC server at")
+      ) {
+        console.log("Hardhat ready");
+        processes.hardhat.ready = true;
+        checkProcessesReadyThenMain();
+      }
+    });
+  }
 };
 
 /**
  * Kills all child processes
  */
 const killAllProcesses = () =>
-  processList.forEach((p) => {
+  Object.values(processes).forEach((p) => {
     try {
       console.log("Killing process: ", p.pid);
       psTree(p.pid, (err, children) => {
