@@ -1,7 +1,7 @@
 import { useEthers } from '@/hooks';
 import { Dispatch, SetStateAction } from 'react';
 import { FundRequirement } from './FundRequirement';
-import { Address } from '@/types';
+import { Address, FundsReceivedMap } from '@/types';
 
 type FundRequirementETHProps = {
   serviceHash?: string;
@@ -9,7 +9,7 @@ type FundRequirementETHProps = {
   symbol: string;
   requirement: number;
   hasReceivedFunds: boolean;
-  setReceivedFunds: Dispatch<SetStateAction<{ [address: Address]: boolean }>>;
+  setReceivedFunds: Dispatch<SetStateAction<FundsReceivedMap>>;
 };
 
 export const FundRequirementETH = (props: FundRequirementETHProps) => {
