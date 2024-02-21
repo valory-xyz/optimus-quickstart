@@ -1,6 +1,7 @@
 import { copyToClipboard } from '@/helpers/copyToClipboard';
 import { useModals, useServices } from '@/hooks';
 import { Address } from '@/types';
+import { FundsReceivedMap } from '@/types/Maps';
 import { Button, Flex, Typography, message } from 'antd';
 import {
   Dispatch,
@@ -24,7 +25,7 @@ type FundRequirementProps = {
     rpc: string,
     contractAddress?: Address,
   ) => Promise<number>;
-  setReceivedFunds: Dispatch<SetStateAction<{ [address: Address]: boolean }>>;
+  setReceivedFunds: Dispatch<SetStateAction<FundsReceivedMap>>;
 };
 
 /**
@@ -74,13 +75,13 @@ export const FundRequirement = ({
   );
 
   useInterval(
-    () =>
-      rpc &&
+    () => {
+      if (!rpc) return;
       getBalance(address, rpc, contractAddress)
         .then((balance: number) => {
           if (balance >= requirement) {
             setIsPollingBalance(false);
-            setReceivedFunds((prev: { [address: Address]: boolean }) => ({
+            setReceivedFunds((prev: FundsReceivedMap) => ({
               ...prev,
               [address]: true,
             }));
@@ -89,7 +90,8 @@ export const FundRequirement = ({
         })
         .catch(() => {
           message.error(`Failed to get balance for ${address}`);
-        }),
+        });
+    },
     isPollingBalance ? 3000 : null,
   );
 
