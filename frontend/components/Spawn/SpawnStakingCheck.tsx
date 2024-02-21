@@ -3,7 +3,7 @@ import { TOKENS } from '@/constants';
 import { SpawnScreenState } from '@/enums';
 import { useEthers, useServices, useAppInfo } from '@/hooks';
 import { Address } from '@/types';
-import { FundsRequirementMap } from '@/types/Maps';
+import { FundsRequirementMap } from '@/types';
 import { Button, Flex, Typography, message } from 'antd';
 import { ethers } from 'ethers';
 import {
@@ -70,7 +70,7 @@ export const SpawnStakingCheck = ({
           if (_service.chain_data?.instances) {
             setAgentFundRequirements(
               _service.chain_data.instances.reduce(
-                (acc: { [address: Address]: number }, address: Address) => ({
+                (acc: FundsRequirementMap, address: Address) => ({
                   ...acc,
                   [address]:
                     serviceTemplate.configuration.fund_requirements.agent,
