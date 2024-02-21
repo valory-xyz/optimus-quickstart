@@ -2,11 +2,11 @@ import { Service } from '@/client';
 import { Funding } from './Funding/Funding';
 import { SpawnScreenState } from '@/enums';
 import { FundRequirementETH } from './Funding/FundRequirement/FundRequirementETH';
-import { Address } from '@/types';
+import { FundsRequirementMap } from '@/types';
 
 type SpawnAgentFundingProps = {
   service: Service;
-  agentFundRequirements: { [address: Address]: number };
+  agentFundRequirements: FundsRequirementMap;
   nextPage: SpawnScreenState;
 };
 
