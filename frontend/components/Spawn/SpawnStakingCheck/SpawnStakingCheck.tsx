@@ -58,7 +58,7 @@ export const SpawnStakingCheck = ({
         return;
       }
       setIsCreating(true);
-      await createService({
+      createService({
         ...serviceTemplate,
         configuration: {
           ...serviceTemplate.configuration,
