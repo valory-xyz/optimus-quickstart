@@ -14,8 +14,6 @@ export type Key = {
   ledger: Chain;
 };
 
-export type Keys = Key[];
-
 export type ChainData = {
   instances?: string[];
   token?: number;
@@ -25,7 +23,7 @@ export type ChainData = {
 export type Service = {
   name: string;
   hash: string;
-  keys: Keys;
+  keys: Key;
   readme?: string;
   ledger: LedgerConfig;
   chain_data: ChainData;
