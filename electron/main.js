@@ -278,14 +278,14 @@ const createTray = () => {
 
 app.on("ready", async () => {
   const dockerRunning = await isDockerRunning().catch(() => false);
-  // Check docker is running
+  // Check docker is runningS
   if (!dockerRunning) {
     //
     new Notification({
       title: "Docker not running",
       body: "Please start Docker before running Olas Operate.",
     }).show();
-    app.quit();
+    return app.quit();
   }
   createSplashWindow();
   await launchProcesses();
