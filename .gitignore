@@ -31,4 +31,5 @@ backend/temp/
 tmp/
 temp/
 
-!backend/operate/data
+!operate/data
+dist/
