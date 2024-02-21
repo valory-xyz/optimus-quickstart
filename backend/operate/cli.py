@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2023 Valory AG
+#   Copyright 2024 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -17,14 +17,14 @@
 #
 # ------------------------------------------------------------------------------
 
-"""Operate app entrypoint."""
-
+"""Operate app CLI module."""
 
 import os
+import shutil
 from pathlib import Path
 
 from aea_ledger_ethereum.ethereum import EthereumCrypto
-from clea import command, params, run
+from clea import group, params, run
 from operate.constants import KEY, KEYS, OPERATE, SERVICES
 from operate.http import Resource
 from operate.keys import Keys
@@ -86,15 +86,20 @@ class App(Resource):
         }
 
 
-@command(name="operate")
-def _operate(
+@group(name="operate")
+def _operate() -> None:
+    """Operate - deploy autonomous services."""
+
+
+@_operate.command(name="daemon")
+def _daemon(
     host: Annotated[str, params.String(help="HTTP server host string")] = "localhost",
     port: Annotated[int, params.Integer(help="HTTP server port")] = 8000,
     home: Annotated[
-        int, params.Directory(long_flag="--home", help="Home directory")
+        Path, params.Directory(long_flag="--home", help="Home directory")
     ] = None,
 ) -> None:
-    """Operate - deploy autonomous services."""
+    """Launch operate daemon."""
     app = App(home=home)
     uvicorn(
         app=Starlette(
@@ -116,6 +121,28 @@ def _operate(
         host=host,
         port=port,
     )
+
+
+@_operate.command(name="prune")
+def _prune(
+    home: Annotated[
+        Path, params.Directory(long_flag="--home", help="Home directory")
+    ] = None,
+) -> None:
+    """Delete unused/cached data."""
+    app = App(home=home)
+    for service in app.services.json:
+        if service["active"]:
+            continue
+        try:
+            shutil.rmtree(app.services.path / service["hash"])
+            print("Removed service " + service["hash"])
+        except PermissionError:
+            print(
+                "Error removing "
+                + service["hash"]
+                + " please try with admin previledges"
+            )
 
 
 def main() -> None:

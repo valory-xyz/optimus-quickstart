@@ -22,7 +22,7 @@
   "private": true,
   "scripts": {
     "build:frontend": "cd frontend && yarn build",
-    "dev:backend": "cd backend && poetry run python app.py",
+    "dev:backend": "cd backend && poetry run python operate/cli.py",
     "dev:frontend": "cd frontend && yarn dev",
     "dev:hardhat": "npx hardhat node",
     "install-deps": "yarn && concurrently \"yarn install:backend\" \"yarn install:frontend\" ",

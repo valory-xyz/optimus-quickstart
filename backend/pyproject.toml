@@ -5,6 +5,9 @@ description = ""
 authors = ["David Vilela <dvilelaf@gmail.com>"]
 readme = "README.md"
 
+[tool.poetry.scripts]
+operate = "operate.cli:main"
+
 [tool.poetry.dependencies]
 python = "^3.10"
 open-autonomy = "^0.14.2"
