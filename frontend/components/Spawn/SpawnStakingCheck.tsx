@@ -2,8 +2,7 @@ import { Service, ServiceTemplate } from '@/client';
 import { TOKENS } from '@/constants';
 import { SpawnScreenState } from '@/enums';
 import { useEthers, useServices, useAppInfo } from '@/hooks';
-import { Address } from '@/types';
-import { FundsRequirementMap } from '@/types';
+import { Address, FundsRequirementMap } from '@/types';
 import { Button, Flex, Typography, message } from 'antd';
 import { ethers } from 'ethers';
 import {
