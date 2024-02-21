@@ -2,7 +2,7 @@ import { Service } from '@/client';
 import { SpawnScreenState } from '@/enums';
 import { useSpawn } from '@/hooks';
 import { Address } from '@/types';
-import { FundsReceivedMap } from '@/types/Maps';
+import { FundsReceivedMap, FundsRequirementMap } from '@/types';
 import { TimelineItemProps, Flex, Typography, Timeline } from 'antd';
 import { isEmpty } from 'lodash';
 import {
@@ -15,7 +15,7 @@ import {
 } from 'react';
 
 type FundRequirementComponentProps = {
-  setReceivedFunds: Dispatch<SetStateAction<{ [address: Address]: boolean }>>;
+  setReceivedFunds: Dispatch<SetStateAction<FundsReceivedMap>>;
   serviceHash: string;
   address: Address;
   requirement: number;
@@ -26,7 +26,7 @@ type FundRequirementComponentProps = {
 
 type FundingProps = {
   service: Service;
-  fundRequirements: { [address: Address]: number };
+  fundRequirements: FundsRequirementMap;
   FundRequirementComponent: (
     props: FundRequirementComponentProps,
   ) => ReactElement;
@@ -45,12 +45,10 @@ export const Funding = ({
 }: FundingProps) => {
   const { setSpawnScreenState } = useSpawn();
 
-  const [receivedFunds, setReceivedFunds] = useState<{
-    [address: Address]: boolean;
-  }>({
-    ...Object.keys(fundRequirements).reduce(
-      (acc: FundsReceivedMap, address) => {
-        acc[address as Address] = false;
+  const [receivedFunds, setReceivedFunds] = useState<FundsReceivedMap>({
+    ...(Object.keys(fundRequirements) as Address[]).reduce(
+      (acc: FundsReceivedMap, address: Address) => {
+        acc[address] = false;
         return acc;
       },
       {},
