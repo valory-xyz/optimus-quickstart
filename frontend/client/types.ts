@@ -27,8 +27,9 @@ export type Service = {
   hash: string;
   keys: Keys;
   readme?: string;
-  ledger?: LedgerConfig;
-  chain_data?: ChainData;
+  ledger: LedgerConfig;
+  chain_data: ChainData;
+  active: boolean;
 };
 
 export type ServiceTemplate = {

@@ -144,8 +144,9 @@ class Services(
     def json(self) -> GetServices:
         """Returns the list of available services."""
         data = []
-        for service in self.path.iterdir():
-            data.append(Service.load(path=service).json)
+        for path in self.path.iterdir():
+            service = Service.load(path=path)
+            data.append(service.json)
         return data
 
     def _stake(self) -> None:
@@ -337,12 +338,7 @@ class Services(
             reuse_multisig=True,
             update_token=old.chain_data["token"],
         )
-
-        # try:
-        #     shutil.rmtree(old.path)
-        # except Exception as e:
-        #     print(e)
-
+        old.delete({})
         return service.json
 
     def delete(self, data: DeleteServicesPayload) -> ServicesType:
