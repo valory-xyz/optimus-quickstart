@@ -24,7 +24,7 @@ export const ModalsContext = createContext<ModalsContextProps>({
     address: undefined,
     amount: undefined,
     chainId: undefined,
-    isERC20: false,
+    isErc20: false,
   },
   setQrModalData: () => {},
 });
@@ -35,7 +35,7 @@ export const ModalsProvider = ({ children }: PropsWithChildren) => {
     address: undefined,
     amount: undefined,
     chainId: undefined,
-    isERC20: false,
+    isErc20: false,
   });
   return (
     <ModalsContext.Provider

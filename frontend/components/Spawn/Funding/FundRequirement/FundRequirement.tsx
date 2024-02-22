@@ -1,4 +1,4 @@
-import { copyToClipboard } from '@/helpers/copyToClipboard';
+import { copyToClipboard } from '@/common-util/copyToClipboard';
 import { useModals, useServices } from '@/hooks';
 import { Address } from '@/types';
 import { FundsReceivedMap } from '@/types';
@@ -70,7 +70,12 @@ export const FundRequirement = ({
 
   const handleQr = useCallback(
     (): void =>
-      qrModalOpen({ amount: requirement, chainId: 100, address, isERC20 }), // hardcoded chainId for now
+      qrModalOpen({
+        amount: requirement,
+        chainId: 100,
+        address,
+        isErc20: isERC20,
+      }), // hardcoded chainId for now
     [address, isERC20, qrModalOpen, requirement],
   );
 

@@ -1,11 +1,11 @@
-const Docker = require("dockerode");
+const Docker = require('dockerode');
 
-const connectionRefusedCode = "ECONNREFUSED";
+const connectionRefusedCode = 'ECONNREFUSED';
 
 const docker = new Docker(
-  process.platform === "win32"
-    ? { socketPath: "//./pipe/docker_engine" }
-    : { socketPath: "/var/run/docker.sock" },
+  process.platform === 'win32'
+    ? { socketPath: '//./pipe/docker_engine' }
+    : { socketPath: '/var/run/docker.sock' },
 );
 
 function isDockerRunning() {

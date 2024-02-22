@@ -1,5 +1,5 @@
 import { Address } from '@/types';
-import { BigNumber, ethers, providers, utils } from 'ethers';
+import { ethers, providers, utils } from 'ethers';
 
 export const useEthers = () => {
   /**
@@ -8,7 +8,7 @@ export const useEthers = () => {
    * @param rpc string
    * @returns Promise<number>
    */
-  const getETHBalance = async (
+  const getEthBalance = async (
     address: Address,
     rpc: string,
   ): Promise<number> => {
@@ -17,9 +17,10 @@ export const useEthers = () => {
         name: 'Gnosis',
         chainId: 100, // we currently only support Gnosis Trader agent
       });
-      return provider
-        .getBalance(address)
-        .then((balance: BigNumber) => Number(utils.formatEther(balance)));
+      return provider.getBalance(address).then((balance) => {
+        const formattedBalance = utils.formatEther(balance);
+        return Number(formattedBalance);
+      });
     } catch (e) {
       return Promise.reject('Failed to get ETH balance');
     }
@@ -32,7 +33,7 @@ export const useEthers = () => {
    * @param contractAddress Address
    * @returns Promise<number>
    */
-  const getERC20Balance = async (
+  const getErc20Balance = async (
     address: Address,
     rpc: string,
     contractAddress?: Address,
@@ -87,5 +88,9 @@ export const useEthers = () => {
     }
   };
 
-  return { getETHBalance, checkRPC, getERC20Balance };
+  return {
+    getEthBalance,
+    checkRPC,
+    getErc20Balance,
+  };
 };

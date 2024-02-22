@@ -39,7 +39,8 @@ export const SpawnStakingCheck = ({
 }: SpawnStakingCheckProps) => {
   const { createService } = useServices();
   const { userPublicKey } = useAppInfo();
-  const { getERC20Balance } = useEthers();
+  const { getErc20Balance } = useEthers();
+  const { updateServicesState } = useServices();
 
   const [isCreating, setIsCreating] = useState(false);
   const [buttonClicked, setButtonClicked] = useState<ButtonOptions>();
@@ -112,7 +113,7 @@ export const SpawnStakingCheck = ({
     if (!userPublicKey) {
       return Promise.reject('No public key found');
     }
-    return getERC20Balance(userPublicKey, rpc, TOKENS.gnosis.OLAS)
+    return getErc20Balance(userPublicKey, rpc, TOKENS.gnosis.OLAS)
       .then((olasBalance: number) => {
         const { olas_required_to_stake, olas_cost_of_bond } =
           serviceTemplate.configuration;
@@ -132,7 +133,7 @@ export const SpawnStakingCheck = ({
       .catch((e) => {
         return Promise.reject(e);
       });
-  }, [getERC20Balance, userPublicKey, rpc, serviceTemplate.configuration]);
+  }, [getErc20Balance, userPublicKey, rpc, serviceTemplate.configuration]);
 
   const handleYes = async () => {
     setButtonClicked(ButtonOptions.YES);
@@ -156,6 +157,7 @@ export const SpawnStakingCheck = ({
         return false;
       });
     if (canStake && hasCreated) {
+      await updateServicesState();
       setIsStaking(true);
       setSpawnScreenState(nextPage);
     }
@@ -174,25 +176,20 @@ export const SpawnStakingCheck = ({
         return false;
       });
     if (hasCreated) {
+      await updateServicesState();
       setIsStaking(false);
       setSpawnScreenState(nextPage);
     }
     setButtonClicked(undefined);
   };
 
-  const stakingRequirement = useMemo(
-    () =>
-      ethers.utils.formatUnits(
-        `${
-          serviceTemplate.configuration.olas_cost_of_bond +
-          serviceTemplate.configuration.olas_required_to_stake
-        }`,
-      ),
-    [
-      serviceTemplate.configuration.olas_cost_of_bond,
-      serviceTemplate.configuration.olas_required_to_stake,
-    ],
-  );
+  const stakingRequirement = useMemo(() => {
+    const { olas_required_to_stake, olas_cost_of_bond } =
+      serviceTemplate.configuration;
+    return ethers.utils.formatUnits(
+      `${olas_required_to_stake + olas_cost_of_bond}`,
+    );
+  }, [serviceTemplate.configuration]);
 
   return (
     <Flex gap={8} vertical>

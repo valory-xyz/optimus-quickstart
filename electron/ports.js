@@ -1,5 +1,5 @@
-const net = require("net");
-const { ERROR_ADDRESS_IN_USE } = require("./constants");
+const net = require('net');
+const { ERROR_ADDRESS_IN_USE } = require('./constants');
 
 const portRange = { startPort: 39152, endPort: 65535 }; //only source dynamic and private ports https://www.arubanetworks.com/techdocs/AOS-S/16.10/MRG/YC/content/common%20files/tcp-por-num-ran.htm
 
@@ -7,7 +7,7 @@ const isPortAvailable = async (port) => {
   return new Promise((resolve, reject) => {
     const server = net.createServer();
 
-    server.once("error", (err) => {
+    server.once('error', (err) => {
       if (err.code === ERROR_ADDRESS_IN_USE) {
         resolve(false);
       } else {
@@ -15,12 +15,12 @@ const isPortAvailable = async (port) => {
       }
     });
 
-    server.once("listening", () => {
+    server.once('listening', () => {
       server.close();
       resolve(true);
     });
 
-    server.listen(port, "localhost");
+    server.listen(port, 'localhost');
   });
 };
 
@@ -28,28 +28,28 @@ const findAvailablePort = async (startPort, endPort) => {
   return new Promise((resolve, reject) => {
     const server = net.createServer();
 
-    server.on("error", (err) => {
+    server.on('error', (err) => {
       if (err.code === ERROR_ADDRESS_IN_USE) {
         if (startPort < endPort) {
           findAvailablePort(startPort + 1, endPort)
             .then(resolve)
             .catch(reject);
         } else {
-          reject(new Error("No available ports in the specified range"));
+          reject(new Error('No available ports in the specified range'));
         }
       } else {
         reject(err);
       }
     });
 
-    server.on("listening", () => {
+    server.on('listening', () => {
       const port = server.address().port;
       server.close(() => {
         resolve(port);
       });
     });
 
-    server.listen(startPort, "localhost");
+    server.listen(startPort, 'localhost');
   });
 };
 

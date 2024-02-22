@@ -4,26 +4,22 @@ import { YourAgents } from '@/components/YourAgents/YourAgents';
 import { Tab } from '@/enums';
 import { useTabs } from '@/hooks/useTabs';
 import { Tabs, type TabsProps } from 'antd';
-import { useMemo } from 'react';
+
+const tabs: TabsProps['items'] = [
+  {
+    key: Tab.YOUR_AGENTS,
+    label: 'Your Agents',
+    children: <YourAgents />,
+  },
+  {
+    key: Tab.MARKETPLACE,
+    label: 'Marketplace',
+    children: <Marketplace />,
+  },
+];
 
 export default function Home() {
   const { activeTab, setActiveTab } = useTabs();
-
-  const tabs: TabsProps['items'] = useMemo(
-    () => [
-      {
-        key: Tab.YOUR_AGENTS,
-        label: 'Your Agents',
-        children: <YourAgents />,
-      },
-      {
-        key: Tab.MARKETPLACE,
-        label: 'Marketplace',
-        children: <Marketplace />,
-      },
-    ],
-    [],
-  );
 
   return (
     <Layout>

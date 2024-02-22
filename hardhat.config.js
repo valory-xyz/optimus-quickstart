@@ -4,7 +4,8 @@ module.exports = {
   defaultNetwork: "hardhat",
   networks: {
     hardhat: {
-      forking: {url: process.env.HARDHAT_GNOSIS_RPC},
+      hostname: "0.0.0.0",
+      forking: {url: process.env.FORK_URL},
       chainId: 100,
       port: process.env.PORT || 8545,      
     },

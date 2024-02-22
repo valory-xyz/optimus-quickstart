@@ -11,7 +11,7 @@ export const useMulticall = () => {
    * @param rpc
    * @returns Promise<{ [address: string]: number }>
    */
-  const getETHBalances = async (
+  const getEthBalances = async (
     addresses: Address[],
     rpc: string,
   ): Promise<{ [address: Address]: number }> => {
@@ -45,7 +45,7 @@ export const useMulticall = () => {
    * @param contractAddress
    * @returns Promise<{ [address: string]: number }>
    */
-  const getERC20Balances = async (
+  const getErc20Balances = async (
     addresses: Address[],
     rpc: string,
     contractAddress: Address,
@@ -75,5 +75,5 @@ export const useMulticall = () => {
     );
   };
 
-  return { getETHBalances, getERC20Balances };
+  return { getEthBalances, getErc20Balances };
 };

@@ -55,7 +55,7 @@ export const SpawnPage = ({ serviceTemplateHash }: SpawnPageProps) => {
 
   const [service, setService] = useState<Service>();
   const [rpc, setRpc] = useState('http://localhost:8545'); // hardcoded default for now
-  const [isStaking, setIsStaking] = useState<boolean>(false);
+  const [isStaking, setIsStaking] = useState(false);
 
   const serviceTemplate: ServiceTemplate | undefined = useMemo(
     () => getServiceTemplate(serviceTemplateHash),

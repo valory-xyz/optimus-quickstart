@@ -8,7 +8,7 @@ import { useInterval } from 'usehooks-ts';
 const BALANCE_POLLING_INTERVAL = 5000;
 
 export const ServiceCardTotalBalance = ({ service }: { service: Service }) => {
-  const { getETHBalances } = useMulticall();
+  const { getEthBalances } = useMulticall();
   const [hasInitialLoaded, setHasInitialLoaded] = useState(false);
   const [balances, setBalances] = useState<BalancesMap>({});
 
@@ -27,7 +27,7 @@ export const ServiceCardTotalBalance = ({ service }: { service: Service }) => {
       service.chain_data?.multisig &&
       service.ledger?.rpc
     )
-      getETHBalances(
+      getEthBalances(
         [...service.chain_data.instances, service.chain_data.multisig],
         service.ledger.rpc,
       )

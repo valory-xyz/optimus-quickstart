@@ -1,5 +1,9 @@
 export const CHAINS: {
-  [chain: string]: { currency: string; chainId: number };
+  [chain: string]: {
+    currency: string;
+    chainId: number;
+    minimumFunding: number;
+  };
 } = {
-  gnosis: { currency: 'XDAI', chainId: 100 },
+  gnosis: { currency: 'XDAI', chainId: 100, minimumFunding: 1 },
 };

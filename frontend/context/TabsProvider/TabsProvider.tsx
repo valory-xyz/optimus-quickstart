@@ -9,7 +9,7 @@ import {
 
 type TabsContextProps = {
   activeTab: Tab;
-  setActiveTab: Dispatch<SetStateAction<string>>;
+  setActiveTab: Dispatch<SetStateAction<Tab>>;
 };
 
 export const TabsContext = createContext<TabsContextProps>({
@@ -18,9 +18,9 @@ export const TabsContext = createContext<TabsContextProps>({
 });
 
 export const TabsProvider = ({ children }: PropsWithChildren) => {
-  const [activeTab, setActiveTab] = useState<string>(Tab.YOUR_AGENTS);
+  const [activeTab, setActiveTab] = useState<Tab>(Tab.YOUR_AGENTS);
   return (
-    <TabsContext.Provider value={{ activeTab: activeTab as Tab, setActiveTab }}>
+    <TabsContext.Provider value={{ activeTab: activeTab, setActiveTab }}>
       {children}
     </TabsContext.Provider>
   );
