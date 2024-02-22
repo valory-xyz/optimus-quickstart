@@ -1,46 +1,75 @@
 // Installation helpers.
 
 const fs = require('fs');
-const { exec } = require("child_process");
+const { spawnSync } = require("child_process");
 const os = require('os');
 
-const UserHomeDirectory = `${os.homedir()}/.operate`;
+const OperateDirectory = `${os.homedir()}/.operate`;
+const OperateCmd = `${os.homedir()}/.operate/venv/bin/operate`;
 
-function isPythonInstalled() {
-    return new Promise((resolve, reject) => {
-        exec('python3.10 --version', (error, stdout, stderr) => {
-            resolve(!error);
-        });
-    });
+function runSync(command, options) {
+    let process = spawnSync(command, options);
+    return {
+        error: process.error,
+        stdout: process.stdout?.toString(),
+        stderr: process.stderr?.toString(),
+    }
+}
+
+function isPythonInstalledDarwin() {
+    return runSync('/opt/homebrew/bin/python3.10', ['--version']);
 }
 
 function installPythonDarwin() {
-    return new Promise((resolve, reject) => {
-        exec('brew install python@3.10', (error, stdout, stderr) => {
-            resolve(!error)
-        });
-    });
+    return runSync('/opt/homebrew/bin/brew', ['install', 'python@3.10'])
 }
 
-function createVirtualEnv(path) {
-    return new Promise((resolve, reject) => {
-        exec(`python3.10 -m venv ${path}`, (error, stdout, stderr) => {
-            resolve(!error);
-        });
-    });
+function createVirtualEnvDarwin(path) {
+    return runSync(
+        '/opt/homebrew/bin/python3.10',
+        [
+            '-m',
+            'venv',
+            path,
+        ]
+    )
+}
+
+function isPythonInstalledUbuntu() {
+    return runSync('/usr/bin/python3.10', ['--version']);
+}
+
+function installPythonUbuntu() {
+    return runSync('/usr/bin/apt', ['install', 'python3.10 ', 'python3.10-dev'])
+}
+
+function createVirtualEnvUbuntu(path) {
+    return runSync('/usr/bin/python3.10', ['-m', 'venv', path])
 }
 
 function installOperatePackage(path) {
-    return new Promise((resolve, reject) => {
-        exec(`${path}/venv/bin/python3.10 -m pip install git+https://github.com/valory-xyz/olas-operate-app.git@44388a82d29ce4d96e554c828c3c2c12d6ee3b8a#egg=operate`, (error, stdout, stderr) => {
-            resolve(!error);
-        });
-    });
+    return runSync(
+        `${path}/venv/bin/python3.10`,
+        [
+            '-m',
+            'pip',
+            'install',
+            'git+https://github.com/valory-xyz/olas-operate-app.git@a2d203ad2d6c716a66a8d184ab77909b5ab22a85#egg=operate'
+        ]
+    )
 }
 
 function installOperateAppDarwin(path) {
     return new Promise((resolve, reject) => {
         fs.copyFile(`${path}/venv/bin/operate`, "/opt/homebrew/bin/operate", function (error, stdout, stderr) {
+            resolve(!error)
+        })
+    });
+}
+
+function installOperateAppUbuntu(path) {
+    return new Promise((resolve, reject) => {
+        fs.copyFile(`${path}/venv/bin/operate`, "/usr/local/bin", function (error, stdout, stderr) {
             resolve(!error)
         })
     });
@@ -54,24 +83,71 @@ function createDirectory(path) {
     });
 }
 
-export async function setupDarwin() {
+async function setupDarwin() {
+    let installCheck
+    // Python installation check
+    if (isPythonInstalledDarwin().error) {
+        installCheck = installPythonDarwin()
+        if (installCheck.error) {
+            throw new Error(`Error: ${installCheck.error}; Stdout: ${installCheck.stdout}; Stderr: ${installCheck.stderr}`)
+        }
+    }
+
+    // Create required directories
+    await createDirectory(`${OperateDirectory}`)
+    await createDirectory(`${OperateDirectory}/temp`)
+
+    // Create a virtual environment
+    installCheck = createVirtualEnvDarwin(`${OperateDirectory}/venv`)
+    if (installCheck.error) {
+        throw new Error(`Error: ${installCheck.error}; Stdout: ${installCheck.stdout}; Stderr: ${installCheck.stderr}`)
+    }
+
+    // Install operate app
+    installCheck = installOperatePackage(OperateDirectory)
+    if (installCheck.error) {
+        throw new Error(`Error: ${installCheck.error}; Stdout: ${installCheck.stdout}; Stderr: ${installCheck.stderr}`)
+    }
+    installCheck = installOperateAppDarwin(OperateDirectory)
+    if (installCheck.error) {
+        throw new Error(`Error: ${installCheck.error}; Stdout: ${installCheck.stdout}; Stderr: ${installCheck.stderr}`)
+    }
+}
+
+async function setupUbuntu() {
 
     // Python installation check
-    if (!await isPythonInstalled()) {
+    if (!await isPythonInstalledUbuntu()) {
         console.log("Installing Python")
-        if (!await installPythonDarwin()) {
+        if (!await installPythonUbuntu()) {
             throw new Error("Could not install python")
         }
     }
 
     // Create required directories
-    await createDirectory(`${UserHomeDirectory}`)
-    await createDirectory(`${UserHomeDirectory}/temp`)
+    await createDirectory(`${OperateDirectory}`)
+    await createDirectory(`${OperateDirectory}/temp`)
 
     // Create a virtual environment
-    await createVirtualEnv(`${UserHomeDirectory}/venv`)
+    installCheck = createVirtualEnvUbuntu(`${OperateDirectory}/venv`)
+    if (installCheck.error) {
+        throw new Error(`Error: ${installCheck.error}; Stdout: ${installCheck.stdout}; Stderr: ${installCheck.stderr}`)
+    }
 
     // Install operate app
-    await installOperatePackage(UserHomeDirectory)
-    await installOperateAppDarwin(UserHomeDirectory)
+    installCheck = installOperatePackage(OperateDirectory)
+    if (installCheck.error) {
+        throw new Error(`Error: ${installCheck.error}; Stdout: ${installCheck.stdout}; Stderr: ${installCheck.stderr}`)
+    }
+    installCheck = installOperateAppUbuntu(OperateDirectory)
+    if (installCheck.error) {
+        throw new Error(`Error: ${installCheck.error}; Stdout: ${installCheck.stdout}; Stderr: ${installCheck.stderr}`)
+    }
+
 }
+
+function isInstalled() {
+    return fs.existsSync(OperateDirectory)
+}
+
+module.exports = { setupDarwin, setupUbuntu, isInstalled, OperateDirectory, OperateCmd }
