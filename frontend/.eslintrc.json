@@ -1,0 +1,37 @@
+{
+  "extends": [
+    "next/core-web-vitals",
+    "eslint:recommended",
+    "plugin:@typescript-eslint/recommended",
+    "plugin:jest/recommended",
+    "plugin:react/recommended",
+    "plugin:react-hooks/recommended",
+    "plugin:prettier/recommended"
+  ],
+  "globals": {
+    "JSX": true,
+    "React": true
+  },
+  "plugins": [
+    "jest",
+    "prettier",
+    "react",
+    "react-hooks",
+    "unused-imports"
+  ],
+  "rules": {
+    "unused-imports/no-unused-imports": "error",
+    "no-console": "warn",
+    "no-unused-vars": "warn",
+    "prettier/prettier": ["error", {
+      "endOfLine": "auto",
+      "semi": true,
+      "singleQuote": true
+    }],
+    "react/jsx-props-no-spreading": "off",
+    "react/no-array-index-key": "off",
+    "react/react-in-jsx-scope": "off",    
+    "react-hooks/rules-of-hooks": "error", 
+    "react-hooks/exhaustive-deps": "warn" 
+  }
+}

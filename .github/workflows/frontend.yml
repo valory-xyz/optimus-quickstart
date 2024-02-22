@@ -1,0 +1,27 @@
+# TBA
+name: Frontend
+
+on: [pull_request]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      # Node
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: "20.11"
+      
+      # Install dependencies
+      - name: Install dependencies
+        run: yarn install:frontend
+
+      # Lint and test
+      - name: Lint
+        run: yarn lint:frontend
+      # Test
+      # - name: Test
+        # run: yarn test:frontend

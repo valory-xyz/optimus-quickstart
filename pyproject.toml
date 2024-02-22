@@ -1,0 +1,34 @@
+[tool.poetry]
+name = "operate"
+version = "0.1.0"
+description = ""
+authors = ["David Vilela <dvilelaf@gmail.com>"]
+readme = "README.md"
+include = [
+    "operate/data/acn/*",
+    "operate/data/contracts/*",
+    "operate/data/contracts/service_staking_token/*",
+    "operate/data/contracts/service_staking_token/build/*",
+]
+
+[tool.poetry.scripts]
+operate = "operate.cli:main"
+
+[tool.poetry.dependencies]
+python = "^3.10"
+open-autonomy = "^0.14.2"
+open-aea-ledger-ethereum = "^1.46.0"
+flask = "2.0.2"
+petname = "^2.6"
+flask-cors = "^4.0.0"
+docker = "6.1.2"
+schedule = "^1.2.1"
+safe-eth-py = "^5.8.0"
+clea = "^0.1.0rc4"
+starlette = ">=0.36.3"
+uvicorn = ">=0.27.0"
+requests-toolbelt = "1.0.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
