@@ -3,9 +3,14 @@
 const fs = require('fs');
 const { spawnSync } = require("child_process");
 const os = require('os');
+const sudo = require('sudo-prompt');
 
 const OperateDirectory = `${os.homedir()}/.operate`;
 const OperateCmd = `${os.homedir()}/.operate/venv/bin/operate`;
+
+const options = {
+name: 'Olas Operate',
+};
 
 function runSync(command, options) {
     let process = spawnSync(command, options);
@@ -14,6 +19,20 @@ function runSync(command, options) {
         stdout: process.stdout?.toString(),
         stderr: process.stderr?.toString(),
     }
+}
+
+function runSudo(command) {
+    return sudo.exec(
+        command,
+        options,
+        function(error, stdout, stderr) {
+            return {
+                error: error,
+                stdout: stdout,
+                stderr: stderr,
+            }
+        }
+    );
 }
 
 function isBrewInstalledDarwin() {
@@ -30,6 +49,27 @@ function isDockerInstalledDarwin() {
 
 function installDockerDarwin() {
     return runSync('brew', ['install', 'docker'])
+}
+
+function isDockerInstalledUbuntu() {
+    return runSync('docker', ['--version']);
+}
+
+function installDockerUbuntu() {
+
+    // Add Docker's official GPG key:
+    runSudo('apt-get update')
+    runSudo('apt-get install ca-certificates curl')
+    runSudo('install -m 0755 -d /etc/apt/keyrings')
+    runSudo('curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc')
+    runSudo('chmod a+r /etc/apt/keyrings/docker.asc')
+
+    // Add the repository to Apt sources:
+    runSudo('echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu $(. /etc/os-release && echo "$VERSION_CODENAME") stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null')
+    runSudo('apt-get update')
+
+    // Install
+    runSudo('apt-get install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin')
 }
 
 function isPythonInstalledDarwin() {
@@ -147,6 +187,14 @@ async function setupDarwin() {
 }
 
 async function setupUbuntu() {
+
+    // Docker installation check
+    if (isDockerInstalledUbuntu().error) {
+        installCheck = installDockerUbuntu()
+        if (installCheck.error) {
+            throw new Error(`Error: ${installCheck.error}; Stdout: ${installCheck.stdout}; Stderr: ${installCheck.stderr}`)
+        }
+    }
 
     // Python installation check
     if (!await isPythonInstalledUbuntu()) {
