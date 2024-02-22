@@ -138,29 +138,28 @@ function createDirectory(path) {
 }
 
 async function setupDarwin() {
-    let installCheck
-    // Brew installation check
-    if (isBrewInstalledDarwin().error) {
-        installCheck = installBrewDarwin()
-        if (installCheck.error) {
-            throw new Error(`Error: ${installCheck.error}; Stdout: ${installCheck.stdout}; Stderr: ${installCheck.stderr}`)
-        }
+  let installCheck
+  // Brew installation check
+  if (isBrewInstalledDarwin().error) {
+    installCheck = installBrewDarwin()
+    if (installCheck.error) {
+        throw new Error(`Error: ${installCheck.error}; Stdout: ${installCheck.stdout}; Stderr: ${installCheck.stderr}`)
     }
+  }
 
-    // Docker installation check
-    if (isDockerInstalledDarwin().error) {
-        installCheck = installDockerDarwin()
-        if (installCheck.error) {
-            throw new Error(`Error: ${installCheck.error}; Stdout: ${installCheck.stdout}; Stderr: ${installCheck.stderr}`)
-        }
+  // Docker installation check
+  if (isDockerInstalledDarwin().error) {
+    installCheck = installDockerDarwin()
+    if (installCheck.error) {
+        throw new Error(`Error: ${installCheck.error}; Stdout: ${installCheck.stdout}; Stderr: ${installCheck.stderr}`)
     }
+  }
 
-    // Python installation check
-    if (isPythonInstalledDarwin().error) {
-        installCheck = installPythonDarwin()
-        if (installCheck.error) {
-            throw new Error(`Error: ${installCheck.error}; Stdout: ${installCheck.stdout}; Stderr: ${installCheck.stderr}`)
-        }
+  // Python installation check
+  if (isPythonInstalledDarwin().error) {
+    installCheck = installPythonDarwin()
+    if (installCheck.error) {
+        throw new Error(`Error: ${installCheck.error}; Stdout: ${installCheck.stdout}; Stderr: ${installCheck.stderr}`)
     }
   }
 
@@ -188,7 +187,7 @@ async function setupDarwin() {
     throw new Error(
       `Error: ${installCheck.error}; Stdout: ${installCheck.stdout}; Stderr: ${installCheck.stderr}`,
     );
-  }
+  };
 }
 
 async function setupUbuntu() {
