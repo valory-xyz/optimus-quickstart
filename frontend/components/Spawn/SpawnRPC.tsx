@@ -107,7 +107,7 @@ export const SpawnRPC = ({ rpc, setRpc, nextPage }: SpawnRPCProps) => {
 
     if (ethBalance < 1) {
       message.error(
-        'Insufficient master wallet balance, you need at least 1 XDAI.',
+        `Insufficient master wallet balance, you need at least 1 XDAI. ${userPublicKey}`,
       );
       return;
     }
