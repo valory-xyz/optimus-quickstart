@@ -40,6 +40,7 @@ export const SpawnStakingCheck = ({
   const { createService } = useServices();
   const { userPublicKey } = useAppInfo();
   const { getErc20Balance } = useEthers();
+  const { updateServicesState } = useServices();
 
   const [isCreating, setIsCreating] = useState(false);
   const [buttonClicked, setButtonClicked] = useState<ButtonOptions>();
@@ -156,6 +157,7 @@ export const SpawnStakingCheck = ({
         return false;
       });
     if (canStake && hasCreated) {
+      await updateServicesState();
       setIsStaking(true);
       setSpawnScreenState(nextPage);
     }
@@ -174,6 +176,7 @@ export const SpawnStakingCheck = ({
         return false;
       });
     if (hasCreated) {
+      await updateServicesState();
       setIsStaking(false);
       setSpawnScreenState(nextPage);
     }
