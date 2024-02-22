@@ -1,0 +1,20 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="./loading.css" />
+  </head>
+  <body>
+    <span class="loader"></span>
+    &nbsp;&nbsp;
+    <div id="text" class="text">Loading</div>
+  </body>
+  <script>
+    const { ipcRenderer } = require("electron");
+    ipcRenderer.on("response", (event, arg) => {
+      document.getElementById("text").innerText = arg;
+    });
+    ipcRenderer.send("check", "Starting check...");
+  </script>
+</html>
