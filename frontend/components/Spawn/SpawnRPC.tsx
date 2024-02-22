@@ -11,6 +11,7 @@ import {
 import { NODIES_URL } from '@/constants/urls';
 import {
   Dispatch,
+  ReactElement,
   SetStateAction,
   useCallback,
   useMemo,
@@ -20,7 +21,7 @@ import { useSpawn, useEthers } from '@/hooks';
 import { SpawnScreenState } from '@/enums';
 import { CheckSquareTwoTone, WarningFilled } from '@ant-design/icons';
 import { InputStatus } from 'antd/es/_util/statusUtils';
-import _ from 'lodash';
+import { debounce } from 'lodash';
 
 enum RPCState {
   LOADING,
@@ -54,7 +55,7 @@ export const SpawnRPC = ({ rpc, setRpc, nextPage }: SpawnRPCProps) => {
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const debounceCheckRpc = useCallback(
-    _.debounce((_rpc: string) => {
+    debounce((_rpc: string) => {
       if (isCheckingRpc) return;
       if (!_rpc) return;
       setIsCheckingRpc(true);
@@ -98,7 +99,7 @@ export const SpawnRPC = ({ rpc, setRpc, nextPage }: SpawnRPCProps) => {
     [rpcState],
   );
 
-  const inputSuffix: JSX.Element = useMemo(() => {
+  const inputSuffix: ReactElement = useMemo(() => {
     switch (rpcState) {
       case RPCState.LOADING:
         return <Spin />;
