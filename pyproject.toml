@@ -4,6 +4,12 @@ version = "0.1.0"
 description = ""
 authors = ["David Vilela <dvilelaf@gmail.com>"]
 readme = "README.md"
+include = [
+    "operate/data/acn/*",
+    "operate/data/contracts/*",
+    "operate/data/contracts/service_staking_token/*",
+    "operate/data/contracts/service_staking_token/build/*",
+]
 
 [tool.poetry.scripts]
 operate = "operate.cli:main"

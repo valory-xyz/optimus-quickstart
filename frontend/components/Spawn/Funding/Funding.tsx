@@ -1,4 +1,5 @@
 import { Service } from '@/client';
+import { COLOR } from '@/constants';
 import { SpawnScreenState } from '@/enums';
 import { useSpawn } from '@/hooks';
 import { Address } from '@/types';
@@ -70,7 +71,7 @@ export const Funding = ({
               contractAddress={contractAddress}
             />
           ),
-          color: receivedFunds[address] ? 'green' : 'red',
+          color: receivedFunds[address] ? COLOR.GREEN_2 : COLOR.RED,
         };
       }) as TimelineItemProps[],
     [

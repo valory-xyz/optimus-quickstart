@@ -216,6 +216,7 @@ export const ServiceCard = ({ service }: ServiceCardProps) => {
           alt="Image"
           width={200}
           height={200}
+          unoptimized
         />
         <Flex vertical>
           <Typography.Title level={3}>{serviceTemplate!.name}</Typography.Title>

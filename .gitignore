@@ -18,6 +18,7 @@ frontend/build
 # local env files
 .env
 .env*.local
+.DS_STORE
 
 # python
 backend/__pycache__/
@@ -31,4 +32,6 @@ backend/temp/
 tmp/
 temp/
 
-!backend/operate/data
+!operate/data
+dist/
+electron/.next

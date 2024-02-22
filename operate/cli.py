@@ -47,7 +47,7 @@ class App(Resource):
     def __init__(self, home: Path) -> None:
         """Initialize object."""
         super().__init__()
-        self._path = home or (Path.cwd() / OPERATE)
+        self._path = (home or (Path.home() / OPERATE)).resolve()
         self._services = self._path / SERVICES
         self._keys = self._path / KEYS
         self._key = self._path / KEY
@@ -83,6 +83,7 @@ class App(Resource):
             "account": {
                 "key": EthereumCrypto(self._key).address,
             },
+            "home": str(self._path),
         }
 
 

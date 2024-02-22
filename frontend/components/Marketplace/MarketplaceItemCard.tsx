@@ -36,7 +36,7 @@ export const MarketplaceItemCard = ({
   return (
     <Card style={{ marginBottom }}>
       <Flex gap={16}>
-        <Image src={image} alt={`${name} image`} width={200} height={200} />
+        <Image src={image} alt="Image" width={200} height={200} unoptimized />
         <Flex vertical>
           <Flex vertical style={{ height: '100%' }}>
             <Typography.Title level={3}>{name}</Typography.Title>
