@@ -9,7 +9,7 @@ type QRModalProps = {
 };
 
 export const QRModal = ({
-  data: { amount, chainId, address, open, isERC20 },
+  data: { amount, chainId, address, open, isErc20: isERC20 },
 }: QRModalProps) => {
   const { setQrModalData } = useModals();
 

@@ -1,12 +1,13 @@
 import { Service } from '@/client';
 import { Flex } from 'antd';
 import { ServiceCard } from './ServiceCard/ServiceCard';
+import { ReactElement } from 'react';
 
 export const HasAgents = ({
   services,
 }: {
   services: Service[];
-}): JSX.Element => {
+}): ReactElement => {
   return (
     <Flex vertical gap={16}>
       {services.map((service: Service) => (

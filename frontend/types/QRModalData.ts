@@ -5,5 +5,5 @@ export type QRModalData = {
   address?: Address;
   amount?: number;
   chainId?: number;
-  isERC20: boolean;
+  isErc20: boolean;
 };

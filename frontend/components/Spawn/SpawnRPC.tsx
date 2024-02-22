@@ -17,7 +17,7 @@ import {
   useMemo,
   useState,
 } from 'react';
-import { useSpawn, useEthers } from '@/hooks';
+import { useSpawn, useEthers, useAppInfo } from '@/hooks';
 import { SpawnScreenState } from '@/enums';
 import { CheckSquareTwoTone, WarningFilled } from '@ant-design/icons';
 import { InputStatus } from 'antd/es/_util/statusUtils';
@@ -37,7 +37,8 @@ type SpawnRPCProps = {
 
 export const SpawnRPC = ({ rpc, setRpc, nextPage }: SpawnRPCProps) => {
   const { setSpawnScreenState } = useSpawn();
-  const { checkRPC } = useEthers();
+  const { checkRPC, getEthBalance } = useEthers();
+  const { userPublicKey } = useAppInfo();
 
   const [isCheckingRpc, setIsCheckingRpc] = useState(false);
   const [rpcState, setRpcState] = useState<RPCState>(RPCState.INVALID);
@@ -82,12 +83,44 @@ export const SpawnRPC = ({ rpc, setRpc, nextPage }: SpawnRPCProps) => {
   );
 
   const handleContinue = useCallback(async () => {
+    if (!userPublicKey) {
+      message.error(
+        'Error retrieving user public key, please ensure your master wallet key is set correctly',
+      );
+      return;
+    }
+
     if (!rpc || rpcState !== RPCState.VALID) {
       message.error('Invalid RPC');
       return;
     }
+
+    const ethBalance: number | undefined = await getEthBalance(
+      userPublicKey,
+      rpc,
+    ).catch(() => undefined);
+
+    if (ethBalance === undefined) {
+      message.error('Failed to get master wallet balance');
+      return;
+    }
+
+    if (ethBalance < 1) {
+      message.error(
+        'Insufficient master wallet balance, you need at least 1 XDAI.',
+      );
+      return;
+    }
+
     setSpawnScreenState(nextPage);
-  }, [nextPage, rpc, rpcState, setSpawnScreenState]);
+  }, [
+    getEthBalance,
+    nextPage,
+    rpc,
+    rpcState,
+    setSpawnScreenState,
+    userPublicKey,
+  ]);
 
   const isContinueDisabled: boolean = useMemo(
     () => !rpc || rpcState !== RPCState.VALID,

@@ -14,7 +14,7 @@ type FundRequirementERC20Props = {
 };
 
 export const FundRequirementERC20 = (props: FundRequirementERC20Props) => {
-  const { getERC20Balance } = useEthers();
+  const { getErc20Balance: getERC20Balance } = useEthers();
   return (
     <FundRequirement getBalance={getERC20Balance} isERC20={true} {...props} />
   );

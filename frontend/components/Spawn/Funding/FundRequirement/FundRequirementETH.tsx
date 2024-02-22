@@ -13,7 +13,7 @@ type FundRequirementETHProps = {
 };
 
 export const FundRequirementETH = (props: FundRequirementETHProps) => {
-  const { getETHBalance } = useEthers();
+  const { getEthBalance: getETHBalance } = useEthers();
   return (
     <FundRequirement getBalance={getETHBalance} isERC20={false} {...props} />
   );
