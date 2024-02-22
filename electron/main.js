@@ -1,3 +1,5 @@
+require("dotenv").config();
+
 const {
   app,
   BrowserWindow,
@@ -5,254 +7,77 @@ const {
   Menu,
   shell,
   Notification,
+  ipcMain
 } = require("electron");
+const { spawn, exec } = require("child_process");
 const path = require("path");
-const { spawn } = require("child_process");
-const { isPortAvailable, portRange, findAvailablePort } = require("./ports");
+const url = require('url');
+const os = require('os');
+const next = require('next');
+const http = require('http');
+
 const { isDockerRunning } = require("./docker");
-const psTree = require("ps-tree");
-require("dotenv").config();
+const { isInstalled, setupDarwin, setupUbuntu, OperateCmd, OperateDirectory } = require("./install");
 
-let tray, mainWindow, splashWindow;
 
-const isProduction = process.env.NODE_ENV === "production";
-
-let processes = {
-  backend: { port: 8000, ready: false, pid: null },
-  frontend: { port: 3000, ready: false, pid: null },
-  ...(!isProduction && { hardhat: { port: 8545, ready: false, pid: null } }),
-};
 
 // Attempt to acquire the single instance lock
 const singleInstanceLock = app.requestSingleInstanceLock();
 if (!singleInstanceLock) app.quit();
 
-// PROCESS FUNCTIONS
-
-/**
- * Launches the backend, frontend and hardhat processes
- */
-const launchProcesses = async () => {
-  // backend
-  try {
-    const backendPortAvailable = await isPortAvailable(processes.backend.port);
-    if (!backendPortAvailable) {
-      processes.backend.port = await findAvailablePort(
-        portRange.startPort,
-        portRange.endPort,
-      );
-    }
-  } catch (error) {
-    console.error("Error checking Backend port: ", error);
-    app.quit();
-  }
-
-  const backendProcess = spawn("yarn", ["dev:backend"], {
-    maxBuffer: 1000,
-    shell: true,
-    detached: false,
-  }); // need to assign port
-  processes.backend.pid = backendProcess.pid;
-  // use stderr to capture logs
-  backendProcess.stderr.on("data", (data) => {
-    if (data.toString().includes("Uvicorn running on")) {
-      console.log("Backend ready");
-      processes.backend.ready = true;
-      checkProcessesReadyThenMain();
-    }
-    if (data.toString().includes("error while attempting to bind on address")) {
-      // port in use
-      new Notification({
-        title: "Port in use",
-        body: `Port ${processes.backend.port} is in use. Please close the process using this port and restart Olas Operate.`,
-      }).show();
-      app.quit();
-    }
-    console.log(data.toString());
-  });
-
-  // frontend
-  try {
-    const frontendPortAvailable = await isPortAvailable(
-      processes.frontend.port,
-    );
-    if (!frontendPortAvailable) {
-      processes.frontend.port = await findAvailablePort(
-        portRange.startPort,
-        portRange.endPort,
-      );
-    }
-  } catch (error) {
-    console.error("Error checking Frontend port: ", error);
-    app.quit();
-  }
-
-  const frontendProcess = spawn(
-    "cross-env",
-    [
-      `NEXT_PUBLIC_BACKEND_PORT=${processes.backend.port}`,
-      "yarn",
-      `${isProduction ? "start" : "dev"}:frontend`,
-      `--port=${processes.frontend.port}`,
-    ],
-    {
-      maxBuffer: 1000,
-      shell: true,
-      detached: false,
+const platform = os.platform()
+const isDev = process.env.NODE_ENV === "development";
+const appConfig = {
+  width: 600,
+  height: 800,
+  ports: {
+    dev: {
+      operate: 8000,
+      next: 3000,
     },
-  );
-  processes.frontend.pid = frontendProcess.pid;
-  frontendProcess.stdout.on("data", (data) => {
-    if (data.toString().includes("Ready in")) {
-      console.log("Frontend ready");
-      processes.frontend.ready = true;
-      checkProcessesReadyThenMain();
+    prod: {
+      operate: 8000, // TOFIX
+      next: 8234,
     }
-  });
-
-  // hardhat
-  if (!isProduction) {
-    // don't launch hardhat in production
-    try {
-      const hardhatPortAvailable = await isPortAvailable(
-        processes.hardhat.port,
-      );
-      if (!hardhatPortAvailable) {
-        processes.hardhat.port = await findAvailablePort(
-          portRange.startPort,
-          portRange.endPort,
-        );
-      }
-    } catch (error) {
-      console.error("Error checking Hardhat port: ", error);
-      app.quit();
-    }
-
-    const hardhatProcess = spawn(
-      "cross-env",
-      [`PORT=${processes?.hardhat?.port}`, `yarn`, `dev:hardhat`],
-      {
-        maxBuffer: 1000,
-        shell: true,
-        detached: false,
-      },
-    );
-    processes.hardhat.pid = hardhatProcess.pid;
-    hardhatProcess.stdout.on("data", (data) => {
-      if (
-        data
-          .toString()
-          .includes("Started HTTP and WebSocket JSON-RPC server at")
-      ) {
-        console.log("Hardhat ready");
-        processes.hardhat.ready = true;
-        checkProcessesReadyThenMain();
-      }
-    });
   }
-};
+}
 
-/**
- * Kills all child processes
- */
-const killAllProcesses = () =>
-  Object.values(processes).forEach((p) => {
+let tray, mainWindow, splashWindow, operateDaemon, operateDaemonPid, nextAppProcess, nextAppProcessPid;
+let beforeQuitOnceCheck = false;
+
+async function beforeQuit() {
+  if (beforeQuitOnceCheck) return;
+  beforeQuitOnceCheck = true;
+
+  await new Promise(function (resolve, reject) {
     try {
-      console.log("Killing process: ", p.pid);
-      psTree(p.pid, (err, children) => {
-        if (err) {
-          console.error("Error getting children of process: ", err);
-        } else {
-          children.forEach((c) => {
-            try {
-              process.kill(c.PID, "SIGKILL");
-            } catch (error) {
-              console.error("Error killing child process: ", error);
-            }
-          });
-        }
-      });
+      process.kill(operateDaemonPid, "SIGKILL");
+      resolve(true)
     } catch (error) {
-      console.error("Error killing process: ", error);
+      resolve(false)
     }
-  });
+  })
 
-/**
- * Checks if all processes are ready and if so, creates the main window and tray
- */
-const checkProcessesReadyThenMain = () => {
-  const allReady = Object.values(processes).every((p) => p?.ready);
-  if (allReady) {
-    if (!mainWindow) createMainWindow(); // only create main window once
-    if (!tray) createTray(); // only create tray once
+  if (nextAppProcessPid) {
+    await new Promise(function (resolve, reject) {
+      try {
+        process.kill(nextAppProcessPid, "SIGKILL");
+        resolve(true)
+      } catch (error) {
+        resolve(false)
+      }
+    })
   }
-};
 
-//  CREATE FUNCTIONS
-
-/**
- * Creates the splash window
- */
-const createSplashWindow = () => {
-  splashWindow = new BrowserWindow({
-    width: 600,
-    height: 1000,
-    resizable: false,
-    show: true,
-    title: "Olas Operate",
-    frame: false,
-  });
-  splashWindow.loadURL("file://" + __dirname + "/loading.html");
-};
-
-/**
- * Creates the main window
- */
-const createMainWindow = () => {
-  mainWindow = new BrowserWindow({
-    width: 600,
-    height: 1000,
-    show: false,
-    title: "Olas Operate",
-    resizable: false,
-  });
-
-  // Ensure that external links are opened in native browser
-  mainWindow.webContents.setWindowOpenHandler((details) => {
-    shell.openExternal(details.url);
-    return { action: "deny" };
-  });
-
-  mainWindow.setMenuBarVisibility(false);
-  mainWindow.loadURL(`http://localhost:${processes.frontend.port}`);
-
-  // mainWindow.webContents.openDevTools(); //UNCOMMENT FOR DEBUGGING
-
-  mainWindow.webContents.on("did-fail-load", () => {
-    mainWindow.webContents.reloadIgnoringCache();
-  });
-
-  mainWindow.on("ready-to-show", () => {
-    splashWindow.destroy();
-    mainWindow.show();
-  });
-
-  mainWindow.on("minimize", function (event) {
-    event.preventDefault();
-    mainWindow.hide();
-  });
-
-  mainWindow.on("close", function (event) {
-    event.preventDefault();
-    mainWindow.hide();
-  });
-};
+  tray && tray.destroy();
+  mainWindow && mainWindow.destroy();
+}
 
 /**
  * Creates the tray
  */
 const createTray = () => {
-  tray = new Tray(path.join(__dirname, "assets/icons/robot-head.png"));
+  tray = new Tray(path.join(__dirname, "assets/icons/robot-head-tray.png"));
   const contextMenu = Menu.buildFromTemplate([
     {
       label: "Show App",
@@ -262,7 +87,8 @@ const createTray = () => {
     },
     {
       label: "Quit",
-      click: function () {
+      click: async function () {
+        await beforeQuit()
         app.quit();
       },
     },
@@ -274,26 +100,179 @@ const createTray = () => {
   });
 };
 
-// APP-SPECIFIC EVENTS
-
-app.on("ready", async () => {
-  const dockerRunning = await isDockerRunning().catch(() => false);
-  // Check docker is running
-  if (!dockerRunning) {
-    //
-    new Notification({
-      title: "Docker not running",
-      body: "Please start Docker before running Olas Operate.",
-    }).show();
-    app.quit();
-  }
-  createSplashWindow();
-  await launchProcesses();
-  app.on("activate", () => {
-    if (BrowserWindow.getAllWindows().length === 0) {
-      createMainWindow();
+/**
+ * Creates the splash window
+ */
+const createSplashWindow = () => {
+  splashWindow = new BrowserWindow({
+    width: 400,
+    height: 200,
+    resizable: false,
+    show: true,
+    title: "Olas Operate",
+    frame: false,
+    webPreferences: {
+      nodeIntegration: true,
+      contextIsolation: false,
     }
   });
+  splashWindow.loadURL("file://" + __dirname + "/loading/index.html");
+  if (isDev) {
+    splashWindow.webContents.openDevTools()
+  }
+};
+
+/**
+ * Creates the main window
+ */
+const createMainWindow = () => {
+  mainWindow = new BrowserWindow({
+    width: appConfig.width,
+    height: appConfig.height,
+    resizable: false,
+    title: "Olas Operate",
+  });
+
+  // Ensure that external links are opened in native browser
+  mainWindow.webContents.setWindowOpenHandler((details) => {
+    shell.openExternal(details.url);
+    return { action: "deny" };
+  });
+
+  mainWindow.setMenuBarVisibility(false);
+  if (isDev) {
+    mainWindow.loadURL(`http://localhost:${appConfig.ports.dev.next}`);
+  } else {
+    mainWindow.loadURL(`http://localhost:${appConfig.ports.prod.next}`);
+  }
+  mainWindow.webContents.on("did-fail-load", () => {
+    mainWindow.webContents.reloadIgnoringCache();
+  });
+
+  mainWindow.on("ready-to-show", () => {
+    mainWindow.show();
+  });
+
+  mainWindow.on("close", function (event) {
+    event.preventDefault();
+    mainWindow.hide();
+  });
+
+  if (isDev) {
+    mainWindow.webContents.openDevTools()
+  }
+};
+
+async function launchDaemon() {
+  const check = new Promise(function (resolve, reject) {
+    operateDaemon = spawn(OperateCmd, ["daemon", "--port=8000", `--home=${OperateDirectory}`])
+    operateDaemonPid = operateDaemon.pid;
+    operateDaemon.stderr.on("data", (data) => {
+      if (data.toString().includes("Uvicorn running on")) {
+        resolve({ running: true, error: null })
+      }
+      if (data.toString().includes("error while attempting to bind on address")) {
+        resolve({ running: false, error: "Port already in use" })
+      }
+    });
+  })
+  return await check
+}
+
+async function launchDaemonDev() {
+  const check = new Promise(function (resolve, reject) {
+    operateDaemon = spawn("poetry", ["run", "operate", "daemon", "--port=8000", "--home=.operate"])
+    operateDaemonPid = operateDaemon.pid;
+    operateDaemon.stderr.on("data", (data) => {
+      if (data.toString().includes("Uvicorn running on")) {
+        resolve({ running: true, error: null })
+      }
+      if (data.toString().includes("error while attempting to bind on address")) {
+        resolve({ running: false, error: "Port already in use" })
+      }
+      console.log(data.toString().trim());
+    });
+    operateDaemon.stdout.on("data", (data) => {
+      console.log(data.toString().trim());
+    })
+  })
+  return await check
+}
+
+async function launchNextApp() {
+  const nextApp = next({
+    dev: false,
+    dir: path.join(__dirname),
+    port: appConfig.ports.prod.next,
+  });
+  await nextApp.prepare()
+
+  const handle = nextApp.getRequestHandler();
+  const server = http.createServer((req, res) => {
+    handle(req, res); // Handle requests using the Next.js request handler
+  });
+  server.listen(appConfig.ports.prod.next, (err) => {
+    if (err) throw err;
+    console.log(`> Next server runinng on http://localhost:${appConfig.ports.prod.next}`);
+  });
+}
+
+async function launchNextAppDev() {
+  await new Promise(function (resolve, reject) {
+    nextAppProcess = spawn("yarn", ["dev:frontend"])
+    nextAppProcessPid = nextAppProcess.pid;
+    nextAppProcess.stdout.on("data", (data) => {
+      console.log(data.toString().trim());
+      setTimeout(function () { resolve(true) }, 1000)
+    });
+  })
+}
+
+
+ipcMain.on('check', async function (event, argument) {
+  try {
+    event.sender.send("response", "Checking installation")
+    if (!isDev && !isInstalled()) {
+      event.sender.send("response", "Installing Operate Daemon")
+      if (platform === "darwin") {
+        await setupDarwin();
+      } else if (platform === "win32") {
+        // TODO
+      } else {
+        await setupUbuntu();
+      }
+    }
+
+    if (isDev) {
+      event.sender.send("response", "Starting Operate Daemon In Development Mode")
+      await launchDaemonDev()
+      event.sender.send("response", "Starting Frontend Server In Development Mode")
+      await launchNextAppDev()
+    } else {
+      event.sender.send("response", "Starting Operate Daemon")
+      await launchDaemon()
+      event.sender.send("response", "Starting Frontend Server")
+      await launchNextApp()
+    }
+
+    event.sender.send("response", "Launching App")
+    splashWindow.destroy();
+    createMainWindow();
+    createTray()
+  } catch (e) {
+    console.log(e)
+    new Notification({
+      title: "Error",
+      body: e,
+    }).show();
+    event.sender.send("response", e)
+    // app.quit();
+  }
+});
+
+// APP-SPECIFIC EVENTS
+app.on("ready", async () => {
+  createSplashWindow();
 });
 
 app.on("window-all-closed", () => {
@@ -302,12 +281,6 @@ app.on("window-all-closed", () => {
   }
 });
 
-let beforeQuitOnceCheck = false;
 app.on("before-quit", () => {
-  if (beforeQuitOnceCheck) return;
-  beforeQuitOnceCheck = true;
-  console.log("Main process received before-quit signal.");
-  killAllProcesses();
-  tray && tray.destroy();
-  mainWindow && mainWindow.destroy();
+  beforeQuit()
 });
