@@ -25,10 +25,12 @@ Create an `.env` file in the root directory, or rename `.env.example` to `.env`.
 For development usage, set `NODE_ENV=development`.
 For production usage, set `NODE_ENV=production`.
 
-#### HARDHAT_GNOSIS_URL
-Only required for forking Gnosis during development.
+#### FORK_URL
+
+**Only required for forking Gnosis during development.**
+
 You can get a Gnosis RPC from [Nodies](https://www.nodies.app/).
-Then set `HARDHAT_GNOSIS_URL=https://....`
+Then set `FORK_URL=https://....`
 
 ### Ensure Docker v24 is installed
 
@@ -135,12 +137,6 @@ yarn dev:hardhat
 
 Copy any one of these private keys into `/backend/.operate/key.txt`.
 
-Be sure to kill the Hardhat node once you have completed this step.
-
-### Setup hardhat forking RPC (if running development mode)
-
-Update the `hardhat.config.js` file in the root directory to include a Gnosis RPC.
-
 ### Run the development app
 
 **If you are using the app in `production` mode** (having set this in your `.env` file), you will need to build the frontend first. You can achieve this by running: 
@@ -157,7 +153,7 @@ In the root directory, run:
 yarn start
 ```
 
-This will run Electron which launches NextJS, Backend, and Hardhat as child processes.
+This will run Electron which launches NextJS and the Backend as child processes.
 
 ## Further notes / issues
 
