@@ -16,6 +16,22 @@ function runSync(command, options) {
     }
 }
 
+function isBrewInstalledDarwin() {
+    return runSync('brew', ['-v']);
+}
+
+function installBrewDarwin() {
+    return runSync('/bin/bash', ['-c', '$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)'])
+}
+
+function isDockerInstalledDarwin() {
+    return runSync('docker', ['--version']);
+}
+
+function installDockerDarwin() {
+    return runSync('brew', ['install', 'docker'])
+}
+
 function isPythonInstalledDarwin() {
     return runSync('/opt/homebrew/bin/python3.10', ['--version']);
 }
@@ -85,6 +101,22 @@ function createDirectory(path) {
 
 async function setupDarwin() {
     let installCheck
+    // Brew installation check
+    if (isBrewInstalledDarwin().error) {
+        installCheck = installBrewDarwin()
+        if (installCheck.error) {
+            throw new Error(`Error: ${installCheck.error}; Stdout: ${installCheck.stdout}; Stderr: ${installCheck.stderr}`)
+        }
+    }
+
+    // Docker installation check
+    if (isDockerInstalledDarwin().error) {
+        installCheck = installDockerDarwin()
+        if (installCheck.error) {
+            throw new Error(`Error: ${installCheck.error}; Stdout: ${installCheck.stdout}; Stderr: ${installCheck.stderr}`)
+        }
+    }
+
     // Python installation check
     if (isPythonInstalledDarwin().error) {
         installCheck = installPythonDarwin()
