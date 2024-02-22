@@ -1,7 +1,8 @@
-import { MULTICALL_CONTRACT } from "@/constants";
-import { BigNumber, ethers } from "ethers";
-import { Contract, ContractCall, Provider } from "ethers-multicall";
-import { multicall3Abi } from "@/abi";
+import { MULTICALL_CONTRACT } from '@/constants';
+import { BigNumber, ethers } from 'ethers';
+import { Contract, ContractCall, Provider } from 'ethers-multicall';
+import { multicall3Abi } from '@/abi';
+import { Address } from '@/types';
 
 export const useMulticall = () => {
   /**
@@ -11,21 +12,21 @@ export const useMulticall = () => {
    * @returns Promise<{ [address: string]: number }>
    */
   const getETHBalances = async (
-    addresses: string[],
+    addresses: Address[],
     rpc: string,
-  ): Promise<{ [address: string]: number }> => {
+  ): Promise<{ [address: Address]: number }> => {
     const provider = new ethers.providers.JsonRpcProvider(rpc);
     const multicallProvider = new Provider(provider, 100);
     const multicallContract = new Contract(MULTICALL_CONTRACT, multicall3Abi);
 
-    const callData: ContractCall[] = addresses.map((address: string) =>
+    const callData: ContractCall[] = addresses.map((address: Address) =>
       multicallContract.getEthBalance(address),
     );
 
     return multicallProvider.all(callData).then((r: BigNumber[]) =>
       r.reduce(
         (
-          acc: { [address: string]: number },
+          acc: { [address: Address]: number },
           balance: BigNumber,
           index: number,
         ) => ({
@@ -45,16 +46,16 @@ export const useMulticall = () => {
    * @returns Promise<{ [address: string]: number }>
    */
   const getERC20Balances = async (
-    addresses: string[],
+    addresses: Address[],
     rpc: string,
-    contractAddress: string,
+    contractAddress: Address,
   ) => {
     const provider = new ethers.providers.JsonRpcProvider(rpc);
     const multicallProvider = new Provider(provider, 100); // hardcoded to 100
     const multicallContract = new Contract(MULTICALL_CONTRACT, multicall3Abi);
 
-    const callData: ContractCall[] = addresses.map((address: string) =>
-      multicallContract.call(contractAddress, "balanceOf(address):(uint256)", [
+    const callData: ContractCall[] = addresses.map((address: Address) =>
+      multicallContract.call(contractAddress, 'balanceOf(address):(uint256)', [
         address,
       ]),
     );
@@ -62,7 +63,7 @@ export const useMulticall = () => {
     return multicallProvider.all(callData).then((r: BigNumber[]) =>
       r.reduce(
         (
-          acc: { [address: string]: number },
+          acc: { [address: Address]: number },
           balance: BigNumber,
           index: number,
         ) => ({

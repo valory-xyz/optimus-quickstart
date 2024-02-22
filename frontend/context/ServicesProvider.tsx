@@ -1,6 +1,6 @@
-import { Service } from "@/client";
-import { ServicesService } from "@/service";
-import { message } from "antd";
+import { Service } from '@/client';
+import { ServicesService } from '@/service';
+import { message } from 'antd';
 import {
   Dispatch,
   PropsWithChildren,
@@ -9,17 +9,17 @@ import {
   useCallback,
   useEffect,
   useState,
-} from "react";
-import { useInterval } from "usehooks-ts";
+} from 'react';
+import { useInterval } from 'usehooks-ts';
 
-type ServicesProviderProps = {
+type ServicesContextProps = {
   services: Service[];
   setServices: Dispatch<SetStateAction<Service[]>>;
   updateServicesState: () => Promise<void>;
   hasInitialLoaded: boolean;
 };
 
-export const ServicesContext = createContext<ServicesProviderProps>({
+export const ServicesContext = createContext<ServicesContextProps>({
   services: [],
   setServices: () => {},
   updateServicesState: async () => {},
@@ -44,7 +44,7 @@ export const ServicesProvider = ({ children }: PropsWithChildren) => {
     // Update on load
     updateServicesState()
       .catch(() => {
-        message.error("Inital services update failed.");
+        message.error('Initial services update failed.');
       })
       .then(() => setHasInitialLoaded(true));
     // eslint-disable-next-line react-hooks/exhaustive-deps

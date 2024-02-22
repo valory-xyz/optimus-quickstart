@@ -1,18 +1,20 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   images: {
-     remotePatterns: [{
-      protocol: "https",
-      hostname: "**"
-     }],
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: '**',
+      },
+    ],
   },
   reactStrictMode: true,
   transpilePackages: [
-    "rc-util",
-    "@babel/runtime",
-    "@ant-design",
-    "rc-pagination",
-    "rc-picker",
+    'rc-util',
+    '@babel/runtime',
+    '@ant-design',
+    'rc-pagination',
+    'rc-picker',
   ],
 };
 

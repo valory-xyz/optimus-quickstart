@@ -1,6 +1,6 @@
-import { Service } from "@/client";
-import { Flex } from "antd";
-import { ServiceCard } from "../ServiceCard/ServiceCard";
+import { Service } from '@/client';
+import { Flex } from 'antd';
+import { ServiceCard } from './ServiceCard/ServiceCard';
 
 export const HasAgents = ({
   services,

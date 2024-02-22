@@ -1,1 +1,1 @@
-export * from "./multicall3Abi";
+export * from './multicall3Abi';

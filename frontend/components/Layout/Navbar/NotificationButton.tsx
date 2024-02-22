@@ -1,7 +1,7 @@
-import { BellOutlined } from "@ant-design/icons";
-import { MenuProps, Dropdown, Button } from "antd";
+import { BellOutlined } from '@ant-design/icons';
+import { MenuProps, Dropdown, Button } from 'antd';
 
-const items: MenuProps["items"] = [];
+const items: MenuProps['items'] = [];
 
 type NotificationButtonProps = {
   disabled?: boolean;

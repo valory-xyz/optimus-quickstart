@@ -1,48 +1,40 @@
-import { Service, ServiceTemplate } from "@/client";
-import { SpawnRPC } from "@/components/Spawn";
-import { SpawnScreenState } from "@/enums";
-import { useMarketplace, useSpawn } from "@/hooks";
-import { GetServerSidePropsContext } from "next";
-import dynamic from "next/dynamic";
-import { useMemo, useState } from "react";
+import { Service, ServiceTemplate } from '@/client';
+import { SpawnRPC } from '@/components/Spawn';
+import { SpawnScreenState } from '@/enums';
+import { useMarketplace, useSpawn } from '@/hooks';
+import { Address } from '@/types';
+import { GetServerSidePropsContext } from 'next';
+import dynamic from 'next/dynamic';
+import { ReactElement, useMemo, useState } from 'react';
 
 const SpawnAgentFunding = dynamic(
   () =>
-    import("@/components/Spawn/SpawnAgentFunding/SpawnAgentFunding").then(
+    import('@/components/Spawn/SpawnAgentFunding').then(
       (mod) => mod.SpawnAgentFunding,
     ),
   { ssr: false },
 );
 
 const SpawnDone = dynamic(
-  () =>
-    import("@/components/Spawn/SpawnDone/SpawnDone").then(
-      (mod) => mod.SpawnDone,
-    ),
+  () => import('@/components/Spawn/SpawnDone').then((mod) => mod.SpawnDone),
   { ssr: false },
 );
 
 const SpawnHeader = dynamic(
-  () =>
-    import("@/components/Spawn/SpawnHeader/SpawnHeader").then(
-      (mod) => mod.SpawnHeader,
-    ),
+  () => import('@/components/Spawn/SpawnHeader').then((mod) => mod.SpawnHeader),
   { ssr: false },
 );
 
 const SpawnStakingCheck = dynamic(
   () =>
-    import("@/components/Spawn/SpawnStakingCheck/SpawnStakingCheck").then(
+    import('@/components/Spawn/SpawnStakingCheck').then(
       (mod) => mod.SpawnStakingCheck,
     ),
   { ssr: false },
 );
 
 const SpawnError = dynamic(
-  () =>
-    import("@/components/Spawn/SpawnError/SpawnError").then(
-      (mod) => mod.SpawnError,
-    ),
+  () => import('@/components/Spawn/SpawnError').then((mod) => mod.SpawnError),
   { ssr: false },
 );
 
@@ -53,16 +45,16 @@ export const getServerSideProps = async (
   return { props: { serviceTemplateHash } };
 };
 
-export const SpawnPage = ({
-  serviceTemplateHash,
-}: {
+type SpawnPageProps = {
   serviceTemplateHash: string;
-}) => {
+};
+
+export const SpawnPage = ({ serviceTemplateHash }: SpawnPageProps) => {
   const { spawnScreenState, setSpawnScreenState } = useSpawn();
   const { getServiceTemplate } = useMarketplace();
 
   const [service, setService] = useState<Service>();
-  const [rpc, setRpc] = useState("http://localhost:8545"); // hardcoded default for now
+  const [rpc, setRpc] = useState('http://localhost:8545'); // hardcoded default for now
   const [isStaking, setIsStaking] = useState<boolean>(false);
 
   const serviceTemplate: ServiceTemplate | undefined = useMemo(
@@ -71,10 +63,10 @@ export const SpawnPage = ({
   );
 
   const [agentFundRequirements, setAgentFundRequirements] = useState<{
-    [address: string]: number;
+    [address: Address]: number;
   }>({});
 
-  const spawnScreen: JSX.Element = useMemo(() => {
+  const spawnScreen: ReactElement = useMemo(() => {
     if (!serviceTemplate)
       return <SpawnError message="Invalid service template" />;
 

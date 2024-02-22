@@ -5,8 +5,8 @@ import {
   Service,
   ServiceHash,
   ServiceTemplate,
-} from "@/client";
-import { BACKEND_URL } from "@/constants";
+} from '@/client';
+import { BACKEND_URL } from '@/constants';
 
 /**
  * Get the status of a service
@@ -17,9 +17,9 @@ const getServiceStatus = async (
   serviceHash: ServiceHash,
 ): Promise<Deployment> => {
   return fetch(`${BACKEND_URL}/services/${serviceHash}/status`, {
-    method: "POST",
+    method: 'POST',
     headers: {
-      "Content-Type": "application/json",
+      'Content-Type': 'application/json',
     },
   }).then((response) => response.json());
 };
@@ -40,9 +40,9 @@ const getService = async (serviceHash: ServiceHash): Promise<Service> =>
  */
 const getServices = async (): Promise<Service[]> =>
   fetch(`${BACKEND_URL}/services`, {
-    method: "GET",
+    method: 'GET',
     headers: {
-      "Content-Type": "application/json",
+      'Content-Type': 'application/json',
     },
   }).then((response) => response.json());
 
@@ -53,9 +53,9 @@ const getServices = async (): Promise<Service[]> =>
  */
 const deployService = async (serviceHash: ServiceHash): Promise<Deployment> =>
   fetch(`${BACKEND_URL}/services/${serviceHash}/deploy`, {
-    method: "POST",
+    method: 'POST',
     headers: {
-      "Content-Type": "application/json",
+      'Content-Type': 'application/json',
     },
   }).then((response) => response.json());
 
@@ -68,7 +68,7 @@ const deleteServices = async (
   payload: DeleteServicesPayload,
 ): Promise<DeleteServicesResponse> =>
   fetch(`${BACKEND_URL}/services`, {
-    method: "DELETE",
+    method: 'DELETE',
     body: JSON.stringify(payload),
   }).then((response) => response.json());
 
@@ -81,10 +81,10 @@ const createService = async (
   serviceTemplate: Required<ServiceTemplate>,
 ): Promise<Service> =>
   fetch(`${BACKEND_URL}/services`, {
-    method: "POST",
+    method: 'POST',
     body: JSON.stringify(serviceTemplate),
     headers: {
-      "Content-Type": "application/json",
+      'Content-Type': 'application/json',
     },
   }).then((response) => response.json());
 
@@ -95,7 +95,7 @@ const createService = async (
  */
 const stopService = async (serviceHash: ServiceHash): Promise<Deployment> =>
   fetch(`${BACKEND_URL}/services/${serviceHash}/stop`, {
-    method: "POST",
+    method: 'POST',
   }).then((response) => response.json());
 
 export const ServicesService = {

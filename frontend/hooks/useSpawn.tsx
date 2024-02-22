@@ -1,6 +1,6 @@
-import { SpawnContext } from "@/context";
-import { SpawnScreenState } from "@/enums";
-import { useCallback, useContext, useMemo } from "react";
+import { SpawnContext } from '@/context';
+import { SpawnScreenState } from '@/enums';
+import { useCallback, useContext, useMemo } from 'react';
 
 export const useSpawn = () => {
   const { spawnScreenState, setSpawnScreenState, firstSpawnScreenState } =
@@ -18,9 +18,8 @@ export const useSpawn = () => {
       case SpawnScreenState.DONE:
         return 100;
       default:
-        break;
+        return 0;
     }
-    return 0;
   }, [spawnScreenState]);
 
   const resetSpawnScreenState = useCallback(

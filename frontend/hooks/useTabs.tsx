@@ -1,6 +1,6 @@
-import { TabsContext } from "@/context";
-import { Tab } from "@/enums";
-import { useContext } from "react";
+import { TabsContext } from '@/context';
+import { Tab } from '@/enums';
+import { useContext } from 'react';
 
 export const useTabs = () => {
   const { activeTab, setActiveTab } = useContext(TabsContext);

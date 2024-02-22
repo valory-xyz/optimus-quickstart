@@ -1,19 +1,37 @@
-import { copyToClipboard } from "@/helpers/copyToClipboard";
-import { useModals, useServices } from "@/hooks";
-import { Button, Flex, Typography, message } from "antd";
+import { copyToClipboard } from '@/helpers/copyToClipboard';
+import { useModals, useServices } from '@/hooks';
+import { Address } from '@/types';
+import { FundsReceivedMap } from '@/types';
+import { Button, Flex, Typography, message } from 'antd';
 import {
   Dispatch,
   SetStateAction,
   useCallback,
   useMemo,
   useState,
-} from "react";
-import { useInterval } from "usehooks-ts";
+} from 'react';
+import { useInterval } from 'usehooks-ts';
+
+type FundRequirementProps = {
+  serviceHash?: string;
+  address: Address;
+  requirement: number;
+  contractAddress?: Address;
+  symbol: string;
+  hasReceivedFunds: boolean;
+  isERC20: boolean;
+  getBalance: (
+    address: Address,
+    rpc: string,
+    contractAddress?: Address,
+  ) => Promise<number>;
+  setReceivedFunds: Dispatch<SetStateAction<FundsReceivedMap>>;
+};
 
 /**
  * Should be called by FundRequirementERC20 or FundRequirementETH only
  * @param { serviceHash, address, requirement, contractAddress, symbol, hasReceivedFunds, isERC20, getBalance, setReceivedFunds }
- * @returns JSX.Element
+ * @returns
  */
 export const FundRequirement = ({
   serviceHash,
@@ -25,21 +43,7 @@ export const FundRequirement = ({
   isERC20,
   getBalance,
   setReceivedFunds,
-}: {
-  serviceHash?: string;
-  address: string;
-  requirement: number;
-  contractAddress?: string;
-  symbol: string;
-  hasReceivedFunds: boolean;
-  isERC20: boolean;
-  getBalance: (
-    address: string,
-    rpc: string,
-    contractAddress?: string,
-  ) => Promise<number>;
-  setReceivedFunds: Dispatch<SetStateAction<{ [address: string]: boolean }>>;
-}) => {
+}: FundRequirementProps) => {
   const { qrModalOpen } = useModals();
   const { getServiceFromState } = useServices();
 
@@ -56,10 +60,10 @@ export const FundRequirement = ({
     (): Promise<void> =>
       copyToClipboard(address)
         .then(() => {
-          message.success("Copied to clipboard");
+          message.success('Copied to clipboard');
         })
         .catch(() => {
-          message.error("Failed to copy to clipboard");
+          message.error('Failed to copy to clipboard');
         }),
     [address],
   );
@@ -71,13 +75,13 @@ export const FundRequirement = ({
   );
 
   useInterval(
-    () =>
-      rpc &&
+    () => {
+      if (!rpc) return;
       getBalance(address, rpc, contractAddress)
         .then((balance: number) => {
           if (balance >= requirement) {
             setIsPollingBalance(false);
-            setReceivedFunds((prev: { [address: string]: boolean }) => ({
+            setReceivedFunds((prev: FundsReceivedMap) => ({
               ...prev,
               [address]: true,
             }));
@@ -86,7 +90,8 @@ export const FundRequirement = ({
         })
         .catch(() => {
           message.error(`Failed to get balance for ${address}`);
-        }),
+        });
+    },
     isPollingBalance ? 3000 : null,
   );
 

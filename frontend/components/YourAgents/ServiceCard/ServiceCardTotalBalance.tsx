@@ -1,15 +1,16 @@
-import { Service } from "@/client";
-import { useMulticall } from "@/hooks";
-import { Flex, Typography, message } from "antd";
-import { useMemo, useState } from "react";
-import { useInterval } from "usehooks-ts";
+import { Service } from '@/client';
+import { useMulticall } from '@/hooks';
+import { BalancesMap } from '@/types';
+import { Flex, Typography, message } from 'antd';
+import { useMemo, useState } from 'react';
+import { useInterval } from 'usehooks-ts';
 
 const BALANCE_POLLING_INTERVAL = 5000;
 
 export const ServiceCardTotalBalance = ({ service }: { service: Service }) => {
   const { getETHBalances } = useMulticall();
   const [hasInitialLoaded, setHasInitialLoaded] = useState(false);
-  const [balances, setBalances] = useState<{ [address: string]: number }>({});
+  const [balances, setBalances] = useState<BalancesMap>({});
 
   const sumBalances: number | undefined = useMemo(() => {
     if (hasInitialLoaded && balances) {

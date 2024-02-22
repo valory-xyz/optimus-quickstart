@@ -1,9 +1,9 @@
-import React, { useContext } from "react";
-import { render, fireEvent } from "@testing-library/react";
-import { ModalsContext, ModalsProvider } from "./ModalsProvider";
+import React, { useContext } from 'react';
+import { render, fireEvent } from '@testing-library/react';
+import { ModalsContext, ModalsProvider } from './ModalsProvider';
 
-describe("ModalsProvider", () => {
-  it("renders children properly", () => {
+describe('ModalsProvider', () => {
+  it('renders children properly', () => {
     const ChildComponent = () => {
       const { qrModalData } = useContext(ModalsContext);
       return <div data-testid="child">{qrModalData.open.toString()}</div>;
@@ -15,10 +15,10 @@ describe("ModalsProvider", () => {
       </ModalsProvider>,
     );
 
-    expect(getByTestId("child").textContent).toBe("false");
+    expect(getByTestId('child').textContent).toBe('false');
   });
 
-  it("correctly sets qrModalOpen value", () => {
+  it('correctly sets qrModalOpen value', () => {
     const ChildComponent = () => {
       const { qrModalData, setQrModalData } = useContext(ModalsContext);
       return (
@@ -28,7 +28,7 @@ describe("ModalsProvider", () => {
             setQrModalData((prev) => ({ ...prev, open: !prev.open }))
           }
         >
-          {qrModalData.open ? "open" : "closed"}
+          {qrModalData.open ? 'open' : 'closed'}
         </button>
       );
     };
@@ -39,21 +39,21 @@ describe("ModalsProvider", () => {
       </ModalsProvider>,
     );
 
-    const toggleButton = getByTestId("toggle");
+    const toggleButton = getByTestId('toggle');
 
     // Initially, qrModalOpen should be false
-    expect(toggleButton.textContent).toBe("closed");
+    expect(toggleButton.textContent).toBe('closed');
 
     // Click the button to toggle qrModalOpen
     fireEvent.click(toggleButton);
 
     // Now, qrModalOpen should be true
-    expect(toggleButton.textContent).toBe("open");
+    expect(toggleButton.textContent).toBe('open');
 
     // Click the button again to toggle qrModalOpen back to false
     fireEvent.click(toggleButton);
 
     // Now, qrModalOpen should be false again
-    expect(toggleButton.textContent).toBe("closed");
+    expect(toggleButton.textContent).toBe('closed');
   });
 });

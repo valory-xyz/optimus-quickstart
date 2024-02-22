@@ -1,6 +1,6 @@
-import { Tab } from "@/enums";
-import { useTabs } from "@/hooks";
-import { Flex, Typography, Button } from "antd";
+import { Tab } from '@/enums';
+import { useTabs } from '@/hooks';
+import { Flex, Typography, Button } from 'antd';
 
 export const NoAgents = (): JSX.Element => {
   const { setActiveTab } = useTabs();

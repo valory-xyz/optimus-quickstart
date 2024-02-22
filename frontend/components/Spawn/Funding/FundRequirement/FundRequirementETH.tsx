@@ -1,15 +1,18 @@
-import { useEthers } from "@/hooks";
-import { Dispatch, SetStateAction } from "react";
-import { FundRequirement } from "./FundRequirement";
+import { useEthers } from '@/hooks';
+import { Dispatch, SetStateAction } from 'react';
+import { FundRequirement } from './FundRequirement';
+import { Address, FundsReceivedMap } from '@/types';
 
-export const FundRequirementETH = (props: {
+type FundRequirementETHProps = {
   serviceHash?: string;
-  address: string;
+  address: Address;
   symbol: string;
   requirement: number;
   hasReceivedFunds: boolean;
-  setReceivedFunds: Dispatch<SetStateAction<{ [address: string]: boolean }>>;
-}) => {
+  setReceivedFunds: Dispatch<SetStateAction<FundsReceivedMap>>;
+};
+
+export const FundRequirementETH = (props: FundRequirementETHProps) => {
   const { getETHBalance } = useEthers();
   return (
     <FundRequirement getBalance={getETHBalance} isERC20={false} {...props} />
