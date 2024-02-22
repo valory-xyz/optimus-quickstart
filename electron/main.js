@@ -41,7 +41,7 @@ const appConfig = {
     },
     prod: {
       operate: 8000, // TOFIX
-      next: 8234,
+      next: 3000,
     },
   },
 };
@@ -289,9 +289,10 @@ ipcMain.on('check', async function (event, argument) {
     }
 
     event.sender.send('response', 'Launching App');
-    splashWindow.destroy();
+
     createMainWindow();
     createTray();
+    splashWindow.destroy();
   } catch (e) {
     console.log(e);
     new Notification({
