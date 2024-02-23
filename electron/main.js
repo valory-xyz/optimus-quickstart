@@ -306,6 +306,10 @@ ipcMain.on('check', async function (event, argument) {
 
 // APP-SPECIFIC EVENTS
 app.on('ready', async () => {
+  if (platform === 'darwin') {
+    app.dock?.setIcon(path.join(__dirname, 'assets/icons/robot-head.png'));
+    app.dock?.setBadge('Olas Operate');
+  }
   createSplashWindow();
 });
 
