@@ -2,6 +2,7 @@ import {
   Deployment,
   DeploymentStatus,
   Service,
+  ServiceHash,
   ServiceTemplate,
 } from '@/client';
 import { useMarketplace } from '@/hooks/useMarketplace';
@@ -23,7 +24,7 @@ export const ServiceCard = ({ service }: ServiceCardProps) => {
     stopService,
     deployService,
     deleteServices,
-    updateServicesState,
+    updateServiceState,
     getServiceStatus,
   } = useServices();
   const { getServiceTemplates } = useMarketplace();
@@ -37,17 +38,17 @@ export const ServiceCard = ({ service }: ServiceCardProps) => {
   const [isDeleting, setIsDeleting] = useState(false);
 
   const updateServiceStatus = useCallback(
-    (): Promise<void> =>
-      getServiceStatus(service.hash)
+    (serviceHash: ServiceHash): Promise<void> =>
+      getServiceStatus(serviceHash)
         .then((r: Deployment) => setServiceStatus(r.status))
         .catch(() => {
           setServiceStatus(undefined);
           message.error('Failed to update service status');
         }),
-    [getServiceStatus, service.hash],
+    [getServiceStatus],
   );
 
-  useInterval(updateServiceStatus, STATUS_POLLING_INTERVAL);
+  useInterval(() => updateServiceStatus(service.hash), STATUS_POLLING_INTERVAL);
 
   const handleStart = useCallback(() => {
     if (isStarting) return;
@@ -55,7 +56,7 @@ export const ServiceCard = ({ service }: ServiceCardProps) => {
     deployService(service.hash)
       .then(async () => {
         message.success('Service started successfully');
-        updateServicesState().catch(() =>
+        updateServiceState(service.hash).catch(() =>
           message.error('Failed to update services'),
         );
       })
@@ -63,7 +64,7 @@ export const ServiceCard = ({ service }: ServiceCardProps) => {
         message.error('Failed to start service');
       })
       .finally(() => {
-        updateServiceStatus()
+        updateServiceStatus(service.hash)
           .catch(() => message.error('Failed to update service status'))
           .finally(() => setIsStarting(false));
       });
@@ -71,7 +72,7 @@ export const ServiceCard = ({ service }: ServiceCardProps) => {
     isStarting,
     deployService,
     service.hash,
-    updateServicesState,
+    updateServiceState,
     updateServiceStatus,
   ]);
 
@@ -80,7 +81,7 @@ export const ServiceCard = ({ service }: ServiceCardProps) => {
     setIsStopping(true);
     stopService(service.hash)
       .then(() => {
-        updateServicesState().catch(() =>
+        updateServiceState(service.hash).catch(() =>
           message.error('Failed to update services'),
         );
       })
@@ -88,7 +89,7 @@ export const ServiceCard = ({ service }: ServiceCardProps) => {
         message.error('Failed to stop service');
       })
       .finally(() => {
-        updateServiceStatus()
+        updateServiceStatus(service.hash)
           .catch(() => message.error('Failed to update service status'))
           .finally(() => setIsStopping(false));
       });
@@ -96,8 +97,8 @@ export const ServiceCard = ({ service }: ServiceCardProps) => {
     isStopping,
     service.hash,
     stopService,
+    updateServiceState,
     updateServiceStatus,
-    updateServicesState,
   ]);
 
   const handleDelete = useCallback(() => {
@@ -105,20 +106,20 @@ export const ServiceCard = ({ service }: ServiceCardProps) => {
     setIsDeleting(true);
     deleteServices([service.hash])
       .then(async () => {
-        updateServicesState().catch(() =>
+        updateServiceState(service.hash).catch(() =>
           message.error('Failed to update services'),
         );
       })
       .catch(() => message.error('Failed to delete service'))
       .finally(() => {
-        updateServiceStatus().finally(() => setIsDeleting(false));
+        updateServiceStatus(service.hash).finally(() => setIsDeleting(false));
       });
   }, [
     deleteServices,
     isDeleting,
     service.hash,
+    updateServiceState,
     updateServiceStatus,
-    updateServicesState,
   ]);
 
   const buttons: JSX.Element = useMemo(() => {
@@ -151,7 +152,7 @@ export const ServiceCard = ({ service }: ServiceCardProps) => {
           <Button
             danger
             onClick={handleDelete}
-            disabled //={isDeleting} disabled until /delete endpoint is implemented
+            disabled={isDeleting}
             loading={isDeleting}
           >
             Delete this agent
