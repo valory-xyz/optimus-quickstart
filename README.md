@@ -135,7 +135,7 @@ On running the following command we are presented with a number of public and pr
 yarn dev:hardhat
 ```
 
-Copy any one of these private keys into `/backend/.operate/key.txt`.
+Copy any one of these private keys into `.operate/key.txt`.
 
 ### Run the development app
 
