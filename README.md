@@ -11,7 +11,7 @@ Electron + NextJS + Backend application to one-click run Agents.
 - Poetry (1.7.1)
 - Docker (24)
 
-## Getting Started
+## Getting Started (Development)
 
 ### Application must run on a Linux instance
 
