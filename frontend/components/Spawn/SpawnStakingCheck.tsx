@@ -40,7 +40,7 @@ export const SpawnStakingCheck = ({
   const { createService } = useServices();
   const { userPublicKey } = useAppInfo();
   const { getErc20Balance } = useEthers();
-  const { updateServicesState } = useServices();
+  const { updateServiceState } = useServices();
 
   const [isCreating, setIsCreating] = useState(false);
   const [buttonClicked, setButtonClicked] = useState<ButtonOptions>();
@@ -55,7 +55,7 @@ export const SpawnStakingCheck = ({
         return;
       }
       setIsCreating(true);
-      createService({
+      return createService({
         ...serviceTemplate,
         configuration: {
           ...serviceTemplate.configuration,
@@ -63,13 +63,13 @@ export const SpawnStakingCheck = ({
           use_staking: isStaking,
         },
       })
-        .then((_service: Service) => {
-          setService(_service);
+        .then((service: Service) => {
+          setService(service);
 
           //  Set agent funding requirements
-          if (_service.chain_data?.instances) {
+          if (service.chain_data?.instances) {
             setAgentFundRequirements(
-              _service.chain_data.instances.reduce(
+              service.chain_data.instances.reduce(
                 (acc: FundsRequirementMap, address: Address) => ({
                   ...acc,
                   [address]:
@@ -80,16 +80,16 @@ export const SpawnStakingCheck = ({
             );
           }
 
-          // Set staking funding requirements from multisig/safe
-          if (_service.chain_data?.multisig) {
-            const { multisig } = _service.chain_data;
+          // Set multisig funding requirements from multisig/safe
+          if (service.chain_data?.multisig) {
+            const { multisig } = service.chain_data;
             const { safe } = serviceTemplate.configuration.fund_requirements;
             setAgentFundRequirements((prev: FundsRequirementMap) => ({
               ...prev,
               [multisig]: safe,
             }));
           }
-          return Promise.resolve();
+          return Promise.resolve(service);
         })
         .catch(() => {
           return Promise.reject();
@@ -145,19 +145,20 @@ export const SpawnStakingCheck = ({
       message.error(`${userPublicKey} requires more OLAS to stake`);
       return setButtonClicked(undefined);
     }
-    const hasCreated: boolean = await create(true)
-      .then(() => {
+    const service: Service | undefined = await create(true)
+      .then((service?: Service) => {
         {
           message.success('Service created successfully');
-          return true;
+          return service;
         }
       })
       .catch(() => {
         message.error('Failed to create service');
-        return false;
+        return undefined;
       });
-    if (canStake && hasCreated) {
-      await updateServicesState();
+
+    if (canStake && service) {
+      await updateServiceState(service.hash);
       setIsStaking(true);
       setSpawnScreenState(nextPage);
     }
@@ -166,17 +167,21 @@ export const SpawnStakingCheck = ({
 
   const handleNo = async () => {
     setButtonClicked(ButtonOptions.NO);
-    const hasCreated: boolean = await create(false)
-      .then(() => {
+
+    const service: Service | undefined = await create(false)
+      .then((service?: Service) => {
         message.success('Service created successfully');
-        return true;
+        return service;
       })
       .catch(() => {
         message.error('Failed to create service');
-        return false;
+        return undefined;
       });
-    if (hasCreated) {
-      await updateServicesState();
+
+    if (service) {
+      await updateServiceState(service.hash).catch(() =>
+        message.error('Failed to update service state'),
+      );
       setIsStaking(false);
       setSpawnScreenState(nextPage);
     }
