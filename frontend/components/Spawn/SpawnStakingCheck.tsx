@@ -164,20 +164,16 @@ export const SpawnStakingCheck = ({
   const handleNo = async () => {
     setButtonClicked(ButtonOptions.NO);
 
-    const service: Service | undefined = await create(false)
-      .then((service?: Service) => {
-        message.success('Service created successfully');
-        return service;
-      })
-      .catch(() => {
-        message.error('Failed to create service');
-        return undefined;
-      });
+    const service: Service | undefined = await create(false);
+    if (!service) {
+      message.error('Failed to create service');
+    } else {
+      message.success('Service created successfully');
 
-    if (service) {
       await updateServiceState(service.hash).catch(() =>
         message.error('Failed to update service state'),
       );
+
       setIsStaking(false);
       setSpawnScreenState(nextPage);
     }
