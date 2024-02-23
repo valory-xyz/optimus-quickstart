@@ -145,24 +145,20 @@ export const SpawnStakingCheck = ({
       message.error(`${userPublicKey} requires more OLAS to stake`);
       return setButtonClicked(undefined);
     }
-    const service: Service | undefined = await create(true)
-      .then((service?: Service) => {
-        {
-          message.success('Service created successfully');
-          return service;
-        }
-      })
-      .catch(() => {
-        message.error('Failed to create service');
-        return undefined;
-      });
-
-    if (canStake && service) {
-      await updateServiceState(service.hash);
-      setIsStaking(true);
-      setSpawnScreenState(nextPage);
+    const service: Service | undefined = await create(true);
+    if (!service) {
+      message.error('Failed to create service');
+    } else {
+      message.success('Service created successfully');
+      if (canStake && service) {
+        await updateServiceState(service.hash).catch(() =>
+          message.error('Failed to update service state'),
+        );
+        setIsStaking(true);
+        setSpawnScreenState(nextPage);
+      }
+      setButtonClicked(undefined);
     }
-    setButtonClicked(undefined);
   };
 
   const handleNo = async () => {
