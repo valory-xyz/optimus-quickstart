@@ -4,7 +4,7 @@ import { ServicesService } from '@/service';
 import { useContext } from 'react';
 
 export const useServices = () => {
-  const { services, updateServicesState, hasInitialLoaded } =
+  const { services, updateServicesState, hasInitialLoaded, setServices } =
     useContext(ServicesContext);
 
   // SERVICES SERVICE METHODS
@@ -20,10 +20,10 @@ export const useServices = () => {
   const deleteServices = async (hashes: ServiceHash[]) =>
     ServicesService.deleteServices({ hashes });
 
-  const getService = (serviceHash: ServiceHash) =>
+  const getService = async (serviceHash: ServiceHash) =>
     ServicesService.getService(serviceHash);
 
-  const getServiceStatus = (serviceHash: ServiceHash) =>
+  const getServiceStatus = async (serviceHash: ServiceHash) =>
     ServicesService.getServiceStatus(serviceHash);
 
   // STATE METHODS
@@ -39,12 +39,24 @@ export const useServices = () => {
   const getServicesFromState = (): Service[] =>
     hasInitialLoaded ? services : [];
 
+  const updateServiceState = (serviceHash: ServiceHash) =>
+    getService(serviceHash).then((service: Service) =>
+      setServices((prev) => {
+        const index = prev.findIndex((s) => s.hash === serviceHash); // findIndex returns -1 if not found
+        if (index === -1) throw new Error('Service not found');
+        const newServices = [...prev];
+        newServices[index] = service;
+        return newServices;
+      }),
+    );
+
   return {
     getService,
     getServiceFromState,
     getServicesFromState,
     getServiceStatus,
     updateServicesState,
+    updateServiceState,
     createService,
     deployService,
     stopService,

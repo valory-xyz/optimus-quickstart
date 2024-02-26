@@ -19,7 +19,7 @@ For development, we have been using Ubuntu 22.04.
 
 ### Setup ENV file
 
-Create an `.env` file in the root directory, or rename `.env.example` to `.env`.
+Create a `.env` file in the root directory, or rename `.env.example` to `.env`.
 
 #### NODE_ENV
 For development usage, set `NODE_ENV=development`.
@@ -69,7 +69,7 @@ source ~/.bashrc
 
 #### Install NodeJS LTS
 
-Provided NVM is installed, you will be able to install the currently NodeJS LTS version (20.11)
+Provided NVM is installed, you will be able to install the current NodeJS LTS version (20.11)
 
 ```bash
 nvm install --lts
@@ -90,7 +90,7 @@ npm install --global yarn
 sudo usermod -aG docker $USER
 ```
 
-**Note: this may require a restart. **
+*Note: this may require a restart.*
 
 After running the above command, you should be able to run the following command from your terminal: 
 
@@ -112,12 +112,12 @@ Dependant on your intentions, there are two routes.
 
 If you wish to test both the staking and non-staking agent spawning, you must use the private key for a wallet that has an appropriate amount of OLAS for staking.
 
-If you only wish to test the non-staking agent spawning, you can set a Hardhat private key as wallet's OLAS balance will not be checked.
+If you only wish to test the non-staking agent spawning, you can set a Hardhat private key as the wallet's OLAS balance will not be checked.
 
 
 #### Staking route
 
-This route will check the wallet set in `/backend/.operate/key.txt` for OLAS prior to creating an agent in "staking mode".
+This route will check the wallet set in `/.operate/key` for OLAS before creating an agent in "staking mode".
 
 Set a private key in the above mentioned file, ensuring it is prefixed with `0x`.
 
@@ -125,17 +125,17 @@ Set a private key in the above mentioned file, ensuring it is prefixed with `0x`
 
 ** Do not send funds to a Hardhat assigned wallet on mainnet **.
 
-This route will not poll for Olas, and therefore you can set any private key in the `key.txt` file mentioned below.
+This route will not poll for Olas, and therefore you can set any private key in the `key` file mentioned below.
 
 The project runs a Gnosis hardhat node -- this is temporary for early development phase.
 
-On running the following command we are presented with a number of public and private keys. 
+On running the following command we are presented with several public and private keys. 
 
 ```bash
 yarn dev:hardhat
 ```
 
-Copy any one of these private keys into `.operate/key.txt`.
+Copy any one of these private keys into `.operate/key`.
 
 ### Run the development app
 
@@ -159,5 +159,5 @@ This will run Electron which launches NextJS and the Backend as child processes.
 
 - Only one agent can be run at a time.
 - Uncomment `mainWindow.webContents.openDevTools()` in electron/main.js to display Chromium dev tools in the Electron app
-- "Delete endpoint" not currently avaiable, you must manually delete the relevant service directories from the /backend/operate/services folder to remove them, the app must be restarted after this.
+- "Delete endpoint" is not currently available, you must manually delete the relevant service directories from the /backend/operate/services folder to remove them, the app must be restarted after this.
 - Port conflict solution has not been implemented yet.
