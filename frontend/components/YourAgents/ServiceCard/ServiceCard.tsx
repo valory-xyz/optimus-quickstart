@@ -208,22 +208,23 @@ export const ServiceCard = ({ service }: ServiceCardProps) => {
       {!isRpcValid && (
         <div style={{ position: 'absolute', top: -8, right: -8 }}>
           <Tooltip title="RPC is not responding" placement="left">
-            <Badge count={'!'} />
+            <Badge count={'!'} status="error" />
+            {/* Using count to render react node inside badge */}
           </Tooltip>
         </div>
       )}
 
       <Flex gap={16}>
         <Image
-          src={serviceTemplate!.image}
+          src={serviceTemplate.image}
           alt="Image"
           width={200}
           height={200}
           unoptimized
         />
         <Flex vertical>
-          <Typography.Title level={3}>{serviceTemplate!.name}</Typography.Title>
-          <Typography.Text>{serviceTemplate!.description}</Typography.Text>
+          <Typography.Title level={3}>{serviceTemplate.name}</Typography.Title>
+          <Typography.Text>{serviceTemplate.description}</Typography.Text>
           <Flex gap={'large'} justify="space-between">
             <Flex vertical>
               <Typography.Text strong>STATUS</Typography.Text>
