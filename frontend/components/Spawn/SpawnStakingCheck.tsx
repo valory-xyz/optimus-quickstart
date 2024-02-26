@@ -40,7 +40,7 @@ export const SpawnStakingCheck = ({
   const { createService } = useServices();
   const { userPublicKey } = useAppInfo();
   const { getErc20Balance } = useEthers();
-  const { updateServicesState } = useServices();
+  const { updateServiceState } = useServices();
 
   const [isCreating, setIsCreating] = useState(false);
   const [buttonClicked, setButtonClicked] = useState<ButtonOptions>();
@@ -55,7 +55,7 @@ export const SpawnStakingCheck = ({
         return;
       }
       setIsCreating(true);
-      createService({
+      return createService({
         ...serviceTemplate,
         configuration: {
           ...serviceTemplate.configuration,
@@ -63,13 +63,13 @@ export const SpawnStakingCheck = ({
           use_staking: isStaking,
         },
       })
-        .then((_service: Service) => {
-          setService(_service);
+        .then((service: Service) => {
+          setService(service);
 
           //  Set agent funding requirements
-          if (_service.chain_data?.instances) {
+          if (service.chain_data?.instances) {
             setAgentFundRequirements(
-              _service.chain_data.instances.reduce(
+              service.chain_data.instances.reduce(
                 (acc: FundsRequirementMap, address: Address) => ({
                   ...acc,
                   [address]:
@@ -80,16 +80,16 @@ export const SpawnStakingCheck = ({
             );
           }
 
-          // Set staking funding requirements from multisig/safe
-          if (_service.chain_data?.multisig) {
-            const { multisig } = _service.chain_data;
+          // Set multisig funding requirements from multisig/safe
+          if (service.chain_data?.multisig) {
+            const { multisig } = service.chain_data;
             const { safe } = serviceTemplate.configuration.fund_requirements;
             setAgentFundRequirements((prev: FundsRequirementMap) => ({
               ...prev,
               [multisig]: safe,
             }));
           }
-          return Promise.resolve();
+          return Promise.resolve(service);
         })
         .catch(() => {
           return Promise.reject();
@@ -145,38 +145,35 @@ export const SpawnStakingCheck = ({
       message.error(`${userPublicKey} requires more OLAS to stake`);
       return setButtonClicked(undefined);
     }
-    const hasCreated: boolean = await create(true)
-      .then(() => {
-        {
-          message.success('Service created successfully');
-          return true;
-        }
-      })
-      .catch(() => {
-        message.error('Failed to create service');
-        return false;
-      });
-    if (canStake && hasCreated) {
-      await updateServicesState();
-      setIsStaking(true);
-      setSpawnScreenState(nextPage);
+    const service: Service | undefined = await create(true);
+    if (!service) {
+      message.error('Failed to create service');
+    } else {
+      message.success('Service created successfully');
+      if (canStake && service) {
+        await updateServiceState(service.hash).catch(() =>
+          message.error('Failed to update service state'),
+        );
+        setIsStaking(true);
+        setSpawnScreenState(nextPage);
+      }
+      setButtonClicked(undefined);
     }
-    setButtonClicked(undefined);
   };
 
   const handleNo = async () => {
     setButtonClicked(ButtonOptions.NO);
-    const hasCreated: boolean = await create(false)
-      .then(() => {
-        message.success('Service created successfully');
-        return true;
-      })
-      .catch(() => {
-        message.error('Failed to create service');
-        return false;
-      });
-    if (hasCreated) {
-      await updateServicesState();
+
+    const service: Service | undefined = await create(false);
+    if (!service) {
+      message.error('Failed to create service');
+    } else {
+      message.success('Service created successfully');
+
+      await updateServiceState(service.hash).catch(() =>
+        message.error('Failed to update service state'),
+      );
+
       setIsStaking(false);
       setSpawnScreenState(nextPage);
     }
