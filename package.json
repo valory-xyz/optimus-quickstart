@@ -17,7 +17,8 @@
     "react": "^18",
     "react-dom": "^18",
     "swr": "^2.2.4",
-    "usehooks-ts": "^2.14.0"
+    "usehooks-ts": "^2.14.0",
+    "sudo-prompt": "9.2.1"
   },
   "devDependencies": {
     "concurrently": "^8.2.2",
