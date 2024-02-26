@@ -205,7 +205,7 @@ export const ServiceCard = ({ service }: ServiceCardProps) => {
 
   return (
     <Card>
-      {isRpcValid && (
+      {!isRpcValid && (
         <div style={{ position: 'absolute', top: -8, right: -8 }}>
           <Tooltip title="RPC is not responding" placement="left">
             <Badge count={'!'} />
