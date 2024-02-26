@@ -115,8 +115,8 @@ const createTray = () => {
  */
 const createSplashWindow = () => {
   splashWindow = new BrowserWindow({
-    width: 400,
-    height: 200,
+    width: appConfig.width,
+    height: appConfig.height,
     resizable: false,
     show: true,
     title: 'Olas Operate',
