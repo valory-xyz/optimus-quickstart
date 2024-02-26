@@ -70,7 +70,7 @@ export const useEthers = () => {
    * @param rpc string
    * @returns Promise<boolean>
    */
-  const checkRPC = async (rpc: string): Promise<boolean> => {
+  const checkRpc = async (rpc: string): Promise<boolean> => {
     try {
       if (!rpc) throw new Error('RPC is required');
 
@@ -90,7 +90,7 @@ export const useEthers = () => {
 
   return {
     getEthBalance,
-    checkRPC,
+    checkRpc,
     getErc20Balance,
   };
 };
