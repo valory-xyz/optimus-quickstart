@@ -37,7 +37,7 @@ type SpawnRPCProps = {
 
 export const SpawnRPC = ({ rpc, setRpc, nextPage }: SpawnRPCProps) => {
   const { setSpawnScreenState } = useSpawn();
-  const { checkRPC, getEthBalance } = useEthers();
+  const { checkRpc, getEthBalance } = useEthers();
   const { userPublicKey } = useAppInfo();
 
   const [isCheckingRpc, setIsCheckingRpc] = useState(false);
@@ -60,7 +60,7 @@ export const SpawnRPC = ({ rpc, setRpc, nextPage }: SpawnRPCProps) => {
       if (isCheckingRpc) return;
       if (!_rpc) return;
       setIsCheckingRpc(true);
-      checkRPC(_rpc)
+      checkRpc(_rpc)
         .then((valid: boolean) =>
           setRpcState(valid ? RPCState.VALID : RPCState.INVALID),
         )
