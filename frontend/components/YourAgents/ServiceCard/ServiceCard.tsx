@@ -1,23 +1,35 @@
 import {
+  Card,
+  Flex,
+  Typography,
+  Button,
+  Badge,
+  Spin,
+  message,
+  Tooltip,
+} from 'antd';
+import Image from 'next/image';
+import { useCallback, useMemo, useState } from 'react';
+import { useInterval } from 'usehooks-ts';
+
+import {
   Deployment,
   DeploymentStatus,
   Service,
   ServiceHash,
   ServiceTemplate,
 } from '@/client';
-import { useMarketplace } from '@/hooks/useMarketplace';
-import { useServices } from '@/hooks/useServices';
-import { Card, Flex, Typography, Button, Badge, Spin, message } from 'antd';
-import Image from 'next/image';
-import { useCallback, useMemo, useState } from 'react';
-import { useInterval } from 'usehooks-ts';
+import { useMarketplace, useServices, useEthers } from '@/hooks';
+
 import { ServiceCardTotalBalance } from './ServiceCardTotalBalance';
+import {
+  SERVICE_CARD_RPC_POLLING_INTERVAL,
+  SERVICE_CARD_STATUS_POLLING_INTERVAL,
+} from '@/constants/intervals';
 
 type ServiceCardProps = {
   service: Service;
 };
-
-const STATUS_POLLING_INTERVAL = 5000;
 
 export const ServiceCard = ({ service }: ServiceCardProps) => {
   const {
@@ -28,6 +40,7 @@ export const ServiceCard = ({ service }: ServiceCardProps) => {
     getServiceStatus,
   } = useServices();
   const { getServiceTemplates } = useMarketplace();
+  const { checkRpc } = useEthers();
 
   const [serviceStatus, setServiceStatus] = useState<
     DeploymentStatus | undefined
@@ -36,6 +49,7 @@ export const ServiceCard = ({ service }: ServiceCardProps) => {
   const [isStopping, setIsStopping] = useState(false);
   const [isStarting, setIsStarting] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isRpcValid, setIsRpcValid] = useState(false);
 
   const updateServiceStatus = useCallback(
     (serviceHash: ServiceHash): Promise<void> =>
@@ -48,7 +62,10 @@ export const ServiceCard = ({ service }: ServiceCardProps) => {
     [getServiceStatus],
   );
 
-  useInterval(() => updateServiceStatus(service.hash), STATUS_POLLING_INTERVAL);
+  useInterval(
+    () => updateServiceStatus(service.hash),
+    SERVICE_CARD_STATUS_POLLING_INTERVAL,
+  );
 
   const handleStart = useCallback(() => {
     if (isStarting) return;
@@ -171,7 +188,62 @@ export const ServiceCard = ({ service }: ServiceCardProps) => {
     serviceStatus,
   ]);
 
-  const serviceStatusBadge: JSX.Element = useMemo(() => {
+  const serviceTemplate: ServiceTemplate | undefined = useMemo(
+    () =>
+      getServiceTemplates().find(
+        (serviceTemplate) => serviceTemplate.hash === service.hash,
+      ),
+    [getServiceTemplates, service.hash],
+  );
+
+  useInterval(
+    async () => setIsRpcValid(await checkRpc(service.ledger.rpc)),
+    SERVICE_CARD_RPC_POLLING_INTERVAL,
+  );
+
+  if (!serviceTemplate) return <ServiceTemplateNotFound />;
+
+  return (
+    <Card>
+      {isRpcValid && (
+        <div style={{ position: 'absolute', top: -8, right: -8 }}>
+          <Tooltip title="RPC is not responding" placement="left">
+            <Badge count={'!'} />
+          </Tooltip>
+        </div>
+      )}
+
+      <Flex gap={16}>
+        <Image
+          src={serviceTemplate!.image}
+          alt="Image"
+          width={200}
+          height={200}
+          unoptimized
+        />
+        <Flex vertical>
+          <Typography.Title level={3}>{serviceTemplate!.name}</Typography.Title>
+          <Typography.Text>{serviceTemplate!.description}</Typography.Text>
+          <Flex gap={'large'} justify="space-between">
+            <Flex vertical>
+              <Typography.Text strong>STATUS</Typography.Text>
+              <ServiceCardStatusBadge serviceStatus={serviceStatus} />
+            </Flex>
+            {isRpcValid && <ServiceCardTotalBalance service={service} />}
+          </Flex>
+          <Flex style={{ marginTop: 'auto' }}>{buttons}</Flex>
+        </Flex>
+      </Flex>
+    </Card>
+  );
+};
+
+const ServiceCardStatusBadge = ({
+  serviceStatus,
+}: {
+  serviceStatus?: DeploymentStatus;
+}) => {
+  const badge = useMemo(() => {
     switch (serviceStatus) {
       case DeploymentStatus.CREATED:
         return <Badge status="processing" text="Created" />;
@@ -191,51 +263,14 @@ export const ServiceCard = ({ service }: ServiceCardProps) => {
         return <Badge status="processing" text="Loading" />;
     }
   }, [serviceStatus]);
+  return badge;
+};
 
-  const serviceTemplate: ServiceTemplate | undefined = useMemo(
-    () =>
-      getServiceTemplates().find(
-        (serviceTemplate) => serviceTemplate.hash === service.hash,
-      ),
-    [getServiceTemplates, service.hash],
-  );
-
-  if (!serviceTemplate)
-    return (
-      <Card>
-        <Flex gap={16}>
-          <Typography.Text>Service template not found</Typography.Text>
-        </Flex>
-      </Card>
-    );
-
+const ServiceTemplateNotFound = () => {
   return (
     <Card>
       <Flex gap={16}>
-        <Image
-          src={serviceTemplate!.image}
-          alt="Image"
-          width={200}
-          height={200}
-          unoptimized
-        />
-        <Flex vertical>
-          <Typography.Title level={3}>{serviceTemplate!.name}</Typography.Title>
-          <Typography.Text>{serviceTemplate!.description}</Typography.Text>
-          <Flex gap={'large'} justify="space-between">
-            <Flex vertical>
-              <Typography.Text strong>STATUS</Typography.Text>
-              <Typography.Text>{serviceStatusBadge}</Typography.Text>
-            </Flex>
-            {/* <Flex vertical>
-              <Typography.Text strong>EARNINGS 24H</Typography.Text>
-              <Typography.Text>$ {service.earnings_24h || 0}</Typography.Text>
-            </Flex>
-             */}
-            <ServiceCardTotalBalance service={service} />
-          </Flex>
-          <Flex style={{ marginTop: 'auto' }}>{buttons}</Flex>
-        </Flex>
+        <Typography.Text>Service template not found</Typography.Text>
       </Flex>
     </Card>
   );
