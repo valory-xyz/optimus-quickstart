@@ -207,7 +207,6 @@ async function setupUbuntu() {
             throw new Error("Could not install python")
         }
     }
-  }
 
   // Create required directories
   await createDirectory(`${OperateDirectory}`);
