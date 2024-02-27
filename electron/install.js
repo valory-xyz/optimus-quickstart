@@ -105,20 +105,12 @@ function isGitInstalledUbuntu() {
   return Boolean(getBinPath("git"));
 }
 
-function isFuseInstalledUbuntu() {
-  return isPackageInstalledUbuntu("libfuse2");
-}
-
 function installPythonUbuntu() {
-  return runSudoUnix('apt', 'install python3.10 python3.10-dev');
+  return runSudoUnix('apt', 'install -y python3.10 python3.10-dev');
 }
 
 function installGitUbuntu() {
-  return runSudoUnix('apt', 'install git');
-}
-
-function installFuseUbuntu() {
-  return runSudoUnix('apt', 'install lubfuse2');
+  return runSudoUnix('apt', 'install -y git');
 }
 
 function createVirtualEnvUbuntu(path) {
@@ -222,12 +214,6 @@ async function setupUbuntu() {
   if (!isGitInstalledUbuntu()) {
     console.log("Installing git")
     await installGitUbuntu(OperateDirectory)
-  }
-
-  console.log("Checking libfuse2 installation")
-  if (!isFuseInstalledUbuntu()) {
-    console.log("Installing libfuse2")
-    await installFuseUbuntu(OperateDirectory)
   }
 
   console.log("Creating required directories")
