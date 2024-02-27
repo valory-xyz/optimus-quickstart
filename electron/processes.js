@@ -6,7 +6,7 @@ const windowsKillCommand = 'taskkill /F /PID';
 
 const isWindows = process.platform === 'win32';
 
-function killProcessAndChildren(pid) {
+function killProcesses(pid) {
   return new Promise((resolve, reject) => {
     psTree(pid, (err, children) => {
       if (err) {
@@ -37,4 +37,4 @@ function killProcessAndChildren(pid) {
   });
 }
 
-module.exports = { killProcessAndChildren };
+module.exports = { killProcesses };

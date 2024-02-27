@@ -24,7 +24,7 @@ const {
   OperateCmd,
   OperateDirectory,
 } = require('./install');
-const { killProcessAndChildren } = require('./processes');
+const { killProcesses } = require('./processes');
 
 // Attempt to acquire the single instance lock
 const singleInstanceLock = app.requestSingleInstanceLock();
@@ -58,7 +58,7 @@ let tray,
 async function beforeQuit() {
   if (operateDaemonPid) {
     try {
-      await killProcessAndChildren(operateDaemonPid);
+      await killProcesses(operateDaemonPid);
     } catch (e) {
       console.error(e);
     }
@@ -66,7 +66,7 @@ async function beforeQuit() {
 
   if (nextAppProcessPid) {
     try {
-      await killProcessAndChildren(nextAppProcessPid);
+      await killProcesses(nextAppProcessPid);
     } catch (e) {
       console.error(e);
     }
