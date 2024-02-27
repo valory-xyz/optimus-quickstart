@@ -17,6 +17,11 @@ function getBinPath(command) {
   return spawnSync("/usr/bin/which", [command]).stdout?.toString().trim()
 }
 
+function isPackageInstalledUbuntu(package) {
+  const result = spawnSync('/usr/bin/bash', ['-c', `/usr/bin/apt list --installed | grep -q "^${package}/"`]);
+  return result.status === 0;
+}
+
 function runCmdUnix(command, options) {
   let bin = getBinPath(command)
   if (!bin) {
@@ -25,7 +30,7 @@ function runCmdUnix(command, options) {
   let output = spawnSync(bin, options);
   if (output.error) {
     throw new Error(
-      `Error running ${command} with options ${options}; 
+      `Error running ${command} with options ${options};
             Error: ${output.error}; Stdout: ${output.stdout}; Stderr: ${output.stderr}`,
     );
   }
@@ -96,8 +101,24 @@ function isPythonInstalledUbuntu() {
   return Boolean(getBinPath("python3.10"));
 }
 
+function isGitInstalledUbuntu() {
+  return Boolean(getBinPath("git"));
+}
+
+function isFuseInstalledUbuntu() {
+  return isPackageInstalledUbuntu("libfuse2");
+}
+
 function installPythonUbuntu() {
   return runSudoUnix('apt', 'install python3.10 python3.10-dev');
+}
+
+function installGitUbuntu() {
+  return runSudoUnix('apt', 'install git');
+}
+
+function installFuseUbuntu() {
+  return runSudoUnix('apt', 'install lubfuse2');
 }
 
 function createVirtualEnvUbuntu(path) {
@@ -195,6 +216,18 @@ async function setupUbuntu() {
   if (!isPythonInstalledUbuntu()) {
     console.log("Installing Python")
     await installPythonUbuntu(OperateDirectory)
+  }
+
+  console.log("Checking git installation")
+  if (!isGitInstalledUbuntu()) {
+    console.log("Installing git")
+    await installGitUbuntu(OperateDirectory)
+  }
+
+  console.log("Checking libfuse2 installation")
+  if (!isFuseInstalledUbuntu()) {
+    console.log("Installing libfuse2")
+    await installFuseUbuntu(OperateDirectory)
   }
 
   console.log("Creating required directories")
