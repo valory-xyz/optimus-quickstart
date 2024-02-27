@@ -24,6 +24,7 @@ const {
   OperateCmd,
   OperateDirectory,
 } = require('./install');
+const { killProcesses } = require('./processes');
 
 // Attempt to acquire the single instance lock
 const singleInstanceLock = app.requestSingleInstanceLock();
@@ -53,30 +54,22 @@ let tray,
   operateDaemonPid,
   nextAppProcess,
   nextAppProcessPid;
-let beforeQuitOnceCheck = false;
 
 async function beforeQuit() {
-  if (beforeQuitOnceCheck) return;
-  beforeQuitOnceCheck = true;
-
-  await new Promise(function (resolve, reject) {
+  if (operateDaemonPid) {
     try {
-      process.kill(operateDaemonPid, 'SIGKILL');
-      resolve(true);
-    } catch (error) {
-      resolve(false);
+      await killProcesses(operateDaemonPid);
+    } catch (e) {
+      console.error(e);
     }
-  });
+  }
 
   if (nextAppProcessPid) {
-    await new Promise(function (resolve, reject) {
-      try {
-        process.kill(nextAppProcessPid, 'SIGKILL');
-        resolve(true);
-      } catch (error) {
-        resolve(false);
-      }
-    });
+    try {
+      await killProcesses(nextAppProcessPid);
+    } catch (e) {
+      console.error(e);
+    }
   }
 
   tray && tray.destroy();
@@ -115,8 +108,8 @@ const createTray = () => {
  */
 const createSplashWindow = () => {
   splashWindow = new BrowserWindow({
-    width: 400,
-    height: 200,
+    width: appConfig.width,
+    height: appConfig.height,
     resizable: false,
     show: true,
     title: 'Olas Operate',
@@ -320,4 +313,23 @@ app.on('window-all-closed', () => {
 
 app.on('before-quit', () => {
   beforeQuit();
+});
+
+// PROCESS SPECIFIC EVENTS (HANDLES NON-GRACEFUL TERMINATION)
+
+process.on('uncaughtException', (error) => {
+  console.error('Uncaught Exception:', error);
+  // Clean up your child processes here
+  beforeQuit().then(() => {
+    process.exit(1); // Exit with a failure code
+  });
+});
+
+['SIGINT', 'SIGTERM'].forEach((signal) => {
+  process.on(signal, () => {
+    console.log(`Received ${signal}. Cleaning up...`);
+    beforeQuit().then(() => {
+      process.exit(0);
+    });
+  });
 });
