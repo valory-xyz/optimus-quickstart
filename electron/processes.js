@@ -4,7 +4,9 @@ const { exec } = require('child_process');
 const unixKillCommand = 'kill -9';
 const windowsKillCommand = 'taskkill /F /PID';
 
-function killProcessAndChildren(pid, isWindows = false) {
+const isWindows = process.platform === 'win32';
+
+function killProcessAndChildren(pid) {
   return new Promise((resolve, reject) => {
     psTree(pid, (err, children) => {
       if (err) {
