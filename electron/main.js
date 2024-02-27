@@ -43,7 +43,7 @@ let appConfig = {
       next: 3000,
     },
     prod: {
-      operate: 8000, // TOFIX
+      operate: 8000,
       next: 3000,
     },
   },
