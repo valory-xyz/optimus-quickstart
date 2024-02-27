@@ -25,6 +25,8 @@ const {
   OperateDirectory,
 } = require('./install');
 const { killProcesses } = require('./processes');
+const { isPortAvailable, findAvailablePort } = require('./ports');
+const { PORT_RANGE } = require('./constants');
 
 // Attempt to acquire the single instance lock
 const singleInstanceLock = app.requestSingleInstanceLock();
@@ -32,7 +34,7 @@ if (!singleInstanceLock) app.quit();
 
 const platform = os.platform();
 const isDev = process.env.NODE_ENV === 'development';
-const appConfig = {
+let appConfig = {
   width: 600,
   height: 800,
   ports: {
@@ -170,7 +172,7 @@ async function launchDaemon() {
   const check = new Promise(function (resolve, reject) {
     operateDaemon = spawn(OperateCmd, [
       'daemon',
-      '--port=8000',
+      `--port=${appConfig.ports.prod.operate}`,
       `--home=${OperateDirectory}`,
     ]);
     operateDaemonPid = operateDaemon.pid;
@@ -194,7 +196,7 @@ async function launchDaemonDev() {
       'run',
       'operate',
       'daemon',
-      '--port=8000',
+      `--port=${appConfig.ports.dev.operate}`,
       '--home=.operate',
     ]);
     operateDaemonPid = operateDaemon.pid;
@@ -238,7 +240,12 @@ async function launchNextApp() {
 
 async function launchNextAppDev() {
   await new Promise(function (resolve, reject) {
-    nextAppProcess = spawn('yarn', ['dev:frontend']);
+    process.env.NEXT_PUBLIC_BACKEND_PORT = appConfig.ports.dev.operate; // must set next env var to connect to backend
+    nextAppProcess = spawn('yarn', [
+      'dev:frontend',
+      '--port',
+      appConfig.ports.dev.next,
+    ]);
     nextAppProcessPid = nextAppProcess.pid;
     nextAppProcess.stdout.on('data', (data) => {
       console.log(data.toString().trim());
@@ -268,16 +275,54 @@ ipcMain.on('check', async function (event, argument) {
         'response',
         'Starting Operate Daemon In Development Mode',
       );
+
+      const daemonDevPortAvailable = await isPortAvailable(
+        appConfig.ports.dev.operate,
+      );
+
+      if (!daemonDevPortAvailable) {
+        appConfig.ports.dev.operate = await findAvailablePort({
+          ...PORT_RANGE,
+        });
+      }
       await launchDaemonDev();
       event.sender.send(
         'response',
         'Starting Frontend Server In Development Mode',
       );
+
+      const frontendDevPortAvailable = await isPortAvailable(
+        appConfig.ports.dev.next,
+      );
+
+      if (!frontendDevPortAvailable) {
+        appConfig.ports.dev.next = await findAvailablePort({
+          ...PORT_RANGE,
+          excludePorts: [appConfig.ports.dev.operate],
+        });
+      }
       await launchNextAppDev();
     } else {
       event.sender.send('response', 'Starting Operate Daemon');
+      const daemonPortAvailable = await isPortAvailable(
+        appConfig.ports.prod.operate,
+      );
+      if (!daemonPortAvailable) {
+        appConfig.ports.prod.operate = await findAvailablePort({
+          ...PORT_RANGE,
+        });
+      }
       await launchDaemon();
       event.sender.send('response', 'Starting Frontend Server');
+      const frontendPortAvailable = await isPortAvailable(
+        appConfig.ports.prod.next,
+      );
+      if (!frontendPortAvailable) {
+        appConfig.ports.prod.next = await findAvailablePort({
+          ...PORT_RANGE,
+          excludePorts: [appConfig.ports.prod.operate],
+        });
+      }
       await launchNextApp();
     }
 

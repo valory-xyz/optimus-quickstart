@@ -1,56 +1,79 @@
 const net = require('net');
 const { ERROR_ADDRESS_IN_USE } = require('./constants');
 
-const portRange = { startPort: 39152, endPort: 65535 }; //only source dynamic and private ports https://www.arubanetworks.com/techdocs/AOS-S/16.10/MRG/YC/content/common%20files/tcp-por-num-ran.htm
-
-const isPortAvailable = async (port) => {
+/**
+ * Finds an available port within the specified range, excluding specified ports.
+ * @param {number} startPort - The start of the port range.
+ * @param {number} endPort - The end of the port range.
+ * @param {Array<number>} excludePorts - An array of ports to be skipped.
+ * @returns {Promise<number>} The first available port found within the range that's not excluded.
+ */
+function findAvailablePort({ startPort, endPort, excludePorts = [] }) {
   return new Promise((resolve, reject) => {
-    const server = net.createServer();
+    let currentPort = startPort;
 
-    server.once('error', (err) => {
-      if (err.code === ERROR_ADDRESS_IN_USE) {
-        resolve(false);
-      } else {
-        reject(err);
-      }
-    });
-
-    server.once('listening', () => {
-      server.close();
-      resolve(true);
-    });
-
-    server.listen(port, 'localhost');
-  });
-};
-
-const findAvailablePort = async (startPort, endPort) => {
-  return new Promise((resolve, reject) => {
-    const server = net.createServer();
-
-    server.on('error', (err) => {
-      if (err.code === ERROR_ADDRESS_IN_USE) {
-        if (startPort < endPort) {
-          findAvailablePort(startPort + 1, endPort)
-            .then(resolve)
-            .catch(reject);
+    const tryPort = (port) => {
+      if (excludePorts.includes(port)) {
+        if (currentPort < endPort) {
+          tryPort(++currentPort);
         } else {
-          reject(new Error('No available ports in the specified range'));
+          reject(
+            new Error(
+              `Unable to find an available port between ${startPort} and ${endPort} excluding specified ports.`,
+            ),
+          );
         }
-      } else {
-        reject(err);
+        return;
       }
-    });
 
-    server.on('listening', () => {
-      const port = server.address().port;
+      const server = net.createServer();
+
+      server.listen(port, () => {
+        server.close(() => {
+          resolve(port);
+        });
+      });
+
+      server.on('error', (err) => {
+        if (err.code === ERROR_ADDRESS_IN_USE && currentPort < endPort) {
+          // Try the next port if the current one is in use or excluded
+          tryPort(++currentPort);
+        } else {
+          reject(
+            new Error(
+              `Unable to find an available port between ${startPort} and ${endPort} excluding specified ports.`,
+            ),
+          );
+        }
+      });
+    };
+
+    tryPort(currentPort);
+  });
+}
+
+/**
+ * Checks if a port is available.
+ * @param {number} port - The port to check.
+ * @returns {Promise<boolean>} Whether the port is available.
+ */
+function isPortAvailable(port) {
+  return new Promise((resolve) => {
+    const server = net.createServer();
+
+    server.listen(port, () => {
       server.close(() => {
-        resolve(port);
+        resolve(true);
       });
     });
 
-    server.listen(startPort, 'localhost');
+    server.on('error', () => {
+      resolve(false);
+    });
   });
-};
+}
 
-module.exports = { isPortAvailable, portRange, findAvailablePort };
+module.exports = {
+  findAvailablePort,
+  isPortAvailable,
+};
