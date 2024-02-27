@@ -24,7 +24,9 @@ function killProcessAndChildren(pid) {
         .join('; '); // Separate commands with a semicolon, so they run in sequence even if one fails. Also works on Windows.
 
       exec(joinedCommand, (err) => {
-        if (err?.message?.includes('No such process')) {
+        if (
+          err?.message?.includes(isWindows ? 'not found' : 'No such process')
+        ) {
           return; // Ignore errors for processes that are already dead
         }
         reject(err);
