@@ -9,6 +9,9 @@ const { spawnSync } = require('child_process');
 
 const OperateDirectory = `${os.homedir()}/.operate`;
 const OperateCmd = `${os.homedir()}/.operate/venv/bin/operate`;
+const SudoOptions = {
+  name: "Olas Operate"
+}
 
 function getBinPath(command) {
   return spawnSync("/usr/bin/which", [command]).stdout?.toString().trim()
@@ -33,18 +36,24 @@ function runCmdUnix(command, options) {
   };
 }
 
-function runSudo(command) {
-  return sudo.exec(
-    command,
-    options,
-    function (error, stdout, stderr) {
-      return {
-        error: error,
-        stdout: stdout,
-        stderr: stderr,
+function runSudoUnix(command, options) {
+  let bin = getBinPath(command)
+  if (!bin) {
+    throw new Error(`Command ${command} not found`)
+  }
+  return new Promise(function (resolve, reject) {
+    sudo.exec(
+      `${bin} ${options}`,
+      SudoOptions,
+      function (error, stdout, stderr) {
+        resolve({
+          error: error,
+          stdout: stdout,
+          stderr: stderr,
+        })
       }
-    }
-  );
+    );
+  })
 }
 
 function isBrewInstalled() {
@@ -68,20 +77,7 @@ function isDockerInstalledUbuntu() {
 }
 
 function installDockerUbuntu() {
-
-  // Add Docker's official GPG key:
-  runSudo('apt-get update')
-  runSudo('apt-get install ca-certificates curl')
-  runSudo('install -m 0755 -d /etc/apt/keyrings')
-  runSudo('curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc')
-  runSudo('chmod a+r /etc/apt/keyrings/docker.asc')
-
-  // Add the repository to Apt sources:
-  runSudo('echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu $(. /etc/os-release && echo "$VERSION_CODENAME") stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null')
-  runSudo('apt-get update')
-
-  // Install
-  runSudo('apt-get install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin')
+  return runSudoUnix("bash", `${__dirname}/scripts/install_docker_ubuntu.sh`)
 }
 
 function isPythonInstalledDarwin() {
@@ -101,7 +97,7 @@ function isPythonInstalledUbuntu() {
 }
 
 function installPythonUbuntu() {
-  return runCmdUnix('apt', ['install', 'python3.10 ', 'python3.10-dev']);
+  return runSudoUnix('apt', 'install python3.10 python3.10-dev');
 }
 
 function createVirtualEnvUbuntu(path) {
@@ -192,13 +188,13 @@ async function setupUbuntu() {
   console.log("Checking docker installation")
   if (!isDockerInstalledUbuntu()) {
     console.log("Installating docker")
-    installDockerUbuntu()
+    await installDockerUbuntu()
   }
 
   console.log("Checking python installation")
   if (!isPythonInstalledUbuntu()) {
     console.log("Installing Python")
-    installPythonUbuntu(OperateDirectory)
+    await installPythonUbuntu(OperateDirectory)
   }
 
   console.log("Creating required directories")
