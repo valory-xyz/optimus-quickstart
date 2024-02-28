@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2023 Valory AG
+#   Copyright 2021 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -17,31 +17,4 @@
 #
 # ------------------------------------------------------------------------------
 
-"""Ethereum ledger helpers."""
-
-import typing as t
-
-from aea_ledger_ethereum import EthereumApi, EthereumCrypto
-
-from operate.ledger.base import LedgerHelper
-from operate.types import LedgerType
-
-
-class Ethereum(LedgerHelper):
-    """Ethereum ledger helper."""
-
-    api: EthereumApi
-
-    def __init__(self, rpc: str) -> None:
-        super().__init__(rpc)
-        self.api = EthereumApi(address=self.rpc)
-
-    def create_key(self) -> t.Dict:
-        """Create key."""
-        account = EthereumCrypto()
-        return {
-            "address": account.address,
-            "private_key": account.private_key,
-            "encrypted": False,
-            "ledger": LedgerType.ETHEREUM,
-        }
+"""This module contains the support resources for the Uniswap V2 ERC20 contract."""

@@ -1,55 +1,131 @@
 // Installation helpers.
 
 const fs = require('fs');
-const { spawnSync } = require('child_process');
 const os = require('os');
+const sudo = require('sudo-prompt');
+const process = require('process');
+const { spawnSync } = require('child_process');
+
 
 const OperateDirectory = `${os.homedir()}/.operate`;
 const OperateCmd = `${os.homedir()}/.operate/venv/bin/operate`;
+const SudoOptions = {
+  name: "Olas Operate"
+}
 
-function runSync(command, options) {
-  let process = spawnSync(command, options);
+function getBinPath(command) {
+  return spawnSync("/usr/bin/which", [command]).stdout?.toString().trim()
+}
+
+function isPackageInstalledUbuntu(package) {
+  const result = spawnSync('/usr/bin/bash', ['-c', `/usr/bin/apt list --installed | grep -q "^${package}/"`]);
+  return result.status === 0;
+}
+
+function runCmdUnix(command, options) {
+  let bin = getBinPath(command)
+  if (!bin) {
+    throw new Error(`Command ${command} not found`)
+  }
+  let output = spawnSync(bin, options);
+  if (output.error) {
+    throw new Error(
+      `Error running ${command} with options ${options};
+            Error: ${output.error}; Stdout: ${output.stdout}; Stderr: ${output.stderr}`,
+    );
+  }
   return {
-    error: process.error,
-    stdout: process.stdout?.toString(),
-    stderr: process.stderr?.toString(),
+    error: output.error,
+    stdout: output.stdout?.toString(),
+    stderr: output.stderr?.toString(),
   };
 }
 
+function runSudoUnix(command, options) {
+  let bin = getBinPath(command)
+  if (!bin) {
+    throw new Error(`Command ${command} not found`)
+  }
+  return new Promise(function (resolve, reject) {
+    sudo.exec(
+      `${bin} ${options}`,
+      SudoOptions,
+      function (error, stdout, stderr) {
+        resolve({
+          error: error,
+          stdout: stdout,
+          stderr: stderr,
+        })
+      }
+    );
+  })
+}
+
+function isBrewInstalled() {
+  return Boolean(getBinPath(getBinPath("brew")));
+}
+
+function installBrew() {
+  return runCmdUnix('bash', ['-c', '$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)'])
+}
+
+function isDockerInstalledDarwin() {
+  return Boolean(getBinPath("docker"));
+}
+
+function installDockerDarwin() {
+  return runCmdUnix('brew', ['install', 'docker'])
+}
+
+function isDockerInstalledUbuntu() {
+  return Boolean(getBinPath("docker"));
+}
+
+function installDockerUbuntu() {
+  return runSudoUnix("bash", `${__dirname}/scripts/install_docker_ubuntu.sh`)
+}
+
 function isPythonInstalledDarwin() {
-  return runSync('/opt/homebrew/bin/python3.10', ['--version']);
+  return Boolean(getBinPath("python3.10"))
 }
 
 function installPythonDarwin() {
-  return runSync('/opt/homebrew/bin/brew', ['install', 'python@3.10']);
+  return runCmdUnix('brew', ['install', 'python@3.10']);
 }
 
-function createVirtualEnvDarwin(path) {
-  return runSync('/opt/homebrew/bin/python3.10', ['-m', 'venv', path]);
+function createVirtualEnvUnix(path) {
+  return runCmdUnix('python3.10', ['-m', 'venv', path]);
 }
 
 function isPythonInstalledUbuntu() {
-  return runSync('/usr/bin/python3.10', ['--version']);
+  return Boolean(getBinPath("python3.10"));
+}
+
+function isGitInstalledUbuntu() {
+  return Boolean(getBinPath("git"));
 }
 
 function installPythonUbuntu() {
-  return runSync('/usr/bin/apt', ['install', 'python3.10 ', 'python3.10-dev']);
+  return runSudoUnix('apt', 'install -y python3.10 python3.10-dev');
+}
+
+function installGitUbuntu() {
+  return runSudoUnix('apt', 'install -y git');
 }
 
 function createVirtualEnvUbuntu(path) {
-  return runSync('/usr/bin/python3.10', ['-m', 'venv', path]);
+  return runCmdUnix('python3.10', ['-m', 'venv', path]);
 }
 
-function installOperatePackage(path) {
-  return runSync(`${path}/venv/bin/python3.10`, [
-    '-m',
-    'pip',
-    'install',
-    'git+https://github.com/valory-xyz/olas-operate-app.git@a2d203ad2d6c716a66a8d184ab77909b5ab22a85#egg=operate',
-  ]);
+function cloneRepositoryUnix() {
+  runCmdUnix('git', ['clone', 'git@github.com:valory-xyz/olas-operate-app'])
 }
 
-function installOperateAppDarwin(path) {
+function installOperatePackageUnix(path) {
+  runCmdUnix(`${path}/venv/bin/python3.10`, ['-m', 'pip', 'install', `${path}/temp/olas-operate-app`])
+}
+
+function installOperateCliDarwin(path) {
   return new Promise((resolve, reject) => {
     fs.copyFile(
       `${path}/venv/bin/operate`,
@@ -61,7 +137,7 @@ function installOperateAppDarwin(path) {
   });
 }
 
-function installOperateAppUbuntu(path) {
+function installOperateCliUbuntu(path) {
   return new Promise((resolve, reject) => {
     fs.copyFile(
       `${path}/venv/bin/operate`,
@@ -81,83 +157,80 @@ function createDirectory(path) {
   });
 }
 
+function isInstalled() {
+  return fs.existsSync(OperateDirectory);
+}
+
 async function setupDarwin() {
-  let installCheck;
-  // Python installation check
-  if (isPythonInstalledDarwin().error) {
-    installCheck = installPythonDarwin();
-    if (installCheck.error) {
-      throw new Error(
-        `Error: ${installCheck.error}; Stdout: ${installCheck.stdout}; Stderr: ${installCheck.stderr}`,
-      );
-    }
+  console.log("Checking brew installation")
+  if (!isBrewInstalled()) {
+    console.log("Installing brew")
+    installBrew()
   }
 
-  // Create required directories
+  console.log("Checking docker installation")
+  if (!isDockerInstalledDarwin()) {
+    console.log("Installating docker")
+    installDockerDarwin()
+  }
+
+  console.log("Checking python installation")
+  if (!isPythonInstalledDarwin()) {
+    console.log("Installing python")
+    installPythonDarwin()
+  }
+
+  console.log("Creating required directories")
   await createDirectory(`${OperateDirectory}`);
   await createDirectory(`${OperateDirectory}/temp`);
 
-  // Create a virtual environment
-  installCheck = createVirtualEnvDarwin(`${OperateDirectory}/venv`);
-  if (installCheck.error) {
-    throw new Error(
-      `Error: ${installCheck.error}; Stdout: ${installCheck.stdout}; Stderr: ${installCheck.stderr}`,
-    );
-  }
+  console.log("Creating virtual environment")
+  createVirtualEnvUnix(`${OperateDirectory}/venv`);
 
-  // Install operate app
-  installCheck = installOperatePackage(OperateDirectory);
-  if (installCheck.error) {
-    throw new Error(
-      `Error: ${installCheck.error}; Stdout: ${installCheck.stdout}; Stderr: ${installCheck.stderr}`,
-    );
-  }
-  installCheck = installOperateAppDarwin(OperateDirectory);
-  if (installCheck.error) {
-    throw new Error(
-      `Error: ${installCheck.error}; Stdout: ${installCheck.stdout}; Stderr: ${installCheck.stderr}`,
-    );
-  }
+  console.log("Installing operate backend")
+  process.chdir(`${OperateDirectory}/temp`)
+  cloneRepositoryUnix()
+  installOperatePackageUnix(OperateDirectory)
+
+  console.log("Installing operate CLI")
+  await installOperateCliDarwin(OperateDirectory)
 }
 
 async function setupUbuntu() {
-  // Python installation check
-  if (!(await isPythonInstalledUbuntu())) {
-    console.log('Installing Python');
-    if (!(await installPythonUbuntu())) {
-      throw new Error('Could not install python');
-    }
+
+  console.log("Checking docker installation")
+  if (!isDockerInstalledUbuntu()) {
+    console.log("Installating docker")
+    await installDockerUbuntu()
   }
 
-  // Create required directories
+  console.log("Checking python installation")
+  if (!isPythonInstalledUbuntu()) {
+    console.log("Installing Python")
+    await installPythonUbuntu(OperateDirectory)
+  }
+
+  console.log("Checking git installation")
+  if (!isGitInstalledUbuntu()) {
+    console.log("Installing git")
+    await installGitUbuntu(OperateDirectory)
+  }
+
+  console.log("Creating required directories")
   await createDirectory(`${OperateDirectory}`);
   await createDirectory(`${OperateDirectory}/temp`);
 
-  // Create a virtual environment
-  installCheck = createVirtualEnvUbuntu(`${OperateDirectory}/venv`);
-  if (installCheck.error) {
-    throw new Error(
-      `Error: ${installCheck.error}; Stdout: ${installCheck.stdout}; Stderr: ${installCheck.stderr}`,
-    );
-  }
+  console.log("Creating virtual environment")
+  createVirtualEnvUbuntu(`${OperateDirectory}/venv`);
 
-  // Install operate app
-  installCheck = installOperatePackage(OperateDirectory);
-  if (installCheck.error) {
-    throw new Error(
-      `Error: ${installCheck.error}; Stdout: ${installCheck.stdout}; Stderr: ${installCheck.stderr}`,
-    );
-  }
-  installCheck = installOperateAppUbuntu(OperateDirectory);
-  if (installCheck.error) {
-    throw new Error(
-      `Error: ${installCheck.error}; Stdout: ${installCheck.stdout}; Stderr: ${installCheck.stderr}`,
-    );
-  }
-}
 
-function isInstalled() {
-  return fs.existsSync(OperateDirectory);
+  console.log("Installing operate backend")
+  process.chdir(`${OperateDirectory}/temp`)
+  cloneRepositoryUnix()
+  installOperatePackageUnix(OperateDirectory)
+
+  console.log("Installing operate CLI")
+  await installOperateCliUbuntu(OperateDirectory)
 }
 
 module.exports = {

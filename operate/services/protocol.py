@@ -43,13 +43,12 @@ from autonomy.cli.helpers.chain import MintHelper as MintManager
 from autonomy.cli.helpers.chain import OnChainHelper
 from autonomy.cli.helpers.chain import ServiceHelper as ServiceManager
 from hexbytes import HexBytes
+
 from operate.data import DATA_DIR
 from operate.data.contracts.service_staking_token.contract import (
     ServiceStakingTokenContract,
 )
 from operate.ledger.profiles import CONTRACTS
-
-from ._subgraph import SubgraphClient
 
 ZERO_ETH = 0
 
@@ -447,7 +446,6 @@ class OnChainManager:
             key=self.key,
             update_token=update_token,
         )
-        manager.subgraph = SubgraphClient()
 
         # Prepare for minting
         (

@@ -35,6 +35,9 @@ from autonomy.deploy.constants import (
     TM_STATE_DIR,
     VENVS_DIR,
 )
+from starlette.types import Receive, Scope, Send
+from typing_extensions import TypedDict
+
 from operate.http import Resource
 from operate.http.exceptions import BadRequest
 from operate.keys import Keys
@@ -48,8 +51,6 @@ from operate.types import (
     ServiceTemplate,
     ServiceType,
 )
-from starlette.types import Receive, Scope, Send
-from typing_extensions import TypedDict
 
 OPERATE = ".operate"
 CONFIG = "config.json"
