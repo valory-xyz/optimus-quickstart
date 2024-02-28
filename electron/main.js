@@ -327,7 +327,6 @@ ipcMain.on('check', async function (event, argument) {
     }
 
     event.sender.send('response', 'Launching App');
-
     createMainWindow();
     createTray();
     splashWindow.destroy();

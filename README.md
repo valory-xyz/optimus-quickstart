@@ -1,21 +1,112 @@
 # Olas Operate
-Electron + NextJS + Backend application to one-click run Agents.
+Electron + NextJS + Python Backend application to one-click run Agents.
 
 ## Technologies Used
-
-- NextJS (20.11 LTS)
 - Electron
+- NextJS (20.11 LTS)
 - AntD
 - TypeScript
 - Python (3.10)
 - Poetry (1.7.1)
 - Docker (24)
 
-## Getting Started (Development)
+## Getting Started
 
-### Application must run on a Linux instance
+### Installing system dependencies
 
-For development, we have been using Ubuntu 22.04.
+The following installation scripts assume you have the following on each OS:
+- Linux: a debian based operating system such as Ubuntu with `apt` to install packages.
+- MacOS: [Homebrew](https://brew.sh/)
+- Windows: [Chocolatey](https://chocolatey.org/install)
+
+#### NodeJS via NVM
+
+NodeJS is best installed and managed through NVM, which allows you to install and select the version of NodeJS to use, which for this app is the current LTS version 20.11.
+
+##### Linux
+
+```bash
+sudo apt install curl 
+curl https://raw.githubusercontent.com/creationix/nvm/master/install.sh | bash 
+source ~/.bashrc
+nvm install --lts
+nvm use --lts
+```
+
+##### MacOS
+
+```bash
+brew install nvm
+```
+
+Set up NVM for console usage. Dependant on the shell, you should edit the config file to contain the following code.
+If you're using Bash or Zsh, you might add them to your `~/.bash_profile`, `~/.bashrc`, or `~/.zshrc` file:
+
+```bash
+export NVM_DIR="$HOME/.nvm"
+[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
+[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
+```
+
+Close and reopen Terminal, or run `source ~/.bash_profile`, `source ~/.zshrc`, or `source ~/.bashrc` to reload the shell configuration.
+
+Verify your installation by running `nvm --version`. Then run:
+
+```bash
+nvm install --lts
+nvm use --lts
+```
+
+#### Yarn
+
+```bash
+npm install --global yarn
+```
+
+#### Python
+##### Linux
+```bash
+sudo apt install python3
+```
+##### MacOS
+```
+brew install python
+```
+
+#### PIPX
+##### Linux
+```bash
+sudo apt install pipx
+```
+##### MacOS
+```bash
+brew install pipx
+```
+
+#### Poetry
+```bash
+pipx install poetry
+```
+If promoted to run `pipx ensurepath`, run this command.
+
+#### Docker
+##### Linux
+You can change the `ubuntu.22.04~jammy` version to your OS in the following command:
+```bash
+VERSION_STRING=5:24.0.7-1~ubuntu.22.04~jammy
+sudo apt-get install docker-ce=$VERSION_STRING docker-ce-cli=$VERSION_STRING containerd.io docker-buildx-plugin docker-compose-plugin
+sudo usermod -aG docker $USER
+```
+If you are unsure of your current release version and codename to update the VERSION_STRING above, you can run:
+```bash
+lsb_release -a
+```
+##### MacOS
+
+You must install Docker V24 manually, as brew does not allow for versioning with Docker.
+
+Docker Desktop version that supports Docker V24: [https://docs.docker.com/desktop/release-notes/#4261](https://docs.docker.com/desktop/release-notes/#4261)
+Guide to install: [https://docs.docker.com/desktop/install/mac-install/](https://docs.docker.com/desktop/install/mac-install/)
 
 ### Setup ENV file
 
@@ -27,76 +118,10 @@ For production usage, set `NODE_ENV=production`.
 
 #### FORK_URL
 
-**Only required for forking Gnosis during development.**
+**Only required for forking Gnosis using a Hardhat node during development.**
 
 You can get a Gnosis RPC from [Nodies](https://www.nodies.app/).
 Then set `FORK_URL=https://....`
-
-### Ensure Docker v24 is installed
-
-You can change the ubuntu.XX.XX~XX version to your OS in the following command:
-
-```bash
-VERSION_STRING=5:24.0.7-1~ubuntu.22.04~jammy
-sudo apt-get install docker-ce=$VERSION_STRING docker-ce-cli=$VERSION_STRING containerd.io docker-buildx-plugin docker-compose-plugin
-```
-
-### Ensure pipx is installed
-
-```bash
-sudo apt install pipx
-```
-
-### Ensure poetry is installed
-
-```bash
-pipx install poetry
-```
-
-If promoted to run `pipx ensurepath`, run this command.
-
-### Ensure NVM and NodeJS LTS are installed
-
-#### Install NVM
-
-Node version manager will allow you to quickly install and use different NodeJS versions.
-
-```bash
-sudo apt install curl 
-curl https://raw.githubusercontent.com/creationix/nvm/master/install.sh | bash 
-source ~/.bashrc
-```
-
-#### Install NodeJS LTS
-
-Provided NVM is installed, you will be able to install the current NodeJS LTS version (20.11)
-
-```bash
-nvm install --lts
-nvm use --lts
-```
-
-### Ensure Yarn package manager is installed
-
-Yarn is the package manager used for Electron and the frontend.
-
-```bash 
-npm install --global yarn
-```
-
-### User must be in docker group
-
-```bash
-sudo usermod -aG docker $USER
-```
-
-*Note: this may require a restart.*
-
-After running the above command, you should be able to run the following command from your terminal: 
-
-```bash
-docker run hello-world
-```
 
 ### Install project dependencies
 
@@ -106,46 +131,7 @@ This will install the required dependencies for the backend, frontend, and elect
 yarn install-deps
 ```
 
-### Set private key
-
-Dependant on your intentions, there are two routes.
-
-If you wish to test both the staking and non-staking agent spawning, you must use the private key for a wallet that has an appropriate amount of OLAS for staking.
-
-If you only wish to test the non-staking agent spawning, you can set a Hardhat private key as the wallet's OLAS balance will not be checked.
-
-
-#### Staking route
-
-This route will check the wallet set in `/.operate/key` for OLAS before creating an agent in "staking mode".
-
-Set a private key in the above mentioned file, ensuring it is prefixed with `0x`.
-
-#### Non-staking route (using a Hardhat assigned wallet)
-
-** Do not send funds to a Hardhat assigned wallet on mainnet **.
-
-This route will not poll for Olas, and therefore you can set any private key in the `key` file mentioned below.
-
-The project runs a Gnosis hardhat node -- this is temporary for early development phase.
-
-On running the following command we are presented with several public and private keys. 
-
-```bash
-yarn dev:hardhat
-```
-
-Copy any one of these private keys into `.operate/key`.
-
 ### Run the development app
-
-**If you are using the app in `production` mode** (having set this in your `.env` file), you will need to build the frontend first. You can achieve this by running: 
-
-```bash
-yarn build:frontend
-```
-
-**Ensure ports: 3000 (for frontend), 8000 (for backend), 8545 (for hardhat node); are free.**
 
 In the root directory, run:
 
@@ -155,9 +141,12 @@ yarn start
 
 This will run Electron which launches NextJS and the Backend as child processes.
 
+### Funding addresses while running a Hardhat fork
+There are a number of scripts to fund addresses for testing:
+
+XDAI funding: `python scripts/fund.py 0xYOURADDRESS`
+OLAS funding: `TBA`
+
 ## Further notes / issues
 
 - Only one agent can be run at a time.
-- Uncomment `mainWindow.webContents.openDevTools()` in electron/main.js to display Chromium dev tools in the Electron app
-- "Delete endpoint" is not currently available, you must manually delete the relevant service directories from the /backend/operate/services folder to remove them, the app must be restarted after this.
-- Port conflict solution has not been implemented yet.

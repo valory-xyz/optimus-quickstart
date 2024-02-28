@@ -24,6 +24,7 @@ import typing as t
 from pathlib import Path
 
 from aea_ledger_ethereum.ethereum import EthereumCrypto
+
 from operate.types import KeyType
 
 
