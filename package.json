@@ -36,7 +36,7 @@
   "private": true,
   "build": {
     "appId": "com.olas.operate",
-    "productName": "Operate App",
+    "productName": "Olas Operate",
     "directories": {
       "output": "dist"
     },
@@ -55,7 +55,7 @@
   },
   "scripts": {
     "build:frontend": "cd frontend && yarn build && rm -rf ../electron/.next && cp -r .next ../electron/.next",
-    "dev:backend": "cd backend && poetry run python operate/cli.py",
+    "dev:backend": "poetry run python operate/cli.py",
     "dev:frontend": "cd frontend && yarn dev",
     "dev:hardhat": "npx hardhat node",
     "install-deps": "yarn && concurrently \"yarn install:backend\" \"yarn install:frontend\" ",
