@@ -33,8 +33,7 @@ export const ServicesProvider = ({ children }: PropsWithChildren) => {
   const updateServicesState = useCallback(async (): Promise<void> => {
     try {
       return ServicesService.getServices().then((data: Service[]) => {
-        const activeServices = data.filter((service) => service.active); // workaround until superuser permissions resolved cross platform
-        setServices(activeServices);
+        setServices(data);
       });
     } catch (e) {
       Promise.reject(e);

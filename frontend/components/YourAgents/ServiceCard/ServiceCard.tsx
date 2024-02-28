@@ -38,6 +38,7 @@ export const ServiceCard = ({ service }: ServiceCardProps) => {
     deleteServices,
     updateServiceState,
     getServiceStatus,
+    deleteServiceState,
   } = useServices();
   const { getServiceTemplates } = useMarketplace();
   const { checkRpc } = useEthers();
@@ -49,7 +50,7 @@ export const ServiceCard = ({ service }: ServiceCardProps) => {
   const [isStopping, setIsStopping] = useState(false);
   const [isStarting, setIsStarting] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
-  const [isRpcValid, setIsRpcValid] = useState(false);
+  const [isRpcValid, setIsRpcValid] = useState<boolean | undefined>(); //undefined state assumes this check has not been performed yet
 
   const updateServiceStatus = useCallback(
     (serviceHash: ServiceHash): Promise<void> =>
@@ -57,7 +58,6 @@ export const ServiceCard = ({ service }: ServiceCardProps) => {
         .then((r: Deployment) => setServiceStatus(r.status))
         .catch(() => {
           setServiceStatus(undefined);
-          message.error('Failed to update service status');
         }),
     [getServiceStatus],
   );
@@ -122,22 +122,11 @@ export const ServiceCard = ({ service }: ServiceCardProps) => {
     if (isDeleting) return;
     setIsDeleting(true);
     deleteServices([service.hash])
-      .then(async () => {
-        updateServiceState(service.hash).catch(() =>
-          message.error('Failed to update services'),
-        );
-      })
       .catch(() => message.error('Failed to delete service'))
       .finally(() => {
-        updateServiceStatus(service.hash).finally(() => setIsDeleting(false));
+        deleteServiceState(service.hash);
       });
-  }, [
-    deleteServices,
-    isDeleting,
-    service.hash,
-    updateServiceState,
-    updateServiceStatus,
-  ]);
+  }, [deleteServiceState, deleteServices, isDeleting, service.hash]);
 
   const buttons: JSX.Element = useMemo(() => {
     if (serviceStatus === DeploymentStatus.DEPLOYED) {
@@ -196,6 +185,11 @@ export const ServiceCard = ({ service }: ServiceCardProps) => {
     [getServiceTemplates, service.hash],
   );
 
+  const showRpc = useMemo(
+    () => !isRpcValid && isRpcValid !== undefined,
+    [isRpcValid],
+  );
+
   useInterval(
     async () => setIsRpcValid(await checkRpc(service.ledger.rpc)),
     SERVICE_CARD_RPC_POLLING_INTERVAL,
@@ -205,7 +199,7 @@ export const ServiceCard = ({ service }: ServiceCardProps) => {
 
   return (
     <Card>
-      {!isRpcValid && (
+      {showRpc && (
         <div style={{ position: 'absolute', top: -8, right: -8 }}>
           <Tooltip title="RPC is not responding" placement="left">
             <Badge count={'!'} status="error" />

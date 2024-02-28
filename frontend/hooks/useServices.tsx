@@ -50,6 +50,9 @@ export const useServices = () => {
       }),
     );
 
+  const deleteServiceState = (serviceHash: ServiceHash) =>
+    setServices((prev) => prev.filter((s) => s.hash !== serviceHash));
+
   return {
     getService,
     getServiceFromState,
@@ -57,6 +60,7 @@ export const useServices = () => {
     getServiceStatus,
     updateServicesState,
     updateServiceState,
+    deleteServiceState,
     createService,
     deployService,
     stopService,
