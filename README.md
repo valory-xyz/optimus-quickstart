@@ -144,8 +144,12 @@ This will run Electron which launches NextJS and the Backend as child processes.
 ### Funding addresses while running a Hardhat fork
 There are a number of scripts to fund addresses for testing:
 
-XDAI funding: `python scripts/fund.py 0xYOURADDRESS`
-OLAS funding: `TBA`
+- XDAI funding:
+```
+poetry shell
+python scripts/fund.py 0xYOURADDRESS
+```
+- OLAS funding: `TBA`
 
 ## Further notes / issues
 
