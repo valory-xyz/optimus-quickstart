@@ -22,6 +22,7 @@
 import typing as t
 
 from aea_ledger_ethereum import EthereumApi, EthereumCrypto
+
 from operate.ledger.base import LedgerHelper
 from operate.types import LedgerType
 

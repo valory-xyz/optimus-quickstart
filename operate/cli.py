@@ -25,16 +25,17 @@ from pathlib import Path
 
 from aea_ledger_ethereum.ethereum import EthereumCrypto
 from clea import group, params, run
-from operate.constants import KEY, KEYS, OPERATE, SERVICES
-from operate.http import Resource
-from operate.keys import Keys
-from operate.services.manage import Services
 from starlette.applications import Starlette
 from starlette.middleware import Middleware
 from starlette.middleware.cors import CORSMiddleware
 from starlette.routing import Route
 from typing_extensions import Annotated
 from uvicorn.main import run as uvicorn
+
+from operate.constants import KEY, KEYS, OPERATE, SERVICES
+from operate.http import Resource
+from operate.keys import Keys
+from operate.services.manage import Services
 
 DEFAULT_HARDHAT_KEY = (
     "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80"

@@ -41,6 +41,9 @@ from autonomy.deploy.constants import (
     VENVS_DIR,
 )
 from autonomy.deploy.generators.docker_compose.base import DockerComposeGenerator
+from starlette.types import Receive, Scope, Send
+from typing_extensions import TypedDict
+
 from operate.constants import (
     CONFIG,
     DEPLOYMENT,
@@ -63,8 +66,6 @@ from operate.types import (
     ServiceType,
     Status,
 )
-from starlette.types import Receive, Scope, Send
-from typing_extensions import TypedDict
 
 
 def build_dirs(build_dir: Path) -> None:
@@ -373,7 +374,6 @@ class Service(
         keys: KeysType,
         ledger: t.Optional[LedgerConfig] = None,
         chain_data: t.Optional[ChainData] = None,
-        active: bool = False,
         name: t.Optional[str] = None,
     ) -> None:
         """Initialize object."""
@@ -382,7 +382,6 @@ class Service(
         self.keys = keys
         self.hash = phash
         self.ledger = ledger
-        self.active = active
         self.service_path = service_path
         self.chain_data = chain_data or {}
         self.path = self.service_path.parent
@@ -427,7 +426,6 @@ class Service(
                 "readme": (
                     readme.read_text(encoding="utf-8") if readme.exists() else None
                 ),
-                "active": self.active,
             }
         )
 
@@ -449,7 +447,6 @@ class Service(
             chain_data=config.get("chain_data"),
             service_path=Path(config["service_path"]),
             name=config["name"],
-            active=config["active"],
         )
 
     @classmethod
@@ -480,7 +477,6 @@ class Service(
             ledger=ledger,
             service_path=Path(downloaded),
             name=name,
-            active=True,
         )
         service.store()
         return service
@@ -488,23 +484,9 @@ class Service(
     def __update(self, data: ServiceType) -> ServiceType:
         """Update service."""
         # TODO: Finish implementation
-        self.hash = data["hash"]
-        self.keys = data["keys"]
-        self.variables = data.get("variables", self.variables)
-        self.ledger = data.get("ledger", self.ledger)
-        self.name = data.get("name", self.name)
-        self.chain_data = data.get("chain_data", self.chain_data)
-        self.store()
         return self.json
 
     def delete(self, data: DeleteServicePayload) -> DeleteServiceResponse:
         """Delete service."""
-        try:
-            shutil.rmtree(self.path)
-        except (PermissionError, OSError):
-            # If we get permission error we set the service in-active
-            # user can then run operate prune with admin priviledges
-            # to clean up the cache/unused data
-            self.active = False
-            self.store()
+        shutil.rmtree(self.path)
         return DeleteServiceResponse({})
