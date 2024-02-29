@@ -9,23 +9,25 @@ const { spawnSync } = require('child_process');
 
 const OperateDirectory = `${os.homedir()}/.operate`;
 const OperateCmd = `${os.homedir()}/.operate/venv/bin/operate`;
+const Env = { ...process.env, PATH: `${process.env.PATH}:/opt/homebrew/bin/brew:/usr/local/bin` }
 const SudoOptions = {
-  name: "Olas Operate"
+  name: "Olas Operate",
+  env: Env,
 }
 
 function getBinPath(command) {
-  return spawnSync("/usr/bin/which", [command]).stdout?.toString().trim()
+  return spawnSync("/usr/bin/which", [command], { env: Env }).stdout?.toString().trim()
 }
 
 function isPackageInstalledUbuntu(package) {
-  const result = spawnSync('/usr/bin/bash', ['-c', `/usr/bin/apt list --installed | grep -q "^${package}/"`]);
+  const result = spawnSync('/usr/bin/bash', ['-c', `/usr/bin/apt list --installed | grep -q "^${package}/"`], { env: Env });
   return result.status === 0;
 }
 
 function runCmdUnix(command, options) {
   let bin = getBinPath(command)
   if (!bin) {
-    throw new Error(`Command ${command} not found`)
+    throw new Error(`Command ${command} not found; Path : ${Env.PATH}`)
   }
   let output = spawnSync(bin, options);
   if (output.error) {
