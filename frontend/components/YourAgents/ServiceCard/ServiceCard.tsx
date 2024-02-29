@@ -129,6 +129,17 @@ export const ServiceCard = ({ service }: ServiceCardProps) => {
   }, [deleteServiceState, deleteServices, isDeleting, service.hash]);
 
   const buttons: JSX.Element = useMemo(() => {
+    if (serviceStatus === DeploymentStatus.CREATED)
+      return (
+        <Button
+          danger
+          onClick={handleDelete}
+          disabled={isDeleting}
+          loading={isDeleting}
+        >
+          Delete this agent
+        </Button>
+      );
     if (serviceStatus === DeploymentStatus.DEPLOYED) {
       return (
         <Button

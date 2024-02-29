@@ -54,47 +54,51 @@ export const SpawnStakingCheck = ({
         message.error('Service creation already in progress');
         return;
       }
+
       setIsCreating(true);
-      return createService({
-        ...serviceTemplate,
-        configuration: {
-          ...serviceTemplate.configuration,
-          rpc,
-          use_staking: isStaking,
-        },
-      })
-        .then((service: Service) => {
-          setService(service);
 
-          //  Set agent funding requirements
-          if (service.chain_data?.instances) {
-            setAgentFundRequirements(
-              service.chain_data.instances.reduce(
-                (acc: FundsRequirementMap, address: Address) => ({
-                  ...acc,
-                  [address]:
-                    serviceTemplate.configuration.fund_requirements.agent,
-                }),
-                {},
-              ),
-            );
-          }
+      let service: Service;
+      try {
+        service = await createService({
+          ...serviceTemplate,
+          configuration: {
+            ...serviceTemplate.configuration,
+            rpc,
+            use_staking: isStaking,
+          },
+        });
+      } catch (e) {
+        message.error('Failed to create service');
+        setIsCreating(false);
+        return;
+      }
 
-          // Set multisig funding requirements from multisig/safe
-          if (service.chain_data?.multisig) {
-            const { multisig } = service.chain_data;
-            const { safe } = serviceTemplate.configuration.fund_requirements;
-            setAgentFundRequirements((prev: FundsRequirementMap) => ({
-              ...prev,
-              [multisig]: safe,
-            }));
-          }
-          return Promise.resolve(service);
-        })
-        .catch(() => {
-          return Promise.reject();
-        })
-        .finally(() => setIsCreating(false));
+      setService(service);
+
+      //  Set agent funding requirements
+      if (service.chain_data?.instances) {
+        setAgentFundRequirements(
+          service.chain_data.instances.reduce(
+            (acc: FundsRequirementMap, address: Address) => ({
+              ...acc,
+              [address]: serviceTemplate.configuration.fund_requirements.agent,
+            }),
+            {},
+          ),
+        );
+      }
+
+      // Set multisig funding requirements from multisig/safe
+      if (service.chain_data?.multisig) {
+        const { multisig } = service.chain_data;
+        const { safe } = serviceTemplate.configuration.fund_requirements;
+        setAgentFundRequirements((prev: FundsRequirementMap) => ({
+          ...prev,
+          [multisig]: safe,
+        }));
+      }
+
+      return service;
     },
     [
       createService,
@@ -145,7 +149,9 @@ export const SpawnStakingCheck = ({
       message.error(`${userPublicKey} requires more OLAS to stake`);
       return setButtonClicked(undefined);
     }
+
     const service: Service | undefined = await create(true);
+
     if (!service) {
       message.error('Failed to create service');
     } else {
@@ -157,14 +163,16 @@ export const SpawnStakingCheck = ({
         setIsStaking(true);
         setSpawnScreenState(nextPage);
       }
-      setButtonClicked(undefined);
     }
+
+    setButtonClicked(undefined);
   };
 
   const handleNo = async () => {
     setButtonClicked(ButtonOptions.NO);
 
     const service: Service | undefined = await create(false);
+
     if (!service) {
       message.error('Failed to create service');
     } else {
