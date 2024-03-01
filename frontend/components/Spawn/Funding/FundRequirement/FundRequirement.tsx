@@ -1,7 +1,7 @@
 import { copyToClipboard } from '@/common-util/copyToClipboard';
 import { useModals } from '@/hooks';
 import { Address } from '@/types';
-import { FundsReceivedMap } from '@/types';
+import { AddressNumberRecord } from '@/types';
 import { Button, Flex, Typography, message } from 'antd';
 import {
   Dispatch,
@@ -25,7 +25,7 @@ type FundRequirementProps = {
     rpc: string,
     contractAddress?: Address,
   ) => Promise<number>;
-  setReceivedFunds: Dispatch<SetStateAction<FundsReceivedMap>>;
+  setReceivedFunds: Dispatch<SetStateAction<AddressNumberRecord>>;
 };
 
 /**
@@ -78,7 +78,7 @@ export const FundRequirement = ({
         .then((balance: number) => {
           if (balance >= requirement) {
             setIsPollingBalance(false);
-            setReceivedFunds((prev: FundsReceivedMap) => ({
+            setReceivedFunds((prev: AddressNumberRecord) => ({
               ...prev,
               [address]: true,
             }));
