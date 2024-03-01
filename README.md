@@ -159,8 +159,7 @@ There are a number of scripts to fund addresses for testing:
 
 - XDAI funding:
 ```
-poetry shell
-python scripts/fund.py 0xYOURADDRESS
+poetry run python scripts/fund.py 0xYOURADDRESS
 ```
 - OLAS funding: `TBA`
 
