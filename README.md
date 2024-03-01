@@ -145,7 +145,7 @@ This will run Electron, which launches NextJS and the Backend as child processes
 
 ### Starting Hardhat (for development)
 
-In the interest of not losing funds, we can run a Hardhat node the forks Gnosis, provided the FORK_URL has been set to an external RPC in your .env file.
+In the interest of not losing funds, we can run a Hardhat node that forks Gnosis -- provided the FORK_URL has been set to an external RPC in your .env file.
 `npx hardhat node`
 Once running, you can use the `http://localhost:8545` endpoint during the spawn process as your RPC.
 
