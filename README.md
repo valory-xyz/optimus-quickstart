@@ -21,7 +21,7 @@ The following installation scripts assume you have the following on each OS:
 
 #### NodeJS via NVM
 
-NodeJS is best installed and managed through NVM, which allows you to install and select the version of NodeJS to use, which for this app is the current LTS version 20.11.
+NodeJS is best installed and managed through NVM, which allows you to install and select the version of NodeJS you wish to use. For this project is the current LTS version 20.11.
 
 ##### Linux
 
