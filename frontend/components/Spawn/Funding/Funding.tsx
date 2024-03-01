@@ -1,9 +1,8 @@
-import { Service } from '@/client';
 import { COLOR } from '@/constants';
-import { SpawnScreenState } from '@/enums';
+import { SpawnScreen } from '@/enums';
 import { useSpawn } from '@/hooks';
-import { Address } from '@/types';
-import { FundsReceivedMap, FundsRequirementMap } from '@/types';
+import { Address, AddressNumberRecord } from '@/types';
+import { AddressBooleanRecord } from '@/types';
 import { TimelineItemProps, Flex, Typography, Timeline } from 'antd';
 import { isEmpty } from 'lodash';
 import {
@@ -16,8 +15,8 @@ import {
 } from 'react';
 
 type FundRequirementComponentProps = {
-  setReceivedFunds: Dispatch<SetStateAction<FundsReceivedMap>>;
-  serviceHash: string;
+  setReceivedFunds: Dispatch<SetStateAction<AddressBooleanRecord>>;
+  rpc: string;
   address: Address;
   requirement: number;
   contractAddress?: Address;
@@ -26,29 +25,29 @@ type FundRequirementComponentProps = {
 };
 
 type FundingProps = {
-  service: Service;
-  fundRequirements: FundsRequirementMap;
+  fundRequirements: AddressNumberRecord;
   FundRequirementComponent: (
     props: FundRequirementComponentProps,
   ) => ReactElement;
-  nextPage: SpawnScreenState;
+  nextPage: SpawnScreen;
+  statement: string;
   symbol: string;
   contractAddress?: Address;
 };
 
 export const Funding = ({
-  service,
   fundRequirements,
   FundRequirementComponent,
   nextPage,
+  statement,
   symbol,
   contractAddress,
 }: FundingProps) => {
-  const { setSpawnScreenState } = useSpawn();
+  const { setSpawnData, rpc } = useSpawn();
 
-  const [receivedFunds, setReceivedFunds] = useState<FundsReceivedMap>({
+  const [receivedFunds, setReceivedFunds] = useState<AddressBooleanRecord>({
     ...(Object.keys(fundRequirements) as Address[]).reduce(
-      (acc: FundsReceivedMap, address: Address) => {
+      (acc: AddressBooleanRecord, address: Address) => {
         acc[address] = false;
         return acc;
       },
@@ -63,12 +62,12 @@ export const Funding = ({
           children: (
             <FundRequirementComponent
               setReceivedFunds={setReceivedFunds}
-              serviceHash={service.hash}
               address={address}
               requirement={fundRequirements[address]}
               symbol={symbol}
               hasReceivedFunds={receivedFunds[address]}
               contractAddress={contractAddress}
+              rpc={rpc}
             />
           ),
           color: receivedFunds[address] ? COLOR.GREEN_2 : COLOR.RED,
@@ -79,7 +78,7 @@ export const Funding = ({
       contractAddress,
       fundRequirements,
       receivedFunds,
-      service.hash,
+      rpc,
       symbol,
     ],
   );
@@ -93,13 +92,13 @@ export const Funding = ({
   }, [fundRequirements, receivedFunds]);
 
   useEffect(() => {
-    hasSentAllFunds && setSpawnScreenState(nextPage);
-  }, [hasSentAllFunds, nextPage, setSpawnScreenState]);
+    hasSentAllFunds && setSpawnData((prev) => ({ ...prev, screen: nextPage }));
+  }, [hasSentAllFunds, nextPage, setSpawnData]);
 
   return (
     <>
       <Flex gap={8} vertical>
-        <Typography.Text strong>Your agent needs funds!</Typography.Text>
+        <Typography.Text strong>{statement}</Typography.Text>
         <Timeline items={timelineItems} />
       </Flex>
     </>
