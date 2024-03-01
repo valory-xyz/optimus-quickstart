@@ -1,36 +1,47 @@
-import { SpawnContext } from '@/context';
-import { SpawnScreenState } from '@/enums';
+import { ServiceTemplate } from '@/client';
+import { DEFAULT_SPAWN_DATA, SpawnContext } from '@/context';
+import { SpawnScreen } from '@/enums';
 import { useCallback, useContext, useMemo } from 'react';
+import { useMarketplace } from '.';
 
 export const useSpawn = () => {
-  const { spawnScreenState, setSpawnScreenState, firstSpawnScreenState } =
-    useContext(SpawnContext);
+  const { getServiceTemplate } = useMarketplace();
+  const { spawnData, setSpawnData } = useContext(SpawnContext);
+  const { serviceTemplateHash, screen } = spawnData;
 
   const spawnPercentage: number = useMemo(() => {
     // Staking path
-    switch (spawnScreenState) {
-      case SpawnScreenState.RPC:
+    switch (screen) {
+      case SpawnScreen.RPC:
         return 0;
-      case SpawnScreenState.STAKING_CHECK:
+      case SpawnScreen.STAKING_CHECK:
         return 33;
-      case SpawnScreenState.AGENT_FUNDING:
+      case SpawnScreen.AGENT_FUNDING:
         return 66;
-      case SpawnScreenState.DONE:
+      case SpawnScreen.DONE:
         return 100;
       default:
         return 0;
     }
-  }, [spawnScreenState]);
+  }, [screen]);
 
-  const resetSpawnScreenState = useCallback(
-    (): void => setSpawnScreenState(firstSpawnScreenState),
-    [firstSpawnScreenState, setSpawnScreenState],
+  const serviceTemplate: ServiceTemplate | undefined = useMemo(() => {
+    if (!serviceTemplateHash) return;
+    return getServiceTemplate(serviceTemplateHash);
+  }, [getServiceTemplate, serviceTemplateHash]);
+
+  const resetSpawn = useCallback(
+    (): void => setSpawnData(DEFAULT_SPAWN_DATA),
+    // does not require any dependencies
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [],
   );
 
   return {
-    spawnScreenState,
-    setSpawnScreenState,
+    ...spawnData,
     spawnPercentage,
-    resetSpawnScreenState,
+    serviceTemplate,
+    setSpawnData,
+    resetSpawn,
   };
 };
