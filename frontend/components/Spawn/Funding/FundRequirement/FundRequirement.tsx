@@ -1,5 +1,5 @@
 import { copyToClipboard } from '@/common-util/copyToClipboard';
-import { useModals, useServices } from '@/hooks';
+import { useModals } from '@/hooks';
 import { Address } from '@/types';
 import { FundsReceivedMap } from '@/types';
 import { Button, Flex, Typography, message } from 'antd';
@@ -13,13 +13,13 @@ import {
 import { useInterval } from 'usehooks-ts';
 
 type FundRequirementProps = {
-  serviceHash?: string;
+  rpc: string;
   address: Address;
   requirement: number;
   contractAddress?: Address;
   symbol: string;
   hasReceivedFunds: boolean;
-  isERC20: boolean;
+  isErc20: boolean;
   getBalance: (
     address: Address,
     rpc: string,
@@ -34,27 +34,19 @@ type FundRequirementProps = {
  * @returns
  */
 export const FundRequirement = ({
-  serviceHash,
+  rpc,
   address,
   requirement,
   contractAddress,
   symbol,
   hasReceivedFunds,
-  isERC20,
+  isErc20,
   getBalance,
   setReceivedFunds,
 }: FundRequirementProps) => {
   const { qrModalOpen } = useModals();
-  const { getServiceFromState } = useServices();
 
   const [isPollingBalance, setIsPollingBalance] = useState(true);
-
-  const rpc: string | undefined = useMemo(() => {
-    if (!serviceHash) return;
-    const service = getServiceFromState(serviceHash);
-    if (!service) return;
-    return service.ledger?.rpc;
-  }, [getServiceFromState, serviceHash]);
 
   const handleCopy = useCallback(
     (): Promise<void> =>
@@ -74,9 +66,9 @@ export const FundRequirement = ({
         amount: requirement,
         chainId: 100,
         address,
-        isErc20: isERC20,
+        isErc20,
       }), // hardcoded chainId for now
-    [address, isERC20, qrModalOpen, requirement],
+    [address, isErc20, qrModalOpen, requirement],
   );
 
   useInterval(
