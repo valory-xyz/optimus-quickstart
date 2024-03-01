@@ -105,8 +105,8 @@ lsb_release -a
 
 You must install Docker V24 manually, as brew does not allow for versioning with Docker.
 
-Docker Desktop version that supports Docker V24: [https://docs.docker.com/desktop/release-notes/#4261](https://docs.docker.com/desktop/release-notes/#4261)
-Guide to install: [https://docs.docker.com/desktop/install/mac-install/](https://docs.docker.com/desktop/install/mac-install/)
+- Docker Desktop version that supports Docker V24: [https://docs.docker.com/desktop/release-notes/#4261](https://docs.docker.com/desktop/release-notes/#4261)
+- Guide to install: [https://docs.docker.com/desktop/install/mac-install/](https://docs.docker.com/desktop/install/mac-install/)
 
 ### Setup ENV file
 
