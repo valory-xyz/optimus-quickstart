@@ -1,4 +1,6 @@
-import { SpawnScreenState } from '@/enums';
+import { ServiceTemplate } from '@/client';
+import { SpawnScreen } from '@/enums';
+import { AddressBooleanRecord, AddressNumberRecord } from '@/types';
 import {
   Dispatch,
   PropsWithChildren,
@@ -7,30 +9,48 @@ import {
   useState,
 } from 'react';
 
-type SpawnContextType = {
-  spawnScreenState: SpawnScreenState;
-  firstSpawnScreenState: SpawnScreenState;
-  setSpawnScreenState: Dispatch<SetStateAction<SpawnScreenState>>;
+type SpawnData = {
+  agentFundsReceived: AddressBooleanRecord;
+  agentFundRequirements: AddressNumberRecord;
+  isStaking?: boolean;
+  nativeBalance?: number;
+  rpc: string;
+  screen: SpawnScreen;
+  serviceTemplateHash?: string;
+  serviceTemplate?: ServiceTemplate;
 };
 
-export const FIRST_SPAWN_SCREEN_STATE: SpawnScreenState = SpawnScreenState.RPC;
+type SpawnContextType = {
+  spawnData: SpawnData;
+  setSpawnData: Dispatch<SetStateAction<SpawnData>>;
+};
+
+const FIRST_SPAWN_SCREEN: SpawnScreen = SpawnScreen.RPC;
+
+export const DEFAULT_SPAWN_DATA: SpawnData = {
+  agentFundsReceived: {},
+  agentFundRequirements: {},
+  isStaking: undefined,
+  nativeBalance: undefined,
+  rpc: '',
+  screen: FIRST_SPAWN_SCREEN,
+  serviceTemplateHash: undefined,
+  serviceTemplate: undefined,
+};
 
 export const SpawnContext = createContext<SpawnContextType>({
-  spawnScreenState: FIRST_SPAWN_SCREEN_STATE,
-  firstSpawnScreenState: FIRST_SPAWN_SCREEN_STATE,
-  setSpawnScreenState: () => {},
+  spawnData: DEFAULT_SPAWN_DATA,
+  setSpawnData: () => {},
 });
 
 export const SpawnProvider = ({ children }: PropsWithChildren) => {
-  const [spawnScreenState, setSpawnScreenState] = useState<SpawnScreenState>(
-    FIRST_SPAWN_SCREEN_STATE,
-  );
+  const [spawnData, setSpawnData] = useState<SpawnData>(DEFAULT_SPAWN_DATA);
+
   return (
     <SpawnContext.Provider
       value={{
-        firstSpawnScreenState: FIRST_SPAWN_SCREEN_STATE,
-        spawnScreenState,
-        setSpawnScreenState,
+        spawnData,
+        setSpawnData,
       }}
     >
       {children}
