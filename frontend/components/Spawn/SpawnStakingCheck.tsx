@@ -136,10 +136,6 @@ export const SpawnStakingCheck = ({ nextPage }: SpawnStakingCheckProps) => {
     } else {
       message.success('Service created successfully');
 
-      // await updateServiceState(service.hash).catch(() =>
-      //   message.error('Failed to update service state'),
-      // );
-
       setSpawnData((prev) => ({
         ...prev,
         isStaking: true,
@@ -159,10 +155,6 @@ export const SpawnStakingCheck = ({ nextPage }: SpawnStakingCheckProps) => {
       message.error('Failed to create service');
     } else {
       message.success('Service created successfully');
-
-      // await updateServiceState(service.hash).catch(() =>
-      //   message.error('Failed to update service state'),
-      // );
 
       setSpawnData((prev) => ({
         ...prev,
