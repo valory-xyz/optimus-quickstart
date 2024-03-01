@@ -121,7 +121,9 @@ For production usage, set `NODE_ENV=production`.
 **Required for forking Gnosis using a Hardhat node during development.**
 
 You can get a Gnosis RPC from [Nodies](https://www.nodies.app/).
-Then set `FORK_URL=https://....`
+
+Then, set `FORK_URL=https://....` in your .env file.
+
 Be sure to set an external RPC here.
 
 
