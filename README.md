@@ -148,12 +148,13 @@ This will run Electron, which launches NextJS and the Backend as child processes
 In the interest of not losing funds, we can run a Hardhat node that forks Gnosis -- provided the FORK_URL has been set to an external RPC in your .env file.
 
 Run the following to start your Hardhat node:
+
 ```bash
 npx hardhat node
 ```
 
-**Once running, you can use the `http://localhost:8545` endpoint during the spawn process as your RPC.
-**
+**Once Hardhat is running, you can use `http://localhost:8545` during the agent spawning process as your RPC.**
+
 ### Funding addresses while running a Hardhat fork
 There are a number of scripts to fund addresses for testing:
 
