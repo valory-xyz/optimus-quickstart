@@ -1,20 +1,21 @@
-import { Service } from '@/client';
 import { Funding } from './Funding/Funding';
-import { SpawnScreenState } from '@/enums';
+import { SpawnScreen } from '@/enums';
 import { FundRequirementETH } from './Funding/FundRequirement/FundRequirementETH';
-import { FundsRequirementMap } from '@/types';
+import { useSpawn } from '@/hooks';
 
 type SpawnAgentFundingProps = {
-  service: Service;
-  agentFundRequirements: FundsRequirementMap;
-  nextPage: SpawnScreenState;
+  nextPage: SpawnScreen;
 };
 
-export const SpawnAgentFunding = (props: SpawnAgentFundingProps) => (
-  <Funding
-    fundRequirements={props.agentFundRequirements}
-    symbol={'XDAI'} // hardcoded while only trader is available
-    FundRequirementComponent={FundRequirementETH}
-    {...props}
-  />
-);
+export const SpawnAgentFunding = (props: SpawnAgentFundingProps) => {
+  const { agentFundRequirements: fundRequirements } = useSpawn();
+  return (
+    <Funding
+      fundRequirements={fundRequirements}
+      statement="Please fund the agent wallets to continue."
+      symbol={'XDAI'} // hardcoded while only trader is available
+      FundRequirementComponent={FundRequirementETH}
+      {...props}
+    />
+  );
+};
