@@ -1,11 +1,9 @@
-import { Service, ServiceTemplate } from '@/client';
 import { SpawnRPC } from '@/components/Spawn';
-import { SpawnScreenState } from '@/enums';
-import { useMarketplace, useSpawn } from '@/hooks';
-import { Address } from '@/types';
+import { SpawnScreen } from '@/enums';
+import { useSpawn } from '@/hooks';
 import { GetServerSidePropsContext } from 'next';
 import dynamic from 'next/dynamic';
-import { ReactElement, useMemo, useState } from 'react';
+import { ReactElement, useEffect, useMemo } from 'react';
 
 const SpawnAgentFunding = dynamic(
   () =>
@@ -38,6 +36,14 @@ const SpawnError = dynamic(
   { ssr: false },
 );
 
+const SpawnMasterWalletFunding = dynamic(
+  () =>
+    import('@/components/Spawn/SpawnMasterWalletFunding').then(
+      (mod) => mod.SpawnMasterWalletFunding,
+    ),
+  { ssr: false },
+);
+
 export const getServerSideProps = async (
   context: GetServerSidePropsContext,
 ) => {
@@ -50,85 +56,42 @@ type SpawnPageProps = {
 };
 
 export const SpawnPage = ({ serviceTemplateHash }: SpawnPageProps) => {
-  const { spawnScreenState, setSpawnScreenState } = useSpawn();
-  const { getServiceTemplate } = useMarketplace();
+  const { screen, setSpawnData } = useSpawn();
 
-  const [service, setService] = useState<Service>();
-  const [rpc, setRpc] = useState('');
-  const [isStaking, setIsStaking] = useState(false);
-
-  const serviceTemplate: ServiceTemplate | undefined = useMemo(
-    () => getServiceTemplate(serviceTemplateHash),
-    [getServiceTemplate, serviceTemplateHash],
-  );
-
-  const [agentFundRequirements, setAgentFundRequirements] = useState<{
-    [address: Address]: number;
-  }>({});
+  useEffect(() => {
+    setSpawnData((prev) => {
+      return {
+        ...prev,
+        serviceTemplateHash,
+      };
+    });
+    // Not required to run this effect on every render, only once
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const spawnScreen: ReactElement = useMemo(() => {
-    if (!serviceTemplate)
-      return <SpawnError message="Invalid service template" />;
+    switch (screen) {
+      case SpawnScreen.RPC:
+        return <SpawnRPC nextPage={SpawnScreen.MASTER_WALLET_FUNDING} />;
 
-    // STAKING CHECK & RPC
-    switch (spawnScreenState) {
-      case SpawnScreenState.RPC: {
+      case SpawnScreen.MASTER_WALLET_FUNDING:
         return (
-          <SpawnRPC
-            {...{
-              rpc,
-              setRpc,
-              serviceTemplate,
-              setService,
-              isStaking,
-            }}
-            nextPage={SpawnScreenState.STAKING_CHECK}
-          />
+          <SpawnMasterWalletFunding nextPage={SpawnScreen.STAKING_CHECK} />
         );
-      }
-      case SpawnScreenState.STAKING_CHECK:
-        return (
-          <SpawnStakingCheck
-            {...{
-              serviceTemplate,
-              rpc,
-              setAgentFundRequirements,
-              setSpawnScreenState,
-              setIsStaking,
-              setService,
-            }}
-            nextPage={SpawnScreenState.AGENT_FUNDING}
-          />
-        );
-      default:
-        break;
-    }
 
-    if (!service) return <SpawnError message="Invalid service" />;
+      case SpawnScreen.STAKING_CHECK:
+        return <SpawnStakingCheck nextPage={SpawnScreen.AGENT_FUNDING} />;
 
-    // FUNDING SCREENS & DONE
-    switch (spawnScreenState) {
-      case SpawnScreenState.AGENT_FUNDING:
-        return (
-          <SpawnAgentFunding
-            {...{ service, agentFundRequirements }}
-            nextPage={SpawnScreenState.DONE}
-          />
-        );
-      case SpawnScreenState.DONE:
+      case SpawnScreen.AGENT_FUNDING:
+        return <SpawnAgentFunding nextPage={SpawnScreen.DONE} />;
+
+      case SpawnScreen.DONE:
         return <SpawnDone />;
+
       default:
         return <SpawnError message="Invalid spawn page" />;
     }
-  }, [
-    agentFundRequirements,
-    isStaking,
-    rpc,
-    service,
-    serviceTemplate,
-    setSpawnScreenState,
-    spawnScreenState,
-  ]);
+  }, [screen]);
 
   return (
     <>

@@ -1,6 +1,6 @@
 import { Service } from '@/client';
-import { useMulticall } from '@/hooks';
-import { BalancesMap } from '@/types';
+import MulticallService from '@/service/Multicall';
+import { AddressNumberRecord } from '@/types';
 import { Flex, Typography, message } from 'antd';
 import { useMemo, useState } from 'react';
 import { useInterval } from 'usehooks-ts';
@@ -8,9 +8,8 @@ import { useInterval } from 'usehooks-ts';
 const BALANCE_POLLING_INTERVAL = 5000;
 
 export const ServiceCardTotalBalance = ({ service }: { service: Service }) => {
-  const { getEthBalances } = useMulticall();
   const [hasInitialLoaded, setHasInitialLoaded] = useState(false);
-  const [balances, setBalances] = useState<BalancesMap>({});
+  const [balances, setBalances] = useState<AddressNumberRecord>({});
 
   const sumBalances: number | undefined = useMemo(() => {
     if (hasInitialLoaded && balances) {
@@ -27,7 +26,7 @@ export const ServiceCardTotalBalance = ({ service }: { service: Service }) => {
       service.chain_data?.multisig &&
       service.ledger?.rpc
     )
-      getEthBalances(
+      MulticallService.getEthBalances(
         [...service.chain_data.instances, service.chain_data.multisig],
         service.ledger.rpc,
       )

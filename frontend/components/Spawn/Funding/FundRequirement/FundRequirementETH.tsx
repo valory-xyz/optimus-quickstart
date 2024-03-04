@@ -1,20 +1,23 @@
-import { useEthers } from '@/hooks';
 import { Dispatch, SetStateAction } from 'react';
 import { FundRequirement } from './FundRequirement';
-import { Address, FundsReceivedMap } from '@/types';
+import { Address, AddressBooleanRecord } from '@/types';
+import EthersService from '@/service/Ethers';
 
 type FundRequirementETHProps = {
-  serviceHash?: string;
   address: Address;
   symbol: string;
   requirement: number;
+  rpc: string;
   hasReceivedFunds: boolean;
-  setReceivedFunds: Dispatch<SetStateAction<FundsReceivedMap>>;
+  setReceivedFunds: Dispatch<SetStateAction<AddressBooleanRecord>>;
 };
 
 export const FundRequirementETH = (props: FundRequirementETHProps) => {
-  const { getEthBalance: getETHBalance } = useEthers();
   return (
-    <FundRequirement getBalance={getETHBalance} isERC20={false} {...props} />
+    <FundRequirement
+      getBalance={EthersService.getEthBalance}
+      isErc20={false}
+      {...props}
+    />
   );
 };
