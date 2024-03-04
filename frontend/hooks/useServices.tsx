@@ -43,7 +43,7 @@ export const useServices = () => {
     getService(serviceHash).then((service: Service) =>
       setServices((prev) => {
         const index = prev.findIndex((s) => s.hash === serviceHash); // findIndex returns -1 if not found
-        if (index === -1) throw new Error('Service not found');
+        if (index === -1) return [...prev, service];
         const newServices = [...prev];
         newServices[index] = service;
         return newServices;

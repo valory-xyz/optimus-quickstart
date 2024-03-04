@@ -9,19 +9,13 @@ import {
   message,
 } from 'antd';
 import { NODIES_URL } from '@/constants/urls';
-import {
-  Dispatch,
-  ReactElement,
-  SetStateAction,
-  useCallback,
-  useMemo,
-  useState,
-} from 'react';
-import { useSpawn, useEthers, useAppInfo } from '@/hooks';
-import { SpawnScreenState } from '@/enums';
+import { ReactElement, useCallback, useMemo, useState } from 'react';
+import { useSpawn, useAppInfo } from '@/hooks';
 import { CheckSquareTwoTone, WarningFilled } from '@ant-design/icons';
 import { InputStatus } from 'antd/es/_util/statusUtils';
 import { debounce } from 'lodash';
+import EthersService from '@/service/Ethers';
+import { SpawnScreen } from '@/enums';
 
 enum RPCState {
   LOADING,
@@ -29,15 +23,8 @@ enum RPCState {
   INVALID,
 }
 
-type SpawnRPCProps = {
-  rpc: string;
-  setRpc: Dispatch<SetStateAction<string>>;
-  nextPage: SpawnScreenState;
-};
-
-export const SpawnRPC = ({ rpc, setRpc, nextPage }: SpawnRPCProps) => {
-  const { setSpawnScreenState } = useSpawn();
-  const { checkRpc, getEthBalance } = useEthers();
+export const SpawnRPC = ({ nextPage }: { nextPage: SpawnScreen }) => {
+  const { setSpawnData, rpc } = useSpawn();
   const { userPublicKey } = useAppInfo();
 
   const [isCheckingRpc, setIsCheckingRpc] = useState(false);
@@ -47,20 +34,23 @@ export const SpawnRPC = ({ rpc, setRpc, nextPage }: SpawnRPCProps) => {
     async (): Promise<void> =>
       navigator.clipboard
         .readText()
-        .then((text) => setRpc(text))
+        .then((text) => setSpawnData((prev) => ({ ...prev, rpc: text })))
         .catch(() => {
           message.error('Failed to read clipboard');
         }),
-    [setRpc],
+    [setSpawnData],
   );
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const debounceCheckRpc = useCallback(
-    debounce((_rpc: string) => {
+    debounce((rpcInput: string) => {
       if (isCheckingRpc) return;
-      if (!_rpc) return;
+      if (!rpcInput || rpc.slice(0, 4) !== 'http') {
+        setRpcState(RPCState.INVALID);
+        return;
+      }
       setIsCheckingRpc(true);
-      checkRpc(_rpc)
+      EthersService.checkRpc(rpcInput)
         .then((valid: boolean) =>
           setRpcState(valid ? RPCState.VALID : RPCState.INVALID),
         )
@@ -75,11 +65,12 @@ export const SpawnRPC = ({ rpc, setRpc, nextPage }: SpawnRPCProps) => {
 
   const handleRpcChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
-      setRpc(e.target.value);
+      const rpc = e.target.value;
+      setSpawnData((prev) => ({ ...prev, rpc }));
       setRpcState(RPCState.LOADING);
-      debounceCheckRpc(e.target.value);
+      debounceCheckRpc(rpc);
     },
-    [debounceCheckRpc, setRpc],
+    [debounceCheckRpc, setSpawnData],
   );
 
   const handleContinue = useCallback(async () => {
@@ -95,35 +86,22 @@ export const SpawnRPC = ({ rpc, setRpc, nextPage }: SpawnRPCProps) => {
       return;
     }
 
-    const ethBalance: number | undefined = await getEthBalance(
+    // TEMPORARY BALANCE CHECK (TO BE RESOLVED WITH MASTER WALLET CONTEXT & HOOK WHEN PUBLIC RPC IS AUTHORISED)
+    const nativeBalance: number | undefined = await EthersService.getEthBalance(
       userPublicKey,
       rpc,
     ).catch(() => undefined);
 
-    if (ethBalance === undefined) {
+    if (nativeBalance === undefined) {
       message.error('Failed to get master wallet balance');
       return;
     }
 
-    if (ethBalance < 1) {
-      message.error(
-        `Insufficient master wallet balance, you need at least 1 XDAI. ${userPublicKey}`,
-      );
-      return;
-    }
-
-    setSpawnScreenState(nextPage);
-  }, [
-    getEthBalance,
-    nextPage,
-    rpc,
-    rpcState,
-    setSpawnScreenState,
-    userPublicKey,
-  ]);
+    setSpawnData((prev) => ({ ...prev, screen: nextPage, nativeBalance }));
+  }, [nextPage, rpc, rpcState, setSpawnData, userPublicKey]);
 
   const isContinueDisabled: boolean = useMemo(
-    () => !rpc || rpcState !== RPCState.VALID,
+    () => !rpc || rpc.slice(0, 4) !== 'http' || rpcState !== RPCState.VALID,
     [rpc, rpcState],
   );
 
@@ -187,7 +165,7 @@ export const SpawnRPC = ({ rpc, setRpc, nextPage }: SpawnRPCProps) => {
             <Typography.Text>Paste endpoint</Typography.Text>
             <Input
               value={rpc}
-              placeholder={'https://...'}
+              placeholder={'http...'}
               onChange={handleRpcChange}
               suffix={inputSuffix}
               status={inputStatus}

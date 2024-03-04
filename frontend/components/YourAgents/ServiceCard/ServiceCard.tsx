@@ -20,13 +20,14 @@ import {
   ServiceHash,
   ServiceTemplate,
 } from '@/client';
-import { useMarketplace, useServices, useEthers } from '@/hooks';
+import { useMarketplace, useServices } from '@/hooks';
 
 import { ServiceCardTotalBalance } from './ServiceCardTotalBalance';
 import {
   SERVICE_CARD_RPC_POLLING_INTERVAL,
   SERVICE_CARD_STATUS_POLLING_INTERVAL,
 } from '@/constants/intervals';
+import EthersService from '@/service/Ethers';
 
 type ServiceCardProps = {
   service: Service;
@@ -37,12 +38,10 @@ export const ServiceCard = ({ service }: ServiceCardProps) => {
     stopService,
     deployService,
     deleteServices,
-    updateServiceState,
     getServiceStatus,
     deleteServiceState,
   } = useServices();
   const { getServiceTemplate } = useMarketplace();
-  const { checkRpc } = useEthers();
 
   const [serviceStatus, setServiceStatus] = useState<
     DeploymentStatus | undefined
@@ -68,15 +67,12 @@ export const ServiceCard = ({ service }: ServiceCardProps) => {
     SERVICE_CARD_STATUS_POLLING_INTERVAL,
   );
 
-  const handleStart = useCallback(() => {
+  const handleStart = useCallback(async () => {
     if (isStarting) return;
     setIsStarting(true);
     deployService(service.hash)
       .then(async () => {
         message.success('Service started successfully');
-        updateServiceState(service.hash).catch(() =>
-          message.error('Failed to update services'),
-        );
       })
       .catch(() => {
         message.error('Failed to start service');
@@ -86,22 +82,14 @@ export const ServiceCard = ({ service }: ServiceCardProps) => {
           .catch(() => message.error('Failed to update service status'))
           .finally(() => setIsStarting(false));
       });
-  }, [
-    isStarting,
-    deployService,
-    service.hash,
-    updateServiceState,
-    updateServiceStatus,
-  ]);
+  }, [isStarting, deployService, service.hash, updateServiceStatus]);
 
   const handleStop = useCallback(async (): Promise<void> => {
     if (isStopping) return;
     setIsStopping(true);
     stopService(service.hash)
       .then(() => {
-        updateServiceState(service.hash).catch(() =>
-          message.error('Failed to update services'),
-        );
+        message.success('Service stopped successfully');
       })
       .catch(() => {
         message.error('Failed to stop service');
@@ -111,15 +99,9 @@ export const ServiceCard = ({ service }: ServiceCardProps) => {
           .catch(() => message.error('Failed to update service status'))
           .finally(() => setIsStopping(false));
       });
-  }, [
-    isStopping,
-    service.hash,
-    stopService,
-    updateServiceState,
-    updateServiceStatus,
-  ]);
+  }, [isStopping, service.hash, stopService, updateServiceStatus]);
 
-  const handleDelete = useCallback(() => {
+  const handleDelete = useCallback(async () => {
     if (isDeleting) return;
     setIsDeleting(true);
     deleteServices([service.hash])
@@ -195,7 +177,7 @@ export const ServiceCard = ({ service }: ServiceCardProps) => {
   );
 
   useInterval(
-    async () => setIsRpcValid(await checkRpc(service.ledger.rpc)),
+    () => EthersService.checkRpc(service.ledger.rpc).then(setIsRpcValid),
     SERVICE_CARD_RPC_POLLING_INTERVAL,
   );
 

@@ -1,2 +1,2 @@
-export * from './SpawnState';
+export * from './SpawnScreen';
 export * from './Tabs';
