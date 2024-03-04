@@ -43,14 +43,14 @@ export const SpawnRPC = ({ nextPage }: { nextPage: SpawnScreen }) => {
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const debounceCheckRpc = useCallback(
-    debounce((_rpc: string) => {
+    debounce((rpcInput: string) => {
       if (isCheckingRpc) return;
-      if (!_rpc || rpc.slice(0, 4) !== 'http') {
+      if (!rpcInput || rpc.slice(0, 4) !== 'http') {
         setRpcState(RPCState.INVALID);
         return;
       }
       setIsCheckingRpc(true);
-      EthersService.checkRpc(_rpc)
+      EthersService.checkRpc(rpcInput)
         .then((valid: boolean) =>
           setRpcState(valid ? RPCState.VALID : RPCState.INVALID),
         )
