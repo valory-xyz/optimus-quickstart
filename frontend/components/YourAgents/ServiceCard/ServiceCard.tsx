@@ -136,7 +136,13 @@ export const ServiceCard = ({ service }: ServiceCardProps) => {
       delete: (
         <Popconfirm
           title="Delete service"
-          description="Are you sure you want to delete this service?"
+          description={
+            <>
+              Are you sure you want to delete this service?
+              <br />
+              Your agent&apos;s private keys will be lost.
+            </>
+          }
           placement="leftBottom"
           onConfirm={handleDelete}
         >
