@@ -29,7 +29,7 @@ export const SpawnStakingCheck = ({ nextPage }: SpawnStakingCheckProps) => {
    * Creates service, then performs relevant state updates
    */
   const create = useCallback(
-    async (use_staking: boolean) => {
+    async (useStaking: boolean) => {
       if (isCreating) {
         message.error('Service creation already in progress');
         return;
@@ -49,7 +49,7 @@ export const SpawnStakingCheck = ({ nextPage }: SpawnStakingCheckProps) => {
           configuration: {
             ...serviceTemplate.configuration,
             rpc,
-            use_staking,
+            use_staking: useStaking,
           },
         });
       } catch (e) {
