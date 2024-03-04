@@ -7,6 +7,7 @@ import {
   Spin,
   message,
   Tooltip,
+  Popconfirm,
 } from 'antd';
 import Image from 'next/image';
 import { useCallback, useMemo, useState } from 'react';
@@ -40,7 +41,7 @@ export const ServiceCard = ({ service }: ServiceCardProps) => {
     getServiceStatus,
     deleteServiceState,
   } = useServices();
-  const { getServiceTemplates } = useMarketplace();
+  const { getServiceTemplate } = useMarketplace();
   const { checkRpc } = useEthers();
 
   const [serviceStatus, setServiceStatus] = useState<
@@ -128,20 +129,19 @@ export const ServiceCard = ({ service }: ServiceCardProps) => {
       });
   }, [deleteServiceState, deleteServices, isDeleting, service.hash]);
 
-  const buttons: JSX.Element = useMemo(() => {
-    if (serviceStatus === DeploymentStatus.CREATED)
-      return (
+  const buttons = useMemo(
+    () => ({
+      start: (
         <Button
-          danger
-          onClick={handleDelete}
-          disabled={isDeleting}
-          loading={isDeleting}
+          type="primary"
+          onClick={handleStart}
+          disabled={isStarting}
+          loading={isStarting}
         >
-          Delete this agent
+          Start this agent
         </Button>
-      );
-    if (serviceStatus === DeploymentStatus.DEPLOYED) {
-      return (
+      ),
+      stop: (
         <Button
           danger
           onClick={handleStop}
@@ -150,50 +150,43 @@ export const ServiceCard = ({ service }: ServiceCardProps) => {
         >
           Stop this agent
         </Button>
-      );
-    }
+      ),
+      delete: (
+        <Popconfirm
+          title="Delete service"
+          description="Are you sure you want to delete this service?"
+          placement="leftBottom"
+          onConfirm={handleDelete}
+        >
+          <Button danger disabled={isDeleting} loading={isDeleting}>
+            Delete this agent
+          </Button>
+        </Popconfirm>
+      ),
+    }),
+    [handleDelete, handleStart, handleStop, isDeleting, isStarting, isStopping],
+  );
+
+  const buttonsToDisplay: JSX.Element = useMemo(() => {
+    if (serviceStatus === DeploymentStatus.CREATED) return buttons.delete;
+    if (serviceStatus === DeploymentStatus.DEPLOYED) return buttons.stop;
     if (
       serviceStatus === DeploymentStatus.STOPPED ||
       serviceStatus === DeploymentStatus.BUILT
     ) {
       return (
         <Flex gap={16}>
-          <Button
-            type="primary"
-            onClick={handleStart}
-            disabled={isStarting}
-            loading={isStarting}
-          >
-            Start this agent
-          </Button>
-          <Button
-            danger
-            onClick={handleDelete}
-            disabled={isDeleting}
-            loading={isDeleting}
-          >
-            Delete this agent
-          </Button>
+          {buttons.start}
+          {buttons.delete}
         </Flex>
       );
     }
     return <Spin />;
-  }, [
-    handleDelete,
-    handleStart,
-    handleStop,
-    isDeleting,
-    isStarting,
-    isStopping,
-    serviceStatus,
-  ]);
+  }, [buttons.delete, buttons.start, buttons.stop, serviceStatus]);
 
   const serviceTemplate: ServiceTemplate | undefined = useMemo(
-    () =>
-      getServiceTemplates().find(
-        (serviceTemplate) => serviceTemplate.hash === service.hash,
-      ),
-    [getServiceTemplates, service.hash],
+    () => getServiceTemplate(service.hash),
+    [getServiceTemplate, service.hash],
   );
 
   const showRpc = useMemo(
@@ -237,7 +230,7 @@ export const ServiceCard = ({ service }: ServiceCardProps) => {
             </Flex>
             {isRpcValid && <ServiceCardTotalBalance service={service} />}
           </Flex>
-          <Flex style={{ marginTop: 'auto' }}>{buttons}</Flex>
+          <Flex style={{ marginTop: 'auto' }}>{buttonsToDisplay}</Flex>
         </Flex>
       </Flex>
     </Card>
