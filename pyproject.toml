@@ -2,7 +2,7 @@
 name = "operate"
 version = "0.1.0"
 description = ""
-authors = ["David Vilela <dvilelaf@gmail.com>"]
+authors = ["David Vilela <dvilelaf@gmail.com>", "Viraj Patel <vptl185@gmail.com>"]
 readme = "README.md"
 include = [
     "operate/data/acn/*",
@@ -15,7 +15,7 @@ include = [
 operate = "operate.cli:main"
 
 [tool.poetry.dependencies]
-python = "^3.10"
+python = "<4.0,>=3.8"
 open-autonomy = ">=0.14.7"
 open-aea-ledger-ethereum = ">=1.48.0.post1"
 docker = "6.1.2"
