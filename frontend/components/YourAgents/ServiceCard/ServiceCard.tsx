@@ -19,7 +19,7 @@ import {
   ServiceHash,
   ServiceTemplate,
 } from '@/client';
-import { useMarketplace, useServices } from '@/hooks';
+import { useServiceTemplates, useServices } from '@/hooks';
 
 import { ServiceCardTotalBalance } from './ServiceCardTotalBalance';
 import {
@@ -27,20 +27,15 @@ import {
   SERVICE_CARD_STATUS_POLLING_INTERVAL,
 } from '@/constants/intervals';
 import EthersService from '@/service/Ethers';
+import { ServicesService } from '@/service';
 
 type ServiceCardProps = {
   service: Service;
 };
 
 export const ServiceCard = ({ service }: ServiceCardProps) => {
-  const {
-    stopService,
-    deployService,
-    deleteServices,
-    getServiceStatus,
-    deleteServiceState,
-  } = useServices();
-  const { getServiceTemplates } = useMarketplace();
+  const { deleteServiceState } = useServices();
+  const { getServiceTemplates } = useServiceTemplates();
 
   const [serviceStatus, setServiceStatus] = useState<
     DeploymentStatus | undefined
@@ -53,12 +48,12 @@ export const ServiceCard = ({ service }: ServiceCardProps) => {
 
   const updateServiceStatus = useCallback(
     (serviceHash: ServiceHash): Promise<void> =>
-      getServiceStatus(serviceHash)
+      ServicesService.getServiceStatus(serviceHash)
         .then((r: Deployment) => setServiceStatus(r.status))
         .catch(() => {
           setServiceStatus(undefined);
         }),
-    [getServiceStatus],
+    [],
   );
 
   useInterval(
@@ -69,7 +64,7 @@ export const ServiceCard = ({ service }: ServiceCardProps) => {
   const handleStart = useCallback(async () => {
     if (isStarting) return;
     setIsStarting(true);
-    deployService(service.hash)
+    ServicesService.deployService(service.hash)
       .then(async () => {
         message.success('Service started successfully');
       })
@@ -81,12 +76,12 @@ export const ServiceCard = ({ service }: ServiceCardProps) => {
           .catch(() => message.error('Failed to update service status'))
           .finally(() => setIsStarting(false));
       });
-  }, [isStarting, deployService, service.hash, updateServiceStatus]);
+  }, [isStarting, service.hash, updateServiceStatus]);
 
   const handleStop = useCallback(async (): Promise<void> => {
     if (isStopping) return;
     setIsStopping(true);
-    stopService(service.hash)
+    ServicesService.stopService(service.hash)
       .then(() => {
         message.success('Service stopped successfully');
       })
@@ -98,17 +93,17 @@ export const ServiceCard = ({ service }: ServiceCardProps) => {
           .catch(() => message.error('Failed to update service status'))
           .finally(() => setIsStopping(false));
       });
-  }, [isStopping, service.hash, stopService, updateServiceStatus]);
+  }, [isStopping, service.hash, updateServiceStatus]);
 
   const handleDelete = useCallback(async () => {
     if (isDeleting) return;
     setIsDeleting(true);
-    deleteServices([service.hash])
+    ServicesService.deleteServices({ hashes: [service.hash] })
       .catch(() => message.error('Failed to delete service'))
       .finally(() => {
         deleteServiceState(service.hash);
       });
-  }, [deleteServiceState, deleteServices, isDeleting, service.hash]);
+  }, [deleteServiceState, isDeleting, service.hash]);
 
   const buttons: JSX.Element = useMemo(() => {
     if (serviceStatus === DeploymentStatus.CREATED)
