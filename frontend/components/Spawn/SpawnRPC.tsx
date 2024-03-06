@@ -41,11 +41,10 @@ export const SpawnRPC = ({ nextPage }: { nextPage: SpawnScreen }) => {
     [setSpawnData],
   );
 
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   const debounceCheckRpc = useCallback(
     debounce((rpcInput: string) => {
       if (isCheckingRpc) return;
-      if (!rpcInput || rpc.slice(0, 4) !== 'http') {
+      if (!rpcInput || rpcInput.slice(0, 4) !== 'http') {
         setRpcState(RPCState.INVALID);
         return;
       }
@@ -60,6 +59,8 @@ export const SpawnRPC = ({ nextPage }: { nextPage: SpawnScreen }) => {
         })
         .finally(() => setIsCheckingRpc(false));
     }, 1000),
+    // Does not require deps; updating the function will destroy the debounce
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [],
   );
 
