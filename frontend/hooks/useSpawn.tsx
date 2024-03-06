@@ -1,17 +1,18 @@
-import { ServiceTemplate } from '@/client';
+import { Service } from '@/client';
 import { DEFAULT_SPAWN_DATA, SpawnContext } from '@/context';
 import { SpawnScreen } from '@/enums';
 import { useCallback, useContext, useMemo } from 'react';
-import { useMarketplace } from '.';
+import { Address, FundingRecord } from '@/types';
+import { message } from 'antd';
+import { ServicesService } from '@/service';
 
 export const useSpawn = () => {
-  const { getServiceTemplate } = useMarketplace();
   const { spawnData, setSpawnData } = useContext(SpawnContext);
-  const { serviceTemplateHash, screen } = spawnData;
 
+  // MEMOS
   const spawnPercentage: number = useMemo(() => {
     // Staking path
-    switch (screen) {
+    switch (spawnData.screen) {
       case SpawnScreen.RPC:
         return 0;
       case SpawnScreen.STAKING_CHECK:
@@ -23,12 +24,36 @@ export const useSpawn = () => {
       default:
         return 0;
     }
-  }, [screen]);
+  }, [spawnData.screen]);
 
-  const serviceTemplate: ServiceTemplate | undefined = useMemo(() => {
-    if (!serviceTemplateHash) return;
-    return getServiceTemplate(serviceTemplateHash);
-  }, [getServiceTemplate, serviceTemplateHash]);
+  // METHODS
+  const createService = useCallback(
+    async (useStaking: boolean): Promise<Service | undefined> => {
+      if (!spawnData.serviceTemplate || !spawnData.rpc) {
+        setSpawnData((prev) => ({ ...prev, screen: SpawnScreen.ERROR }));
+        return;
+      }
+
+      let service: Service;
+      try {
+        service = await ServicesService.createService({
+          ...spawnData.serviceTemplate,
+          configuration: {
+            ...spawnData.serviceTemplate.configuration,
+            rpc: spawnData.rpc,
+            use_staking: useStaking,
+          },
+        });
+      } catch (e) {
+        message.error('Failed to create service');
+        return;
+      }
+
+      setSpawnData((prev) => ({ ...prev, service }));
+      return service;
+    },
+    [setSpawnData, spawnData.rpc, spawnData.serviceTemplate],
+  );
 
   const resetSpawn = useCallback(
     (): void => setSpawnData(DEFAULT_SPAWN_DATA),
@@ -37,11 +62,50 @@ export const useSpawn = () => {
     [],
   );
 
+  /**
+   * Creates agent funding requirements in spawnData
+   */
+  const createAgentFundRequirements = useCallback(():
+    | FundingRecord
+    | undefined => {
+    if (!spawnData.serviceTemplate || !spawnData.service?.chain_data.instances)
+      return undefined;
+
+    //  Agent funding requirements
+    let agentFundRequirements: FundingRecord = {};
+
+    const required =
+      spawnData.serviceTemplate.configuration.fund_requirements.agent;
+
+    agentFundRequirements = spawnData.service.chain_data.instances.reduce(
+      (acc: FundingRecord, address: Address) => ({
+        ...acc,
+        [address]: {
+          required,
+          received: false,
+        },
+      }),
+      {},
+    );
+
+    // Multisig funding requirements
+    if (spawnData.service.chain_data?.multisig) {
+      const { multisig } = spawnData.service.chain_data;
+      const { safe } =
+        spawnData.serviceTemplate.configuration.fund_requirements;
+      agentFundRequirements[multisig] = { required: safe, received: false };
+    }
+
+    setSpawnData((prev) => ({ ...prev, agentFundRequirements }));
+  }, [setSpawnData, spawnData.service, spawnData.serviceTemplate]);
+
   return {
     ...spawnData,
+    spawnData,
     spawnPercentage,
-    serviceTemplate,
-    setSpawnData,
+    createService,
     resetSpawn,
+    setSpawnData,
+    createAgentFundRequirements,
   };
 };
