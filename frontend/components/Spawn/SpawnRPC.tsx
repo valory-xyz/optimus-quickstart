@@ -45,7 +45,7 @@ export const SpawnRPC = ({ nextPage }: { nextPage: SpawnScreen }) => {
   const debounceCheckRpc = useCallback(
     debounce((rpcInput: string) => {
       if (isCheckingRpc) return;
-      if (!rpcInput || rpc.slice(0, 4) !== 'http') {
+      if (!rpcInput || rpcInput.slice(0, 4) !== 'http') {
         setRpcState(RPCState.INVALID);
         return;
       }
