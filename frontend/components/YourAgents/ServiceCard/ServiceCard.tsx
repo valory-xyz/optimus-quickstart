@@ -114,22 +114,12 @@ export const ServiceCard = ({ service }: ServiceCardProps) => {
   const buttons = useMemo(
     () => ({
       start: (
-        <Button
-          type="primary"
-          onClick={handleStart}
-          disabled={isStarting}
-          loading={isStarting}
-        >
+        <Button type="primary" onClick={handleStart} loading={isStarting}>
           Start this agent
         </Button>
       ),
       stop: (
-        <Button
-          danger
-          onClick={handleStop}
-          disabled={isStopping}
-          loading={isStopping}
-        >
+        <Button danger onClick={handleStop} loading={isStopping}>
           Stop this agent
         </Button>
       ),
@@ -146,7 +136,7 @@ export const ServiceCard = ({ service }: ServiceCardProps) => {
           placement="leftBottom"
           onConfirm={handleDelete}
         >
-          <Button danger disabled={isDeleting} loading={isDeleting}>
+          <Button danger loading={isDeleting}>
             Delete this agent
           </Button>
         </Popconfirm>
