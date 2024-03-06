@@ -63,6 +63,23 @@ export const useSpawn = () => {
   );
 
   /**
+   * Creates master wallet funding requirements in spawnData
+   */
+  const createMasterWalletFundRequirements = useCallback(() => {
+    if (!spawnData.serviceTemplate) return;
+
+    const required = 1;
+
+    setSpawnData((prev) => ({
+      ...prev,
+      masterWalletFundRequirements: {
+        required,
+        received: false,
+      },
+    }));
+  }, [setSpawnData, spawnData.serviceTemplate]);
+
+  /**
    * Creates agent funding requirements in spawnData
    */
   const createAgentFundRequirements = useCallback(():
@@ -107,5 +124,6 @@ export const useSpawn = () => {
     resetSpawn,
     setSpawnData,
     createAgentFundRequirements,
+    createMasterWalletFundRequirements,
   };
 };
