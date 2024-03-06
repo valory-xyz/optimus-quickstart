@@ -43,7 +43,7 @@ if staking_keys_path:
             "IUniswapV2ERC20.json",
         ),
         "r",
-        encoding="utf-8"
+        encoding="utf-8",
     ) as abi_file:
         abi = json.load(abi_file)["abi"]
 
