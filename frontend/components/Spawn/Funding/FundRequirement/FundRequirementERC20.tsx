@@ -1,6 +1,6 @@
 import { Dispatch, SetStateAction } from 'react';
 import { FundRequirement } from './FundRequirement';
-import { Address, AddressBooleanRecord } from '@/types';
+import { Address, SpawnData } from '@/types';
 import EthersService from '@/service/Ethers';
 
 type FundRequirementERC20Props = {
@@ -10,7 +10,7 @@ type FundRequirementERC20Props = {
   symbol: string;
   contractAddress?: Address;
   hasReceivedFunds: boolean;
-  setReceivedFunds: Dispatch<SetStateAction<AddressBooleanRecord>>;
+  setSpawnData: Dispatch<SetStateAction<SpawnData>>;
 };
 
 export const FundRequirementERC20 = (props: FundRequirementERC20Props) => {
