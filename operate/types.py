@@ -24,6 +24,7 @@ import typing as t
 
 from typing_extensions import NotRequired, TypedDict
 
+
 _ACTIONS = {
     "status": 0,
     "build": 1,
@@ -97,9 +98,9 @@ class ContractAddresses(TypedDict):
 class LedgerConfig(TypedDict):
     """Ledger config."""
 
-    rpc: str
-    type: LedgerType
-    chain: ChainType
+    rpc: NotRequired[str]
+    type: NotRequired[LedgerType]
+    chain: NotRequired[ChainType]
 
 
 LedgerConfigs = t.List[LedgerConfig]
@@ -127,9 +128,7 @@ VariablesType = t.List[VariableType]
 
 
 class ServiceState(enum.IntEnum):
-    """
-    Service state
-    """
+    """Service state"""
 
     NON_EXISTENT = 0
     PRE_REGISTRATION = 1
@@ -142,10 +141,10 @@ class ServiceState(enum.IntEnum):
 class ChainData(TypedDict):
     """Chain data for service."""
 
-    instances: t.List[str]  # Agent instances registered as safe owners
-    token: int
-    multisig: str
-    staked: bool
+    instances: NotRequired[t.List[str]]  # Agent instances registered as safe owners
+    token: NotRequired[int]
+    multisig: NotRequired[str]
+    staked: NotRequired[bool]
 
 
 class ChainDeployment(TypedDict):
@@ -173,6 +172,7 @@ class ServiceType(TypedDict):
     readme: NotRequired[str]
     ledger: NotRequired[LedgerConfig]
     chain_data: NotRequired[ChainData]
+    service_path: NotRequired[str]
 
 
 ServicesType = t.List[ServiceType]
@@ -194,7 +194,7 @@ class ConfigurationTemplate(TypedDict):
     threshold: int
     use_staking: bool
     cost_of_bond: int
-    olas_required_to_bond: int
+    olas_cost_of_bond: int
     olas_required_to_stake: int
     fund_requirements: FundRequirementsTemplate
 
@@ -245,6 +245,5 @@ class DeployedNodes(TypedDict):
 class DeploymentType(TypedDict):
     """Deployment type."""
 
-    version: int
     status: Status
     nodes: DeployedNodes

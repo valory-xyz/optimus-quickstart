@@ -23,7 +23,7 @@ import typing as t
 from abc import ABC, abstractmethod
 
 
-class LedgerHelper(ABC):
+class LedgerHelper(ABC):  # pylint: disable=too-few-public-methods
     """Base ledger helper."""
 
     api: t.Any

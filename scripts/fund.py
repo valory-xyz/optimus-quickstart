@@ -8,6 +8,7 @@ from pathlib import Path
 from aea_ledger_ethereum.ethereum import EthereumApi, EthereumCrypto
 from dotenv import load_dotenv
 
+
 OLAS_CONTRACT_ADDRESS_GNOSIS = "0xcE11e14225575945b8E6Dc0D4F2dD4C570f79d9f"
 
 load_dotenv()

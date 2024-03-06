@@ -47,10 +47,11 @@ from operate.services.service import Service
 from operate.types import (
     ChainData,
     ConfigurationTemplate,
-    ServicesType,
     ServiceTemplate,
     ServiceType,
+    ServicesType,
 )
+
 
 OPERATE = ".operate"
 CONFIG = "config.json"
@@ -83,10 +84,6 @@ def build_dirs(build_dir: Path) -> None:
             continue
 
 
-class GetServices(ServicesType):
-    """Get payload."""
-
-
 class PostServices(ServiceTemplate):
     """Create payload."""
 
@@ -112,7 +109,7 @@ class DeleteServicesResponse(TypedDict):
 
 class Services(
     Resource[
-        GetServices,
+        ServicesType,
         PostServices,
         ServiceType,
         PutServices,
@@ -142,7 +139,7 @@ class Services(
         await resource(scope=scope, receive=receive, send=send)
 
     @property
-    def json(self) -> GetServices:
+    def json(self) -> ServicesType:
         """Returns the list of available services."""
         data = []
         for path in self.path.iterdir():
@@ -279,7 +276,7 @@ class Services(
 
         return service
 
-    def create(self, data: PostServices) -> PostServices:
+    def create(self, data: PostServices) -> ServiceType:
         """Create a service."""
         service = self._create(
             phash=data["hash"],
@@ -326,7 +323,7 @@ class Services(
 
         # Swap owners on the old safe
         owner, *_ = old.chain_data["instances"]
-        owner_key = self.keys.get(owner).get("private_key")
+        owner_key = str(self.keys.get(owner).get("private_key"))
         ocm.swap(
             service_id=old.chain_data["token"],
             multisig=old.chain_data["multisig"],
