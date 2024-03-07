@@ -18,10 +18,8 @@ type SpawnStakingCheckProps = {
 
 export const SpawnStakingCheck = ({ nextPage }: SpawnStakingCheckProps) => {
   const {
-    rpc,
-    serviceTemplate,
+    spawnData: { rpc, serviceTemplate },
     setSpawnData,
-    createAgentFundRequirements,
     createService,
   } = useSpawn();
   const { userPublicKey } = useAppInfo();
@@ -44,14 +42,13 @@ export const SpawnStakingCheck = ({ nextPage }: SpawnStakingCheckProps) => {
       try {
         const service: Service | undefined = await createService(isStaking);
         if (!service) throw new Error('Failed to create service');
-        createAgentFundRequirements();
       } catch (e) {
         message.error('Failed to create service');
       } finally {
         setIsCreating(false);
       }
     },
-    [createService, isCreating, createAgentFundRequirements],
+    [createService, isCreating],
   );
 
   /**
