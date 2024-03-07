@@ -14,7 +14,7 @@ import { useSpawn, useAppInfo } from '@/hooks';
 import { CheckSquareTwoTone, WarningFilled } from '@ant-design/icons';
 import { InputStatus } from 'antd/es/_util/statusUtils';
 import { debounce } from 'lodash';
-import EthersService from '@/service/Ethers';
+import { EthersService } from '@/service';
 import { SpawnScreen } from '@/enums';
 
 enum RPCState {
