@@ -11,7 +11,10 @@ export const SpawnMasterWalletFunding = ({
 }: {
   nextPage: SpawnScreen;
 }) => {
-  const { setSpawnData, rpc, masterWalletFundRequirements } = useSpawn();
+  const {
+    setSpawnData,
+    spawnData: { rpc, masterWalletFundRequirements },
+  } = useSpawn();
   const { userPublicKey } = useAppInfo();
   const [isInitialLoaded, setIsInitialLoaded] = useState(false);
 
@@ -21,11 +24,9 @@ export const SpawnMasterWalletFunding = ({
         setSpawnData((prev) => ({
           ...prev,
           masterWalletFundRequirements: {
-            ...prev,
             [userPublicKey]: {
-              ...masterWalletFundRequirements[userPublicKey],
-              received:
-                balance >= masterWalletFundRequirements[userPublicKey].required,
+              ...prev.masterWalletFundRequirements[userPublicKey],
+              received: balance > 1,
             },
           },
         }));
@@ -43,12 +44,6 @@ export const SpawnMasterWalletFunding = ({
   // if not inital loaded, show loader
   if (masterWalletFundRequirements === undefined || !isInitialLoaded) {
     return <Spin />;
-  }
-
-  // if master wallet is already funded, don't show the funding component, skip to next page
-  if (userPublicKey && masterWalletFundRequirements[userPublicKey].received) {
-    setSpawnData((prev) => ({ ...prev, screen: nextPage }));
-    return <></>;
   }
 
   return (
