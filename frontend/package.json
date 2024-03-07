@@ -1,6 +1,8 @@
 {
   "author": "Valory AG",
   "dependencies": {
+    "@ant-design/colors": "^7.0.2",
+    "@ant-design/cssinjs": "^1.18.4",
     "@ant-design/icons": "^5.3.0",
     "antd": "^5.14.0",
     "ethers": "5.7.2",
@@ -8,10 +10,9 @@
     "next": "14.1.0",
     "react": "^18",
     "react-dom": "^18",
+    "sudo-prompt": "9.2.1",
     "swr": "^2.2.4",
-    "usehooks-ts": "^2.14.0",
-    "@ant-design/cssinjs": "^1.18.4",
-    "sudo-prompt": "9.2.1"
+    "usehooks-ts": "^2.14.0"
   },
   "devDependencies": {
     "@testing-library/jest-dom": "^6.4.2",

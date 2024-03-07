@@ -8,6 +8,7 @@ import {
   message,
   Tooltip,
 } from 'antd';
+import { green } from '@ant-design/colors';
 import Image from 'next/image';
 import { useCallback, useMemo, useState } from 'react';
 import { useInterval } from 'usehooks-ts';
@@ -27,6 +28,7 @@ import {
   SERVICE_CARD_STATUS_POLLING_INTERVAL,
 } from '@/constants/intervals';
 import { ServicesService, EthersService } from '@/service';
+import { ServiceCardSettings } from './ServiceCardSettings';
 
 type ServiceCardProps = {
   service: Service;
@@ -195,6 +197,8 @@ export const ServiceCard = ({ service }: ServiceCardProps) => {
         </div>
       )}
 
+      <ServiceCardSettings serviceHash={service.hash} />
+
       <Flex gap={16}>
         <Image
           src={serviceTemplate.image}
@@ -234,7 +238,9 @@ const ServiceCardStatusBadge = ({
       case DeploymentStatus.DEPLOYING:
         return <Badge status="processing" text="Deploying" />;
       case DeploymentStatus.DEPLOYED:
-        return <Badge status="success" text="Running" />;
+        return (
+          <Badge status="processing" color={green.primary} text="Running" />
+        ); // processing status adds pulse animation; color prop is used to override the default color
       case DeploymentStatus.STOPPING:
         return <Badge status="processing" text="Stopping" />;
       case DeploymentStatus.STOPPED:
