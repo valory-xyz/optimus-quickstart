@@ -1,7 +1,7 @@
 import { Dispatch, SetStateAction } from 'react';
 import { FundRequirement } from './FundRequirement';
 import { Address, SpawnData } from '@/types';
-import EthersService from '@/service/Ethers';
+import { EthersService } from '@/service';
 
 type FundRequirementETHProps = {
   address: Address;

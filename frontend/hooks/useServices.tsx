@@ -1,7 +1,43 @@
-import { Service, ServiceHash } from '@/client';
+import { Service, ServiceHash, ServiceTemplate } from '@/client';
 import { ServicesContext } from '@/context';
 import { ServicesService } from '@/service';
+import MulticallService from '@/service/Multicall';
+import { Address, AddressBooleanRecord } from '@/types';
 import { useContext } from 'react';
+
+const checkServiceIsFunded = async (
+  service: Service,
+  serviceTemplate: ServiceTemplate,
+): Promise<boolean> => {
+  const {
+    chain_data: { instances, multisig },
+  } = service;
+
+  if (!instances || !multisig) return Promise.resolve(false);
+
+  const addresses = [...instances, multisig];
+
+  const balances = await MulticallService.getEthBalances(
+    addresses,
+    service.ledger.rpc,
+  );
+
+  if (!balances) return Promise.resolve(false);
+
+  const fundRequirements: AddressBooleanRecord = addresses.reduce(
+    (acc: AddressBooleanRecord, address: Address) => ({
+      ...acc,
+      [address]: instances.includes(address)
+        ? balances[address] >
+          serviceTemplate.configuration.fund_requirements.agent
+        : balances[address] >
+          serviceTemplate.configuration.fund_requirements.safe,
+    }),
+    {},
+  );
+
+  return Promise.resolve(Object.values(fundRequirements).every((f) => f));
+};
 
 export const useServices = () => {
   const { services, updateServicesState, hasInitialLoaded, setServices } =
@@ -37,6 +73,7 @@ export const useServices = () => {
   return {
     getServiceFromState,
     getServicesFromState,
+    checkServiceIsFunded,
     updateServicesState,
     updateServiceState,
     deleteServiceState,

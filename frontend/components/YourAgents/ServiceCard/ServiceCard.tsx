@@ -36,13 +36,7 @@ type ServiceCardProps = {
 };
 
 export const ServiceCard = ({ service }: ServiceCardProps) => {
-  const {
-    stopService,
-    deployService,
-    deleteServices,
-    getServiceStatus,
-    deleteServiceState,
-  } = useServices();
+  const { deleteServiceState } = useServices();
   const { getServiceTemplate } = useServiceTemplates();
 
   const [serviceStatus, setServiceStatus] = useState<
@@ -107,10 +101,12 @@ export const ServiceCard = ({ service }: ServiceCardProps) => {
     if (isDeleting) return;
     setIsDeleting(true);
     ServicesService.deleteServices({ hashes: [service.hash] })
-      .catch(() => message.error('Failed to delete service'))
-      .finally(() => {
+      .then(() => {
+        message.success('Service deleted successfully');
         deleteServiceState(service.hash);
-      });
+      })
+      .catch(() => message.error('Failed to delete service'))
+      .finally(() => setIsDeleting(false));
   }, [deleteServiceState, isDeleting, service.hash]);
 
   const buttons = useMemo(
@@ -132,10 +128,10 @@ export const ServiceCard = ({ service }: ServiceCardProps) => {
             <>
               Are you sure you want to delete this service?
               <br />
-              Your agent&apos;s private keys will be lost.
+              Your funds may be lost.
             </>
           }
-          placement="leftBottom"
+          placement="topLeft"
           onConfirm={handleDelete}
         >
           <Button danger loading={isDeleting}>
@@ -154,12 +150,7 @@ export const ServiceCard = ({ service }: ServiceCardProps) => {
       serviceStatus === DeploymentStatus.STOPPED ||
       serviceStatus === DeploymentStatus.BUILT
     ) {
-      return (
-        <Flex gap={16}>
-          {buttons.start}
-          {buttons.delete}
-        </Flex>
-      );
+      return <Flex gap={16}>{buttons.start}</Flex>;
     }
     return <Spin />;
   }, [buttons.delete, buttons.start, buttons.stop, serviceStatus]);
@@ -175,7 +166,10 @@ export const ServiceCard = ({ service }: ServiceCardProps) => {
   );
 
   useInterval(
-    () => EthersService.checkRpc(service.ledger.rpc).then(setIsRpcValid),
+    () =>
+      EthersService.checkRpc(service.ledger.rpc)
+        .then(setIsRpcValid)
+        .catch(() => setIsRpcValid(false)),
     SERVICE_CARD_RPC_POLLING_INTERVAL,
   );
 
@@ -192,7 +186,12 @@ export const ServiceCard = ({ service }: ServiceCardProps) => {
         </div>
       )}
 
-      <ServiceCardSettings serviceHash={service.hash} />
+      <ServiceCardSettings
+        service={service}
+        serviceTemplate={serviceTemplate}
+        isRpcValid={isRpcValid}
+        isLoading={isStarting || isStopping || isDeleting}
+      />
 
       <Flex gap={16}>
         <Image
