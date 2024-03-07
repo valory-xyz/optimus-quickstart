@@ -1,4 +1,3 @@
-import { SpawnScreen } from '@/enums';
 import { SpawnData } from '@/types';
 import {
   Dispatch,
@@ -13,15 +12,13 @@ type SpawnContextType = {
   setSpawnData: Dispatch<SetStateAction<SpawnData>>;
 };
 
-const FIRST_SPAWN_SCREEN: SpawnScreen = SpawnScreen.RPC;
-
 export const DEFAULT_SPAWN_DATA: SpawnData = {
   agentFundRequirements: {},
   masterWalletFundRequirements: {},
   isStaking: undefined,
   nativeBalance: undefined,
   rpc: '',
-  screen: FIRST_SPAWN_SCREEN,
+  screen: undefined,
   serviceTemplate: undefined,
   service: undefined,
 };
@@ -33,7 +30,6 @@ export const SpawnContext = createContext<SpawnContextType>({
 
 export const SpawnProvider = ({ children }: PropsWithChildren) => {
   const [spawnData, setSpawnData] = useState<SpawnData>(DEFAULT_SPAWN_DATA);
-
   return (
     <SpawnContext.Provider
       value={{
