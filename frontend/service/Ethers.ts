@@ -87,10 +87,8 @@ const checkRpc = async (rpc: string): Promise<boolean> => {
   }
 };
 
-const EthersService = {
+export const EthersService = {
   getEthBalance,
   getErc20Balance,
   checkRpc,
 };
-
-export default EthersService;
