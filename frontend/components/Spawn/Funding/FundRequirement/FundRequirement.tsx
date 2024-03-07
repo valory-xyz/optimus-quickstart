@@ -77,17 +77,36 @@ export const FundRequirement = ({
         .then((balance: number) => {
           if (balance >= requirement) {
             setIsPollingBalance(false);
-            setSpawnData((prev: SpawnData) => ({
-              ...prev,
-              agentFundRequirements: {
-                ...prev.agentFundRequirements,
-                [address]: {
-                  ...prev.agentFundRequirements[address],
-                  received: true,
-                },
-              },
-            }));
-            message.success(`Funded ${address}`);
+            setSpawnData((prev: SpawnData) => {
+              // update agent fund requirements
+              if (prev.agentFundRequirements[address]) {
+                return {
+                  ...prev,
+                  agentFundRequirements: {
+                    ...prev.agentFundRequirements,
+                    [address]: {
+                      ...prev.agentFundRequirements[address],
+                      received: true,
+                    },
+                  },
+                };
+              }
+              // update master wallet fund requirements
+              if (prev.masterWalletFundRequirements[address]) {
+                return {
+                  ...prev,
+                  masterWalletFundRequirements: {
+                    ...prev.masterWalletFundRequirements,
+                    [address]: {
+                      ...prev.masterWalletFundRequirements[address],
+                      received: true,
+                    },
+                  },
+                };
+              }
+              // do nothing
+              return prev;
+            });
           }
         })
         .catch(() => {
