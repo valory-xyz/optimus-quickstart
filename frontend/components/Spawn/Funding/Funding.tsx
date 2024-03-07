@@ -41,7 +41,10 @@ export const Funding = ({
   symbol,
   contractAddress,
 }: FundingProps) => {
-  const { setSpawnData, rpc } = useSpawn();
+  const {
+    setSpawnData,
+    spawnData: { rpc },
+  } = useSpawn();
 
   const timelineItems: TimelineItemProps[] = useMemo(
     () =>
@@ -80,6 +83,7 @@ export const Funding = ({
     );
   }, [fundRequirements]);
 
+  // if all funds have been sent, move to next page
   useEffect(() => {
     hasSentAllFunds && setSpawnData((prev) => ({ ...prev, screen: nextPage }));
   }, [hasSentAllFunds, nextPage, setSpawnData]);
