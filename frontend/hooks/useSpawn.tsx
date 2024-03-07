@@ -1,13 +1,55 @@
-import { Service } from '@/client';
+import { Service, ServiceTemplate } from '@/client';
 import { DEFAULT_SPAWN_DATA, SpawnContext } from '@/context';
 import { SpawnScreen } from '@/enums';
 import { useCallback, useContext, useMemo } from 'react';
-import { Address, FundingRecord } from '@/types';
 import { message } from 'antd';
 import { ServicesService } from '@/service';
+import { useAppInfo, useServiceTemplates, useServices } from '.';
+import { Address, FundingRecord } from '@/types';
+
+/**
+ * Generates agent fund requirements from valid service and service template
+ */
+const getAgentFundRequirements = ({
+  serviceTemplate,
+  service,
+}: {
+  serviceTemplate: ServiceTemplate;
+  service: Service;
+}): FundingRecord | undefined => {
+  if (!serviceTemplate || !service?.chain_data.instances) return undefined;
+
+  //  Agent funding requirements
+  let agentFundRequirements: FundingRecord = {};
+
+  const required = serviceTemplate.configuration.fund_requirements.agent;
+
+  agentFundRequirements = service.chain_data.instances.reduce(
+    (acc: FundingRecord, address: Address) => ({
+      ...acc,
+      [address]: {
+        required,
+        received: false,
+      },
+    }),
+    {},
+  );
+
+  // Multisig funding requirements
+  if (service.chain_data?.multisig) {
+    const { multisig } = service.chain_data;
+    const { safe } = serviceTemplate.configuration.fund_requirements;
+    agentFundRequirements[multisig] = { required: safe, received: false };
+  }
+
+  return agentFundRequirements;
+};
 
 export const useSpawn = () => {
   const { spawnData, setSpawnData } = useContext(SpawnContext);
+  const { getServiceFromState } = useServices();
+  const { getServiceTemplate } = useServiceTemplates();
+  const { userPublicKey } = useAppInfo();
 
   // MEMOS
   const spawnPercentage: number = useMemo(() => {
@@ -49,7 +91,13 @@ export const useSpawn = () => {
         return;
       }
 
-      setSpawnData((prev) => ({ ...prev, service }));
+      const agentFundRequirements = getAgentFundRequirements({
+        serviceTemplate: spawnData.serviceTemplate,
+        service,
+      });
+      if (!agentFundRequirements) return;
+
+      setSpawnData((prev) => ({ ...prev, service, agentFundRequirements }));
       return service;
     },
     [setSpawnData, spawnData.rpc, spawnData.serviceTemplate],
@@ -63,67 +111,77 @@ export const useSpawn = () => {
   );
 
   /**
-   * Creates master wallet funding requirements in spawnData
+   * Call once to load spawn data
    */
-  const createMasterWalletFundRequirements = useCallback(() => {
-    if (!spawnData.serviceTemplate) return;
+  const loadSpawn = useCallback(
+    ({
+      serviceTemplateHash,
+      screen,
+    }: {
+      serviceTemplateHash: string;
+      screen: SpawnScreen | null | undefined;
+    }) => {
+      if (!userPublicKey) return;
+      try {
+        const serviceTemplate = getServiceTemplate(serviceTemplateHash);
+        if (!serviceTemplate) throw new Error('Service template not found');
 
-    const required = 1;
+        if (screen && screen !== null) {
+          // Funding resume required
+          const service = getServiceFromState(serviceTemplateHash);
+          if (!service) throw new Error('Service not found');
 
-    setSpawnData((prev) => ({
-      ...prev,
-      masterWalletFundRequirements: {
-        required,
-        received: false,
-      },
-    }));
-  }, [setSpawnData, spawnData.serviceTemplate]);
+          const {
+            ledger: { rpc },
+          } = service;
 
-  /**
-   * Creates agent funding requirements in spawnData
-   */
-  const createAgentFundRequirements = useCallback(():
-    | FundingRecord
-    | undefined => {
-    if (!spawnData.serviceTemplate || !spawnData.service?.chain_data.instances)
-      return undefined;
+          const agentFundRequirements = getAgentFundRequirements({
+            serviceTemplate,
+            service,
+          });
 
-    //  Agent funding requirements
-    let agentFundRequirements: FundingRecord = {};
+          if (!agentFundRequirements)
+            throw new Error('Agent fund requirements not found');
 
-    const required =
-      spawnData.serviceTemplate.configuration.fund_requirements.agent;
-
-    agentFundRequirements = spawnData.service.chain_data.instances.reduce(
-      (acc: FundingRecord, address: Address) => ({
-        ...acc,
-        [address]: {
-          required,
-          received: false,
-        },
-      }),
-      {},
-    );
-
-    // Multisig funding requirements
-    if (spawnData.service.chain_data?.multisig) {
-      const { multisig } = spawnData.service.chain_data;
-      const { safe } =
-        spawnData.serviceTemplate.configuration.fund_requirements;
-      agentFundRequirements[multisig] = { required: safe, received: false };
-    }
-
-    setSpawnData((prev) => ({ ...prev, agentFundRequirements }));
-  }, [setSpawnData, spawnData.service, spawnData.serviceTemplate]);
+          setSpawnData((prev) => ({
+            ...prev,
+            service,
+            serviceTemplate,
+            screen,
+            rpc,
+            masterWalletFundRequirements: {
+              [userPublicKey]: { required: 1, received: false },
+            },
+            agentFundRequirements,
+          }));
+        } else {
+          // No resume required
+          setSpawnData((prev) => ({
+            ...prev,
+            serviceTemplate,
+            screen: SpawnScreen.RPC,
+            masterWalletFundRequirements: {
+              [userPublicKey]: { required: 1, received: false },
+            },
+          }));
+        }
+      } catch (e) {
+        setSpawnData((prev) => ({
+          ...prev,
+          screen: SpawnScreen.ERROR,
+        }));
+      }
+    },
+    [getServiceFromState, getServiceTemplate, setSpawnData, userPublicKey],
+  );
 
   return {
-    ...spawnData,
     spawnData,
     spawnPercentage,
+    getAgentFundRequirements,
     createService,
+    loadSpawn,
     resetSpawn,
     setSpawnData,
-    createAgentFundRequirements,
-    createMasterWalletFundRequirements,
   };
 };
