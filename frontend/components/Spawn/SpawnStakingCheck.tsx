@@ -2,7 +2,7 @@ import { Service } from '@/client';
 import { TOKENS } from '@/constants';
 import { SpawnScreen } from '@/enums';
 import { useAppInfo, useSpawn } from '@/hooks';
-import EthersService from '@/service/Ethers';
+import { EthersService } from '@/service';
 import { Button, Flex, Skeleton, Typography, message } from 'antd';
 import { ethers } from 'ethers';
 import { useCallback, useMemo, useState } from 'react';
