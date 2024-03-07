@@ -26,8 +26,7 @@ import {
   SERVICE_CARD_RPC_POLLING_INTERVAL,
   SERVICE_CARD_STATUS_POLLING_INTERVAL,
 } from '@/constants/intervals';
-import EthersService from '@/service/Ethers';
-import { ServicesService } from '@/service';
+import { ServicesService, EthersService } from '@/service';
 
 type ServiceCardProps = {
   service: Service;
