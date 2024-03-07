@@ -4,7 +4,7 @@ import { FundRequirementETH } from './Funding/FundRequirement/FundRequirementETH
 import { useAppInfo, useSpawn } from '@/hooks';
 import { useEffect, useState } from 'react';
 import { Spin } from 'antd';
-import EthersService from '@/service/Ethers';
+import { EthersService } from '@/service';
 
 export const SpawnMasterWalletFunding = ({
   nextPage,
