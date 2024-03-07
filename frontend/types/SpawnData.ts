@@ -8,7 +8,7 @@ export type SpawnData = {
   isStaking?: boolean;
   nativeBalance?: number;
   rpc: string;
-  screen: SpawnScreen;
+  screen?: SpawnScreen;
   serviceTemplate?: ServiceTemplate;
   service?: Service;
 };
