@@ -8,7 +8,9 @@ type SpawnAgentFundingProps = {
 };
 
 export const SpawnAgentFunding = (props: SpawnAgentFundingProps) => {
-  const { agentFundRequirements: fundRequirements } = useSpawn();
+  const {
+    spawnData: { agentFundRequirements: fundRequirements },
+  } = useSpawn();
   return (
     <Funding
       fundRequirements={fundRequirements}
