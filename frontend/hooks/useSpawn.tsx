@@ -17,7 +17,7 @@ const getAgentFundRequirements = ({
   serviceTemplate: ServiceTemplate;
   service: Service;
 }): FundingRecord | undefined => {
-  if (!serviceTemplate || !service?.chain_data.instances) return undefined;
+  if (!serviceTemplate || !service?.chain_data.instances) return;
 
   //  Agent funding requirements
   let agentFundRequirements: FundingRecord = {};
