@@ -3,7 +3,7 @@ import { Funding } from './Funding/Funding';
 import { FundRequirementETH } from './Funding/FundRequirement/FundRequirementETH';
 import { useAppInfo, useSpawn } from '@/hooks';
 import { useEffect, useState } from 'react';
-import { Spin } from 'antd';
+import { Spin, message } from 'antd';
 import { EthersService } from '@/service';
 
 export const SpawnMasterWalletFunding = ({
@@ -20,18 +20,20 @@ export const SpawnMasterWalletFunding = ({
 
   useEffect(() => {
     if (!isInitialLoaded && userPublicKey) {
-      EthersService.getEthBalance(userPublicKey, rpc).then((balance) => {
-        setSpawnData((prev) => ({
-          ...prev,
-          masterWalletFundRequirements: {
-            [userPublicKey]: {
-              ...prev.masterWalletFundRequirements[userPublicKey],
-              received: balance > 1,
+      EthersService.getEthBalance(userPublicKey, rpc)
+        .then((balance) => {
+          setSpawnData((prev) => ({
+            ...prev,
+            masterWalletFundRequirements: {
+              [userPublicKey]: {
+                ...prev.masterWalletFundRequirements[userPublicKey],
+                received: balance > 1,
+              },
             },
-          },
-        }));
-        setIsInitialLoaded(true);
-      });
+          }));
+          setIsInitialLoaded(true);
+        })
+        .catch(() => message.error('Failed to get master wallet balance'));
     }
   }, [
     isInitialLoaded,

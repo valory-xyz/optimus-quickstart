@@ -27,10 +27,7 @@ const getAgentFundRequirements = ({
   agentFundRequirements = service.chain_data.instances.reduce(
     (acc: FundingRecord, address: Address) => ({
       ...acc,
-      [address]: {
-        required,
-        received: false,
-      },
+      [address]: { required, received: false },
     }),
     {},
   );
@@ -68,7 +65,6 @@ export const useSpawn = () => {
     }
   }, [spawnData.screen]);
 
-  // METHODS
   const createService = useCallback(
     async (useStaking: boolean): Promise<Service | undefined> => {
       if (!spawnData.serviceTemplate || !spawnData.rpc) {

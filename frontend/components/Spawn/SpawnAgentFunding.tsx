@@ -20,27 +20,26 @@ export const SpawnAgentFunding = (props: SpawnAgentFundingProps) => {
   const [isInitialLoaded, setIsInitialLoaded] = useState(false);
 
   useEffect(() => {
-    if (!isInitialLoaded && userPublicKey) {
-      const agentAddresses = Object.keys(agentFundRequirements) as Address[];
-      MulticallService.getEthBalances(agentAddresses, rpc).then(
-        (balances: AddressNumberRecord) => {
-          setSpawnData((prev) => ({
-            ...prev,
-            agentFundRequirements: agentAddresses.reduce(
-              (acc, address) => ({
-                ...acc,
-                [address]: {
-                  ...agentFundRequirements[address],
-                  received: balances[address] > 1,
-                },
-              }),
-              {},
-            ),
-          }));
-          setIsInitialLoaded(true);
-        },
-      );
-    }
+    if (!(!isInitialLoaded && userPublicKey)) return;
+    const agentAddresses = Object.keys(agentFundRequirements) as Address[];
+    MulticallService.getEthBalances(agentAddresses, rpc).then(
+      (balances: AddressNumberRecord) => {
+        setSpawnData((prev) => ({
+          ...prev,
+          agentFundRequirements: agentAddresses.reduce(
+            (acc, address) => ({
+              ...acc,
+              [address]: {
+                ...agentFundRequirements[address],
+                received: balances[address] > 1,
+              },
+            }),
+            {},
+          ),
+        }));
+        setIsInitialLoaded(true);
+      },
+    );
   }, [
     agentFundRequirements,
     isInitialLoaded,

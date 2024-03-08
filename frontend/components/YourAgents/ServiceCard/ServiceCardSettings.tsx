@@ -20,7 +20,7 @@ export const ServiceCardSettings = ({
   isLoading: boolean;
 }) => {
   const { deleteServiceState, checkServiceIsFunded } = useServices();
-  const [isServiceFunded, setIsServiceFunded] = useState<boolean>(true);
+  const [isServiceFunded, setIsServiceFunded] = useState(true);
 
   const handleDelete = useCallback(() => {
     ServicesService.deleteServices({ hashes: [service.hash] })

@@ -30,7 +30,7 @@ export const SpawnStakingCheck = ({ nextPage }: SpawnStakingCheckProps) => {
   /**
    * Creates service, then performs relevant state updates
    */
-  const create = useCallback(
+  const createAndNext = useCallback(
     async ({ isStaking }: { isStaking: boolean }) => {
       if (isCreating) {
         message.error('Service creation already in progress');
@@ -42,13 +42,20 @@ export const SpawnStakingCheck = ({ nextPage }: SpawnStakingCheckProps) => {
       try {
         const service: Service | undefined = await createService(isStaking);
         if (!service) throw new Error('Failed to create service');
+        message.success('Service created successfully');
+        setSpawnData((prev) => ({
+          ...prev,
+          isStaking,
+          screen: nextPage,
+        }));
       } catch (e) {
         message.error('Failed to create service');
       } finally {
         setIsCreating(false);
+        setButtonClicked(undefined);
       }
     },
-    [createService, isCreating],
+    [createService, isCreating, nextPage, setSpawnData],
   );
 
   /**
@@ -86,8 +93,6 @@ export const SpawnStakingCheck = ({ nextPage }: SpawnStakingCheckProps) => {
   const handleYes = async () => {
     setButtonClicked(ButtonOptions.YES);
 
-    const isStaking = true;
-
     const canStake: boolean = await preflightStakingCheck().catch((e) => {
       message.error(e);
       return false;
@@ -98,37 +103,16 @@ export const SpawnStakingCheck = ({ nextPage }: SpawnStakingCheckProps) => {
       return setButtonClicked(undefined);
     }
 
-    create({ isStaking })
-      .then(() => {
-        message.success('Service created successfully');
-        setSpawnData((prev) => ({
-          ...prev,
-          isStaking,
-          screen: nextPage,
-        }));
-      })
-      .catch(() => setButtonClicked(undefined));
+    createAndNext({ isStaking: true });
   };
 
   const handleNo = async () => {
     setButtonClicked(ButtonOptions.NO);
-
-    const isStaking = false;
-
-    create({ isStaking })
-      .then(() => {
-        message.success('Service created successfully');
-        setSpawnData((prev) => ({
-          ...prev,
-          isStaking,
-          screen: nextPage,
-        }));
-      })
-      .catch(() => setButtonClicked(undefined));
+    createAndNext({ isStaking: false });
   };
 
   const stakingRequirement: string | undefined = useMemo(() => {
-    if (!serviceTemplate?.configuration) return undefined;
+    if (!serviceTemplate?.configuration) return;
     const { olas_required_to_stake, olas_cost_of_bond } =
       serviceTemplate.configuration;
     return ethers.utils.formatUnits(
