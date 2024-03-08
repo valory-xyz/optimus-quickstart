@@ -25,10 +25,12 @@ import requests
 from aea.helpers.yaml_utils import yaml_load
 from aea_ledger_ethereum.ethereum import EthereumApi, EthereumCrypto
 
+
 BASE_URL = "http://localhost:8000/api"
 
 
-def test_endpoint_e2e():
+def test_endpoint_e2e() -> None:
+    """Test endpoint end to end"""
     with Path("templates/trader.yaml").open("r", encoding="utf-8") as stream:
         trader_template = yaml_load(stream=stream)
         phash = trader_template["hash"]
@@ -72,9 +74,9 @@ def test_endpoint_e2e():
     ledger_api.get_transaction_receipt(tx_digest=digest)
 
     old = trader_template["hash"]
-    trader_template["hash"] = (
-        "bafybeicxdpkuk5z5zfbkso7v5pywf4v7chxvluyht7dtgalg6dnhl7ejoe"
-    )
+    trader_template[
+        "hash"
+    ] = "bafybeicxdpkuk5z5zfbkso7v5pywf4v7chxvluyht7dtgalg6dnhl7ejoe"
     print(
         requests.put(
             url=f"{BASE_URL}/services",

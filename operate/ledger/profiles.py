@@ -21,6 +21,7 @@
 
 from operate.types import ChainType, ContractAddresses
 
+
 CONTRACTS = {
     ChainType.GNOSIS: ContractAddresses(
         {

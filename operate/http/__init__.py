@@ -29,6 +29,9 @@ from starlette.types import Receive, Scope, Send
 
 from operate.http.exceptions import NotAllowed, ResourceException
 
+
+# pylint: disable=no-self-use
+
 GenericResource = t.TypeVar("GenericResource")
 PostPayload = t.TypeVar("PostPayload")
 PostResponse = t.TypeVar("PostResponse")
@@ -52,7 +55,7 @@ class Resource(
 ):
     """Web<->Local resource object."""
 
-    _handlers: t.Dict[str, t.Callable[[t.Dict], t.Dict]]
+    _handlers: t.Dict[str, t.Callable]
 
     def __init__(self) -> None:
         """Initialize object."""
@@ -119,7 +122,7 @@ class Resource(
             return
 
         try:
-            handler = self._handlers.get(request.method)
+            handler = self._handlers[request.method]
             try:
                 data = await request.json()
             except json.decoder.JSONDecodeError:
@@ -134,8 +137,7 @@ class Resource(
                 content={"error": e.args[0]},
                 status_code=e.code,
             )
-        except Exception as e:
-            raise
+        except Exception as e:  # pylint: disable=broad-except
             response = JSONResponse(
                 content={"error": str(e)},
                 status_code=500,

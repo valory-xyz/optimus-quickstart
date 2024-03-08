@@ -48,7 +48,8 @@ from operate.data import DATA_DIR
 from operate.data.contracts.service_staking_token.contract import (
     ServiceStakingTokenContract,
 )
-from operate.ledger.profiles import CONTRACTS
+from operate.types import ContractAddresses
+
 
 ZERO_ETH = 0
 
@@ -80,7 +81,7 @@ class MultiSendOperation(Enum):
     DELEGATE_CALL = 1
 
 
-def hash_payload_to_hex(
+def hash_payload_to_hex(  # pylint: disable=too-many-arguments,too-many-locals
     safe_tx_hash: str,
     ether_value: int,
     safe_tx_gas: int,
@@ -245,7 +246,9 @@ class StakingManager(OnChainHelper):
         # since it has the same interface as ERC721 we might want to create
         # a ERC721 contract package
 
-        def _build_approval_tx(*args, **kargs) -> t.Dict:
+        def _build_approval_tx(  # pylint: disable=unused-argument
+            *args: t.Any, **kargs: t.Any
+        ) -> t.Dict:
             return registry_contracts.erc20.get_approve_tx(
                 ledger_api=self.ledger_api,
                 contract_address=service_registry,
@@ -254,7 +257,7 @@ class StakingManager(OnChainHelper):
                 amount=service_id,
             )
 
-        setattr(tx_settler, "build", _build_approval_tx)
+        setattr(tx_settler, "build", _build_approval_tx)  # noqa: B010
         tx_settler.transact(
             method=lambda: {},
             contract="",
@@ -262,7 +265,9 @@ class StakingManager(OnChainHelper):
             dry_run=False,
         )
 
-        def _build_staking_tx(*args, **kargs) -> t.Dict:
+        def _build_staking_tx(  # pylint: disable=unused-argument
+            *args: t.Any, **kargs: t.Any
+        ) -> t.Dict:
             return self.ledger_api.build_transaction(
                 contract_instance=self.staking_ctr.get_instance(
                     ledger_api=self.ledger_api,
@@ -276,7 +281,7 @@ class StakingManager(OnChainHelper):
                 raise_on_try=True,
             )
 
-        setattr(tx_settler, "build", _build_staking_tx)
+        setattr(tx_settler, "build", _build_staking_tx)  # noqa: B010
         tx_settler.transact(
             method=lambda: {},
             contract="",
@@ -328,7 +333,9 @@ class StakingManager(OnChainHelper):
             sleep=self.sleep,
         )
 
-        def _build_unstaking_tx(*args, **kargs) -> t.Dict:
+        def _build_unstaking_tx(  # pylint: disable=unused-argument
+            *args: t.Any, **kargs: t.Any
+        ) -> t.Dict:
             return self.ledger_api.build_transaction(
                 contract_instance=self.staking_ctr.get_instance(
                     ledger_api=self.ledger_api,
@@ -342,7 +349,7 @@ class StakingManager(OnChainHelper):
                 raise_on_try=True,
             )
 
-        setattr(tx_settler, "build", _build_unstaking_tx)
+        setattr(tx_settler, "build", _build_unstaking_tx)  # noqa: B010
         tx_settler.transact(
             method=lambda: {},
             contract="",
@@ -354,7 +361,7 @@ class StakingManager(OnChainHelper):
 class OnChainManager:
     """On chain service management."""
 
-    def __init__(self, rpc: str, key: Path, contracts: t.Dict) -> None:
+    def __init__(self, rpc: str, key: Path, contracts: ContractAddresses) -> None:
         """On chain manager."""
         self.rpc = rpc
         self.key = key
@@ -427,7 +434,7 @@ class OnChainManager:
             instances=instances,
         )
 
-    def mint(
+    def mint(  # pylint: disable=too-many-arguments,too-many-locals
         self,
         package_path: Path,
         agent_id: int,
@@ -437,8 +444,8 @@ class OnChainManager:
         nft: Optional[Union[Path, IPFSHash]],
         update_token: t.Optional[int] = None,
         token: t.Optional[str] = None,
-    ):
-        "Mint service."
+    ) -> t.Dict:
+        """Mint service."""
         # TODO: Support for update
         self._patch()
         manager = MintManager(
@@ -538,7 +545,7 @@ class OnChainManager:
                 reuse_multisig=reuse_multisig,
             )
 
-    def swap(
+    def swap(  # pylint: disable=too-many-arguments,too-many-locals
         self,
         service_id: int,
         multisig: str,
@@ -554,7 +561,7 @@ class OnChainManager:
         )
         with tempfile.TemporaryDirectory() as temp_dir:
             key_file = Path(temp_dir, "key.txt")
-            key_file.write_text(owner_key)
+            key_file.write_text(owner_key, encoding="utf-8")
             owner_crypto = EthereumCrypto(private_key_path=str(key_file))
         owner_cryptos: list[EthereumCrypto] = [owner_crypto]
         owners = [

@@ -33,6 +33,7 @@ class Ethereum(LedgerHelper):
     api: EthereumApi
 
     def __init__(self, rpc: str) -> None:
+        """Initialize object."""
         super().__init__(rpc)
         self.api = EthereumApi(address=self.rpc)
 

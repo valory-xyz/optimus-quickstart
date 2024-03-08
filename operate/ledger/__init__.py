@@ -26,6 +26,7 @@ from operate.ledger.ethereum import Ethereum
 from operate.ledger.solana import Solana
 from operate.types import ChainType, LedgerType
 
+
 ETHEREUM_RPC = "https://ethereum.publicnode.com"
 GNOSIS_RPC = "https://rpc.gnosischain.com"
 GOERLI_RPC = "https://ethereum-goerli.publicnode.com"
@@ -60,16 +61,20 @@ CURRENCY_DENOMS = {
 
 
 def get_default_rpc(chain: ChainType) -> str:
+    """Get default RPC chain type."""
     return DEFAULT_RPCS.get(chain, ETHEREUM_RPC)
 
 
 def get_ledger_helper_by_chain(rpc: str, chain: ChainType) -> LedgerHelper:
+    """Get ledger helper by chain type."""
     return CHAIN_HELPERS.get(chain, Ethereum)(rpc=rpc)
 
 
 def get_ledger_helper_by_ledger(rpc: str, ledger: LedgerHelper) -> LedgerHelper:
-    return LEDGER_HELPERS.get(ledger, Ethereum)(rpc=rpc)
+    """Get ledger helper by ledger type."""
+    return LEDGER_HELPERS.get(ledger, Ethereum)(rpc=rpc)  # type: ignore
 
 
-def get_currency_denom(chain: ChainType):
+def get_currency_denom(chain: ChainType) -> str:
+    """Get currency denom by chain type."""
     return CURRENCY_DENOMS.get(chain, "Wei")

@@ -21,13 +21,12 @@ frontend/build
 .DS_STORE
 
 # python
-backend/__pycache__/
-backend/scripts/__pycache__/
+.tox/
 .operate/
-data/
 __pycache__/
-backend/tmp/
+data/
 backend/temp/
+backend/tmp/
 
 tmp/
 temp/

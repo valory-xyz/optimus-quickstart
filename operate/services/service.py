@@ -152,7 +152,7 @@ class Deployment(
         t.Dict,
         DeploymentType,
         t.Dict,
-        t.Dict,
+        DeploymentType,
         StopDeployment,
         DeploymentType,
     ]
@@ -244,9 +244,9 @@ class Deployment(
         ):
             (build / volume).mkdir(exist_ok=True)
             _volumes.append(f"./{volume}:{mount}:Z")
-        for service in deployment["services"]:
-            if "abci" in service:
-                deployment["services"][service]["volumes"].extend(_volumes)
+        for node in deployment["services"]:
+            if "abci" in node:
+                deployment["services"][node]["volumes"].extend(_volumes)
         with compose.open("w", encoding="utf-8") as stream:
             yaml_dump(data=deployment, stream=stream)
 
@@ -330,7 +330,7 @@ class ServiceHelper:
                 override["type"] == "connection"
                 and "valory/ledger" in override["public_id"]
             ):
-                (ledger, config), *_ = override["config"]["ledger_apis"].items()
+                (_, config), *_ = override["config"]["ledger_apis"].items()
                 return LedgerConfig(
                     rpc=config["address"],
                     chain=ChainType.from_id(cid=config["chain_id"]),
@@ -340,7 +340,7 @@ class ServiceHelper:
 
     def deployment_config(self) -> DeploymentConfig:
         """Returns deployment config."""
-        return DeploymentConfig(self.config.json.get("deployment", {}))
+        return DeploymentConfig(self.config.json.get("deployment", {}))  # type: ignore
 
 
 class Service(
@@ -356,24 +356,15 @@ class Service(
 ):
     """Service class."""
 
-    name: t.Optional[str]
-    hash: str
-    keys: KeysType
-    ledger: LedgerConfig
-    chain_data: ChainData
-
-    service_path: Path
-    path: Path
-
     _helper: t.Optional[ServiceHelper]
 
-    def __init__(
+    def __init__(  # pylint: disable=too-many-arguments
         self,
         service_path: Path,
         phash: str,
         keys: KeysType,
-        ledger: t.Optional[LedgerConfig] = None,
-        chain_data: t.Optional[ChainData] = None,
+        ledger: LedgerConfig,
+        chain_data: ChainData,
         name: t.Optional[str] = None,
     ) -> None:
         """Initialize object."""
@@ -417,14 +408,14 @@ class Service(
         readme = self.service_path / "README.md"
         return ServiceType(
             {
-                "name": self.name,
+                "name": str(self.name),
                 "hash": self.hash,
                 "keys": self.keys,
                 "ledger": self.ledger,
                 "chain_data": self.chain_data,
                 "service_path": str(self.service_path),
                 "readme": (
-                    readme.read_text(encoding="utf-8") if readme.exists() else None
+                    readme.read_text(encoding="utf-8") if readme.exists() else ""
                 ),
             }
         )
@@ -450,13 +441,13 @@ class Service(
         )
 
     @classmethod
-    def new(
+    def new(  # pylint: disable=too-many-arguments
         cls,
         path: Path,
         phash: str,
         keys: KeysType,
         ledger: LedgerConfig,
-        chain_data: t.Optional[ChainData] = None,
+        chain_data: ChainData,
         name: t.Optional[str] = None,
     ) -> "Service":
         """Create a new service."""
@@ -480,11 +471,6 @@ class Service(
         )
         service.store()
         return service
-
-    def __update(self, data: ServiceType) -> ServiceType:
-        """Update service."""
-        # TODO: Finish implementation
-        return self.json
 
     def delete(self, data: DeleteServicePayload) -> DeleteServiceResponse:
         """Delete service."""

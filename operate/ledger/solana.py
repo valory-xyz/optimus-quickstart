@@ -28,9 +28,6 @@ from operate.types import LedgerType
 class Solana(LedgerHelper):
     """Solana ledger helper."""
 
-    def __init__(self, rpc: str) -> None:
-        super().__init__(rpc)
-
     def create_key(self) -> t.Dict:
         """Create key."""
         return {
