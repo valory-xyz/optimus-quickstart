@@ -3,7 +3,7 @@ import { SpawnScreen } from '@/enums';
 import { useSpawn } from '@/hooks';
 import { GetServerSidePropsContext } from 'next';
 import dynamic from 'next/dynamic';
-import { ReactElement, useEffect, useMemo } from 'react';
+import { ReactElement, useEffect, useMemo, useState } from 'react';
 
 const SpawnAgentFunding = dynamic(
   () =>
@@ -47,30 +47,30 @@ const SpawnMasterWalletFunding = dynamic(
 export const getServerSideProps = async (
   context: GetServerSidePropsContext,
 ) => {
-  const { serviceTemplateHash } = context.query;
-  return { props: { serviceTemplateHash } };
+  const { serviceTemplateHash, screen } = context.query;
+  return { props: { serviceTemplateHash, screen: screen ? screen : null } };
 };
 
 type SpawnPageProps = {
   serviceTemplateHash: string;
+  screen: SpawnScreen | null;
 };
 
-export const SpawnPage = ({ serviceTemplateHash }: SpawnPageProps) => {
-  const { screen, setSpawnData } = useSpawn();
+export const SpawnPage = (props: SpawnPageProps) => {
+  const { loadSpawn, spawnData } = useSpawn();
+  const [isLoaded, setIsLoaded] = useState(false);
 
   useEffect(() => {
-    setSpawnData((prev) => {
-      return {
-        ...prev,
-        serviceTemplateHash,
-      };
+    if (isLoaded) return;
+    loadSpawn({
+      serviceTemplateHash: props.serviceTemplateHash,
+      screen: props.screen,
     });
-    // Not required to run this effect on every render, only once
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+    setIsLoaded(true);
+  }, [isLoaded, loadSpawn, props.screen, props.serviceTemplateHash, spawnData]);
 
   const spawnScreen: ReactElement = useMemo(() => {
-    switch (screen) {
+    switch (spawnData.screen) {
       case SpawnScreen.RPC:
         return <SpawnRPC nextPage={SpawnScreen.MASTER_WALLET_FUNDING} />;
 
@@ -91,7 +91,7 @@ export const SpawnPage = ({ serviceTemplateHash }: SpawnPageProps) => {
       default:
         return <SpawnError message="Invalid spawn page" />;
     }
-  }, [screen]);
+  }, [spawnData.screen]);
 
   return (
     <>

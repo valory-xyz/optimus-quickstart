@@ -89,11 +89,11 @@ export type UpdateServicePayload = {
 };
 
 export type DeleteServicesPayload = {
-  hashes: Array<ServiceHash>;
+  hashes: ServiceHash[];
 };
 
 export type DeleteServicesResponse = {
-  hashes: Array<ServiceHash>;
+  hashes: ServiceHash[];
 };
 
 export type AppInfo = {

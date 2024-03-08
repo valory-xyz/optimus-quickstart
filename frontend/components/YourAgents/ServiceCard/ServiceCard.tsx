@@ -8,6 +8,7 @@ import {
   message,
   Tooltip,
   Popconfirm,
+  theme,
 } from 'antd';
 import Image from 'next/image';
 import { useCallback, useMemo, useState } from 'react';
@@ -20,28 +21,23 @@ import {
   ServiceHash,
   ServiceTemplate,
 } from '@/client';
-import { useMarketplace, useServices } from '@/hooks';
+import { useServiceTemplates, useServices } from '@/hooks';
 
 import { ServiceCardTotalBalance } from './ServiceCardTotalBalance';
 import {
   SERVICE_CARD_RPC_POLLING_INTERVAL,
   SERVICE_CARD_STATUS_POLLING_INTERVAL,
 } from '@/constants/intervals';
-import EthersService from '@/service/Ethers';
+import { ServicesService, EthersService } from '@/service';
+import { ServiceCardSettings } from './ServiceCardSettings';
 
 type ServiceCardProps = {
   service: Service;
 };
 
 export const ServiceCard = ({ service }: ServiceCardProps) => {
-  const {
-    stopService,
-    deployService,
-    deleteServices,
-    getServiceStatus,
-    deleteServiceState,
-  } = useServices();
-  const { getServiceTemplate } = useMarketplace();
+  const { deleteServiceState } = useServices();
+  const { getServiceTemplate } = useServiceTemplates();
 
   const [serviceStatus, setServiceStatus] = useState<
     DeploymentStatus | undefined
@@ -54,12 +50,12 @@ export const ServiceCard = ({ service }: ServiceCardProps) => {
 
   const updateServiceStatus = useCallback(
     (serviceHash: ServiceHash): Promise<void> =>
-      getServiceStatus(serviceHash)
+      ServicesService.getServiceStatus(serviceHash)
         .then((r: Deployment) => setServiceStatus(r.status))
         .catch(() => {
           setServiceStatus(undefined);
         }),
-    [getServiceStatus],
+    [],
   );
 
   useInterval(
@@ -70,7 +66,7 @@ export const ServiceCard = ({ service }: ServiceCardProps) => {
   const handleStart = useCallback(async () => {
     if (isStarting) return;
     setIsStarting(true);
-    deployService(service.hash)
+    ServicesService.deployService(service.hash)
       .then(async () => {
         message.success('Service started successfully');
       })
@@ -82,12 +78,12 @@ export const ServiceCard = ({ service }: ServiceCardProps) => {
           .catch(() => message.error('Failed to update service status'))
           .finally(() => setIsStarting(false));
       });
-  }, [isStarting, deployService, service.hash, updateServiceStatus]);
+  }, [isStarting, service.hash, updateServiceStatus]);
 
   const handleStop = useCallback(async (): Promise<void> => {
     if (isStopping) return;
     setIsStopping(true);
-    stopService(service.hash)
+    ServicesService.stopService(service.hash)
       .then(() => {
         message.success('Service stopped successfully');
       })
@@ -99,17 +95,19 @@ export const ServiceCard = ({ service }: ServiceCardProps) => {
           .catch(() => message.error('Failed to update service status'))
           .finally(() => setIsStopping(false));
       });
-  }, [isStopping, service.hash, stopService, updateServiceStatus]);
+  }, [isStopping, service.hash, updateServiceStatus]);
 
   const handleDelete = useCallback(async () => {
     if (isDeleting) return;
     setIsDeleting(true);
-    deleteServices([service.hash])
-      .catch(() => message.error('Failed to delete service'))
-      .finally(() => {
+    ServicesService.deleteServices({ hashes: [service.hash] })
+      .then(() => {
+        message.success('Service deleted successfully');
         deleteServiceState(service.hash);
-      });
-  }, [deleteServiceState, deleteServices, isDeleting, service.hash]);
+      })
+      .catch(() => message.error('Failed to delete service'))
+      .finally(() => setIsDeleting(false));
+  }, [deleteServiceState, isDeleting, service.hash]);
 
   const buttons = useMemo(
     () => ({
@@ -130,10 +128,10 @@ export const ServiceCard = ({ service }: ServiceCardProps) => {
             <>
               Are you sure you want to delete this service?
               <br />
-              Your agent&apos;s private keys will be lost.
+              Your funds may be lost.
             </>
           }
-          placement="leftBottom"
+          placement="topLeft"
           onConfirm={handleDelete}
         >
           <Button danger loading={isDeleting}>
@@ -152,12 +150,7 @@ export const ServiceCard = ({ service }: ServiceCardProps) => {
       serviceStatus === DeploymentStatus.STOPPED ||
       serviceStatus === DeploymentStatus.BUILT
     ) {
-      return (
-        <Flex gap={16}>
-          {buttons.start}
-          {buttons.delete}
-        </Flex>
-      );
+      return <Flex gap={16}>{buttons.start}</Flex>;
     }
     return <Spin />;
   }, [buttons.delete, buttons.start, buttons.stop, serviceStatus]);
@@ -173,7 +166,10 @@ export const ServiceCard = ({ service }: ServiceCardProps) => {
   );
 
   useInterval(
-    () => EthersService.checkRpc(service.ledger.rpc).then(setIsRpcValid),
+    () =>
+      EthersService.checkRpc(service.ledger.rpc)
+        .then(setIsRpcValid)
+        .catch(() => setIsRpcValid(false)),
     SERVICE_CARD_RPC_POLLING_INTERVAL,
   );
 
@@ -189,6 +185,13 @@ export const ServiceCard = ({ service }: ServiceCardProps) => {
           </Tooltip>
         </div>
       )}
+
+      <ServiceCardSettings
+        service={service}
+        serviceTemplate={serviceTemplate}
+        isRpcValid={isRpcValid}
+        isLoading={isStarting || isStopping || isDeleting}
+      />
 
       <Flex gap={16}>
         <Image
@@ -220,6 +223,7 @@ const ServiceCardStatusBadge = ({
 }: {
   serviceStatus?: DeploymentStatus;
 }) => {
+  const { token } = theme.useToken();
   const badge = useMemo(() => {
     switch (serviceStatus) {
       case DeploymentStatus.CREATED:
@@ -229,7 +233,7 @@ const ServiceCardStatusBadge = ({
       case DeploymentStatus.DEPLOYING:
         return <Badge status="processing" text="Deploying" />;
       case DeploymentStatus.DEPLOYED:
-        return <Badge status="success" text="Running" />;
+        return <Badge status="processing" color={token.green} text="Running" />; // processing status adds pulse animation; color prop is used to override the default color
       case DeploymentStatus.STOPPING:
         return <Badge status="processing" text="Stopping" />;
       case DeploymentStatus.STOPPED:

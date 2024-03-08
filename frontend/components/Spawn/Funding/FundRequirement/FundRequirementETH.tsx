@@ -1,7 +1,7 @@
 import { Dispatch, SetStateAction } from 'react';
 import { FundRequirement } from './FundRequirement';
-import { Address, AddressBooleanRecord } from '@/types';
-import EthersService from '@/service/Ethers';
+import { Address, SpawnData } from '@/types';
+import { EthersService } from '@/service';
 
 type FundRequirementETHProps = {
   address: Address;
@@ -9,7 +9,7 @@ type FundRequirementETHProps = {
   requirement: number;
   rpc: string;
   hasReceivedFunds: boolean;
-  setReceivedFunds: Dispatch<SetStateAction<AddressBooleanRecord>>;
+  setSpawnData: Dispatch<SetStateAction<SpawnData>>;
 };
 
 export const FundRequirementETH = (props: FundRequirementETHProps) => {

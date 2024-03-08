@@ -1,9 +1,8 @@
 import { Service } from '@/client';
 import { TOKENS } from '@/constants';
 import { SpawnScreen } from '@/enums';
-import { useServices, useAppInfo, useSpawn } from '@/hooks';
-import EthersService from '@/service/Ethers';
-import { Address, AddressNumberRecord } from '@/types';
+import { useAppInfo, useSpawn } from '@/hooks';
+import { EthersService } from '@/service';
 import { Button, Flex, Skeleton, Typography, message } from 'antd';
 import { ethers } from 'ethers';
 import { useCallback, useMemo, useState } from 'react';
@@ -18,8 +17,11 @@ type SpawnStakingCheckProps = {
 };
 
 export const SpawnStakingCheck = ({ nextPage }: SpawnStakingCheckProps) => {
-  const { setSpawnData, serviceTemplate, rpc } = useSpawn();
-  const { createService } = useServices();
+  const {
+    spawnData: { rpc, serviceTemplate },
+    setSpawnData,
+    createService,
+  } = useSpawn();
   const { userPublicKey } = useAppInfo();
 
   const [isCreating, setIsCreating] = useState(false);
@@ -28,66 +30,38 @@ export const SpawnStakingCheck = ({ nextPage }: SpawnStakingCheckProps) => {
   /**
    * Creates service, then performs relevant state updates
    */
-  const create = useCallback(
-    async (useStaking: boolean) => {
+  const createAndNext = useCallback(
+    async ({ isStaking }: { isStaking: boolean }) => {
       if (isCreating) {
         message.error('Service creation already in progress');
         return;
       }
 
-      if (!serviceTemplate || !rpc) {
-        setSpawnData((prev) => ({ ...prev, screen: SpawnScreen.ERROR }));
-        return;
-      }
-
       setIsCreating(true);
 
-      let service: Service;
       try {
-        service = await createService({
-          ...serviceTemplate,
-          configuration: {
-            ...serviceTemplate.configuration,
-            rpc,
-            use_staking: useStaking,
-          },
-        });
+        const service: Service | undefined = await createService(isStaking);
+        if (!service) throw new Error('Failed to create service');
+        message.success('Service created successfully');
+        setSpawnData((prev) => ({
+          ...prev,
+          isStaking,
+          screen: nextPage,
+        }));
       } catch (e) {
         message.error('Failed to create service');
+      } finally {
         setIsCreating(false);
-        return;
+        setButtonClicked(undefined);
       }
-
-      //  Set agent funding requirements
-      let agentFundRequirements: AddressNumberRecord = {};
-      if (service.chain_data?.instances) {
-        agentFundRequirements = service.chain_data.instances.reduce(
-          (acc: AddressNumberRecord, address: Address) => ({
-            ...acc,
-            [address]: serviceTemplate.configuration.fund_requirements.agent,
-          }),
-          {},
-        );
-      }
-
-      // Set multisig funding requirements from multisig/safe
-      if (service.chain_data?.multisig) {
-        const { multisig } = service.chain_data;
-        const { safe } = serviceTemplate.configuration.fund_requirements;
-        agentFundRequirements[multisig] = safe;
-      }
-
-      setSpawnData((prev) => ({ ...prev, agentFundRequirements }));
-
-      return service;
     },
-    [createService, isCreating, rpc, serviceTemplate, setSpawnData],
+    [createService, isCreating, nextPage, setSpawnData],
   );
 
   /**
    * Checks if the user has the required OLAS to stake
    */
-  const preflightStakingCheck = useCallback((): Promise<boolean> => {
+  const preflightStakingCheck = useCallback(async (): Promise<boolean> => {
     if (!userPublicKey) {
       return Promise.reject('No public key found');
     }
@@ -129,44 +103,16 @@ export const SpawnStakingCheck = ({ nextPage }: SpawnStakingCheckProps) => {
       return setButtonClicked(undefined);
     }
 
-    const service: Service | undefined = await create(true);
-
-    if (!service) {
-      message.error('Failed to create service');
-    } else {
-      message.success('Service created successfully');
-
-      setSpawnData((prev) => ({
-        ...prev,
-        isStaking: true,
-        screen: nextPage,
-      }));
-    }
-
-    setButtonClicked(undefined);
+    createAndNext({ isStaking: true });
   };
 
   const handleNo = async () => {
     setButtonClicked(ButtonOptions.NO);
-
-    const service: Service | undefined = await create(false);
-
-    if (!service) {
-      message.error('Failed to create service');
-    } else {
-      message.success('Service created successfully');
-
-      setSpawnData((prev) => ({
-        ...prev,
-        isStaking: false,
-        screen: nextPage,
-      }));
-    }
-    setButtonClicked(undefined);
+    createAndNext({ isStaking: false });
   };
 
   const stakingRequirement: string | undefined = useMemo(() => {
-    if (!serviceTemplate?.configuration) return undefined;
+    if (!serviceTemplate?.configuration) return;
     const { olas_required_to_stake, olas_cost_of_bond } =
       serviceTemplate.configuration;
     return ethers.utils.formatUnits(

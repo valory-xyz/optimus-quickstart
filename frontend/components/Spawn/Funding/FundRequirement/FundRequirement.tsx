@@ -1,6 +1,6 @@
 import { copyToClipboard } from '@/common-util/copyToClipboard';
 import { useModals } from '@/hooks';
-import { Address, AddressBooleanRecord } from '@/types';
+import { Address, SpawnData } from '@/types';
 import { Button, Flex, Typography, message } from 'antd';
 import {
   Dispatch,
@@ -24,7 +24,7 @@ type FundRequirementProps = {
     rpc: string,
     contractAddress?: Address,
   ) => Promise<number>;
-  setReceivedFunds: Dispatch<SetStateAction<AddressBooleanRecord>>;
+  setSpawnData: Dispatch<SetStateAction<SpawnData>>;
 };
 
 /**
@@ -41,7 +41,7 @@ export const FundRequirement = ({
   hasReceivedFunds,
   isErc20,
   getBalance,
-  setReceivedFunds,
+  setSpawnData,
 }: FundRequirementProps) => {
   const { qrModalOpen } = useModals();
 
@@ -77,11 +77,36 @@ export const FundRequirement = ({
         .then((balance: number) => {
           if (balance >= requirement) {
             setIsPollingBalance(false);
-            setReceivedFunds((prev: AddressBooleanRecord) => ({
-              ...prev,
-              [address]: true,
-            }));
-            message.success(`Funded ${address}`);
+            setSpawnData((prev: SpawnData) => {
+              // update agent fund requirements
+              if (prev.agentFundRequirements[address]) {
+                return {
+                  ...prev,
+                  agentFundRequirements: {
+                    ...prev.agentFundRequirements,
+                    [address]: {
+                      ...prev.agentFundRequirements[address],
+                      received: true,
+                    },
+                  },
+                };
+              }
+              // update master wallet fund requirements
+              if (prev.masterWalletFundRequirements[address]) {
+                return {
+                  ...prev,
+                  masterWalletFundRequirements: {
+                    ...prev.masterWalletFundRequirements,
+                    [address]: {
+                      ...prev.masterWalletFundRequirements[address],
+                      received: true,
+                    },
+                  },
+                };
+              }
+              // do nothing
+              return prev;
+            });
           }
         })
         .catch(() => {

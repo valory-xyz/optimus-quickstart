@@ -14,7 +14,7 @@ import { useSpawn, useAppInfo } from '@/hooks';
 import { CheckSquareTwoTone, WarningFilled } from '@ant-design/icons';
 import { InputStatus } from 'antd/es/_util/statusUtils';
 import { debounce } from 'lodash';
-import EthersService from '@/service/Ethers';
+import { EthersService } from '@/service';
 import { SpawnScreen } from '@/enums';
 
 enum RPCState {
@@ -24,7 +24,10 @@ enum RPCState {
 }
 
 export const SpawnRPC = ({ nextPage }: { nextPage: SpawnScreen }) => {
-  const { setSpawnData, rpc } = useSpawn();
+  const {
+    setSpawnData,
+    spawnData: { rpc },
+  } = useSpawn();
   const { userPublicKey } = useAppInfo();
 
   const [isCheckingRpc, setIsCheckingRpc] = useState(false);
@@ -41,7 +44,6 @@ export const SpawnRPC = ({ nextPage }: { nextPage: SpawnScreen }) => {
     [setSpawnData],
   );
 
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   const debounceCheckRpc = useCallback(
     debounce((rpcInput: string) => {
       if (isCheckingRpc) return;
@@ -60,6 +62,8 @@ export const SpawnRPC = ({ nextPage }: { nextPage: SpawnScreen }) => {
         })
         .finally(() => setIsCheckingRpc(false));
     }, 1000),
+    // Does not require deps; updating the function will destroy the debounce
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [],
   );
 
@@ -86,18 +90,7 @@ export const SpawnRPC = ({ nextPage }: { nextPage: SpawnScreen }) => {
       return;
     }
 
-    // TEMPORARY BALANCE CHECK (TO BE RESOLVED WITH MASTER WALLET CONTEXT & HOOK WHEN PUBLIC RPC IS AUTHORISED)
-    const nativeBalance: number | undefined = await EthersService.getEthBalance(
-      userPublicKey,
-      rpc,
-    ).catch(() => undefined);
-
-    if (nativeBalance === undefined) {
-      message.error('Failed to get master wallet balance');
-      return;
-    }
-
-    setSpawnData((prev) => ({ ...prev, screen: nextPage, nativeBalance }));
+    setSpawnData((prev) => ({ ...prev, screen: nextPage }));
   }, [nextPage, rpc, rpcState, setSpawnData, userPublicKey]);
 
   const isContinueDisabled: boolean = useMemo(

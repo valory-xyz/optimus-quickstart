@@ -1,30 +1,47 @@
 import { Service, ServiceHash, ServiceTemplate } from '@/client';
 import { ServicesContext } from '@/context';
 import { ServicesService } from '@/service';
+import MulticallService from '@/service/Multicall';
+import { Address, AddressBooleanRecord } from '@/types';
 import { useContext } from 'react';
+
+const checkServiceIsFunded = async (
+  service: Service,
+  serviceTemplate: ServiceTemplate,
+): Promise<boolean> => {
+  const {
+    chain_data: { instances, multisig },
+  } = service;
+
+  if (!instances || !multisig) return Promise.resolve(false);
+
+  const addresses = [...instances, multisig];
+
+  const balances = await MulticallService.getEthBalances(
+    addresses,
+    service.ledger.rpc,
+  );
+
+  if (!balances) return Promise.resolve(false);
+
+  const fundRequirements: AddressBooleanRecord = addresses.reduce(
+    (acc: AddressBooleanRecord, address: Address) => ({
+      ...acc,
+      [address]: instances.includes(address)
+        ? balances[address] >
+          serviceTemplate.configuration.fund_requirements.agent
+        : balances[address] >
+          serviceTemplate.configuration.fund_requirements.safe,
+    }),
+    {},
+  );
+
+  return Promise.resolve(Object.values(fundRequirements).every((f) => f));
+};
 
 export const useServices = () => {
   const { services, updateServicesState, hasInitialLoaded, setServices } =
     useContext(ServicesContext);
-
-  // SERVICES SERVICE METHODS
-  const createService = async (serviceTemplate: Required<ServiceTemplate>) =>
-    ServicesService.createService(serviceTemplate);
-
-  const deployService = async (serviceHash: ServiceHash) =>
-    ServicesService.deployService(serviceHash);
-
-  const stopService = async (serviceHash: string) =>
-    ServicesService.stopService(serviceHash);
-
-  const deleteServices = async (hashes: ServiceHash[]) =>
-    ServicesService.deleteServices({ hashes });
-
-  const getService = async (serviceHash: ServiceHash) =>
-    ServicesService.getService(serviceHash);
-
-  const getServiceStatus = async (serviceHash: ServiceHash) =>
-    ServicesService.getServiceStatus(serviceHash);
 
   // STATE METHODS
   const getServiceFromState = (
@@ -40,7 +57,7 @@ export const useServices = () => {
     hasInitialLoaded ? services : [];
 
   const updateServiceState = (serviceHash: ServiceHash) =>
-    getService(serviceHash).then((service: Service) =>
+    ServicesService.getService(serviceHash).then((service: Service) =>
       setServices((prev) => {
         const index = prev.findIndex((s) => s.hash === serviceHash); // findIndex returns -1 if not found
         if (index === -1) return [...prev, service];
@@ -54,17 +71,12 @@ export const useServices = () => {
     setServices((prev) => prev.filter((s) => s.hash !== serviceHash));
 
   return {
-    getService,
     getServiceFromState,
     getServicesFromState,
-    getServiceStatus,
+    checkServiceIsFunded,
     updateServicesState,
     updateServiceState,
     deleteServiceState,
-    createService,
-    deployService,
-    stopService,
-    deleteServices,
     hasInitialLoaded,
   };
 };

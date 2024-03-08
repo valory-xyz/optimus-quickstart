@@ -2,63 +2,50 @@ import { SpawnScreen } from '@/enums';
 import { Funding } from './Funding/Funding';
 import { FundRequirementETH } from './Funding/FundRequirement/FundRequirementETH';
 import { useAppInfo, useSpawn } from '@/hooks';
-import { useEffect, useMemo, useState } from 'react';
-import { AddressNumberRecord } from '@/types';
-import { Spin } from 'antd';
-import EthersService from '@/service/Ethers';
+import { useEffect, useState } from 'react';
+import { Spin, message } from 'antd';
+import { EthersService } from '@/service';
 
 export const SpawnMasterWalletFunding = ({
   nextPage,
 }: {
   nextPage: SpawnScreen;
 }) => {
-  const { setSpawnData, rpc } = useSpawn();
+  const {
+    setSpawnData,
+    spawnData: { rpc, masterWalletFundRequirements },
+  } = useSpawn();
   const { userPublicKey } = useAppInfo();
-
-  const [masterWalletBalance, setMasterWalletBalance] = useState<
-    number | undefined
-  >();
-
-  const masterWalletFundRequirements: AddressNumberRecord | undefined = useMemo(
-    () =>
-      userPublicKey
-        ? {
-            [userPublicKey]: 1,
-          }
-        : undefined,
-    [userPublicKey],
-  );
-
-  const isMasterWalletFunded: boolean | undefined = useMemo(
-    () =>
-      userPublicKey &&
-      masterWalletBalance !== undefined &&
-      masterWalletFundRequirements
-        ? masterWalletBalance >= masterWalletFundRequirements[userPublicKey]
-        : undefined,
-    [masterWalletBalance, masterWalletFundRequirements, userPublicKey],
-  );
+  const [isInitialLoaded, setIsInitialLoaded] = useState(false);
 
   useEffect(() => {
-    userPublicKey &&
-      EthersService.getEthBalance(userPublicKey, rpc).then(
-        setMasterWalletBalance,
-      );
-  }, [rpc, userPublicKey]);
+    if (!isInitialLoaded && userPublicKey) {
+      EthersService.getEthBalance(userPublicKey, rpc)
+        .then((balance) => {
+          setSpawnData((prev) => ({
+            ...prev,
+            masterWalletFundRequirements: {
+              [userPublicKey]: {
+                ...prev.masterWalletFundRequirements[userPublicKey],
+                received: balance > 1,
+              },
+            },
+          }));
+          setIsInitialLoaded(true);
+        })
+        .catch(() => message.error('Failed to get master wallet balance'));
+    }
+  }, [
+    isInitialLoaded,
+    masterWalletFundRequirements,
+    rpc,
+    setSpawnData,
+    userPublicKey,
+  ]);
 
   // if not inital loaded, show loader
-  if (
-    masterWalletBalance === undefined ||
-    isMasterWalletFunded === undefined ||
-    masterWalletFundRequirements === undefined
-  ) {
+  if (masterWalletFundRequirements === undefined || !isInitialLoaded) {
     return <Spin />;
-  }
-
-  // if master wallet is already funded, don't show the funding component, skip to next page
-  if (isMasterWalletFunded) {
-    setSpawnData((prev) => ({ ...prev, screen: nextPage }));
-    return <></>;
   }
 
   return (
