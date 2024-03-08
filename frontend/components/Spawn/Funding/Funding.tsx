@@ -1,8 +1,7 @@
-import { COLOR } from '@/constants';
 import { SpawnScreen } from '@/enums';
 import { useSpawn } from '@/hooks';
 import { Address, FundingRecord, SpawnData } from '@/types';
-import { TimelineItemProps, Flex, Typography, Timeline } from 'antd';
+import { TimelineItemProps, Flex, Typography, Timeline, theme } from 'antd';
 import { isEmpty } from 'lodash';
 import {
   useMemo,
@@ -45,6 +44,7 @@ export const Funding = ({
     setSpawnData,
     spawnData: { rpc },
   } = useSpawn();
+  const { token } = theme.useToken();
 
   const timelineItems: TimelineItemProps[] = useMemo(
     () =>
@@ -62,7 +62,7 @@ export const Funding = ({
               rpc={rpc}
             />
           ),
-          color: received ? COLOR.GREEN_2 : COLOR.RED,
+          color: received ? token.green : token.red,
         };
       }) as TimelineItemProps[],
     [
@@ -72,6 +72,8 @@ export const Funding = ({
       rpc,
       setSpawnData,
       symbol,
+      token.green,
+      token.red,
     ],
   );
 

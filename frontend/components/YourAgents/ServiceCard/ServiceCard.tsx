@@ -8,8 +8,8 @@ import {
   message,
   Tooltip,
   Popconfirm,
+  theme,
 } from 'antd';
-import { green } from '@ant-design/colors';
 import Image from 'next/image';
 import { useCallback, useMemo, useState } from 'react';
 import { useInterval } from 'usehooks-ts';
@@ -223,6 +223,7 @@ const ServiceCardStatusBadge = ({
 }: {
   serviceStatus?: DeploymentStatus;
 }) => {
+  const { token } = theme.useToken();
   const badge = useMemo(() => {
     switch (serviceStatus) {
       case DeploymentStatus.CREATED:
@@ -232,9 +233,7 @@ const ServiceCardStatusBadge = ({
       case DeploymentStatus.DEPLOYING:
         return <Badge status="processing" text="Deploying" />;
       case DeploymentStatus.DEPLOYED:
-        return (
-          <Badge status="processing" color={green.primary} text="Running" />
-        ); // processing status adds pulse animation; color prop is used to override the default color
+        return <Badge status="processing" color={token.green} text="Running" />; // processing status adds pulse animation; color prop is used to override the default color
       case DeploymentStatus.STOPPING:
         return <Badge status="processing" text="Stopping" />;
       case DeploymentStatus.STOPPED:

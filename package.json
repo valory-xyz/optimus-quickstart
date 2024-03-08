@@ -1,7 +1,6 @@
 {
   "author": "Valory AG",
   "dependencies": {
-    "@ant-design/colors": "^7.0.2",
     "@ant-design/cssinjs": "^1.18.4",
     "@ant-design/icons": "^5.3.0",
     "antd": "^5.14.0",
