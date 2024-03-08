@@ -126,7 +126,7 @@ export const useSpawn = () => {
         const serviceTemplate = getServiceTemplate(serviceTemplateHash);
         if (!serviceTemplate) throw new Error('Service template not found');
 
-        if (screen && screen !== null) {
+        if (screen) {
           // Funding resume required
           const service = getServiceFromState(serviceTemplateHash);
           if (!service) throw new Error('Service not found');
