@@ -108,7 +108,7 @@ function isGitInstalledUbuntu() {
 }
 
 function installPythonUbuntu() {
-  return runSudoUnix('apt', 'install -y python3.10 python3.10-dev');
+  return runSudoUnix('apt', 'install -y python3.10 python3.10-dev python3-pip');
 }
 
 function installGitUbuntu() {
@@ -119,12 +119,11 @@ function createVirtualEnvUbuntu(path) {
   return runCmdUnix('python3.10', ['-m', 'venv', path]);
 }
 
-function cloneRepositoryUnix() {
-  runCmdUnix('git', ['clone', 'git@github.com:valory-xyz/olas-operate-app'])
-}
-
 function installOperatePackageUnix(path) {
-  runCmdUnix(`${path}/venv/bin/python3.10`, ['-m', 'pip', 'install', `${path}/temp/olas-operate-app`])
+  runCmdUnix(
+    `${path}/venv/bin/python3.10`,
+    ['-m', 'pip', 'install', '--index-url', 'https://test.pypi.org/simple/', '--extra-index-url', 'https://pypi.org/simple/', 'operate==0.1.1']
+  )
 }
 
 function installOperateCliDarwin(path) {
@@ -191,7 +190,6 @@ async function setupDarwin() {
 
   console.log("Installing operate backend")
   process.chdir(`${OperateDirectory}/temp`)
-  cloneRepositoryUnix()
   installOperatePackageUnix(OperateDirectory)
 
   console.log("Installing operate CLI")
@@ -228,7 +226,6 @@ async function setupUbuntu() {
 
   console.log("Installing operate backend")
   process.chdir(`${OperateDirectory}/temp`)
-  cloneRepositoryUnix()
   installOperatePackageUnix(OperateDirectory)
 
   console.log("Installing operate CLI")
