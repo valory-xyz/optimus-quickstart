@@ -120,9 +120,9 @@ function createVirtualEnvUbuntu(path) {
 }
 
 function installOperatePackageUnix(path) {
-  runCmdUnix(
+  return runCmdUnix(
     `${path}/venv/bin/python3.10`,
-    ['-m', 'pip', 'install', '--index-url', 'https://test.pypi.org/simple/', '--extra-index-url', 'https://pypi.org/simple/', 'operate==0.1.1']
+    ['-m', 'pip', 'install', 'olas-operate-middleware==0.1.0rc0']
   )
 }
 
