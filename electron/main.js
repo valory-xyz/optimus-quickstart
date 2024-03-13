@@ -18,7 +18,6 @@ const http = require('http');
 
 const { isDockerRunning } = require('./docker');
 const {
-  isInstalled,
   setupDarwin,
   setupUbuntu,
   OperateCmd,
@@ -259,14 +258,13 @@ async function launchNextAppDev() {
 ipcMain.on('check', async function (event, argument) {
   try {
     event.sender.send('response', 'Checking installation');
-    if (!isDev && !isInstalled()) {
-      event.sender.send('response', 'Installing Operate Daemon');
+    if (!isDev) {
       if (platform === 'darwin') {
-        await setupDarwin();
+        await setupDarwin(event.sender);
       } else if (platform === 'win32') {
         // TODO
       } else {
-        await setupUbuntu();
+        await setupUbuntu(event.sender);
       }
     }
 
