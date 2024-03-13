@@ -11,7 +11,7 @@ const {
 } = require('electron');
 const { spawn, exec } = require('child_process');
 const path = require('path');
-const url = require('url');
+const fs = require('fs');
 const os = require('os');
 const next = require('next');
 const http = require('http');
@@ -168,6 +168,10 @@ const createMainWindow = () => {
 };
 
 async function launchDaemon() {
+  function appendLog(data) {
+    fs.appendFileSync(`${OperateDirectory}/logs.txt`, data.trim() + "\n", { "encoding": "utf-8" })
+    return data
+  }
   const check = new Promise(function (resolve, reject) {
     operateDaemon = spawn(OperateCmd, [
       'daemon',
@@ -184,6 +188,10 @@ async function launchDaemon() {
       ) {
         resolve({ running: false, error: 'Port already in use' });
       }
+      console.log(appendLog(data.toString().trim()));
+    });
+    operateDaemon.stdout.on('data', (data) => {
+      console.log(appendLog(data.toString().trim()));
     });
   });
   return await check;
