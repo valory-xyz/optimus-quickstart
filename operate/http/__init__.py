@@ -20,6 +20,7 @@
 """Local resource as an HTTP object."""
 
 import json
+import traceback
 import typing as t
 from abc import ABC
 
@@ -138,8 +139,10 @@ class Resource(
                 status_code=e.code,
             )
         except Exception as e:  # pylint: disable=broad-except
+            tb = traceback.format_exc()
             response = JSONResponse(
-                content={"error": str(e)},
+                content={"error": str(e), "traceback": tb},
                 status_code=500,
             )
+            print(tb)
         await response(scope=scope, receive=receive, send=send)
