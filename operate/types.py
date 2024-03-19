@@ -138,13 +138,16 @@ class ServiceState(enum.IntEnum):
     TERMINATED_BONDED = 5
 
 
-class ChainData(TypedDict):
+class OnChainData(TypedDict):
     """Chain data for service."""
 
     instances: NotRequired[t.List[str]]  # Agent instances registered as safe owners
     token: NotRequired[int]
     multisig: NotRequired[str]
     staked: NotRequired[bool]
+
+
+ChainData = OnChainData
 
 
 class ChainDeployment(TypedDict):
@@ -171,7 +174,7 @@ class ServiceType(TypedDict):
     keys: KeysType
     readme: NotRequired[str]
     ledger: NotRequired[LedgerConfig]
-    chain_data: NotRequired[ChainData]
+    chain_data: NotRequired[OnChainData]
     service_path: NotRequired[str]
 
 
