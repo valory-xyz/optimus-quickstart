@@ -25,12 +25,11 @@ from pathlib import Path
 from aea.helpers.base import IPFSHash
 from autonomy.chain.base import registry_contracts
 
+from operate.keys import Key, KeysManager
 from operate.ledger.profiles import CONTRACTS, OLAS, STAKING
 from operate.services.protocol import OnChainManager
 from operate.services.service import (
     Deployment,
-    Key,
-    KeysManager,
     OnChainData,
     OnChainState,
     OnChainUserParams,

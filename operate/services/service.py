@@ -19,7 +19,6 @@
 
 """Service as HTTP resource."""
 
-import enum
 import json
 import os
 import shutil
@@ -31,7 +30,6 @@ from pathlib import Path
 from aea.configurations.data_types import PackageType
 from aea.helpers.yaml_utils import yaml_dump, yaml_load, yaml_load_all
 from aea_cli_ipfs.ipfs_utils import IPFSTool
-from aea_ledger_ethereum.ethereum import EthereumCrypto
 from autonomy.cli.helpers.deployment import run_deployment, stop_deployment
 from autonomy.configurations.loader import load_service_config
 from autonomy.deploy.base import ServiceBuilder as BaseServiceBuilder
@@ -52,8 +50,19 @@ from operate.constants import (
     KEYS_JSON,
 )
 from operate.http.exceptions import NotAllowed
+from operate.keys import Keys
 from operate.resource import LocalResource
-from operate.types import ChainType, DeploymentConfig, LedgerType
+from operate.types import (
+    ChainType,
+    DeployedNodes,
+    DeploymentConfig,
+    DeploymentStatus,
+    LedgerConfig,
+    LedgerType,
+    OnChainData,
+    OnChainState,
+    OnChainUserParams,
+)
 
 
 # pylint: disable=no-member,redefined-builtin,too-many-instance-attributes
@@ -85,32 +94,6 @@ def mkdirs(build_dir: Path) -> None:
             os.chown(path, 1000, 1000)
         except (PermissionError, AttributeError):
             continue
-
-
-class Action(enum.IntEnum):
-    """Action payload."""
-
-    STATUS = 0
-    BUILD = 1
-    DEPLOY = 2
-    STOP = 3
-
-    @classmethod
-    def from_string(cls, action: str) -> "Action":
-        """Load from string."""
-        return cls(_ACTIONS[action])
-
-
-class DeploymentStatus(enum.IntEnum):
-    """Status payload."""
-
-    CREATED = 0
-    BUILT = 1
-    DEPLOYING = 2
-    DEPLOYED = 3
-    STOPPING = 4
-    STOPPED = 5
-    DELETED = 6
 
 
 # TODO: Backport to autonomy
@@ -181,14 +164,6 @@ class ServiceHelper:
     def deployment_config(self) -> DeploymentConfig:
         """Returns deployment config."""
         return DeploymentConfig(self.config.json.get("deployment", {}))  # type: ignore
-
-
-@dataclass
-class DeployedNodes(LocalResource):
-    """Deployed nodes type."""
-
-    agent: t.List[str]
-    tendermint: t.List[str]
 
 
 @dataclass
@@ -340,153 +315,6 @@ class Deployment(LocalResource):
         shutil.rmtree(self.path / "deployment")
         self.status = DeploymentStatus.DELETED
         self.store()
-
-
-@dataclass
-class Key(LocalResource):
-    """Key resource."""
-
-    ledger: LedgerType
-    address: str
-    private_key: str
-
-    @classmethod
-    def load(cls, path: Path) -> "Key":
-        """Load a service"""
-        return super().load(path)  # type: ignore
-
-
-Keys = t.List[Key]
-
-
-class KeysManager:
-    """Keys manager."""
-
-    def __init__(self, path: Path) -> None:
-        """
-        Initialize keys manager
-
-        :param path: Path to keys storage.
-        """
-        self.path = path
-
-    def setup(self) -> None:
-        """Setup service manager."""
-        self.path.mkdir(exist_ok=True)
-
-    def get(self, key: str) -> Key:
-        """Get key object."""
-        return Key.from_json(  # type: ignore
-            obj=json.loads(
-                (self.path / key).read_text(
-                    encoding="utf-8",
-                )
-            )
-        )
-
-    def create(self) -> str:
-        """Creates new key."""
-        crypto = EthereumCrypto()
-        path = self.path / crypto.address
-        if path.is_file():
-            return crypto.address
-
-        path.write_text(
-            json.dumps(
-                Key(
-                    ledger=LedgerType.ETHEREUM,
-                    address=crypto.address,
-                    private_key=crypto.private_key,
-                ).json,
-                indent=4,
-            ),
-            encoding="utf-8",
-        )
-        return crypto.address
-
-    def delete(self, key: str) -> None:
-        """Delete key."""
-        os.remove(self.path / key)
-
-
-class OnChainState(enum.IntEnum):
-    """On-chain state."""
-
-    NOTMINTED = 0
-    MINTED = 1
-    ACTIVATED = 2
-    REGISTERED = 3
-    DEPLOYED = 4
-    TERMINATED = 5
-    UNBONDED = 6
-
-
-@dataclass
-class OnChainFundRequirements(LocalResource):
-    """On-chain fund requirements."""
-
-    agent: float
-    safe: float
-
-
-@dataclass
-class OnChainUserParams(LocalResource):
-    """On-chain user params."""
-
-    nft: str
-    agent_id: int
-    threshold: int
-    use_staking: bool
-    cost_of_bond: int
-    olas_cost_of_bond: int
-    olas_required_to_stake: int
-    fund_requirements: OnChainFundRequirements
-
-    @classmethod
-    def from_json(cls, obj: t.Dict) -> "OnChainUserParams":
-        """Load a service"""
-        return super().from_json(obj)  # type: ignore
-
-
-@dataclass
-class OnChainData(LocalResource):
-    """On-chain data"""
-
-    instances: t.List[str]  # Agent instances registered as safe owners
-    token: int
-    multisig: str
-    staked: bool
-    on_chain_state: OnChainState
-    user_params: OnChainUserParams
-
-
-@dataclass
-class LedgerConfig(LocalResource):
-    """Ledger config."""
-
-    rpc: str
-    type: LedgerType
-    chain: ChainType
-
-
-class OnChainManager:
-    """On-chain manager for a service."""
-
-    def __init__(self, chain_data: OnChainData, ledger_config: LedgerConfig) -> None:
-        """
-        Initialize on-chain manager
-
-        :param chain_data: ChainData object.
-        """
-        self.chain_data = chain_data
-        self.ledger_config = ledger_config
-
-    def mint(self) -> None:
-        """
-        Mint a service
-
-        :param key: Path to key file to use for minting.
-        """
 
 
 @dataclass
