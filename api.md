@@ -1,8 +1,8 @@
-> GET /api
+`GET /api`
 
 Returns information of the operate daemon
 
-<detail>
+<details>
   <summary>Response</summary>
 
 ```json
@@ -16,14 +16,14 @@ Returns information of the operate daemon
 }
 ```
 
-</detail>
+</details>
 
-
-> GET /api/services
+---
+`GET /api/services`
 
 Returns the list of services
 
-<detail>
+<details>
   <summary>Response</summary>
 
 ```json
@@ -71,13 +71,14 @@ Returns the list of services
 ]
 ```
 
-</detail>
+</details>
 
-> POST /api/services
+---
+`POST /api/services`
 
 Create a service using the service template
 
-<detail>
+<details>
   <summary>Request</summary>
 
 ```json
@@ -103,11 +104,11 @@ Create a service using the service template
 }
 ```
 
-</detail>
+</details>
 
 Optionally you can add `deploy` parameter and set it to `true` for a full deployment in a single request.
 
-<detail>
+<details>
   <summary>Response</summary>
 
 ```json
@@ -153,14 +154,15 @@ Optionally you can add `deploy` parameter and set it to `true` for a full deploy
 }
 ```
 
-</detail>
+</details>
 
-> PUT /api/services
+---
+`PUT /api/services`
 
 Update a service
 
 
-<detail>
+<details>
   <summary>Request</summary>
 
 ```json
@@ -170,11 +172,11 @@ Update a service
 }
 ```
 
-</detail>
+</details>
 
 Optionally you can add `deploy` parameter and set it to `true` for a full deployment in a single request.
 
-<detail>
+<details>
   <summary>Response</summary>
 
 ```json
@@ -220,11 +222,12 @@ Optionally you can add `deploy` parameter and set it to `true` for a full deploy
 }
 ```
 
-</detail>
+</details>
 
-> GET /api/services/{service}
+---
+`GET /api/services/{service}`
 
-<detail>
+<details>
   <summary>Response</summary>
 
 ```json
@@ -270,127 +273,134 @@ Optionally you can add `deploy` parameter and set it to `true` for a full deploy
 }
 ```
 
-</detail>
+</details>
 
-> POST /api/services/{service}/onchain/deploy
+---
+`POST /api/services/{service}/onchain/deploy`
 
 Deploy service on-chain
 
-<detail>
+<details>
   <summary>Request</summary>
 
 ```json
 ```
 
-</detail>
+</details>
 
-<detail>
+<details>
   <summary>Response</summary>
 
 ```json
 ```
 
-</detail>
+</details>
 
-> POST /api/services/{service}/onchain/stop
+---
+`POST /api/services/{service}/onchain/stop`
 
 Stop service on-chain
 
-<detail>
+<details>
   <summary>Request</summary>
 
 ```json
 ```
 
-</detail>
+</details>
 
-<detail>
+<details>
   <summary>Response</summary>
 
 ```json
 ```
 
-</detail>
+</details>
 
-> POST /api/services/{service}/deployment/build
+---
+`POST /api/services/{service}/deployment/build`
 
 Build service locally
 
-<detail>
+<details>
   <summary>Request</summary>
 
 ```json
 ```
 
-</detail>
+</details>
 
-<detail>
+<details>
   <summary>Response</summary>
 
 ```json
 ```
 
-</detail>
+</details>
 
-> POST /api/services/{service}/deployment/start
+---
+`POST /api/services/{service}/deployment/start`
 
 Start agent
 
-<detail>
+<details>
   <summary>Request</summary>
 
 ```json
 ```
 
-</detail>
+</details>
 
-<detail>
+<details>
   <summary>Response</summary>
 
 ```json
 ```
 
-</detail>
+</details>
 
-> POST /api/services/{service}/deployment/stop
+---
+`POST /api/services/{service}/deployment/stop`
 
 Stop agent
 
 ```json
 ```
 
-> POST /api/services/{service}/deployment/delete
+---
+`POST /api/services/{service}/deployment/delete`
 
 Delete local deployment
 
-<detail>
+<details>
   <summary>Request</summary>
 
 ```json
 ```
 
-</detail>
+</details>
 
-<detail>
+<details>
   <summary>Response</summary>
 
 ```json
 ```
 
-</detail>
+</details>
 
-<!-- <detail>
+<!-- <details>
   <summary>Request</summary>
 
 ```json
 ```
 
-</detail>
+</details>
 
-<detail>
+<details>
   <summary>Response</summary>
 
 ```json
 ```
 
-</detail> -->
+---
+</details`-->
