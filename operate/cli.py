@@ -19,10 +19,13 @@
 
 """Operate app CLI module."""
 
+import logging
 import os
+import traceback
 import typing as t
 from pathlib import Path
 
+from aea.helpers.logging import setup_logger
 from aea_ledger_ethereum.ethereum import EthereumCrypto
 from clea import group, params, run
 from fastapi import FastAPI, Request
@@ -36,12 +39,17 @@ from operate.constants import KEY, KEYS, OPERATE, SERVICES
 DEFAULT_HARDHAT_KEY = (
     "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80"
 ).encode()
+DEFAULT_MAX_RETRIES = 3
 
 
 class OperateApp:
     """Operate app."""
 
-    def __init__(self, home: t.Optional[Path] = None) -> None:
+    def __init__(
+        self,
+        home: t.Optional[Path] = None,
+        logger: t.Optional[logging.Logger] = None,
+    ) -> None:
         """Initialize object."""
         super().__init__()
         self._path = (home or (Path.cwd() / OPERATE)).resolve()
@@ -50,13 +58,16 @@ class OperateApp:
         self._master_key = self._path / KEY
         self.setup()
 
+        self.logger = logger or setup_logger(name="operate")
         self.keys_manager = services.manage.KeysManager(
             path=self._keys,
+            logger=self.logger,
         )
         self.service_manager = services.manage.ServiceManager(
             path=self._services,
             keys_manager=self.keys_manager,
             master_key_path=self._master_key,
+            logger=self.logger,
         )
 
     def setup(self) -> None:
@@ -85,22 +96,50 @@ class OperateApp:
         }
 
 
-def create_app(home: t.Optional[Path] = None) -> FastAPI:
+def create_app(  # pylint: disable=too-many-locals
+    home: t.Optional[Path] = None,
+) -> FastAPI:
     """Create FastAPI object."""
+
+    logger = setup_logger(name="operate")
     app = FastAPI()
-    operate = OperateApp(home=home)
+    operate = OperateApp(home=home, logger=logger)
+
+    def with_retries(f: t.Callable) -> t.Callable:
+        """Retries decorator."""
+
+        async def _call(request: Request) -> t.Dict:
+            """Call the endpoint."""
+            logger.info(f"Calling `{f.__name__}` with retries enabled")
+            retries = 0
+            errors = []
+            while retries < DEFAULT_MAX_RETRIES:
+                try:
+                    return await f(request)
+                except Exception as e:  # pylint: disable=broad-except
+                    errors.append(
+                        {"error": str(e), "traceback": traceback.format_exc()}
+                    )
+                    logger.error(f"Error {e}\n{traceback.format_exc()}")
+                retries += 1
+            return {"errors": errors}
+
+        return _call
 
     @app.get("/api")
-    def _get_api() -> t.Dict:
+    @with_retries
+    async def _get_api() -> t.Dict:
         """Get API info."""
         return operate.json
 
     @app.get("/api/services")
-    def _get_services() -> t.List[t.Dict]:
+    @with_retries
+    async def _get_services() -> t.List[t.Dict]:
         """Get available services."""
         return operate.service_manager.json
 
     @app.post("/api/services")
+    @with_retries
     async def _create_services(request: Request) -> t.Dict:
         """Create a service."""
         template = await request.json()
@@ -119,6 +158,7 @@ def create_app(home: t.Optional[Path] = None) -> FastAPI:
         return operate.service_manager.create_or_load(hash=service.hash).json
 
     @app.put("/api/services")
+    @with_retries
     async def _update_services(request: Request) -> t.Dict:
         """Create a service."""
         template = await request.json()
@@ -134,6 +174,7 @@ def create_app(home: t.Optional[Path] = None) -> FastAPI:
         return service.json
 
     @app.get("/api/services/{service}")
+    @with_retries
     async def _get_service(request: Request) -> t.Dict:
         """Create a service."""
         return operate.service_manager.create_or_load(
@@ -141,6 +182,7 @@ def create_app(home: t.Optional[Path] = None) -> FastAPI:
         ).json
 
     @app.post("/api/services/{service}/onchain/deploy")
+    @with_retries
     async def _deploy_service_onchain(request: Request) -> t.Dict:
         """Create a service."""
         operate.service_manager.deploy_service_onchain(
@@ -154,6 +196,7 @@ def create_app(home: t.Optional[Path] = None) -> FastAPI:
         ).json
 
     @app.post("/api/services/{service}/onchain/stop")
+    @with_retries
     async def _stop_service_onchain(request: Request) -> t.Dict:
         """Create a service."""
         operate.service_manager.terminate_service_on_chain(
@@ -170,6 +213,7 @@ def create_app(home: t.Optional[Path] = None) -> FastAPI:
         ).json
 
     @app.post("/api/services/{service}/deployment/build")
+    @with_retries
     async def _build_service_locally(request: Request) -> t.Dict:
         """Create a service."""
         deployment = operate.service_manager.create_or_load(
@@ -179,6 +223,7 @@ def create_app(home: t.Optional[Path] = None) -> FastAPI:
         return deployment.json
 
     @app.post("/api/services/{service}/deployment/start")
+    @with_retries
     async def _start_service_locally(request: Request) -> t.Dict:
         """Create a service."""
         deployment = operate.service_manager.create_or_load(
@@ -189,6 +234,7 @@ def create_app(home: t.Optional[Path] = None) -> FastAPI:
         return deployment.json
 
     @app.post("/api/services/{service}/deployment/stop")
+    @with_retries
     async def _stop_service_locally(request: Request) -> t.Dict:
         """Create a service."""
         deployment = operate.service_manager.create_or_load(
@@ -198,6 +244,7 @@ def create_app(home: t.Optional[Path] = None) -> FastAPI:
         return deployment.json
 
     @app.post("/api/services/{service}/deployment/delete")
+    @with_retries
     async def _delete_service_locally(request: Request) -> t.Dict:
         """Create a service."""
         deployment = operate.service_manager.create_or_load(
