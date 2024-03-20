@@ -29,6 +29,7 @@ from aea.helpers.logging import setup_logger
 from aea_ledger_ethereum.ethereum import EthereumCrypto
 from clea import group, params, run
 from fastapi import FastAPI, Request
+from fastapi.middleware.cors import CORSMiddleware
 from typing_extensions import Annotated
 from uvicorn.main import run as uvicorn
 
@@ -96,14 +97,20 @@ class OperateApp:
         }
 
 
-def create_app(  # pylint: disable=too-many-locals
+def create_app(  # pylint: disable=too-many-locals, unused-argument
     home: t.Optional[Path] = None,
 ) -> FastAPI:
     """Create FastAPI object."""
 
     logger = setup_logger(name="operate")
-    app = FastAPI()
     operate = OperateApp(home=home, logger=logger)
+    app = FastAPI()
+
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=["*"],
+        allow_methods=["GET", "POST", "PUT", "DELETE"],
+    )
 
     def with_retries(f: t.Callable) -> t.Callable:
         """Retries decorator."""
@@ -128,13 +135,13 @@ def create_app(  # pylint: disable=too-many-locals
 
     @app.get("/api")
     @with_retries
-    async def _get_api() -> t.Dict:
+    async def _get_api(request: Request) -> t.Dict:
         """Get API info."""
         return operate.json
 
     @app.get("/api/services")
     @with_retries
-    async def _get_services() -> t.List[t.Dict]:
+    async def _get_services(request: Request) -> t.List[t.Dict]:
         """Get available services."""
         return operate.service_manager.json
 
