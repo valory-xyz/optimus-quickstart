@@ -18,12 +18,15 @@
 # ------------------------------------------------------------------------------
 
 """Keys manager."""
+
 import json
+import logging
 import os
 import typing as t
 from dataclasses import dataclass
 from pathlib import Path
 
+from aea.helpers.logging import setup_logger
 from aea_ledger_ethereum.ethereum import EthereumCrypto
 
 from operate.resource import LocalResource
@@ -50,13 +53,19 @@ Keys = t.List[Key]
 class KeysManager:
     """Keys manager."""
 
-    def __init__(self, path: Path) -> None:
+    def __init__(
+        self,
+        path: Path,
+        logger: t.Optional[logging.Logger] = None,
+    ) -> None:
         """
         Initialize keys manager
 
         :param path: Path to keys storage.
+        :param logger: logging.Logger object.
         """
         self.path = path
+        self.logger = logger or setup_logger(name="operate.keys")
 
     def setup(self) -> None:
         """Setup service manager."""

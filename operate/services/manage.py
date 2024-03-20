@@ -19,10 +19,12 @@
 # ------------------------------------------------------------------------------
 """Service manager."""
 
+import logging
 import typing as t
 from pathlib import Path
 
 from aea.helpers.base import IPFSHash
+from aea.helpers.logging import setup_logger
 from autonomy.chain.base import registry_contracts
 
 from operate.keys import Key, KeysManager
@@ -59,6 +61,7 @@ class ServiceManager:
         path: Path,
         keys_manager: KeysManager,
         master_key_path: Path,
+        logger: t.Optional[logging.Logger] = None,
     ) -> None:
         """
         Initialze service manager
@@ -66,10 +69,12 @@ class ServiceManager:
         :param path: Path to service storage.
         :param keys: Keys manager.
         :param master_key_path: Path to master key.
+        :param logger: logging.Logger object.
         """
         self.path = path
         self.keys_manager = keys_manager
         self.master_key_path = master_key_path
+        self.logger = logger or setup_logger(name="operate.manager")
 
     def setup(self) -> None:
         """Setup service manager."""
@@ -132,7 +137,7 @@ class ServiceManager:
 
         :param hash: Service hash
         """
-        print("Loading service")
+        self.logger.info("Loading service")
         service = self.create_or_load(hash=hash)
         user_params = service.chain_data.user_params
         update = service.chain_data.token != -1
@@ -148,7 +153,7 @@ class ServiceManager:
             raise ValueError("No staking slots available")
 
         if user_params.use_staking:
-            print("Checking staking compatibility")
+            self.logger.info("Checking staking compatibility")
             required_olas = (
                 user_params.olas_cost_of_bond + user_params.olas_required_to_stake
             )
@@ -168,7 +173,7 @@ class ServiceManager:
                 )
 
         if service.chain_data.on_chain_state == OnChainState.NOTMINTED:
-            print("Minting service")
+            self.logger.info("Minting service")
             service.chain_data.token = t.cast(
                 int,
                 ocm.mint(
@@ -193,10 +198,10 @@ class ServiceManager:
             service.chain_data.on_chain_state = OnChainState.MINTED
             service.store()
         else:
-            print("Service already minted")
+            self.logger.info("Service already minted")
 
         if service.chain_data.on_chain_state == OnChainState.MINTED:
-            print("Activating service")
+            self.logger.info("Activating service")
             ocm.activate(
                 service_id=service.chain_data.token,
                 token=(
@@ -208,10 +213,10 @@ class ServiceManager:
             service.chain_data.on_chain_state = OnChainState.ACTIVATED
             service.store()
         else:
-            print("Service already activated")
+            self.logger.info("Service already activated")
 
         if service.chain_data.on_chain_state == OnChainState.ACTIVATED:
-            print("Registering service")
+            self.logger.info("Registering service")
             ocm.register(
                 service_id=service.chain_data.token,
                 instances=instances,
@@ -221,10 +226,10 @@ class ServiceManager:
             service.keys = keys
             service.store()
         else:
-            print("Service already registered")
+            self.logger.info("Service already registered")
 
         if service.chain_data.on_chain_state == OnChainState.REGISTERED:
-            print("Deploying service")
+            self.logger.info("Deploying service")
             ocm.deploy(
                 service_id=service.chain_data.token,
                 reuse_multisig=update,
@@ -237,7 +242,7 @@ class ServiceManager:
             service.chain_data.on_chain_state = OnChainState.DEPLOYED
             service.store()
         else:
-            print("Service already deployed")
+            self.logger.info("Service already deployed")
 
         info = ocm.info(token_id=service.chain_data.token)
         service.keys = keys
@@ -259,10 +264,10 @@ class ServiceManager:
         """
         service = self.create_or_load(hash=hash)
         if service.chain_data.on_chain_state != OnChainState.DEPLOYED:
-            print("Cannot terminate service")
+            self.logger.info("Cannot terminate service")
             return
 
-        print("Terminating service")
+        self.logger.info("Terminating service")
         ocm = self.get_on_chain_manager(service=service)
         ocm.terminate(
             service_id=service.chain_data.token,
@@ -283,10 +288,10 @@ class ServiceManager:
         """
         service = self.create_or_load(hash=hash)
         if service.chain_data.on_chain_state != OnChainState.TERMINATED:
-            print("Cannot unbond service")
+            self.logger.info("Cannot unbond service")
             return
 
-        print("Unbonding service")
+        self.logger.info("Unbonding service")
         ocm = self.get_on_chain_manager(service=service)
         ocm.unbond(
             service_id=service.chain_data.token,
@@ -307,15 +312,15 @@ class ServiceManager:
         """
         service = self.create_or_load(hash=hash)
         if not service.chain_data.user_params.use_staking:
-            print("Cannot stake service, `use_staking` is set to false")
+            self.logger.info("Cannot stake service, `use_staking` is set to false")
             return
 
         if service.chain_data.staked:
-            print("Cannot stake service, it's already staked")
+            self.logger.info("Cannot stake service, it's already staked")
             return
 
         if service.chain_data.on_chain_state != OnChainState.DEPLOYED:
-            print("Cannot stake service, it's not in deployed state")
+            self.logger.info("Cannot stake service, it's not in deployed state")
             return
 
         ocm = self.get_on_chain_manager(service=service)
@@ -335,11 +340,11 @@ class ServiceManager:
         """
         service = self.create_or_load(hash=hash)
         if not service.chain_data.user_params.use_staking:
-            print("Cannot unstake service, `use_staking` is set to false")
+            self.logger.info("Cannot unstake service, `use_staking` is set to false")
             return
 
         if not service.chain_data.staked:
-            print("Cannot unstake service, it's not staked")
+            self.logger.info("Cannot unstake service, it's not staked")
             return
 
         ocm = self.get_on_chain_manager(service=service)
