@@ -9,6 +9,7 @@
     "next": "14.1.0",
     "react": "^18",
     "react-dom": "^18",
+    "react-draggable": "^4.4.6",
     "sudo-prompt": "9.2.1",
     "swr": "^2.2.4",
     "usehooks-ts": "^2.14.0"

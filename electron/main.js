@@ -131,17 +131,15 @@ const createSplashWindow = () => {
  */
 const createMainWindow = () => {
   mainWindow = new BrowserWindow({
-    width: appConfig.width,
-    height: appConfig.height,
     resizable: false,
     title: 'Olas Operate',
   });
 
   // Ensure that external links are opened in native browser
-  mainWindow.webContents.setWindowOpenHandler((details) => {
-    shell.openExternal(details.url);
-    return { action: 'deny' };
-  });
+  // mainWindow.webContents.setWindowOpenHandler((details) => {
+  //   shell.openExternal(details.url);
+  //   return { action: 'deny' };
+  // });
 
   mainWindow.setMenuBarVisibility(false);
   if (isDev) {
@@ -162,6 +160,26 @@ const createMainWindow = () => {
     mainWindow.hide();
   });
 
+  mainWindow.webContents.on('new-window', (event, url) => {
+    event.preventDefault();
+
+    // Create a new BrowserWindow with specific options
+    const newWindowOptions = {
+      show: false,
+      parent: mainWindow,
+      webPreferences: {
+        // Additional options as needed
+      },
+    };
+
+    let win = new BrowserWindow(newWindowOptions);
+    win.loadURL(url); // Load the clicked link in the new window
+
+    win.webContents.on('did-finish-load', () => {
+      win.show();
+    });
+  });
+
   if (isDev) {
     mainWindow.webContents.openDevTools();
   }
@@ -169,8 +187,10 @@ const createMainWindow = () => {
 
 async function launchDaemon() {
   function appendLog(data) {
-    fs.appendFileSync(`${OperateDirectory}/logs.txt`, data.trim() + "\n", { "encoding": "utf-8" })
-    return data
+    fs.appendFileSync(`${OperateDirectory}/logs.txt`, data.trim() + '\n', {
+      encoding: 'utf-8',
+    });
+    return data;
   }
   const check = new Promise(function (resolve, reject) {
     operateDaemon = spawn(OperateCmd, [

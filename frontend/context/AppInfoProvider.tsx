@@ -31,7 +31,7 @@ export const AppInfoProvider = ({ children }: PropsWithChildren) => {
 
   return (
     <AppInfoContext.Provider value={{ appInfo, setAppInfo }}>
-      {appInfo && children}
+      {children}
     </AppInfoContext.Provider>
   );
 };
