@@ -71,6 +71,7 @@ export const useServices = () => {
     setServices((prev) => prev.filter((s) => s.hash !== serviceHash));
 
   return {
+    services,
     getServiceFromState,
     getServicesFromState,
     checkServiceIsFunded,

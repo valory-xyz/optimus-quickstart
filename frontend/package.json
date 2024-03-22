@@ -3,6 +3,7 @@
   "dependencies": {
     "@ant-design/cssinjs": "^1.18.4",
     "@ant-design/icons": "^5.3.0",
+    "@fontsource/inter": "^5.0.17",
     "antd": "^5.14.0",
     "ethers": "5.7.2",
     "lodash": "^4.17.21",
@@ -10,6 +11,7 @@
     "react": "^18",
     "react-dom": "^18",
     "react-draggable": "^4.4.6",
+    "sass": "^1.72.0",
     "sudo-prompt": "9.2.1",
     "swr": "^2.2.4",
     "usehooks-ts": "^2.14.0"

@@ -36,6 +36,7 @@ export type ServiceTemplate = {
   image: string;
   description: string;
   configuration: ConfigurationTemplate;
+  deploy: boolean;
 };
 
 export type ConfigurationTemplate = {

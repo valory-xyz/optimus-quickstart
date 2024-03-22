@@ -34,8 +34,8 @@ if (!singleInstanceLock) app.quit();
 const platform = os.platform();
 const isDev = process.env.NODE_ENV === 'development';
 let appConfig = {
-  width: 600,
-  height: 800,
+  width: 410,
+  minHeight: 215,
   ports: {
     dev: {
       operate: 8000,
@@ -133,6 +133,7 @@ const createMainWindow = () => {
   mainWindow = new BrowserWindow({
     resizable: false,
     title: 'Olas Operate',
+    width: appConfig.width,
   });
 
   // Ensure that external links are opened in native browser
@@ -158,26 +159,6 @@ const createMainWindow = () => {
   mainWindow.on('close', function (event) {
     event.preventDefault();
     mainWindow.hide();
-  });
-
-  mainWindow.webContents.on('new-window', (event, url) => {
-    event.preventDefault();
-
-    // Create a new BrowserWindow with specific options
-    const newWindowOptions = {
-      show: false,
-      parent: mainWindow,
-      webPreferences: {
-        // Additional options as needed
-      },
-    };
-
-    let win = new BrowserWindow(newWindowOptions);
-    win.loadURL(url); // Load the clicked link in the new window
-
-    win.webContents.on('did-finish-load', () => {
-      win.show();
-    });
   });
 
   if (isDev) {
