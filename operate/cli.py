@@ -30,11 +30,16 @@ from aea_ledger_ethereum.ethereum import EthereumCrypto
 from clea import group, params, run
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 from typing_extensions import Annotated
 from uvicorn.main import run as uvicorn
 
 from operate import services
+from operate.account.user import UserAccount
 from operate.constants import KEY, KEYS, OPERATE, SERVICES
+from operate.ledger import get_ledger_type_from_chain_type
+from operate.types import ChainType
+from operate.wallet.master import MasterWallet, MasterWalletManager
 
 
 DEFAULT_HARDHAT_KEY = (
@@ -70,6 +75,27 @@ class OperateApp:
             master_key_path=self._master_key,
             logger=self.logger,
         )
+
+        self.password: t.Optional[str] = None
+
+    @property
+    def user_account(self) -> t.Optional[UserAccount]:
+        """Load user account."""
+        return (
+            UserAccount.load(self._path / "user.json")
+            if (self._path / "user.json").exists()
+            else None
+        )
+
+    @property
+    def master_wallet_manager(self) -> MasterWalletManager:
+        """Load master wallet."""
+        manager = MasterWalletManager(
+            path=self._path / "wallets",
+            password=self.password,
+        )
+        manager.setup()
+        return JSONResponse(content=manager)
 
     def setup(self) -> None:
         """Make the root directory."""
@@ -139,11 +165,140 @@ def create_app(  # pylint: disable=too-many-locals, unused-argument
         """Get API info."""
         return operate.json
 
+    @app.get("/api/account")
+    @with_retries
+    async def _get_account(request: Request) -> t.Dict:
+        """Get account information."""
+        return {"is_setup": operate.user_account is not None}
+
+    @app.post("/api/account")
+    @with_retries
+    async def _setup_account(request: Request) -> t.Dict:
+        """Setup account."""
+        if operate.user_account is not None:
+            return JSONResponse(
+                content={"error": "Account already exists"},
+                status_code=400,
+            )
+
+        data = await request.json()
+        UserAccount.new(
+            password=data["password"],
+            path=operate._path / "user.json",
+        )
+        return JSONResponse(content={"error": None})
+
+    @app.put("/api/account")
+    @with_retries
+    async def _update_password(request: Request) -> t.Dict:
+        """Update password."""
+        if operate.user_account is None:
+            return JSONResponse(
+                content={"error": "Account does not exist"},
+                status_code=400,
+            )
+
+        data = await request.json()
+        try:
+            operate.user_account.update(
+                old_password=data["old_password"],
+                new_password=data["new_password"],
+            )
+            return JSONResponse(content={"error": None})
+        except ValueError as e:
+            return JSONResponse(
+                content={"error": str(e), "traceback": traceback.format_exc()},
+                status_code=400,
+            )
+
+    @app.post("/api/account/login")
+    @with_retries
+    async def _validate_password(request: Request) -> t.Dict:
+        """Validate password."""
+        if operate.user_account is None:
+            return JSONResponse(
+                content={"error": "Account does not exist"},
+                status_code=400,
+            )
+
+        data = await request.json()
+        if not operate.user_account.is_valid(password=data["password"]):
+            return JSONResponse(
+                content={"error": "Password is not valid"},
+                status_code=401,
+            )
+
+        operate.password = data["password"]
+        return JSONResponse(
+            content={"error": "Login successful"},
+            status_code=200,
+        )
+
+    @app.get("/api/wallet")
+    @with_retries
+    async def _get_wallets(request: Request) -> t.List[t.Dict]:
+        """Get wallets."""
+        wallets = []
+        for wallet in operate.master_wallet_manager:
+            wallets.append(wallet.json)
+        return JSONResponse(content=operate.service_manager.json)
+
+    @app.post("/api/wallet")
+    @with_retries
+    async def _create_wallet(request: Request) -> t.List[t.Dict]:
+        """Create wallet"""
+        if operate.user_account is None:
+            return JSONResponse(
+                content={"error": "Cannot create wallet; User account does not exist!"},
+                status_code=400,
+            )
+
+        if operate.password is None:
+            return JSONResponse(
+                content={"error": "You need to login before creating a wallet"},
+                status_code=401,
+            )
+
+        data = await request.json()
+        chain_type = ChainType(data["chain_type"])
+        ledger_type = get_ledger_type_from_chain_type(chain=chain_type)
+        manager = operate.master_wallet_manager
+        if manager.exists(ledger_type=ledger_type):
+            return JSONResponse(content=manager.load(ledger_type=ledger_type).json)
+        return JSONResponse(content=manager.create(ledger_type=ledger_type).json)
+
+    @app.put("/api/wallet")
+    @with_retries
+    async def _create_wallet(request: Request) -> t.List[t.Dict]:
+        """Create wallet safe"""
+        if operate.user_account is None:
+            return JSONResponse(
+                content={"error": "Cannot create safe; User account does not exist!"},
+                status_code=400,
+            )
+
+        if operate.password is None:
+            return JSONResponse(
+                content={"error": "You need to login before creating a safe"},
+                status_code=401,
+            )
+
+        data = await request.json()
+        chain_type = ChainType(data["chain_type"])
+        ledger_type = get_ledger_type_from_chain_type(chain=chain_type)
+        manager = operate.master_wallet_manager
+        if not manager.exists(ledger_type=ledger_type):
+            return JSONResponse(content=wallet)
+
+        wallet = manager.load(ledger_type=ledger_type)
+        wallet.create_safe(chain_type=chain_type, owner=data.get("owner"))
+        return JSONResponse(content=wallet.json)
+
     @app.get("/api/services")
     @with_retries
     async def _get_services(request: Request) -> t.List[t.Dict]:
         """Get available services."""
-        return operate.service_manager.json
+        return JSONResponse(content=operate.service_manager.json)
 
     @app.post("/api/services")
     @with_retries
