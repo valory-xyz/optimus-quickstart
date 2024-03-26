@@ -65,6 +65,13 @@ def get_default_rpc(chain: ChainType) -> str:
     return DEFAULT_RPCS.get(chain, ETHEREUM_RPC)
 
 
+def get_ledger_type_from_chain_type(chain: ChainType) -> LedgerType:
+    """Get LedgerType from ChainType."""
+    if chain in (ChainType.ETHEREUM, ChainType.GOERLI, ChainType.GNOSIS):
+        return LedgerType.ETHEREUM
+    return LedgerType.SOLANA
+
+
 def get_ledger_helper_by_chain(rpc: str, chain: ChainType) -> LedgerHelper:
     """Get ledger helper by chain type."""
     return CHAIN_HELPERS.get(chain, Ethereum)(rpc=rpc)
