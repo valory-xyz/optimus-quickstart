@@ -82,7 +82,7 @@ class LocalResource:
         """To dictionary object."""
         obj = {}
         for pname, _ in self.__annotations__.items():
-            if pname.startswith("_"):
+            if pname.startswith("_") or pname == "path":
                 continue
             obj[pname] = serialize(self.__dict__[pname])
         return obj
