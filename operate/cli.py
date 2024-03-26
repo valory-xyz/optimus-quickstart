@@ -241,7 +241,7 @@ def create_app(  # pylint: disable=too-many-locals, unused-argument
         wallets = []
         for wallet in operate.master_wallet_manager:
             wallets.append(wallet.json)
-        return JSONResponse(content=operate.service_manager.json)
+        return JSONResponse(content=wallets)
 
     @app.post("/api/wallet")
     @with_retries

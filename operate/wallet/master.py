@@ -1,3 +1,4 @@
+import json
 import typing as t
 from dataclasses import dataclass
 from pathlib import Path
@@ -104,9 +105,17 @@ class EthereumMasterWallet(MasterWallet):
         Account.enable_unaudited_hdwallet_features()
 
         # Create crypto object and store using password
-        crypto = make_crypto("ethereum")
-        crypto._entity, mnemonic = Account.create_with_mnemonic()
-        crypto.dump(private_key_file=path / cls._key, password=password)
+        crypto, mnemonic = Account.create_with_mnemonic()
+        (path / cls._key).write_text(
+            data=json.dumps(
+                Account.encrypt(
+                    private_key=crypto._private_key,
+                    password=password,
+                ),
+                indent=2,
+            ),
+            encoding="utf-8",
+        )
 
         # Create wallet
         wallet = EthereumMasterWallet(path=path, address=crypto.address, safe_chains=[])
