@@ -30,6 +30,7 @@ from aea_ledger_ethereum.ethereum import EthereumCrypto
 from clea import group, params, run
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 from typing_extensions import Annotated
 from uvicorn.main import run as uvicorn
 
@@ -137,13 +138,13 @@ def create_app(  # pylint: disable=too-many-locals, unused-argument
     @with_retries
     async def _get_api(request: Request) -> t.Dict:
         """Get API info."""
-        return operate.json
+        return JSONResponse(content=operate.json)
 
     @app.get("/api/services")
     @with_retries
     async def _get_services(request: Request) -> t.List[t.Dict]:
         """Get available services."""
-        return operate.service_manager.json
+        return JSONResponse(content=operate.service_manager.json)
 
     @app.post("/api/services")
     @with_retries
@@ -162,7 +163,9 @@ def create_app(  # pylint: disable=too-many-locals, unused-argument
             operate.service_manager.stake_service_on_chain(hash=service.hash)
             service.deployment.build()
             service.deployment.start()
-        return operate.service_manager.create_or_load(hash=service.hash).json
+        return JSONResponse(
+            content=operate.service_manager.create_or_load(hash=service.hash).json
+        )
 
     @app.put("/api/services")
     @with_retries
@@ -178,15 +181,17 @@ def create_app(  # pylint: disable=too-many-locals, unused-argument
             operate.service_manager.stake_service_on_chain(hash=service.hash)
             service.deployment.build()
             service.deployment.start()
-        return service.json
+        return JSONResponse(content=service.json)
 
     @app.get("/api/services/{service}")
     @with_retries
     async def _get_service(request: Request) -> t.Dict:
         """Create a service."""
-        return operate.service_manager.create_or_load(
-            hash=request.path_params["service"],
-        ).json
+        return JSONResponse(
+            content=operate.service_manager.create_or_load(
+                hash=request.path_params["service"],
+            ).json
+        )
 
     @app.post("/api/services/{service}/onchain/deploy")
     @with_retries
@@ -198,9 +203,11 @@ def create_app(  # pylint: disable=too-many-locals, unused-argument
         operate.service_manager.stake_service_on_chain(
             hash=request.path_params["service"]
         )
-        return operate.service_manager.create_or_load(
-            hash=request.path_params["service"]
-        ).json
+        return JSONResponse(
+            content=operate.service_manager.create_or_load(
+                hash=request.path_params["service"]
+            ).json
+        )
 
     @app.post("/api/services/{service}/onchain/stop")
     @with_retries
@@ -215,9 +222,11 @@ def create_app(  # pylint: disable=too-many-locals, unused-argument
         operate.service_manager.unstake_service_on_chain(
             hash=request.path_params["service"]
         )
-        return operate.service_manager.create_or_load(
-            hash=request.path_params["service"]
-        ).json
+        return JSONResponse(
+            content=operate.service_manager.create_or_load(
+                hash=request.path_params["service"]
+            ).json
+        )
 
     @app.post("/api/services/{service}/deployment/build")
     @with_retries
@@ -227,7 +236,7 @@ def create_app(  # pylint: disable=too-many-locals, unused-argument
             request.path_params["service"],
         ).deployment
         deployment.build()
-        return deployment.json
+        return JSONResponse(content=deployment.json)
 
     @app.post("/api/services/{service}/deployment/start")
     @with_retries
@@ -238,7 +247,7 @@ def create_app(  # pylint: disable=too-many-locals, unused-argument
         ).deployment
         deployment.build()
         deployment.start()
-        return deployment.json
+        return JSONResponse(content=deployment.json)
 
     @app.post("/api/services/{service}/deployment/stop")
     @with_retries
@@ -248,7 +257,7 @@ def create_app(  # pylint: disable=too-many-locals, unused-argument
             request.path_params["service"],
         ).deployment
         deployment.stop()
-        return deployment.json
+        return JSONResponse(content=deployment.json)
 
     @app.post("/api/services/{service}/deployment/delete")
     @with_retries
@@ -258,7 +267,7 @@ def create_app(  # pylint: disable=too-many-locals, unused-argument
             request.path_params["service"],
         ).deployment
         deployment.delete()
-        return deployment.json
+        return JSONResponse(content=deployment.json)
 
     return app
 
