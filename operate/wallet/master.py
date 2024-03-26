@@ -6,6 +6,8 @@ from aea.crypto.base import Crypto, LedgerApi
 from aea.crypto.registries import make_crypto, make_ledger_api
 from aea_ledger_ethereum.ethereum import EthereumCrypto
 from autonomy.chain.base import registry_contracts
+from mnemonic import Mnemonic
+from web3 import Account
 
 from operate.ledger import get_default_rpc, get_ledger_type_from_chain_type
 from operate.resource import LocalResource
@@ -56,7 +58,7 @@ class MasterWallet(LocalResource):
         )
 
     @staticmethod
-    def new(password: str, path: Path) -> "MasterWallet":
+    def new(password: str, path: Path) -> t.Tuple["MasterWallet", t.List[str]]:
         """Create a new master wallet."""
         raise NotImplementedError()
 
@@ -94,16 +96,22 @@ class EthereumMasterWallet(MasterWallet):
         )
 
     @classmethod
-    def new(cls, password: str, path: Path) -> "EthereumMasterWallet":
+    def new(
+        cls, password: str, path: Path
+    ) -> t.Tuple["EthereumMasterWallet", t.List[str]]:
         """Create a new master wallet."""
+        # Enable support for creating account using mnemonics
+        Account.enable_unaudited_hdwallet_features()
+
         # Create crypto object and store using password
         crypto = make_crypto("ethereum")
+        crypto._entity, mnemonic = Account.create_with_mnemonic()
         crypto.dump(private_key_file=path / cls._key, password=password)
 
         # Create wallet
         wallet = EthereumMasterWallet(path=path, address=crypto.address, safe_chains=[])
         wallet.store()
-        return wallet
+        return wallet, mnemonic.split()
 
     def create_safe(
         self,
@@ -164,7 +172,7 @@ class MasterWalletManager:
         self.path.mkdir(exist_ok=True)
         return self
 
-    def create(self, ledger_type: LedgerType) -> MasterWallet:
+    def create(self, ledger_type: LedgerType) -> t.Tuple[MasterWallet, t.List[str]]:
         """
         Create a master wallet
 

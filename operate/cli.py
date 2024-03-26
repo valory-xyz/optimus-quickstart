@@ -95,7 +95,7 @@ class OperateApp:
             password=self.password,
         )
         manager.setup()
-        return JSONResponse(content=manager)
+        return manager
 
     def setup(self) -> None:
         """Make the root directory."""
@@ -230,7 +230,7 @@ def create_app(  # pylint: disable=too-many-locals, unused-argument
 
         operate.password = data["password"]
         return JSONResponse(
-            content={"error": "Login successful"},
+            content={"message": "Login successful"},
             status_code=200,
         )
 
@@ -264,8 +264,14 @@ def create_app(  # pylint: disable=too-many-locals, unused-argument
         ledger_type = get_ledger_type_from_chain_type(chain=chain_type)
         manager = operate.master_wallet_manager
         if manager.exists(ledger_type=ledger_type):
-            return JSONResponse(content=manager.load(ledger_type=ledger_type).json)
-        return JSONResponse(content=manager.create(ledger_type=ledger_type).json)
+            return JSONResponse(
+                content={
+                    "wallet": manager.load(ledger_type=ledger_type).json,
+                    "mnemonic": None,
+                }
+            )
+        wallet, mnemonic = manager.create(ledger_type=ledger_type)
+        return JSONResponse(content={"wallet": wallet.json, "mnemonic": mnemonic})
 
     @app.put("/api/wallet")
     @with_retries
@@ -288,7 +294,7 @@ def create_app(  # pylint: disable=too-many-locals, unused-argument
         ledger_type = get_ledger_type_from_chain_type(chain=chain_type)
         manager = operate.master_wallet_manager
         if not manager.exists(ledger_type=ledger_type):
-            return JSONResponse(content=wallet)
+            return JSONResponse(content={"error": "Wallet does not exist"})
 
         wallet = manager.load(ledger_type=ledger_type)
         wallet.create_safe(chain_type=chain_type, owner=data.get("owner"))
