@@ -11,15 +11,18 @@ import {
 } from '@ant-design/icons';
 import { Badge, Button, Flex, Typography, theme } from 'antd';
 import Image from 'next/image';
-import { useMemo, useState } from 'react';
-import { Receive } from '@/components/Receive';
-import { Send } from '@/components/Send';
-import { Settings } from '@/components/Settings';
-import { Wrapper } from '@/components/Wrapper';
+import { useCallback, useMemo, useState } from 'react';
+import { Receive } from '@/components/Wallet/Receive';
 import { useServices } from '@/hooks';
 import { useInterval } from 'usehooks-ts';
 import { ServicesService } from '@/service';
 import { DeploymentStatus } from '@/client';
+import { serviceTemplates } from '@/constants';
+import { Settings } from '@/components/Settings';
+import { Send } from '@/components/Wallet/Send';
+import { Wrapper } from '@/components/Layout/Wrapper';
+import { Setup } from '@/components/Setup';
+import { Login } from '@/components/Login';
 
 const { useToken } = theme;
 
@@ -27,6 +30,10 @@ export default function Home() {
   const { pageState } = usePageState();
   const page = useMemo(() => {
     switch (pageState) {
+      case PageState.Setup:
+        return <Setup />;
+      case PageState.Login:
+        return <Login />;
       case PageState.Main:
         return <Main />;
       case PageState.Settings:
@@ -44,13 +51,17 @@ export default function Home() {
 const Main = () => {
   const { token } = useToken();
   const { setPageState } = usePageState();
-
   const { services } = useServices();
 
-  const [isRunning, setIsRunning] = useState(false);
+  const [serviceButtonState, setServiceButtonState] = useState({
+    isLoading: false,
+    isRunning: false,
+  });
+
+  const serviceTemplate = useMemo(() => serviceTemplates[0], []);
 
   const agentHead = useMemo(() => {
-    if (isRunning)
+    if (serviceButtonState.isRunning)
       return (
         <Badge status="processing" color="green" dot offset={[-5, 32.5]}>
           <Image
@@ -66,51 +77,65 @@ const Main = () => {
         <Image src="/sad-robot.svg" alt="Sad Robot" width={35} height={35} />
       </Badge>
     );
-  }, [isRunning]);
+  }, [serviceButtonState.isRunning]);
+
+  const handleStart = useCallback(() => {
+    setServiceButtonState({ ...serviceButtonState, isLoading: true });
+    if (services.length > 0) {
+      ServicesService.startDeployment(services[0].hash).then(() => {
+        setServiceButtonState({ ...serviceButtonState, isRunning: true });
+      });
+    }
+    ServicesService.createService({ serviceTemplate, deploy: true }).then(
+      () => {
+        setServiceButtonState({ ...serviceButtonState, isLoading: false });
+      },
+    );
+  }, [serviceButtonState, serviceTemplate, services]);
+
+  const handleStop = useCallback(() => {
+    if (services.length === 0) return;
+    setServiceButtonState({ ...serviceButtonState, isLoading: true });
+    ServicesService.stopDeployment(services[0].hash).then(() => {
+      setServiceButtonState((prev) => ({ ...prev, isRunning: false }));
+    });
+  }, [serviceButtonState, services]);
 
   const serviceToggleButton = useMemo(() => {
-    if (isRunning)
+    if (serviceButtonState.isLoading)
       return (
-        <Button type="text" icon={<PauseCircleOutlined color="red" />}>
+        <Button type="text" loading>
+          Loading
+        </Button>
+      );
+    if (serviceButtonState.isRunning)
+      return (
+        <Button
+          type="text"
+          icon={<PauseCircleOutlined color="red" />}
+          onClick={handleStop}
+        >
           Pause
         </Button>
       );
     return (
-      <Button type="text" icon={<PlayCircleOutlined />}>
+      <Button type="text" icon={<PlayCircleOutlined />} onClick={handleStart}>
         Start
       </Button>
     );
-  }, [isRunning]);
-
-  const handleStartService = () => {
-    if (services.length === 0)
-      return ServicesService.createService().then(() => {
-        setIsRunning(true);
-      });
-
-    return ServicesService.deployService().then(() => {
-      setIsRunning(true);
-    });
-  };
-
-  const handleStopService = () => {
-    if (services.length === 0) return;
-    ServicesService.stopService(services[0].hash).then(() => {
-      setIsRunning(false);
-    });
-  };
+  }, [handleStart, handleStop, serviceButtonState]);
 
   useInterval(() => {
-    if (services.length === 0) {
-      setIsRunning(false);
+    if (services.length <= 0) {
+      setServiceButtonState({ isLoading: false, isRunning: false });
       return;
     }
 
     if (services[0]) {
       ServicesService.getServiceStatus(services[0].hash).then((res) => {
         res.status === DeploymentStatus.DEPLOYED
-          ? setIsRunning(true)
-          : setIsRunning(false);
+          ? setServiceButtonState((prev) => ({ ...prev, isRunning: true }))
+          : setServiceButtonState((prev) => ({ ...prev, isRunning: false }));
       });
     }
   }, 5000);
@@ -136,10 +161,14 @@ const Main = () => {
             <span style={{ fontSize: 32, fontWeight: 900 }}>$</span>
             <span style={{ fontSize: 64, fontWeight: 900 }}>2,101</span>
           </Typography>
-          <Typography.Text>
-            24hr change 0.2%{' '}
+          <Typography
+            style={{ display: 'flex', flexWrap: 'nowrap', fontSize: 18 }}
+          >
+            <span style={{ display: 'flex', flexWrap: 'nowrap' }}>
+              24hr change 0.2%
+            </span>
             <CaretUpFilled style={{ color: token.colorSuccess }} />
-          </Typography.Text>
+          </Typography>
         </Flex>
         <Flex vertical gap={20}>
           <Button

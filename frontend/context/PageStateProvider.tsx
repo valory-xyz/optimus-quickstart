@@ -7,6 +7,8 @@ import {
 } from 'react';
 
 export enum PageState {
+  Setup,
+  Login,
   Main,
   Settings,
   Receive,
@@ -19,12 +21,12 @@ type PageStateContextType = {
 };
 
 export const PageStateContext = createContext<PageStateContextType>({
-  pageState: PageState.Main,
+  pageState: PageState.Setup,
   setPageState: () => {},
 });
 
 export const PageStateProvider = ({ children }: PropsWithChildren) => {
-  const [pageState, setPageState] = useState(PageState.Main);
+  const [pageState, setPageState] = useState(PageState.Setup);
 
   return (
     <PageStateContext.Provider value={{ pageState, setPageState }}>

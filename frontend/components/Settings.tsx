@@ -2,8 +2,8 @@ import { PageState } from '@/context/PageStateProvider';
 import { usePageState } from '@/hooks/usePageState';
 import { CloseOutlined, SettingOutlined } from '@ant-design/icons';
 import { Typography, Button, Flex, Input, message, theme } from 'antd';
-import { Header } from './Header';
-import { Wrapper } from './Wrapper';
+import { Header } from './Layout/Header';
+import { Wrapper } from './Layout/Wrapper';
 import { useState } from 'react';
 
 const { useToken } = theme;
