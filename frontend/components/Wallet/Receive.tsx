@@ -10,15 +10,14 @@ import { Wrapper } from '../Layout/Wrapper';
 import { usePageState } from '@/hooks/usePageState';
 import { PageState } from '@/context/PageStateProvider';
 import { useAppInfo } from '@/hooks';
+import { copyToClipboard } from '@/common-util/copyToClipboard';
 
 export const Receive = () => {
   const { setPageState } = usePageState();
   const { userPublicKey } = useAppInfo();
-  const onCopy = () => {
-    navigator.clipboard
-      .writeText(`${userPublicKey}`)
-      .then(() => message.success('Copied!'));
-  };
+  const handleCopy = () =>
+    copyToClipboard(`${userPublicKey}`).then(() => message.success('Copied!'));
+
   return (
     <>
       <Header>
@@ -53,7 +52,7 @@ export const Receive = () => {
           <Flex gap={10}>
             <Typography.Text>{userPublicKey}</Typography.Text>
             <Button>
-              <CopyOutlined onClick={onCopy} />
+              <CopyOutlined onClick={handleCopy} />
             </Button>
           </Flex>
         </Flex>

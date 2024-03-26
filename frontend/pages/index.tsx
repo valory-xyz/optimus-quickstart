@@ -1,4 +1,4 @@
-import { Header } from '@/components/Header';
+import { Header } from '@/components/Layout/Header';
 import { PageState } from '@/context/PageStateProvider';
 import { usePageState } from '@/hooks/usePageState';
 import {

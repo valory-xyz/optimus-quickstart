@@ -57,7 +57,7 @@ const SetupWelcome = () => {
 
 const SetupBackup = () => {
   const { goto } = useSetup();
-  const [mnemonic, setMnemonic] = useState(
+  const [mnemonic] = useState(
     'test test test test test test test test test test test test',
   );
   return (
