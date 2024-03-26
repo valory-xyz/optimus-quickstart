@@ -67,6 +67,16 @@ class LedgerType(enum.IntEnum):
         """Load from string."""
         return cls(_LEDGER_TYPE_TO_ENUM[chain.lower()])
 
+    @property
+    def config_file(self) -> str:
+        """Config filename."""
+        return f"{self.name.lower()}.json"
+
+    @property
+    def key_file(self) -> str:
+        """Key filename."""
+        return f"{self.name.lower()}.txt"
+
 
 class ChainType(enum.IntEnum):
     """Chain type enum."""
