@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
-import { useAppInfo } from '.';
+
 import { EthersService } from '@/service/Ethers';
+
+import { useAppInfo } from '.';
 
 type useMasterWalletProps = {
   rpc: string;

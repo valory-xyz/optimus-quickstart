@@ -1,9 +1,10 @@
+import { useContext } from 'react';
+
 import { Service, ServiceHash, ServiceTemplate } from '@/client';
 import { ServicesContext } from '@/context';
 import { ServicesService } from '@/service';
 import MulticallService from '@/service/Multicall';
 import { Address, AddressBooleanRecord } from '@/types';
-import { useContext } from 'react';
 
 const checkServiceIsFunded = async (
   service: Service,

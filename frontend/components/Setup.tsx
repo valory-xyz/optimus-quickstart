@@ -1,14 +1,14 @@
-import { useContext, useEffect, useMemo, useState } from 'react';
-import { Wrapper } from './Layout/Wrapper';
-import { Button, Input, Spin, Typography, message } from 'antd';
 import { CopyOutlined } from '@ant-design/icons';
-import { SetupScreen } from '@/enums/SetupScreen';
-import { SetupContext } from '@/context/SetupProvider';
-import { useSetup } from '@/hooks/useSetup';
-import { usePageState } from '@/hooks/usePageState';
-import { PageState } from '@/context/PageStateProvider';
-import { copyToClipboard } from '@/common-util/copyToClipboard';
+import { Button, Input, message, Spin, Typography } from 'antd';
 import crypto from 'crypto';
+import { useContext, useEffect, useMemo, useState } from 'react';
+
+import { copyToClipboard } from '@/common-util';
+import { SetupContext } from '@/context';
+import { PageState, SetupScreen } from '@/enums';
+import { usePageState, useSetup } from '@/hooks';
+
+import { Wrapper } from './Layout/Wrapper';
 
 /**
  * Remove RecoveryPage; add to Settings page

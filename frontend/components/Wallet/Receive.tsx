@@ -4,13 +4,14 @@ import {
   CopyOutlined,
   WarningOutlined,
 } from '@ant-design/icons';
-import { Alert, Button, Flex, QRCode, Typography, message } from 'antd';
+import { Alert, Button, Flex, message, QRCode, Typography } from 'antd';
+
+import { copyToClipboard } from '@/common-util';
+import { PageState } from '@/enums';
+import { useAppInfo, usePageState } from '@/hooks';
+
 import { Header } from '../Layout/Header';
 import { Wrapper } from '../Layout/Wrapper';
-import { usePageState } from '@/hooks/usePageState';
-import { PageState } from '@/context/PageStateProvider';
-import { useAppInfo } from '@/hooks';
-import { copyToClipboard } from '@/common-util/copyToClipboard';
 
 export const Receive = () => {
   const { setPageState } = usePageState();

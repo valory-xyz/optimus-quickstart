@@ -1,11 +1,12 @@
-import { SetupScreen } from '@/enums/SetupScreen';
 import {
+  createContext,
   Dispatch,
   PropsWithChildren,
   SetStateAction,
-  createContext,
   useState,
 } from 'react';
+
+import { SetupScreen } from '@/enums/SetupScreen';
 
 type SetupObjectType = {
   state: SetupScreen;

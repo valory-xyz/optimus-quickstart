@@ -1,14 +1,15 @@
-import { AppInfo } from '@/client';
-import { AppInfoService } from '@/service';
 import { message } from 'antd';
 import {
+  createContext,
   Dispatch,
   PropsWithChildren,
   SetStateAction,
-  createContext,
   useEffect,
   useState,
 } from 'react';
+
+import { AppInfo } from '@/client';
+import { AppInfoService } from '@/service';
 
 type AppInfoContextProps = {
   appInfo?: AppInfo;

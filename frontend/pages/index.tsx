@@ -1,6 +1,3 @@
-import { Header } from '@/components/Layout/Header';
-import { PageState } from '@/context/PageStateProvider';
-import { usePageState } from '@/hooks/usePageState';
 import {
   ArrowDownOutlined,
   ArrowUpOutlined,
@@ -9,20 +6,19 @@ import {
   PlayCircleOutlined,
   SettingOutlined,
 } from '@ant-design/icons';
-import { Badge, Button, Flex, Typography, theme } from 'antd';
+import { Badge, Button, Flex, theme, Typography } from 'antd';
 import Image from 'next/image';
 import { useCallback, useMemo, useState } from 'react';
-import { Receive } from '@/components/Wallet/Receive';
-import { useServices } from '@/hooks';
 import { useInterval } from 'usehooks-ts';
-import { ServicesService } from '@/service';
+
 import { DeploymentStatus } from '@/client';
+import { Login, Settings, Setup } from '@/components';
+import { Header, Wrapper } from '@/components/Layout';
+import { Receive, Send } from '@/components/Wallet';
 import { serviceTemplates } from '@/constants';
-import { Settings } from '@/components/Settings';
-import { Send } from '@/components/Wallet/Send';
-import { Wrapper } from '@/components/Layout/Wrapper';
-import { Setup } from '@/components/Setup';
-import { Login } from '@/components/Login';
+import { PageState } from '@/enums';
+import { usePageState, useServices } from '@/hooks';
+import { ServicesService } from '@/service';
 
 const { useToken } = theme;
 

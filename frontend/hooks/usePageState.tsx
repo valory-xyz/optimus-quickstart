@@ -1,5 +1,7 @@
-import { PageState, PageStateContext } from '@/context/PageStateProvider';
 import { useContext } from 'react';
+
+import { PageStateContext } from '@/context';
+import { PageState } from '@/enums';
 
 export const usePageState = () => {
   const { pageState, setPageState } = useContext(PageStateContext);

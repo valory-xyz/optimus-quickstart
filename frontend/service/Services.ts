@@ -1,5 +1,5 @@
 import { Deployment, Service, ServiceHash, ServiceTemplate } from '@/client';
-import { isDev } from '@/common-util/isDev';
+import { isDev } from '@/common-util';
 import { BACKEND_URL } from '@/constants';
 
 /**

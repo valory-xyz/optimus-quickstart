@@ -1,19 +1,12 @@
 import {
+  createContext,
+  Dispatch,
+  PropsWithChildren,
   SetStateAction,
   useState,
-  Dispatch,
-  createContext,
-  PropsWithChildren,
 } from 'react';
 
-export enum PageState {
-  Setup,
-  Login,
-  Main,
-  Settings,
-  Receive,
-  Send,
-}
+import { PageState } from '@/enums';
 
 type PageStateContextType = {
   pageState: PageState;
