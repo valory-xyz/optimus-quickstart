@@ -19,7 +19,6 @@
 
 """Safe helpers."""
 
-import binascii
 import secrets
 import typing as t
 from enum import Enum
@@ -27,11 +26,7 @@ from enum import Enum
 from aea.crypto.base import Crypto, LedgerApi
 from autonomy.chain.base import registry_contracts
 from autonomy.chain.config import ChainType as ChainProfile
-from autonomy.chain.constants import MULTISEND_CONTRACT
-from autonomy.chain.mint import transact
-from autonomy.chain.service import get_agent_instances, get_service_info
 from autonomy.chain.tx import TxSettler
-from hexbytes import HexBytes
 
 
 NULL_ADDRESS: str = "0x" + "0" * 40
@@ -156,7 +151,7 @@ def create_safe(
     crypto: Crypto,
     owner: t.Optional[str] = None,
     salt_nonce: t.Optional[int] = None,
-) -> t.Tuple[str]:
+) -> t.Tuple[str, int]:
     """Create gnosis safe."""
     salt_nonce = salt_nonce or _get_nonce()
     tx = registry_contracts.gnosis_safe.get_deploy_transaction(
@@ -168,7 +163,9 @@ def create_safe(
     )
     safe = tx.pop("contract_address")
 
-    def _build(*args, **kwargs) -> t.Dict:
+    def _build(  # pylint: disable=unused-argument
+        *args: t.Any, **kwargs: t.Any
+    ) -> t.Dict:
         tx = registry_contracts.gnosis_safe.get_deploy_transaction(
             ledger_api=ledger_api,
             deployer_address=crypto.address,
@@ -184,7 +181,7 @@ def create_safe(
         crypto=crypto,
         chain_type=ChainProfile.CUSTOM,
     )
-    setattr(
+    setattr(  # noqa: B010
         tx_settler,
         "build",
         _build,

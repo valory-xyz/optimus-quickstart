@@ -39,7 +39,7 @@ from operate.account.user import UserAccount
 from operate.constants import KEY, KEYS, OPERATE, SERVICES
 from operate.ledger import get_ledger_type_from_chain_type
 from operate.types import ChainType
-from operate.wallet.master import MasterWallet, MasterWalletManager
+from operate.wallet.master import MasterWalletManager
 
 
 DEFAULT_HARDHAT_KEY = (
@@ -123,7 +123,7 @@ class OperateApp:
         }
 
 
-def create_app(  # pylint: disable=too-many-locals, unused-argument
+def create_app(  # pylint: disable=too-many-locals, unused-argument, too-many-statements
     home: t.Optional[Path] = None,
 ) -> FastAPI:
     """Create FastAPI object."""
@@ -184,7 +184,7 @@ def create_app(  # pylint: disable=too-many-locals, unused-argument
         data = await request.json()
         UserAccount.new(
             password=data["password"],
-            path=operate._path / "user.json",
+            path=operate._path / "user.json",  # pylint: disable=protected-access
         )
         return JSONResponse(content={"error": None})
 
@@ -275,7 +275,7 @@ def create_app(  # pylint: disable=too-many-locals, unused-argument
 
     @app.put("/api/wallet")
     @with_retries
-    async def _create_wallet(request: Request) -> t.List[t.Dict]:
+    async def _create_safe(request: Request) -> t.List[t.Dict]:
         """Create wallet safe"""
         if operate.user_account is None:
             return JSONResponse(
@@ -297,7 +297,10 @@ def create_app(  # pylint: disable=too-many-locals, unused-argument
             return JSONResponse(content={"error": "Wallet does not exist"})
 
         wallet = manager.load(ledger_type=ledger_type)
-        wallet.create_safe(chain_type=chain_type, owner=data.get("owner"))
+        wallet.create_safe(  # pylint: disable=no-member
+            chain_type=chain_type,
+            owner=data.get("owner"),
+        )
         return JSONResponse(content=wallet.json)
 
     @app.get("/api/services")

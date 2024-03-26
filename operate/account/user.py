@@ -43,7 +43,7 @@ class UserAccount(LocalResource):
     @classmethod
     def load(cls, path: Path) -> "UserAccount":
         """Load user account."""
-        return super().load(path)
+        return super().load(path)  # type: ignore
 
     @classmethod
     def new(cls, password: str, path: Path) -> "UserAccount":

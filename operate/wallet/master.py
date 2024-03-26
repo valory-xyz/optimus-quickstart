@@ -1,16 +1,35 @@
+# -*- coding: utf-8 -*-
+# ------------------------------------------------------------------------------
+#
+#   Copyright 2023 Valory AG
+#
+#   Licensed under the Apache License, Version 2.0 (the "License");
+#   you may not use this file except in compliance with the License.
+#   You may obtain a copy of the License at
+#
+#       http://www.apache.org/licenses/LICENSE-2.0
+#
+#   Unless required by applicable law or agreed to in writing, software
+#   distributed under the License is distributed on an "AS IS" BASIS,
+#   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#   See the License for the specific language governing permissions and
+#   limitations under the License.
+#
+# ------------------------------------------------------------------------------
+
+"""Master key implementation"""
+
 import json
 import typing as t
 from dataclasses import dataclass
 from pathlib import Path
 
 from aea.crypto.base import Crypto, LedgerApi
-from aea.crypto.registries import make_crypto, make_ledger_api
+from aea.crypto.registries import make_ledger_api
 from aea_ledger_ethereum.ethereum import EthereumCrypto
-from autonomy.chain.base import registry_contracts
-from mnemonic import Mnemonic
 from web3 import Account
 
-from operate.ledger import get_default_rpc, get_ledger_type_from_chain_type
+from operate.ledger import get_default_rpc
 from operate.resource import LocalResource
 from operate.types import ChainType, LedgerType
 from operate.utils.gnosis import create_safe as create_gnosis_safe
@@ -101,15 +120,14 @@ class EthereumMasterWallet(MasterWallet):
         cls, password: str, path: Path
     ) -> t.Tuple["EthereumMasterWallet", t.List[str]]:
         """Create a new master wallet."""
-        # Enable support for creating account using mnemonics
-        Account.enable_unaudited_hdwallet_features()
-
-        # Create crypto object and store using password
-        crypto, mnemonic = Account.create_with_mnemonic()
+        # Backport support on aea
+        account = Account()
+        account.enable_unaudited_hdwallet_features()
+        crypto, mnemonic = account.create_with_mnemonic()
         (path / cls._key).write_text(
             data=json.dumps(
                 Account.encrypt(
-                    private_key=crypto._private_key,
+                    private_key=crypto._private_key,  # pylint: disable=protected-access
                     password=password,
                 ),
                 indent=2,
@@ -127,7 +145,7 @@ class EthereumMasterWallet(MasterWallet):
         chain_type: ChainType,
         owner: t.Optional[str] = None,
         rpc: t.Optional[str] = None,
-    ) -> str:
+    ) -> None:
         """Create safe."""
         if chain_type in self.safe_chains:
             return
@@ -143,7 +161,7 @@ class EthereumMasterWallet(MasterWallet):
     @classmethod
     def load(cls, path: Path) -> "EthereumMasterWallet":
         """Load master wallet."""
-        return super().load(path)
+        return super().load(path)  # type: ignore
 
 
 LEDGER_TYPE_TO_WALLET_CLASS = {
@@ -191,7 +209,7 @@ class MasterWalletManager:
             return EthereumMasterWallet.new(password=self.password, path=self.path)
         raise ValueError(f"{ledger_type} is not supported.")
 
-    def exists(self, ledger_type: LedgerType) -> MasterWallet:
+    def exists(self, ledger_type: LedgerType) -> bool:
         """
         Check if a wallet exists or not
 
