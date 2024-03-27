@@ -21,8 +21,11 @@
 
 import enum
 import typing as t
+from dataclasses import dataclass
 
-from typing_extensions import NotRequired, TypedDict
+from typing_extensions import TypedDict
+
+from operate.resource import LocalResource
 
 
 _ACTIONS = {
@@ -84,6 +87,44 @@ class ChainType(enum.IntEnum):
         return cls(_CHAIN_NAME_TO_ENUM[_CHAIN_ID_TO_CHAIN_NAME[cid]])
 
 
+class Action(enum.IntEnum):
+    """Action payload."""
+
+    STATUS = 0
+    BUILD = 1
+    DEPLOY = 2
+    STOP = 3
+
+    @classmethod
+    def from_string(cls, action: str) -> "Action":
+        """Load from string."""
+        return cls(_ACTIONS[action])
+
+
+class DeploymentStatus(enum.IntEnum):
+    """Status payload."""
+
+    CREATED = 0
+    BUILT = 1
+    DEPLOYING = 2
+    DEPLOYED = 3
+    STOPPING = 4
+    STOPPED = 5
+    DELETED = 6
+
+
+class OnChainState(enum.IntEnum):
+    """On-chain state."""
+
+    NOTMINTED = 0
+    MINTED = 1
+    ACTIVATED = 2
+    REGISTERED = 3
+    DEPLOYED = 4
+    TERMINATED = 5
+    UNBONDED = 6
+
+
 class ContractAddresses(TypedDict):
     """Contracts templates."""
 
@@ -95,36 +136,16 @@ class ContractAddresses(TypedDict):
     multisend: str
 
 
-class LedgerConfig(TypedDict):
+@dataclass
+class LedgerConfig(LocalResource):
     """Ledger config."""
 
-    rpc: NotRequired[str]
-    type: NotRequired[LedgerType]
-    chain: NotRequired[ChainType]
+    rpc: str
+    type: LedgerType
+    chain: ChainType
 
 
 LedgerConfigs = t.List[LedgerConfig]
-
-
-class KeyType(TypedDict):
-    """Key type."""
-
-    address: str
-    private_key: str
-    ledger: ChainType
-
-
-KeysType = t.List[KeyType]
-
-
-class VariableType(TypedDict):
-    """Variable type."""
-
-    key: str
-    value: str
-
-
-VariablesType = t.List[VariableType]
 
 
 class ServiceState(enum.IntEnum):
@@ -138,44 +159,10 @@ class ServiceState(enum.IntEnum):
     TERMINATED_BONDED = 5
 
 
-class ChainData(TypedDict):
-    """Chain data for service."""
-
-    instances: NotRequired[t.List[str]]  # Agent instances registered as safe owners
-    token: NotRequired[int]
-    multisig: NotRequired[str]
-    staked: NotRequired[bool]
-
-
-class ChainDeployment(TypedDict):
-    """Chain deployment template."""
-
-    nft: str
-    agent_id: int
-    cost_of_bond: int
-    threshold: int
-    required_funds: float
-
-
 class DeploymentConfig(TypedDict):
     """Deployments template."""
 
     volumes: t.Dict[str, str]
-
-
-class ServiceType(TypedDict):
-    """Service payload."""
-
-    name: str
-    hash: str
-    keys: KeysType
-    readme: NotRequired[str]
-    ledger: NotRequired[LedgerConfig]
-    chain_data: NotRequired[ChainData]
-    service_path: NotRequired[str]
-
-
-ServicesType = t.List[ServiceType]
 
 
 class FundRequirementsTemplate(TypedDict):
@@ -209,41 +196,48 @@ class ServiceTemplate(TypedDict):
     configuration: ConfigurationTemplate
 
 
-class Action(enum.IntEnum):
-    """Action payload."""
-
-    STATUS = 0
-    BUILD = 1
-    DEPLOY = 2
-    STOP = 3
-
-    @classmethod
-    def from_string(cls, action: str) -> "Action":
-        """Load from string."""
-        return cls(_ACTIONS[action])
-
-
-class Status(enum.IntEnum):
-    """Status payload."""
-
-    CREATED = 0
-    BUILT = 1
-    DEPLOYING = 2
-    DEPLOYED = 3
-    STOPPING = 4
-    STOPPED = 5
-    DELETED = 6
-
-
-class DeployedNodes(TypedDict):
+@dataclass
+class DeployedNodes(LocalResource):
     """Deployed nodes type."""
 
     agent: t.List[str]
     tendermint: t.List[str]
 
 
-class DeploymentType(TypedDict):
-    """Deployment type."""
+@dataclass
+class OnChainFundRequirements(LocalResource):
+    """On-chain fund requirements."""
 
-    status: Status
-    nodes: DeployedNodes
+    agent: float
+    safe: float
+
+
+@dataclass
+class OnChainUserParams(LocalResource):
+    """On-chain user params."""
+
+    nft: str
+    agent_id: int
+    threshold: int
+    use_staking: bool
+    cost_of_bond: int
+    olas_cost_of_bond: int
+    olas_required_to_stake: int
+    fund_requirements: OnChainFundRequirements
+
+    @classmethod
+    def from_json(cls, obj: t.Dict) -> "OnChainUserParams":
+        """Load a service"""
+        return super().from_json(obj)  # type: ignore
+
+
+@dataclass
+class OnChainData(LocalResource):
+    """On-chain data"""
+
+    instances: t.List[str]  # Agent instances registered as safe owners
+    token: int
+    multisig: str
+    staked: bool
+    on_chain_state: OnChainState
+    user_params: OnChainUserParams

@@ -36,27 +36,22 @@ def test_endpoint_e2e() -> None:
         phash = trader_template["hash"]
 
     print("Creating service using template")
+
     response = requests.post(
         url=f"{BASE_URL}/services",
-        json=trader_template,
+        json={**trader_template, "deploy": True},
     ).json()
     print(response)
 
-    input("> Press enter to start")
-    print(
-        requests.get(
-            url=f"{BASE_URL}/services/{phash}/deploy/",
-        ).content.decode()
-    )
-
     input("> Press enter to stop")
     print(
-        requests.get(
-            url=f"{BASE_URL}/services/{phash}/stop/",
+        requests.post(
+            url=f"{BASE_URL}/services/{phash}/deployment/stop",
         ).content.decode()
     )
 
     input("> Press enter to update")
+
     # Fund agent instance for swapping
     ledger_api = EthereumApi(address="http://localhost:8545")
     crypto = EthereumCrypto(".operate/key")
@@ -73,17 +68,22 @@ def test_endpoint_e2e() -> None:
     digest = ledger_api.send_signed_transaction(stx)
     ledger_api.get_transaction_receipt(tx_digest=digest)
 
-    old = trader_template["hash"]
-    trader_template[
-        "hash"
-    ] = "bafybeicxdpkuk5z5zfbkso7v5pywf4v7chxvluyht7dtgalg6dnhl7ejoe"
+    new_hash = "bafybeicxdpkuk5z5zfbkso7v5pywf4v7chxvluyht7dtgalg6dnhl7ejoe"
     print(
         requests.put(
             url=f"{BASE_URL}/services",
             json={
-                "old": old,
-                "new": trader_template,
+                "old_service_hash": trader_template["hash"],
+                "new_service_hash": new_hash,
+                "deploy": True,
             },
+        ).content.decode()
+    )
+
+    input("> Press enter to stop")
+    print(
+        requests.post(
+            url=f"{BASE_URL}/services/{new_hash}/deployment/stop",
         ).content.decode()
     )
 

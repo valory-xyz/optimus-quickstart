@@ -18,40 +18,83 @@
 # ------------------------------------------------------------------------------
 
 """Keys manager."""
+
 import json
+import logging
 import os
+import typing as t
+from dataclasses import dataclass
 from pathlib import Path
 
+from aea.helpers.logging import setup_logger
 from aea_ledger_ethereum.ethereum import EthereumCrypto
 
-from operate.types import KeyType
+from operate.resource import LocalResource
+from operate.types import LedgerType
 
 
-class Keys:
+@dataclass
+class Key(LocalResource):
+    """Key resource."""
+
+    ledger: LedgerType
+    address: str
+    private_key: str
+
+    @classmethod
+    def load(cls, path: Path) -> "Key":
+        """Load a service"""
+        return super().load(path)  # type: ignore
+
+
+Keys = t.List[Key]
+
+
+class KeysManager:
     """Keys manager."""
 
-    def __init__(self, path: Path) -> None:
-        """Initialize object."""
-        self._path = path
+    def __init__(
+        self,
+        path: Path,
+        logger: t.Optional[logging.Logger] = None,
+    ) -> None:
+        """
+        Initialize keys manager
 
-    def get(self, key: str) -> KeyType:
+        :param path: Path to keys storage.
+        :param logger: logging.Logger object.
+        """
+        self.path = path
+        self.logger = logger or setup_logger(name="operate.keys")
+
+    def setup(self) -> None:
+        """Setup service manager."""
+        self.path.mkdir(exist_ok=True)
+
+    def get(self, key: str) -> Key:
         """Get key object."""
-        return json.loads((self._path / key).read_text(encoding="utf-8"))
+        return Key.from_json(  # type: ignore
+            obj=json.loads(
+                (self.path / key).read_text(
+                    encoding="utf-8",
+                )
+            )
+        )
 
     def create(self) -> str:
         """Creates new key."""
         crypto = EthereumCrypto()
-        path = self._path / crypto.address
+        path = self.path / crypto.address
         if path.is_file():
             return crypto.address
 
         path.write_text(
             json.dumps(
-                {
-                    "address": crypto.address,
-                    "private_key": crypto.private_key,
-                    "ledger": "ethereum",
-                },
+                Key(
+                    ledger=LedgerType.ETHEREUM,
+                    address=crypto.address,
+                    private_key=crypto.private_key,
+                ).json,
                 indent=4,
             ),
             encoding="utf-8",
@@ -60,4 +103,4 @@ class Keys:
 
     def delete(self, key: str) -> None:
         """Delete key."""
-        os.remove(self._path / key)
+        os.remove(self.path / key)
