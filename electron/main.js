@@ -133,14 +133,13 @@ const createMainWindow = () => {
   mainWindow = new BrowserWindow({
     resizable: false,
     title: 'Olas Operate',
-    width: appConfig.width,
+    draggable: true,
+    frame: false,
+    transparent: true,
+    fullscreenable: false,
+    maximizable: false,
+    show: false,
   });
-
-  // Ensure that external links are opened in native browser
-  // mainWindow.webContents.setWindowOpenHandler((details) => {
-  //   shell.openExternal(details.url);
-  //   return { action: 'deny' };
-  // });
 
   mainWindow.setMenuBarVisibility(false);
   if (isDev) {
@@ -152,7 +151,9 @@ const createMainWindow = () => {
     mainWindow.webContents.reloadIgnoringCache();
   });
 
-  mainWindow.on('ready-to-show', () => {
+  mainWindow.webContents.on('ready-to-show', () => {
+    mainWindow.setSize(mainWindow.getContentSize());
+    mainWindow.focus();
     mainWindow.show();
   });
 

@@ -1,3 +1,13 @@
 @import '@fontsource/inter';
 @import '@fontsource/inter/700.css';
 @import '@fontsource/inter/900.css';
+
+body {
+    background: white;
+    border-radius: "8px";
+    -webkit-app-region: drag;
+}
+
+button, input, select, textarea, .ant-input-suffix {
+    -webkit-app-region: no-drag;
+}

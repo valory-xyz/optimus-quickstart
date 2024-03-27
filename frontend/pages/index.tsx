@@ -38,6 +38,8 @@ export default function Home() {
         return <Receive />;
       case PageState.Send:
         return <Send />;
+      default:
+        return <></>;
     }
   }, [pageState]);
 
