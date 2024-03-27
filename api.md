@@ -276,6 +276,28 @@ Optionally you can add `deploy` parameter and set it to `true` for a full deploy
 </details>
 
 ---
+`GET /api/services/{service}/deployment`
+
+<details>
+  <summary>Response</summary>
+
+```json
+{
+  "status": 1,
+  "nodes": {
+    "agent": [
+      "traderomengnosis_abci_0"
+    ],
+    "tendermint": [
+      "traderomengnosis_tm_0"
+    ]
+  }
+}
+```
+
+</details>
+
+---
 `POST /api/services/{service}/onchain/deploy`
 
 Deploy service on-chain
