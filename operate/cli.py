@@ -406,19 +406,11 @@ def create_app(  # pylint: disable=too-many-locals, unused-argument, too-many-st
     async def _get_service_deployment(request: Request) -> JSONResponse:
         """Create a service."""
         return JSONResponse(
-            content=operate.service_manager.create_or_load(
+            content=operate.service_manager()
+            .create_or_load(
                 request.path_params["service"],
-            ).deployment.json
-        )
-
-    @app.get("/api/services/{service}/deployment")
-    @with_retries
-    async def _get_service_deployment(request: Request) -> JSONResponse:
-        """Create a service."""
-        return JSONResponse(
-            content=operate.service_manager.create_or_load(
-                request.path_params["service"],
-            ).deployment.json
+            )
+            .deployment.json
         )
 
     @app.post("/api/services/{service}/deployment/build")
