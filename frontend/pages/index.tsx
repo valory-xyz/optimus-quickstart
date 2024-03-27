@@ -134,7 +134,7 @@ const Main = () => {
 
   // Service button interval
   useInterval(() => {
-    setServiceButtonState((prev) => ({ ...prev, isFunded: balance > 1 }));
+    setServiceButtonState((prev) => ({ ...prev, isFunded: balance >= 1 }));
 
     if (services.length <= 0) {
       setServiceButtonState((prev) => ({
