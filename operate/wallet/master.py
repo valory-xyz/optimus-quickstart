@@ -66,6 +66,11 @@ class MasterWallet(LocalResource):
             self._crypto = self._crypto_cls(self.path / self._key, self.password)
         return self._crypto
 
+    @property
+    def key_path(self) -> Path:
+        """Key path."""
+        return self.path / self._key
+
     def ledger_api(
         self,
         chain_type: ChainType,

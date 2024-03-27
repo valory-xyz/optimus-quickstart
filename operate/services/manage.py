@@ -37,6 +37,7 @@ from operate.services.service import (
     OnChainUserParams,
     Service,
 )
+from operate.wallet.master import MasterWalletManager
 
 
 # pylint: disable=redefined-builtin
@@ -60,7 +61,7 @@ class ServiceManager:
         self,
         path: Path,
         keys_manager: KeysManager,
-        master_key_path: Path,
+        wallet_manager: MasterWalletManager,
         logger: t.Optional[logging.Logger] = None,
     ) -> None:
         """
@@ -73,13 +74,12 @@ class ServiceManager:
         """
         self.path = path
         self.keys_manager = keys_manager
-        self.master_key_path = master_key_path
+        self.wallet_manager = wallet_manager
         self.logger = logger or setup_logger(name="operate.manager")
 
     def setup(self) -> None:
         """Setup service manager."""
         self.path.mkdir(exist_ok=True)
-        self.keys_manager.setup()
 
     @property
     def json(self) -> t.List[t.Dict]:
@@ -94,7 +94,7 @@ class ServiceManager:
         """Get OnChainManager instance."""
         return OnChainManager(
             rpc=service.ledger_config.rpc,
-            key=self.master_key_path,
+            wallet=self.wallet_manager.load(service.ledger_config.type),
             contracts=CONTRACTS[service.ledger_config.chain],
         )
 
