@@ -116,7 +116,7 @@ def create_app(  # pylint: disable=too-many-locals, unused-argument
     def with_retries(f: t.Callable) -> t.Callable:
         """Retries decorator."""
 
-        async def _call(request: Request) -> t.Dict:
+        async def _call(request: Request) -> JSONResponse:
             """Call the endpoint."""
             logger.info(f"Calling `{f.__name__}` with retries enabled")
             retries = 0
@@ -136,19 +136,19 @@ def create_app(  # pylint: disable=too-many-locals, unused-argument
 
     @app.get("/api")
     @with_retries
-    async def _get_api(request: Request) -> t.Dict:
+    async def _get_api(request: Request) -> JSONResponse:
         """Get API info."""
         return JSONResponse(content=operate.json)
 
     @app.get("/api/services")
     @with_retries
-    async def _get_services(request: Request) -> t.List[t.Dict]:
+    async def _get_services(request: Request) -> JSONResponse:
         """Get available services."""
         return JSONResponse(content=operate.service_manager.json)
 
     @app.post("/api/services")
     @with_retries
-    async def _create_services(request: Request) -> t.Dict:
+    async def _create_services(request: Request) -> JSONResponse:
         """Create a service."""
         template = await request.json()
         service = operate.service_manager.create_or_load(
@@ -169,7 +169,7 @@ def create_app(  # pylint: disable=too-many-locals, unused-argument
 
     @app.put("/api/services")
     @with_retries
-    async def _update_services(request: Request) -> t.Dict:
+    async def _update_services(request: Request) -> JSONResponse:
         """Create a service."""
         template = await request.json()
         service = operate.service_manager.update_service(
@@ -185,7 +185,7 @@ def create_app(  # pylint: disable=too-many-locals, unused-argument
 
     @app.get("/api/services/{service}")
     @with_retries
-    async def _get_service(request: Request) -> t.Dict:
+    async def _get_service(request: Request) -> JSONResponse:
         """Create a service."""
         return JSONResponse(
             content=operate.service_manager.create_or_load(
@@ -195,7 +195,7 @@ def create_app(  # pylint: disable=too-many-locals, unused-argument
 
     @app.post("/api/services/{service}/onchain/deploy")
     @with_retries
-    async def _deploy_service_onchain(request: Request) -> t.Dict:
+    async def _deploy_service_onchain(request: Request) -> JSONResponse:
         """Create a service."""
         operate.service_manager.deploy_service_onchain(
             hash=request.path_params["service"]
@@ -211,7 +211,7 @@ def create_app(  # pylint: disable=too-many-locals, unused-argument
 
     @app.post("/api/services/{service}/onchain/stop")
     @with_retries
-    async def _stop_service_onchain(request: Request) -> t.Dict:
+    async def _stop_service_onchain(request: Request) -> JSONResponse:
         """Create a service."""
         operate.service_manager.terminate_service_on_chain(
             hash=request.path_params["service"]
@@ -228,9 +228,19 @@ def create_app(  # pylint: disable=too-many-locals, unused-argument
             ).json
         )
 
+    @app.get("/api/services/{service}/deployment")
+    @with_retries
+    async def _get_service_deployment(request: Request) -> JSONResponse:
+        """Create a service."""
+        return JSONResponse(
+            content=operate.service_manager.create_or_load(
+                request.path_params["service"],
+            ).deployment.json
+        )
+
     @app.post("/api/services/{service}/deployment/build")
     @with_retries
-    async def _build_service_locally(request: Request) -> t.Dict:
+    async def _build_service_locally(request: Request) -> JSONResponse:
         """Create a service."""
         deployment = operate.service_manager.create_or_load(
             request.path_params["service"],
@@ -240,7 +250,7 @@ def create_app(  # pylint: disable=too-many-locals, unused-argument
 
     @app.post("/api/services/{service}/deployment/start")
     @with_retries
-    async def _start_service_locally(request: Request) -> t.Dict:
+    async def _start_service_locally(request: Request) -> JSONResponse:
         """Create a service."""
         deployment = operate.service_manager.create_or_load(
             request.path_params["service"],
@@ -251,7 +261,7 @@ def create_app(  # pylint: disable=too-many-locals, unused-argument
 
     @app.post("/api/services/{service}/deployment/stop")
     @with_retries
-    async def _stop_service_locally(request: Request) -> t.Dict:
+    async def _stop_service_locally(request: Request) -> JSONResponse:
         """Create a service."""
         deployment = operate.service_manager.create_or_load(
             request.path_params["service"],
@@ -261,7 +271,7 @@ def create_app(  # pylint: disable=too-many-locals, unused-argument
 
     @app.post("/api/services/{service}/deployment/delete")
     @with_retries
-    async def _delete_service_locally(request: Request) -> t.Dict:
+    async def _delete_service_locally(request: Request) -> JSONResponse:
         """Create a service."""
         deployment = operate.service_manager.create_or_load(
             request.path_params["service"],
