@@ -138,7 +138,6 @@ const createMainWindow = () => {
     transparent: true,
     fullscreenable: false,
     maximizable: false,
-    show: false,
   });
 
   mainWindow.setMenuBarVisibility(false);
@@ -152,8 +151,6 @@ const createMainWindow = () => {
   });
 
   mainWindow.webContents.on('ready-to-show', () => {
-    mainWindow.setSize(mainWindow.getContentSize());
-    mainWindow.focus();
     mainWindow.show();
   });
 
