@@ -17,8 +17,7 @@ import { Header, Wrapper } from '@/components/Layout';
 import { Receive, Send } from '@/components/Wallet';
 import { serviceTemplates } from '@/constants';
 import { PageState } from '@/enums';
-import { usePageState, useServices } from '@/hooks';
-import { useUserBalance } from '@/hooks/useUserBalance';
+import { usePageState, useServices, useUserBalance } from '@/hooks';
 import { ServicesService } from '@/service';
 
 const { useToken } = theme;
