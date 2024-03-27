@@ -9,20 +9,23 @@ import {
   ServicesProvider,
   SetupProvider,
 } from '@/context';
+import { UserBalanceProvider } from '@/context/UserBalanceProvider';
 import { mainTheme } from '@/theme';
 
 export default function App({ Component, pageProps }: AppProps) {
   return (
     <AppInfoProvider>
-      <ServicesProvider>
-        <ConfigProvider theme={mainTheme}>
-          <PageStateProvider>
-            <SetupProvider>
-              <Component {...pageProps} />
-            </SetupProvider>
-          </PageStateProvider>
-        </ConfigProvider>
-      </ServicesProvider>
+      <UserBalanceProvider>
+        <ServicesProvider>
+          <ConfigProvider theme={mainTheme}>
+            <PageStateProvider>
+              <SetupProvider>
+                <Component {...pageProps} />
+              </SetupProvider>
+            </PageStateProvider>
+          </ConfigProvider>
+        </ServicesProvider>
+      </UserBalanceProvider>
     </AppInfoProvider>
   );
 }

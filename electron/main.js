@@ -5,18 +5,16 @@ const {
   BrowserWindow,
   Tray,
   Menu,
-  shell,
   Notification,
   ipcMain,
 } = require('electron');
-const { spawn, exec } = require('child_process');
+const { spawn } = require('child_process');
 const path = require('path');
 const fs = require('fs');
 const os = require('os');
 const next = require('next');
 const http = require('http');
 
-const { isDockerRunning } = require('./docker');
 const {
   setupDarwin,
   setupUbuntu,

@@ -18,6 +18,7 @@ import { Receive, Send } from '@/components/Wallet';
 import { serviceTemplates } from '@/constants';
 import { PageState } from '@/enums';
 import { usePageState, useServices } from '@/hooks';
+import { useUserBalance } from '@/hooks/useUserBalance';
 import { ServicesService } from '@/service';
 
 const { useToken } = theme;
@@ -50,8 +51,10 @@ const Main = () => {
   const { token } = useToken();
   const { setPageState } = usePageState();
   const { services } = useServices();
+  const { balance } = useUserBalance();
 
   const [serviceButtonState, setServiceButtonState] = useState({
+    isFunded: false,
     isLoading: false,
     isRunning: false,
   });
@@ -80,15 +83,16 @@ const Main = () => {
   const handleStart = useCallback(() => {
     setServiceButtonState({ ...serviceButtonState, isLoading: true });
     if (services.length > 0) {
-      ServicesService.startDeployment(services[0].hash).then(() => {
+      return ServicesService.startDeployment(services[0].hash).then(() => {
         setServiceButtonState({ ...serviceButtonState, isRunning: true });
       });
     }
-    ServicesService.createService({ serviceTemplate, deploy: true }).then(
-      () => {
-        setServiceButtonState({ ...serviceButtonState, isLoading: false });
-      },
-    );
+    return ServicesService.createService({
+      serviceTemplate,
+      deploy: true,
+    }).then(() => {
+      setServiceButtonState({ ...serviceButtonState, isLoading: false });
+    });
   }, [serviceButtonState, serviceTemplate, services]);
 
   const handleStop = useCallback(() => {
@@ -100,6 +104,12 @@ const Main = () => {
   }, [serviceButtonState, services]);
 
   const serviceToggleButton = useMemo(() => {
+    if (!serviceButtonState.isFunded)
+      return (
+        <Button type="text" disabled>
+          Not funded
+        </Button>
+      );
     if (serviceButtonState.isLoading)
       return (
         <Button type="text" loading>
@@ -123,14 +133,21 @@ const Main = () => {
     );
   }, [handleStart, handleStop, serviceButtonState]);
 
+  // Service button interval
   useInterval(() => {
+    setServiceButtonState((prev) => ({ ...prev, isFunded: balance > 1 }));
+
     if (services.length <= 0) {
-      setServiceButtonState({ isLoading: false, isRunning: false });
+      setServiceButtonState((prev) => ({
+        ...prev,
+        isLoading: false,
+        isRunning: false,
+      }));
       return;
     }
 
     if (services[0]) {
-      ServicesService.getServiceStatus(services[0].hash).then((res) => {
+      ServicesService.getDeployment(services[0].hash).then((res) => {
         res.status === DeploymentStatus.DEPLOYED
           ? setServiceButtonState((prev) => ({ ...prev, isRunning: true }))
           : setServiceButtonState((prev) => ({ ...prev, isRunning: false }));
@@ -157,7 +174,9 @@ const Main = () => {
         <Flex vertical>
           <Typography style={{ margin: 0 }}>
             <span style={{ fontSize: 32, fontWeight: 900 }}>$</span>
-            <span style={{ fontSize: 64, fontWeight: 900 }}>2,101</span>
+            <span style={{ fontSize: 64, fontWeight: 900 }}>
+              {balance.toFixed(2)}
+            </span>
           </Typography>
           <Typography
             style={{ display: 'flex', flexWrap: 'nowrap', fontSize: 18 }}

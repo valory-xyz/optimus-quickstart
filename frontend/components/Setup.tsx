@@ -1,6 +1,5 @@
 import { CopyOutlined } from '@ant-design/icons';
 import { Button, Input, message, Spin, Typography } from 'antd';
-import crypto from 'crypto';
 import { useContext, useEffect, useMemo, useState } from 'react';
 
 import { copyToClipboard } from '@/common-util';
@@ -26,14 +25,10 @@ export const Setup = () => {
     switch (setupObject.state) {
       case SetupScreen.Welcome:
         return <SetupWelcome />;
-      case SetupScreen.Backup:
-        return <SetupBackup />;
-      case SetupScreen.Import:
-        return <SetupImport />;
       case SetupScreen.Password:
         return <SetupPassword />;
-      case SetupScreen.Recovery:
-        return <SetupRecovery />;
+      case SetupScreen.Backup:
+        return <SetupBackup />;
       case SetupScreen.Finalizing:
         return <SetupFinalizing />;
       default:
@@ -49,8 +44,33 @@ const SetupWelcome = () => {
   return (
     <Wrapper vertical>
       <Typography.Title>Welcome</Typography.Title>
-      <Button onClick={() => goto(SetupScreen.Backup)}>Create Wallet</Button>
-      <Button disabled>Import Wallet</Button>
+      <Button onClick={() => goto(SetupScreen.Password)}>Create Account</Button>
+      <Button disabled>Import</Button>
+    </Wrapper>
+  );
+};
+
+const SetupPassword = () => {
+  const { goto } = useSetup();
+  const [password, setPassword] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleClick = () => {
+    goto(SetupScreen.Backup);
+  };
+
+  return (
+    <Wrapper vertical>
+      <Typography.Title>Password</Typography.Title>
+      <Typography.Text>Enter a password</Typography.Text>
+      <Input.Password
+        placeholder="Input a strong password"
+        value={password}
+        onChange={(e) => setPassword(e.target.value)}
+      />
+      <Button onClick={handleClick} loading={isLoading}>
+        Next
+      </Button>
     </Wrapper>
   );
 };
@@ -76,65 +96,7 @@ const SetupBackup = () => {
       >
         <CopyOutlined /> Copy to clipboard
       </Button>
-      <Button onClick={() => goto(SetupScreen.Password)}>Next</Button>
-    </Wrapper>
-  );
-};
-
-const SetupImport = () => {
-  const { goto } = useSetup();
-  return (
-    <Wrapper vertical>
-      <Typography.Title>Import</Typography.Title>
-      <Typography.Text>
-        Enter your mnemonic phrase to import your account
-      </Typography.Text>
-      <Input.TextArea />
-      <Button onClick={() => goto(SetupScreen.Password)}>Next</Button>
-    </Wrapper>
-  );
-};
-
-const SetupPassword = () => {
-  const { goto, setPasswordHash } = useSetup();
-  const [password, setPassword] = useState('');
-
-  const passwordHash = useMemo(
-    () => crypto.createHash('sha256').update(password).digest('hex'),
-    [password],
-  );
-
-  return (
-    <Wrapper vertical>
-      <Typography.Title>Password</Typography.Title>
-      <Typography.Text>Enter a password</Typography.Text>
-      <Input.Password
-        placeholder="Input a strong password"
-        value={password}
-        onChange={(e) => setPassword(e.target.value)}
-      />
-      <Button
-        onClick={() => {
-          setPasswordHash(passwordHash);
-          goto(SetupScreen.Recovery);
-        }}
-      >
-        Next
-      </Button>
-    </Wrapper>
-  );
-};
-
-const SetupRecovery = () => {
-  const { goto } = useSetup();
-  return (
-    <Wrapper vertical>
-      <Typography.Title>Recovery</Typography.Title>
-      <Typography.Text>
-        Please enter a public key that you can use to recover your wallet.
-      </Typography.Text>
-      <Input.TextArea />
-      <Button onClick={() => goto(SetupScreen.Finalizing)}>Recover</Button>
+      <Button onClick={() => goto(SetupScreen.Finalizing)}>Next</Button>
     </Wrapper>
   );
 };

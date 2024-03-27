@@ -3,22 +3,6 @@ import { isDev } from '@/common-util';
 import { BACKEND_URL } from '@/constants';
 
 /**
- * Get the status of a service
- * @param serviceHash
- * @returns
- */
-const getServiceStatus = async (
-  serviceHash: ServiceHash,
-): Promise<Deployment> => {
-  return fetch(`${BACKEND_URL}/services/${serviceHash}/status`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-  }).then((response) => response.json());
-};
-
-/**
  * Get a single service from the backend
  * @param serviceHash
  * @returns
@@ -99,10 +83,15 @@ const deleteDeployment = async (
     method: 'POST',
   }).then((response) => response.json());
 
+const getDeployment = async (serviceHash: ServiceHash): Promise<Deployment> =>
+  fetch(`${BACKEND_URL}/services/${serviceHash}/deployment`).then((response) =>
+    response.json(),
+  );
+
 export const ServicesService = {
   getService,
   getServices,
-  getServiceStatus,
+  getDeployment,
   createService,
   deployOnChain,
   stopOnChain,
