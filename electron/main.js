@@ -136,6 +136,11 @@ const createMainWindow = () => {
     transparent: true,
     fullscreenable: false,
     maximizable: false,
+    useContentSize: true,
+    webPreferences: {
+      nodeIntegration: false,
+      contextIsolation: true,
+    },
   });
 
   mainWindow.setMenuBarVisibility(false);
@@ -144,6 +149,7 @@ const createMainWindow = () => {
   } else {
     mainWindow.loadURL(`http://localhost:${appConfig.ports.prod.next}`);
   }
+
   mainWindow.webContents.on('did-fail-load', () => {
     mainWindow.webContents.reloadIgnoringCache();
   });

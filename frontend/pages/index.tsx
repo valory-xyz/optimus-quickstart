@@ -53,7 +53,6 @@ const Main = () => {
   const { balance } = useUserBalance();
 
   const [serviceButtonState, setServiceButtonState] = useState({
-    isFunded: false,
     isLoading: false,
     isRunning: false,
   });
@@ -103,7 +102,7 @@ const Main = () => {
   }, [serviceButtonState, services]);
 
   const serviceToggleButton = useMemo(() => {
-    if (!serviceButtonState.isFunded)
+    if (balance < 1)
       return (
         <Button type="text" disabled>
           Not funded
@@ -134,8 +133,6 @@ const Main = () => {
 
   // Service button interval
   useInterval(() => {
-    setServiceButtonState((prev) => ({ ...prev, isFunded: balance >= 1 }));
-
     if (services.length <= 0) {
       setServiceButtonState((prev) => ({
         ...prev,
