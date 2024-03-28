@@ -27,6 +27,7 @@ from pathlib import Path
 
 from aea.helpers.logging import setup_logger
 from clea import group, params, run
+from docker.errors import APIError
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
@@ -143,6 +144,15 @@ def create_app(  # pylint: disable=too-many-locals, unused-argument, too-many-st
             while retries < DEFAULT_MAX_RETRIES:
                 try:
                     return await f(request)
+                except APIError as e:
+                    logger.error(f"Error {e}\n{traceback.format_exc()}")
+                    error = {"traceback": traceback.format_exc()}
+                    if "has active endpoints" in e.explanation:
+                        error["error"] = "Service is already running"
+                    else:
+                        error["error"] = str(e)
+                    errors.append(error)
+                    return errors
                 except Exception as e:  # pylint: disable=broad-except
                     errors.append(
                         {"error": str(e), "traceback": traceback.format_exc()}
