@@ -42,6 +42,7 @@ from autonomy.deploy.constants import (
     VENVS_DIR,
 )
 from autonomy.deploy.generators.docker_compose.base import DockerComposeGenerator
+from docker import from_env
 
 from operate.constants import (
     DEPLOYMENT,
@@ -67,13 +68,6 @@ from operate.types import (
 
 # pylint: disable=no-member,redefined-builtin,too-many-instance-attributes
 
-_ACTIONS = {
-    "status": 0,
-    "build": 1,
-    "deploy": 2,
-    "stop": 3,
-}
-
 DUMMY_MULTISIG = "0xm"
 
 
@@ -94,6 +88,20 @@ def mkdirs(build_dir: Path) -> None:
             os.chown(path, 1000, 1000)
         except (PermissionError, AttributeError):
             continue
+
+
+def remove_service_network(service_name: str) -> None:
+    """Remove service network cache."""
+    client = from_env()
+    network_names = (
+        f"deployment_service_{service_name}_localnet",
+        f"abci_build_service_{service_name}_localnet",
+    )
+    for network in client.networks.list():
+        if network.attrs["Name"] not in network_names:
+            continue
+        print("Deleting network: " + network.attrs["Name"])
+        client.api.remove_network(net_id=network.attrs["Id"])
 
 
 # TODO: Backport to autonomy
@@ -203,6 +211,13 @@ class Deployment(LocalResource):
         :param force: Remove existing deployment and build a new one
         :return: Deployment object
         """
+        service = Service.load(path=self.path)
+        # Remove network from cache if exists, this will raise an error
+        # if the service is still running so we can do an early exit
+        remove_service_network(
+            service_name=service.helper.config.name,
+        )
+
         build = self.path / DEPLOYMENT
         if build.exists() and not force:
             return
@@ -210,7 +225,6 @@ class Deployment(LocalResource):
             shutil.rmtree(build)
         mkdirs(build_dir=build)
 
-        service = Service.load(path=self.path)
         keys_file = self.path / KEYS_JSON
         keys_file.write_text(
             json.dumps([key.json for key in service.keys], indent=4),
