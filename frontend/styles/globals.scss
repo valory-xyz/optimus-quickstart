@@ -4,23 +4,28 @@
 
 html, body {
     margin: 0;
-    padding: 0;
-    width: fit-content; /* Adjusts width to fit the content */
-    height: fit-content; /* Adjusts height to fit the content */
-    min-height: 100%; /* Ensures it is at least viewport height if content is taller */
-    box-sizing: border-box; /* Includes padding and border in the element's total width and height */
+    padding: 0;    
+    max-height: fit-content;
+    // box-sizing: border-box; /* Includes padding and border in the element's total width and height */
   }
 
-  html {
-    background: transparent;
-  }
+html {
+  min-width: 400px;
+  background: transparent;
+}
 
 body {
     background: white;
+    border: 1px solid #d9d9d9;
     border-radius: 8px;
     -webkit-app-region: drag;
+    user-select: none;
 }
 
 button, input, select, textarea, .ant-input-suffix {
     -webkit-app-region: no-drag;
+}
+
+.can-select-text {
+  user-select: text !important;
 }

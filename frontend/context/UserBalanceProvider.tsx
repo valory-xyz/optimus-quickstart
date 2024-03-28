@@ -14,8 +14,9 @@ export const UserBalanceProvider = ({ children }: PropsWithChildren) => {
   const { userPublicKey } = useAppInfo();
   const [balance, setBalance] = useState<number>(0);
 
-  const updateBalance = () => {
-    if (userPublicKey)
+  const updateBalance = async () => {
+    const isRpcValid = await EthersService.checkRpc('http://localhost:8545');
+    if (userPublicKey && isRpcValid)
       EthersService.getEthBalance(userPublicKey, 'http://localhost:8545').then(
         (res) => setBalance(res),
       );

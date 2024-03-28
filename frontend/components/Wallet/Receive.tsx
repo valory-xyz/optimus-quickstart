@@ -49,9 +49,17 @@ export const Receive = () => {
               </Flex>
             }
           />
-          <QRCode value={`${userPublicKey}`} />
+          <QRCode
+            value={`https://metamask.app.link/send/${userPublicKey}@${100}`}
+          />
           <Flex gap={10}>
-            <Typography.Text>{userPublicKey}</Typography.Text>
+            <Typography.Text
+              className="can-select-text"
+              code
+              title={userPublicKey}
+            >
+              {`${userPublicKey?.substring(0, 6)}...${userPublicKey?.substring(userPublicKey.length - 4, userPublicKey.length)}`}
+            </Typography.Text>
             <Button>
               <CopyOutlined onClick={handleCopy} />
             </Button>

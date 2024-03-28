@@ -46,7 +46,7 @@ export const Settings = () => {
         <Flex gap={5} vertical>
           <Typography.Text style={{ fontSize: 16 }}>PASSWORD</Typography.Text>
           {isUpdating ? (
-            <Input></Input>
+            <Input.Password></Input.Password>
           ) : (
             <Typography.Text>********</Typography.Text>
           )}

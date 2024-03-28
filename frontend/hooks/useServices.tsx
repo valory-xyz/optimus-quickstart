@@ -41,8 +41,14 @@ const checkServiceIsFunded = async (
 };
 
 export const useServices = () => {
-  const { services, updateServicesState, hasInitialLoaded, setServices } =
-    useContext(ServicesContext);
+  const {
+    services,
+    updateServicesState,
+    hasInitialLoaded,
+    setServices,
+    serviceStatus,
+    setServiceStatus,
+  } = useContext(ServicesContext);
 
   // STATE METHODS
   const getServiceFromState = (
@@ -73,6 +79,8 @@ export const useServices = () => {
 
   return {
     services,
+    serviceStatus,
+    setServiceStatus,
     getServiceFromState,
     getServicesFromState,
     checkServiceIsFunded,

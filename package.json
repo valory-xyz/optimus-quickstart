@@ -18,11 +18,11 @@
     "react": "^18",
     "react-dom": "^18",
     "sudo-prompt": "9.2.1",
-    "usehooks-ts": "^2.14.0"
+    "usehooks-ts": "^2.14.0",
+    "electron": "^28.2.1"
   },
   "devDependencies": {
     "concurrently": "^8.2.2",
-    "electron": "^28.2.1",
     "electron-builder": "^24.12.0",
     "eslint": "^8.56.0",
     "eslint-config-prettier": "^9.1.0",
@@ -54,7 +54,7 @@
     }
   },
   "scripts": {
-    "build:frontend": "cd frontend && yarn build && rm -rf ../electron/.next && cp -r .next ../electron/.next",
+    "build:frontend": "cd frontend && yarn build && rm -rf ../electron/.next && cp -r .next ../electron/.next && rm -rf ../electron/public && cp -r public ../electron/public",
     "dev:backend": "poetry run python operate/cli.py",
     "dev:frontend": "cd frontend && yarn dev",
     "dev:hardhat": "npx hardhat node",

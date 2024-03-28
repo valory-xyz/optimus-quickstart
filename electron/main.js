@@ -32,8 +32,6 @@ if (!singleInstanceLock) app.quit();
 const platform = os.platform();
 const isDev = process.env.NODE_ENV === 'development';
 let appConfig = {
-  width: 410,
-  minHeight: 215,
   ports: {
     dev: {
       operate: 8000,
@@ -107,8 +105,8 @@ const createTray = () => {
  */
 const createSplashWindow = () => {
   splashWindow = new BrowserWindow({
-    width: appConfig.width,
-    height: appConfig.height,
+    width: 420,
+    height: 420,
     resizable: false,
     show: true,
     title: 'Olas Operate',
@@ -129,14 +127,15 @@ const createSplashWindow = () => {
  */
 const createMainWindow = () => {
   mainWindow = new BrowserWindow({
-    resizable: false,
     title: 'Olas Operate',
+    resizable: false,
     draggable: true,
     frame: false,
     transparent: true,
     fullscreenable: false,
     maximizable: false,
-    useContentSize: true,
+    width: 420,
+    minHeight: 210,
     webPreferences: {
       nodeIntegration: false,
       contextIsolation: true,

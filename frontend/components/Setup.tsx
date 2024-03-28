@@ -53,7 +53,7 @@ const SetupWelcome = () => {
 const SetupPassword = () => {
   const { goto } = useSetup();
   const [password, setPassword] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading] = useState(false);
 
   const handleClick = () => {
     goto(SetupScreen.Backup);
