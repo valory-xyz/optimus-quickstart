@@ -1,14 +1,15 @@
-import { AppInfo } from '@/client';
-import { AppInfoService } from '@/service';
 import { message } from 'antd';
 import {
+  createContext,
   Dispatch,
   PropsWithChildren,
   SetStateAction,
-  createContext,
   useEffect,
   useState,
 } from 'react';
+
+import { AppInfo } from '@/client';
+import { AppInfoService } from '@/service';
 
 type AppInfoContextProps = {
   appInfo?: AppInfo;
@@ -31,7 +32,7 @@ export const AppInfoProvider = ({ children }: PropsWithChildren) => {
 
   return (
     <AppInfoContext.Provider value={{ appInfo, setAppInfo }}>
-      {appInfo && children}
+      {children}
     </AppInfoContext.Provider>
   );
 };

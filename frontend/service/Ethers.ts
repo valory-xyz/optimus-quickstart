@@ -1,5 +1,6 @@
-import { Address } from '@/types';
 import { ethers, providers, utils } from 'ethers';
+
+import { Address } from '@/types';
 
 /**
  * Returns native balance of the given address
