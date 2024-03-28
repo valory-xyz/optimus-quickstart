@@ -97,7 +97,6 @@ def remove_service_network(service_name: str) -> None:
         f"deployment_service_{service_name}_localnet",
         f"abci_build_service_{service_name}_localnet",
     )
-    print(network_names)
     for network in client.networks.list():
         if network.attrs["Name"] not in network_names:
             continue
