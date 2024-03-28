@@ -130,7 +130,7 @@ const createMainWindow = () => {
     title: 'Olas Operate',
     resizable: false,
     draggable: true,
-    frame: false,
+    frame: true,
     transparent: true,
     fullscreenable: false,
     maximizable: false,
