@@ -1,5 +1,4 @@
 import { Deployment, Service, ServiceHash, ServiceTemplate } from '@/client';
-import { isDev } from '@/common-util';
 import { BACKEND_URL } from '@/constants';
 
 /**
@@ -43,7 +42,7 @@ const createService = async ({
       deploy,
       configuration: {
         ...serviceTemplate.configuration,
-        rpc: isDev ? 'http://localhost:8545' : 'https://gnosis-pokt.nodies.app',
+        rpc: 'http://localhost:8545',
       },
     }),
     headers: {
