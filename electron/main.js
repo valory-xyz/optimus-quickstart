@@ -20,6 +20,7 @@ const {
   setupUbuntu,
   OperateCmd,
   OperateDirectory,
+  startDocker
 } = require('./install');
 const { killProcesses } = require('./processes');
 const { isPortAvailable, findAvailablePort } = require('./ports');
@@ -267,6 +268,9 @@ async function launchNextAppDev() {
 
 ipcMain.on('check', async function (event, argument) {
   try {
+
+
+
     event.sender.send('response', 'Checking installation');
     if (!isDev) {
       if (platform === 'darwin') {
@@ -277,6 +281,8 @@ ipcMain.on('check', async function (event, argument) {
         await setupUbuntu(event.sender);
       }
     }
+
+    startDocker(event.sender)
 
     if (isDev) {
       event.sender.send(
