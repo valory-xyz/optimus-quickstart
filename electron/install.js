@@ -143,7 +143,7 @@ function createVirtualEnvUbuntu(path) {
 function installOperatePackageUnix(path) {
   return runCmdUnix(
     `${path}/venv/bin/python3.10`,
-    ['-m', 'pip', 'install', 'olas-operate-middleware==0.1.0rc0']
+    ['-m', 'pip', 'install', 'olas-operate-middleware==0.1.0rc1']
   )
 }
 
