@@ -5,23 +5,22 @@ const {
   BrowserWindow,
   Tray,
   Menu,
-  shell,
   Notification,
   ipcMain,
 } = require('electron');
-const { spawn, exec } = require('child_process');
+const { spawn } = require('child_process');
 const path = require('path');
 const fs = require('fs');
 const os = require('os');
 const next = require('next');
 const http = require('http');
 
-const { isDockerRunning } = require('./docker');
 const {
   setupDarwin,
   setupUbuntu,
   OperateCmd,
   OperateDirectory,
+  startDocker
 } = require('./install');
 const { killProcesses } = require('./processes');
 const { isPortAvailable, findAvailablePort } = require('./ports');
@@ -34,8 +33,6 @@ if (!singleInstanceLock) app.quit();
 const platform = os.platform();
 const isDev = process.env.NODE_ENV === 'development';
 let appConfig = {
-  width: 600,
-  height: 800,
   ports: {
     dev: {
       operate: 8000,
@@ -109,8 +106,8 @@ const createTray = () => {
  */
 const createSplashWindow = () => {
   splashWindow = new BrowserWindow({
-    width: appConfig.width,
-    height: appConfig.height,
+    width: 420,
+    height: 420,
     resizable: false,
     show: true,
     title: 'Olas Operate',
@@ -131,16 +128,19 @@ const createSplashWindow = () => {
  */
 const createMainWindow = () => {
   mainWindow = new BrowserWindow({
-    width: appConfig.width,
-    height: appConfig.height,
-    resizable: false,
     title: 'Olas Operate',
-  });
-
-  // Ensure that external links are opened in native browser
-  mainWindow.webContents.setWindowOpenHandler((details) => {
-    shell.openExternal(details.url);
-    return { action: 'deny' };
+    resizable: false,
+    draggable: true,
+    frame: true,
+    transparent: true,
+    fullscreenable: false,
+    maximizable: false,
+    width: 420,
+    minHeight: 210,
+    webPreferences: {
+      nodeIntegration: false,
+      contextIsolation: true,
+    },
   });
 
   mainWindow.setMenuBarVisibility(false);
@@ -149,11 +149,12 @@ const createMainWindow = () => {
   } else {
     mainWindow.loadURL(`http://localhost:${appConfig.ports.prod.next}`);
   }
+
   mainWindow.webContents.on('did-fail-load', () => {
     mainWindow.webContents.reloadIgnoringCache();
   });
 
-  mainWindow.on('ready-to-show', () => {
+  mainWindow.webContents.on('ready-to-show', () => {
     mainWindow.show();
   });
 
@@ -169,8 +170,10 @@ const createMainWindow = () => {
 
 async function launchDaemon() {
   function appendLog(data) {
-    fs.appendFileSync(`${OperateDirectory}/logs.txt`, data.trim() + "\n", { "encoding": "utf-8" })
-    return data
+    fs.appendFileSync(`${OperateDirectory}/logs.txt`, data.trim() + '\n', {
+      encoding: 'utf-8',
+    });
+    return data;
   }
   const check = new Promise(function (resolve, reject) {
     operateDaemon = spawn(OperateCmd, [
@@ -265,6 +268,9 @@ async function launchNextAppDev() {
 
 ipcMain.on('check', async function (event, argument) {
   try {
+
+
+
     event.sender.send('response', 'Checking installation');
     if (!isDev) {
       if (platform === 'darwin') {
@@ -275,6 +281,8 @@ ipcMain.on('check', async function (event, argument) {
         await setupUbuntu(event.sender);
       }
     }
+
+    startDocker(event.sender)
 
     if (isDev) {
       event.sender.send(

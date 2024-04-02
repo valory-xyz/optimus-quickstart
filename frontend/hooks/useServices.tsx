@@ -1,9 +1,10 @@
+import { useContext } from 'react';
+
 import { Service, ServiceHash, ServiceTemplate } from '@/client';
 import { ServicesContext } from '@/context';
 import { ServicesService } from '@/service';
 import MulticallService from '@/service/Multicall';
 import { Address, AddressBooleanRecord } from '@/types';
-import { useContext } from 'react';
 
 const checkServiceIsFunded = async (
   service: Service,
@@ -40,8 +41,14 @@ const checkServiceIsFunded = async (
 };
 
 export const useServices = () => {
-  const { services, updateServicesState, hasInitialLoaded, setServices } =
-    useContext(ServicesContext);
+  const {
+    services,
+    updateServicesState,
+    hasInitialLoaded,
+    setServices,
+    serviceStatus,
+    setServiceStatus,
+  } = useContext(ServicesContext);
 
   // STATE METHODS
   const getServiceFromState = (
@@ -71,6 +78,9 @@ export const useServices = () => {
     setServices((prev) => prev.filter((s) => s.hash !== serviceHash));
 
   return {
+    services,
+    serviceStatus,
+    setServiceStatus,
     getServiceFromState,
     getServicesFromState,
     checkServiceIsFunded,

@@ -1,28 +1,5 @@
-import {
-  DeleteServicesPayload,
-  DeleteServicesResponse,
-  Deployment,
-  Service,
-  ServiceHash,
-  ServiceTemplate,
-} from '@/client';
+import { Deployment, Service, ServiceHash, ServiceTemplate } from '@/client';
 import { BACKEND_URL } from '@/constants';
-
-/**
- * Get the status of a service
- * @param serviceHash
- * @returns
- */
-const getServiceStatus = async (
-  serviceHash: ServiceHash,
-): Promise<Deployment> => {
-  return fetch(`${BACKEND_URL}/services/${serviceHash}/status`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-  }).then((response) => response.json());
-};
 
 /**
  * Get a single service from the backend
@@ -47,63 +24,78 @@ const getServices = async (): Promise<Service[]> =>
   }).then((response) => response.json());
 
 /**
- * Deploys a service to the backend
- * @param payload
- * @returns
- */
-const deployService = async (serviceHash: ServiceHash): Promise<Deployment> =>
-  fetch(`${BACKEND_URL}/services/${serviceHash}/deploy`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-  }).then((response) => response.json());
-
-/**
- * Deletes services from the backend
- * @param payload An array of service hashes to delete
- * @returns An array of deleted service hashes
- */
-const deleteServices = async (
-  payload: DeleteServicesPayload,
-): Promise<DeleteServicesResponse> =>
-  fetch(`${BACKEND_URL}/services`, {
-    method: 'DELETE',
-    body: JSON.stringify(payload),
-  }).then((response) => response.json());
-
-/**
  * Creates a service
  * @param serviceTemplate
  * @returns Promise<Service>
  */
-const createService = async (
-  serviceTemplate: Required<ServiceTemplate>,
-): Promise<Service> =>
+const createService = async ({
+  serviceTemplate,
+  deploy,
+}: {
+  serviceTemplate: ServiceTemplate;
+  deploy: boolean;
+}): Promise<Service> =>
   fetch(`${BACKEND_URL}/services`, {
     method: 'POST',
-    body: JSON.stringify(serviceTemplate),
+    body: JSON.stringify({
+      ...serviceTemplate,
+      deploy,
+      configuration: {
+        ...serviceTemplate.configuration,
+        rpc: 'http://localhost:8545',
+      },
+    }),
     headers: {
       'Content-Type': 'application/json',
     },
   }).then((response) => response.json());
 
-/**
- * Stops a service
- * @param serviceHash
- * @returns Promise<Deployment>
- */
-const stopService = async (serviceHash: ServiceHash): Promise<Deployment> =>
-  fetch(`${BACKEND_URL}/services/${serviceHash}/stop`, {
+const deployOnChain = async (serviceHash: ServiceHash): Promise<Deployment> =>
+  fetch(`${BACKEND_URL}/services/${serviceHash}/onchain/deploy`, {
     method: 'POST',
   }).then((response) => response.json());
+
+const stopOnChain = async (serviceHash: ServiceHash): Promise<Deployment> =>
+  fetch(`${BACKEND_URL}/services/${serviceHash}/onchain/stop`, {
+    method: 'POST',
+  }).then((response) => response.json());
+
+const buildDeployment = async (serviceHash: ServiceHash): Promise<Deployment> =>
+  fetch(`${BACKEND_URL}/services/${serviceHash}/deployment/build`, {
+    method: 'POST',
+  }).then((response) => response.json());
+
+const startDeployment = async (serviceHash: ServiceHash): Promise<Deployment> =>
+  fetch(`${BACKEND_URL}/services/${serviceHash}/deployment/start`, {
+    method: 'POST',
+  }).then((response) => response.json());
+
+const stopDeployment = async (serviceHash: ServiceHash): Promise<Deployment> =>
+  fetch(`${BACKEND_URL}/services/${serviceHash}/deployment/stop`, {
+    method: 'POST',
+  }).then((response) => response.json());
+
+const deleteDeployment = async (
+  serviceHash: ServiceHash,
+): Promise<Deployment> =>
+  fetch(`${BACKEND_URL}/services/${serviceHash}/deployment/delete`, {
+    method: 'POST',
+  }).then((response) => response.json());
+
+const getDeployment = async (serviceHash: ServiceHash): Promise<Deployment> =>
+  fetch(`${BACKEND_URL}/services/${serviceHash}/deployment`).then((response) =>
+    response.json(),
+  );
 
 export const ServicesService = {
   getService,
   getServices,
-  getServiceStatus,
-  deleteServices,
-  stopService,
-  deployService,
+  getDeployment,
   createService,
+  deployOnChain,
+  stopOnChain,
+  buildDeployment,
+  startDeployment,
+  stopDeployment,
+  deleteDeployment,
 };

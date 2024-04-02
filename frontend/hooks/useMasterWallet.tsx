@@ -1,6 +1,8 @@
-import { useEffect, useState } from "react";
-import { useAppInfo } from ".";
-import { EthersService } from "@/service/Ethers";
+import { useEffect, useState } from 'react';
+
+import { EthersService } from '@/service/Ethers';
+
+import { useAppInfo } from '.';
 
 type useMasterWalletProps = {
   rpc: string;
@@ -9,7 +11,7 @@ type useMasterWalletProps = {
 export const useMasterWallet = ({ rpc }: useMasterWalletProps) => {
   const { userPublicKey } = useAppInfo();
   const [nativeBalance, setNativeBalance] = useState<number | undefined>(
-    undefined
+    undefined,
   );
 
   useEffect(() => {

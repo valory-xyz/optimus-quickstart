@@ -1,9 +1,9 @@
+import { BigNumber, ethers } from 'ethers';
+import { Contract, ContractCall, Provider } from 'ethers-multicall';
+
 import { multicall3Abi } from '@/abi';
 import { MULTICALL_CONTRACT } from '@/constants';
-import { AddressNumberRecord } from '@/types';
-import { Address } from '@/types';
-import { ethers, BigNumber } from 'ethers';
-import { Provider, Contract, ContractCall } from 'ethers-multicall';
+import { Address, AddressNumberRecord } from '@/types';
 
 /**
  * Gets ETH balances for a list of addresses
