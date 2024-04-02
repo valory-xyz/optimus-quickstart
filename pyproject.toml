@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "olas-operate-middleware"
-version = "0.1.0-rc0"
+version = "0.1.0-rc1"
 description = ""
 authors = ["David Vilela <dvilelaf@gmail.com>", "Viraj Patel <vptl185@gmail.com>"]
 readme = "README.md"
@@ -19,8 +19,8 @@ operate = "operate.cli:main"
 
 [tool.poetry.dependencies]
 python = "<4.0,>=3.8"
-open-autonomy = ">=0.14.7"
-open-aea-ledger-ethereum = ">=1.48.0.post1"
+open-autonomy = ">=0.14.10"
+open-aea-ledger-ethereum = ">=1.50.0"
 docker = "6.1.2"
 clea = ">=0.1.0rc4"
 starlette = ">=0.36.3"

@@ -5,6 +5,7 @@ const os = require('os');
 const sudo = require('sudo-prompt');
 const process = require('process');
 const { spawnSync } = require('child_process');
+const Docker = require('dockerode');
 
 
 const OperateDirectory = `${os.homedir()}/.operate`;
@@ -143,7 +144,7 @@ function createVirtualEnvUbuntu(path) {
 function installOperatePackageUnix(path) {
   return runCmdUnix(
     `${path}/venv/bin/python3.10`,
-    ['-m', 'pip', 'install', 'olas-operate-middleware==0.1.0rc0']
+    ['-m', 'pip', 'install', 'olas-operate-middleware==0.1.0rc1']
   )
 }
 
@@ -267,8 +268,38 @@ async function setupUbuntu(ipcChannel) {
   await installOperateCli('/usr/local/bin')
 }
 
+
+async function startDocker(ipcChannel) {
+  const docker = new Docker();
+  let running = await new Promise((resolve, reject) => {
+    docker.ping((err) => {
+      resolve(!err)
+    });
+  });
+  if (!running) {
+    console.log(appendLog("Starting docker"))
+    ipcChannel.send("response", "Starting docker")
+    if (process.platform == "darwin") {
+      runCmdUnix("open", ["-a", "Docker"])
+    } else if (process.platform == "win32") {
+      // TODO
+    } else {
+      runSudoUnix("sudo", ["service", "docker", "restart"])
+    }
+  }
+  while (!running) {
+    running = await new Promise((resolve, reject) => {
+      docker.ping((err) => {
+        resolve(!err)
+      });
+    });
+  };
+}
+
+
 module.exports = {
   setupDarwin,
+  startDocker,
   setupUbuntu,
   OperateDirectory,
   OperateCmd,
