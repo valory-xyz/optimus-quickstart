@@ -11,7 +11,7 @@ import Image from 'next/image';
 import { useCallback, useMemo, useState } from 'react';
 
 import { DeploymentStatus } from '@/client';
-import { Login, Settings, Setup } from '@/components';
+import { Settings, Setup } from '@/components';
 import { Header, Wrapper } from '@/components/Layout';
 import { Receive, Send } from '@/components/Wallet';
 import { serviceTemplates } from '@/constants';
@@ -27,8 +27,6 @@ export default function Home() {
     switch (pageState) {
       case PageState.Setup:
         return <Setup />;
-      case PageState.Login:
-        return <Login />;
       case PageState.Main:
         return <Main />;
       case PageState.Settings:
@@ -168,7 +166,7 @@ const Main = () => {
             style={{ display: 'flex', flexWrap: 'nowrap', fontSize: 18 }}
           >
             <span style={{ display: 'flex', flexWrap: 'nowrap' }}>
-              24hr change -%
+              24hr change --%
             </span>
             {/* <CaretUpFilled style={{ color: token.colorSuccess }} /> */}
           </Typography>

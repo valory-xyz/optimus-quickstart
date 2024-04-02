@@ -1,7 +1,7 @@
 import { useContext } from 'react';
 
-import { UserBalanceContext } from '@/context/UserBalanceProvider';
+import { WalletContext } from '@/context/WalletProvider';
 
 export const useUserBalance = () => {
-  return useContext(UserBalanceContext);
+  return useContext(WalletContext);
 };

@@ -1,11 +1,21 @@
 import { CopyOutlined } from '@ant-design/icons';
 import { Button, Input, message, Spin, Typography } from 'antd';
-import { useContext, useEffect, useMemo, useState } from 'react';
+import {
+  FormEvent,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+} from 'react';
 
+import { Chain } from '@/client';
 import { copyToClipboard } from '@/common-util';
 import { SetupContext } from '@/context';
 import { PageState, SetupScreen } from '@/enums';
 import { usePageState, useSetup } from '@/hooks';
+import { AccountService } from '@/service/Account';
+import { WalletService } from '@/service/Wallet';
 
 import { Wrapper } from './Layout/Wrapper';
 
@@ -41,62 +51,139 @@ export const Setup = () => {
 
 const SetupWelcome = () => {
   const { goto } = useSetup();
+  const { goto: gotoPage } = usePageState();
+  const [isSetup, setIsSetup] = useState<boolean | undefined>();
+  const [password, setPassword] = useState('');
+
+  // get is setup
+  useEffect(() => {
+    AccountService.getAccount().then((res) => setIsSetup(res.is_setup));
+  }, []);
+
+  const handleLogin = useCallback(
+    async (e: FormEvent) => {
+      e.preventDefault();
+      // login
+      try {
+        await AccountService.loginAccount(password).then(() =>
+          gotoPage(PageState.Main),
+        );
+      } catch (e) {
+        message.error('Login failed');
+      }
+      // if success, goto main
+      // if fail, show error
+    },
+    [gotoPage, password],
+  );
+
+  const form = useMemo(() => {
+    switch (isSetup) {
+      // login form
+      case true:
+        return (
+          <form onSubmit={handleLogin}>
+            <Input.Password
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+            />
+            <Button htmlType="submit">Login</Button>
+          </form>
+        );
+      // create account or import
+      case false:
+        return (
+          <>
+            <Button onClick={() => goto(SetupScreen.Password)}>
+              Create Account
+            </Button>
+            <Button disabled>Import</Button>
+          </>
+        );
+      // loading
+      default:
+        return <Spin />;
+    }
+  }, [goto, handleLogin, isSetup, password]);
+
   return (
     <Wrapper vertical>
       <Typography.Title>Welcome</Typography.Title>
-      <Button onClick={() => goto(SetupScreen.Password)}>Create Account</Button>
-      <Button disabled>Import</Button>
+      {form}
     </Wrapper>
   );
 };
 
 const SetupPassword = () => {
   const { goto } = useSetup();
-  const [password, setPassword] = useState('');
-  const [isLoading] = useState(false);
+  const { setSetupObject } = useContext(SetupContext);
 
-  const handleClick = () => {
+  const [password, setPassword] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleCreateEOA = async (e: FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+    // create account
+    const createResponse = await AccountService.createAccount(password);
+    setSetupObject((prev) =>
+      Object.assign(prev, {
+        mnemonic: createResponse.mnemonic,
+      }),
+    );
     goto(SetupScreen.Backup);
+    setIsLoading(false);
   };
 
   return (
     <Wrapper vertical>
       <Typography.Title>Password</Typography.Title>
       <Typography.Text>Enter a password</Typography.Text>
-      <Input.Password
-        placeholder="Input a strong password"
-        value={password}
-        onChange={(e) => setPassword(e.target.value)}
-      />
-      <Button onClick={handleClick} loading={isLoading}>
-        Next
-      </Button>
+      <form onSubmit={handleCreateEOA}>
+        <Input.Password
+          placeholder="Input a strong password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+        />
+        <Button htmlType="submit" loading={isLoading}>
+          Next
+        </Button>
+      </form>
     </Wrapper>
   );
 };
 
 const SetupBackup = () => {
-  const { goto } = useSetup();
-  const [mnemonic] = useState(
-    'test test test test test test test test test test test test',
-  );
+  const { goto, mnemonic, setMnemonic } = useSetup();
   return (
     <Wrapper vertical>
       <Typography.Title>Backup</Typography.Title>
       <Typography.Text>
         Please write down the following mnemonic phrase and keep it safe.
       </Typography.Text>
-      <Input.TextArea readOnly value={mnemonic} style={{ resize: 'none' }} />
+      <Input.TextArea
+        readOnly
+        value={mnemonic.join(' ')}
+        style={{ resize: 'none' }}
+      />
       <Button
         onClick={() =>
-          copyToClipboard(mnemonic).then(() =>
+          copyToClipboard(mnemonic.join(' ')).then(() =>
             message.success('Copied successfully!'),
           )
         }
       >
         <CopyOutlined /> Copy to clipboard
       </Button>
-      <Button onClick={() => goto(SetupScreen.Finalizing)}>Next</Button>
+      <Button
+        onClick={() => {
+          goto(SetupScreen.Finalizing);
+          // clear mnemonic, important
+          setMnemonic([]);
+        }}
+      >
+        Next
+      </Button>
     </Wrapper>
   );
 };
@@ -104,24 +191,15 @@ const SetupBackup = () => {
 const SetupFinalizing = () => {
   const { goto } = usePageState();
 
-  //   Mock some async setup operation
-  const handleTimeout = () => {
-    setTimeout(() => {
-      goto(PageState.Main);
-    }, 3000);
-  };
-
   useEffect(() => {
-    handleTimeout();
-    // Run once only
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+    WalletService.createSafe(Chain.GNOSIS).then(() => goto(PageState.Main));
+  }, [goto]);
 
   return (
     <Wrapper vertical>
       <Typography.Title>Finalizing</Typography.Title>
       <Spin />
-      <Typography.Text>Setting up your wallet...</Typography.Text>
+      <Typography.Text>Setting up your account...</Typography.Text>
     </Wrapper>
   );
 };
