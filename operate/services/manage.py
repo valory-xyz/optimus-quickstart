@@ -355,6 +355,37 @@ class ServiceManager:
         service.chain_data.staked = False
         service.store()
 
+    def fund_service(self, hash: str) -> None:
+        """Fund service if required."""
+        service = self.create_or_load(hash=hash)
+        wallet = self.wallet_manager.load(ledger_type=service.ledger_config.type)
+        ledger_api = wallet.ledger_api(chain_type=service.ledger_config.chain)
+        agent_fund_requirement = service.chain_data.user_params.fund_requirements.agent
+
+        self.logger.info("Funding agents")
+        for key in service.keys:
+            agent_balance = ledger_api.get_balance(address=key.address)
+            if agent_balance < agent_fund_requirement:
+                to_transfer = agent_fund_requirement - agent_balance
+                self.logger.info(f"Transferring {to_transfer} units to {key.address}")
+                wallet.transfer(
+                    to=key.address,
+                    amount=to_transfer,
+                    chain_type=service.ledger_config.chain,
+                )
+
+        self.logger.info("Funding safe")
+        safe_fund_requirement = service.chain_data.user_params.fund_requirements.safe
+        safe_balanace = ledger_api.get_balance(wallet.safe)
+        if safe_balanace < safe_fund_requirement:
+            to_transfer = safe_fund_requirement - safe_balanace
+            self.logger.info(f"Transferring {to_transfer} units to {wallet.safe}")
+            wallet.transfer(
+                to=t.cast(str, wallet.safe),
+                amount=to_transfer,
+                chain_type=service.ledger_config.chain,
+            )
+
     def deploy_service_locally(self, hash: str, force: bool = False) -> Deployment:
         """
         Deploy service locally
