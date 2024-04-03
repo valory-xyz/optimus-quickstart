@@ -272,9 +272,6 @@ class OnChainManager:
         self.contracts = contracts
         self.chain_type = chain_type or ChainType.CUSTOM
 
-        print(f"{self.wallet.password=}")
-        print(f"{self.wallet.key_path=}")
-
     def _patch(self) -> None:
         """Patch contract and chain config."""
         ChainConfigs.get(self.chain_type).rpc = self.rpc
