@@ -3,6 +3,9 @@ import { useInterval } from 'usehooks-ts';
 
 import { useAppInfo } from '@/hooks';
 import { EthersService } from '@/service';
+import { env } from "process";
+
+const RPC = env.DEV_RPC ? env.DEV_RPC : "https://rpc.gnosischain.com";
 
 export const UserBalanceContext = createContext<{
   balance: number;
@@ -15,10 +18,10 @@ export const UserBalanceProvider = ({ children }: PropsWithChildren) => {
   const [balance, setBalance] = useState<number>(0);
 
   const updateBalance = async () => {
-    const isRpcValid = await EthersService.checkRpc('http://localhost:8545');
+    const isRpcValid = await EthersService.checkRpc(RPC);
     if (userPublicKey && isRpcValid)
-      EthersService.getEthBalance(userPublicKey, 'http://localhost:8545').then(
-        (res) => setBalance(res),
+      EthersService.getEthBalance(userPublicKey, RPC).then(
+        (res) => setBalance(res)
       );
   };
 

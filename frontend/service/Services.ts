@@ -1,5 +1,8 @@
 import { Deployment, Service, ServiceHash, ServiceTemplate } from '@/client';
 import { BACKEND_URL } from '@/constants';
+import { env } from "process"
+
+const RPC = env.DEV_RPC ? env.DEV_RPC : "https://rpc.gnosischain.com"
 
 /**
  * Get a single service from the backend
@@ -42,7 +45,7 @@ const createService = async ({
       deploy,
       configuration: {
         ...serviceTemplate.configuration,
-        rpc: 'http://localhost:8545',
+        rpc: RPC,
       },
     }),
     headers: {
