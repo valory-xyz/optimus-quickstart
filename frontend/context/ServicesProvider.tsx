@@ -38,32 +38,30 @@ export const ServicesProvider = ({ children }: PropsWithChildren) => {
   >();
   const [hasInitialLoaded, setHasInitialLoaded] = useState(false);
 
-  const updateServicesState = useCallback(async (): Promise<void> => {
-    try {
-      return ServicesService.getServices().then((data: Service[]) => {
-        setServices(data);
-      });
-    } catch (e) {
-      Promise.reject(e);
-    }
-  }, []);
+  const updateServicesState = useCallback(
+    async (): Promise<void> =>
+      ServicesService.getServices().then((data: Service[]) =>
+        setServices(data),
+      ),
+    [],
+  );
 
   useEffect(() => {
     // Update on load
-    updateServicesState()
-      .catch(() => {
-        message.error('Initial services update failed.');
-      })
-      .then(() => setHasInitialLoaded(true));
+    updateServicesState().then(() => setHasInitialLoaded(true));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Update service status
-  useInterval(async () => {
-    if (services.length < 1) return;
-    const serviceStatus = await ServicesService.getDeployment(services[0].hash);
-    setServiceStatus(serviceStatus.status);
-  }, 5000);
+  useInterval(
+    async () => {
+      const serviceStatus = await ServicesService.getDeployment(
+        services[0].hash,
+      );
+      setServiceStatus(serviceStatus.status);
+    },
+    services.length ? 5000 : null,
+  );
 
   // Update service state
   useInterval(

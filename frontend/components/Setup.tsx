@@ -1,5 +1,5 @@
 import { CopyOutlined } from '@ant-design/icons';
-import { Button, Input, message, Spin, Typography } from 'antd';
+import { Button, Flex, Input, message, QRCode, Spin, Typography } from 'antd';
 import {
   FormEvent,
   useCallback,
@@ -8,12 +8,14 @@ import {
   useMemo,
   useState,
 } from 'react';
+import { useInterval } from 'usehooks-ts';
 
 import { Chain } from '@/client';
 import { copyToClipboard } from '@/common-util';
 import { SetupContext } from '@/context';
 import { PageState, SetupScreen } from '@/enums';
-import { usePageState, useSetup } from '@/hooks';
+import { usePageState, useSetup, useWallet } from '@/hooks';
+import { EthersService } from '@/service';
 import { AccountService } from '@/service/Account';
 import { WalletService } from '@/service/Wallet';
 
@@ -39,6 +41,8 @@ export const Setup = () => {
         return <SetupPassword />;
       case SetupScreen.Backup:
         return <SetupBackup />;
+      case SetupScreen.Funding:
+        return <SetupFunding />;
       case SetupScreen.Finalizing:
         return <SetupFinalizing />;
       default:
@@ -54,6 +58,7 @@ const SetupWelcome = () => {
   const { goto: gotoPage } = usePageState();
   const [isSetup, setIsSetup] = useState<boolean | undefined>();
   const [password, setPassword] = useState('');
+  const { updateWallets, updateBalance } = useWallet();
 
   // get is setup
   useEffect(() => {
@@ -64,17 +69,13 @@ const SetupWelcome = () => {
     async (e: FormEvent) => {
       e.preventDefault();
       // login
-      try {
-        await AccountService.loginAccount(password).then(() =>
-          gotoPage(PageState.Main),
-        );
-      } catch (e) {
-        message.error('Login failed');
-      }
-      // if success, goto main
-      // if fail, show error
+      AccountService.loginAccount(password)
+        .then(() => updateWallets())
+        .then(() => updateBalance())
+        .then(() => gotoPage(PageState.Main))
+        .catch(() => message.error('Invalid password'));
     },
-    [gotoPage, password],
+    [gotoPage, password, updateBalance, updateWallets],
   );
 
   const form = useMemo(() => {
@@ -115,8 +116,7 @@ const SetupWelcome = () => {
 };
 
 const SetupPassword = () => {
-  const { goto } = useSetup();
-  const { setSetupObject } = useContext(SetupContext);
+  const { goto, setMnemonic } = useSetup();
 
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -125,14 +125,14 @@ const SetupPassword = () => {
     e.preventDefault();
     setIsLoading(true);
     // create account
-    const createResponse = await AccountService.createAccount(password);
-    setSetupObject((prev) =>
-      Object.assign(prev, {
-        mnemonic: createResponse.mnemonic,
-      }),
-    );
-    goto(SetupScreen.Backup);
-    setIsLoading(false);
+    AccountService.createAccount(password)
+      .then(() => AccountService.loginAccount(password))
+      .then(() => WalletService.createEOA(Chain.GNOSIS))
+      .then(({ mnemonic }) => {
+        setMnemonic(mnemonic);
+        goto(SetupScreen.Backup);
+      })
+      .finally(() => setIsLoading(false));
   };
 
   return (
@@ -154,17 +154,30 @@ const SetupPassword = () => {
 };
 
 const SetupBackup = () => {
+  const { updateWallets } = useWallet();
   const { goto, mnemonic, setMnemonic } = useSetup();
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleNext = () => {
+    setIsLoading(true);
+    updateWallets()
+      .then(() => setMnemonic([]))
+      .then(() => goto(SetupScreen.Funding))
+      .finally(() => setIsLoading(false));
+  };
+
   return (
     <Wrapper vertical>
       <Typography.Title>Backup</Typography.Title>
       <Typography.Text>
-        Please write down the following mnemonic phrase and keep it safe.
+        Write down your mnemonic phrase and keep it safe.
       </Typography.Text>
       <Input.TextArea
         readOnly
         value={mnemonic.join(' ')}
         style={{ resize: 'none' }}
+        autoSize={{ minRows: 3, maxRows: 6 }}
+        disabled
       />
       <Button
         onClick={() =>
@@ -175,25 +188,61 @@ const SetupBackup = () => {
       >
         <CopyOutlined /> Copy to clipboard
       </Button>
-      <Button
-        onClick={() => {
-          goto(SetupScreen.Finalizing);
-          // clear mnemonic, important
-          setMnemonic([]);
-        }}
-      >
+      <Button onClick={handleNext} loading={isLoading}>
         Next
       </Button>
     </Wrapper>
   );
 };
 
+const SetupFunding = () => {
+  const {
+    wallets: [{ address }],
+  } = useWallet();
+  const { goto } = useSetup();
+
+  useInterval(() => {
+    EthersService.getEthBalance(address, 'http://localhost:8545').then(
+      (balance) => {
+        if (balance > 0) {
+          goto(SetupScreen.Finalizing);
+        }
+      },
+    );
+  }, 3000);
+
+  return (
+    <Wrapper vertical>
+      <Typography.Title>Funding</Typography.Title>
+      <Typography.Text>
+        You&apos;ll need to fund your wallet with at least 1 XDAI.
+      </Typography.Text>
+      <QRCode value={`https://metamask.app.link/send/${address}@${100}`} />
+      <Flex gap={10}>
+        <Typography.Text className="can-select-text" code title={address}>
+          {`${address?.substring(0, 6)}...${address?.substring(address.length - 4, address.length)}`}
+        </Typography.Text>
+        <Button>
+          <CopyOutlined
+            onClick={() => navigator.clipboard.writeText(address)}
+          />
+        </Button>
+      </Flex>
+    </Wrapper>
+  );
+};
+
 const SetupFinalizing = () => {
   const { goto } = usePageState();
+  const { updateWallets, updateBalance } = useWallet();
 
   useEffect(() => {
-    WalletService.createSafe(Chain.GNOSIS).then(() => goto(PageState.Main));
-  }, [goto]);
+    WalletService.createSafe(Chain.GNOSIS)
+      .then(() => updateWallets())
+      .then(() => updateBalance())
+      .then(() => goto(PageState.Main));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <Wrapper vertical>

@@ -2,8 +2,9 @@ export enum SetupScreen {
   Loading,
   Welcome,
   Backup,
-  Import,
+  // Import,
   Password,
-  Recovery,
+  // Recovery,
+  Funding,
   Finalizing,
 }

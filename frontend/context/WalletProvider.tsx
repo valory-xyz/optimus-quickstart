@@ -1,10 +1,4 @@
-import {
-  createContext,
-  PropsWithChildren,
-  useCallback,
-  useEffect,
-  useState,
-} from 'react';
+import { createContext, PropsWithChildren, useCallback, useState } from 'react';
 import { useInterval } from 'usehooks-ts';
 
 import { Wallet } from '@/client';
@@ -12,14 +6,25 @@ import { EthersService } from '@/service';
 import { WalletService } from '@/service/Wallet';
 
 export const WalletContext = createContext<{
+  wallets: Wallet[];
   balance: number;
+  updateWallets: () => Promise<void>;
+  updateBalance: () => void;
 }>({
+  wallets: [],
   balance: 0,
+  updateWallets: async () => {},
+  updateBalance: () => {},
 });
 
 export const WalletProvider = ({ children }: PropsWithChildren) => {
   const [wallets, setWallets] = useState<Wallet[]>([]);
   const [balance, setBalance] = useState(0);
+
+  const updateWallets = useCallback(
+    async () => WalletService.getWallets().then(setWallets),
+    [],
+  );
 
   const updateBalance = useCallback(async () => {
     const balancePromises = [];
@@ -29,7 +34,8 @@ export const WalletProvider = ({ children }: PropsWithChildren) => {
         EthersService.getEthBalance(wallet.safe, 'http://localhost:8545'),
       );
     }
-    Promise.allSettled(balancePromises)
+
+    return Promise.allSettled(balancePromises)
       .then((results) =>
         results.reduce(
           (a: number, b: PromiseSettledResult<number>) =>
@@ -40,20 +46,12 @@ export const WalletProvider = ({ children }: PropsWithChildren) => {
       .then(setBalance);
   }, [wallets]);
 
-  useInterval(() => {
-    updateBalance()
-      .then((balance) => console.log('Balance:', balance))
-      .catch(() => console.error('Failed to get balance'));
-  }, 5000);
-
-  useEffect(() => {
-    WalletService.getWallets()
-      .then(setWallets)
-      .catch(() => console.error('Failed to get wallets'));
-  }, []);
+  useInterval(() => updateBalance(), wallets.length ? 5000 : null);
 
   return (
-    <WalletContext.Provider value={{ balance }}>
+    <WalletContext.Provider
+      value={{ wallets, balance, updateWallets, updateBalance }}
+    >
       {children}
     </WalletContext.Provider>
   );

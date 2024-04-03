@@ -16,7 +16,7 @@ import { Header, Wrapper } from '@/components/Layout';
 import { Receive, Send } from '@/components/Wallet';
 import { serviceTemplates } from '@/constants';
 import { PageState } from '@/enums';
-import { usePageState, useServices, useUserBalance } from '@/hooks';
+import { usePageState, useServices, useWallet } from '@/hooks';
 import { ServicesService } from '@/service';
 
 const { useToken } = theme;
@@ -47,7 +47,7 @@ const Main = () => {
   const { token } = useToken();
   const { setPageState } = usePageState();
   const { services, serviceStatus, setServiceStatus } = useServices();
-  const { balance } = useUserBalance();
+  const { balance } = useWallet();
 
   const [serviceButtonState, setServiceButtonState] = useState({
     isLoading: false,
@@ -166,7 +166,7 @@ const Main = () => {
             style={{ display: 'flex', flexWrap: 'nowrap', fontSize: 18 }}
           >
             <span style={{ display: 'flex', flexWrap: 'nowrap' }}>
-              24hr change --%
+              24hr change -- %
             </span>
             {/* <CaretUpFilled style={{ color: token.colorSuccess }} /> */}
           </Typography>

@@ -8,16 +8,16 @@ import { Alert, Button, Flex, message, QRCode, Typography } from 'antd';
 
 import { copyToClipboard } from '@/common-util';
 import { PageState } from '@/enums';
-import { useAppInfo, usePageState } from '@/hooks';
+import { usePageState, useWallet } from '@/hooks';
 
 import { Header } from '../Layout/Header';
 import { Wrapper } from '../Layout/Wrapper';
 
 export const Receive = () => {
   const { setPageState } = usePageState();
-  const { userPublicKey } = useAppInfo();
+  const { wallets } = useWallet();
   const handleCopy = () =>
-    copyToClipboard(`${userPublicKey}`).then(() => message.success('Copied!'));
+    copyToClipboard(wallets[0].address).then(() => message.success('Copied!'));
 
   return (
     <>
@@ -50,15 +50,15 @@ export const Receive = () => {
             }
           />
           <QRCode
-            value={`https://metamask.app.link/send/${userPublicKey}@${100}`}
+            value={`https://metamask.app.link/send/${wallets[0].address}@${100}`}
           />
           <Flex gap={10}>
             <Typography.Text
               className="can-select-text"
               code
-              title={userPublicKey}
+              title={wallets[0].address}
             >
-              {`${userPublicKey?.substring(0, 6)}...${userPublicKey?.substring(userPublicKey.length - 4, userPublicKey.length)}`}
+              {`${wallets[0].address?.substring(0, 6)}...${wallets[0].address?.substring(wallets[0].address.length - 4, wallets[0].address.length)}`}
             </Typography.Text>
             <Button>
               <CopyOutlined onClick={handleCopy} />

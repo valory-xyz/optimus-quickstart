@@ -16,6 +16,10 @@ export const mainTheme: ThemeConfig = {
     Button: {
       fontSize: 20,
     },
+    Input: {
+      fontSize: 20,
+      colorTextDisabled: '#334155',
+    },
     QRCode: {
       size: 150,
     },
