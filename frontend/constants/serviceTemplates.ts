@@ -16,8 +16,8 @@ export const serviceTemplates: ServiceTemplate[] = [
       olas_cost_of_bond: 10000000000000000000,
       olas_required_to_stake: 10000000000000000000,
       fund_requirements: {
-        agent: 1000000000000000000,
-        safe: 5000000000000000000,
+        agent: 100000000000000000,
+        safe: 500000000000000000,
       },
     },
   },
