@@ -328,10 +328,11 @@ def create_app(  # pylint: disable=too-many-locals, unused-argument, too-many-st
             ),
         )
         if template.get("deploy", False):
-            operate.service_manager().deploy_service_onchain(hash=service.hash)
-            operate.service_manager().stake_service_on_chain(hash=service.hash)
-            service.deployment.build()
-            service.deployment.start()
+            manager = operate.service_manager()
+            manager.deploy_service_onchain(hash=service.hash)
+            manager.stake_service_on_chain(hash=service.hash)
+            manager.fund_service(hash=service.hash)
+            manager.deploy_service_locally(hash=service.hash)
         return JSONResponse(
             content=operate.service_manager().create_or_load(hash=service.hash).json
         )
@@ -348,10 +349,11 @@ def create_app(  # pylint: disable=too-many-locals, unused-argument, too-many-st
             new_hash=template["new_service_hash"],
         )
         if template.get("deploy", False):
-            operate.service_manager().deploy_service_onchain(hash=service.hash)
-            operate.service_manager().stake_service_on_chain(hash=service.hash)
-            service.deployment.build()
-            service.deployment.start()
+            manager = operate.service_manager()
+            manager.deploy_service_onchain(hash=service.hash)
+            manager.stake_service_on_chain(hash=service.hash)
+            manager.fund_service(hash=service.hash)
+            manager.deploy_service_locally(hash=service.hash)
         return JSONResponse(content=service.json)
 
     @app.get("/api/services/{service}")
@@ -449,6 +451,7 @@ def create_app(  # pylint: disable=too-many-locals, unused-argument, too-many-st
             .deployment
         )
         deployment.build()
+        operate.service_manager().fund_service(hash=request.path_params["service"])
         deployment.start()
         return JSONResponse(content=deployment.json)
 
@@ -470,6 +473,7 @@ def create_app(  # pylint: disable=too-many-locals, unused-argument, too-many-st
     @with_retries
     async def _delete_service_locally(request: Request) -> JSONResponse:
         """Create a service."""
+        # TODO: Drain safe before deleting service
         deployment = (
             operate.service_manager()
             .create_or_load(

@@ -80,6 +80,28 @@ class MasterWallet(LocalResource):
         return make_ledger_api(
             self.ledger_type.name.lower(),
             address=(rpc or get_default_rpc(chain=chain_type)),
+            chain_id=chain_type.id,
+        )
+
+    def transfer(self, to: str, amount: int, chain_type: ChainType) -> None:
+        """Transfer funds to the given account."""
+        ledger_api = self.ledger_api(chain_type=chain_type)
+        tx = ledger_api.get_transfer_transaction(
+            sender_address=self.crypto.address,
+            destination_address=to,
+            amount=amount,
+            tx_fee=50000,
+            tx_nonce=ledger_api.generate_tx_nonce(
+                seller=self.crypto.address,
+                client=to,
+            ),
+        )
+        tx = ledger_api.update_with_gas_estimate(tx)
+        tx = self.crypto.sign_transaction(tx)
+        ledger_api.get_transaction_receipt(
+            tx_digest=ledger_api.send_signed_transaction(
+                tx_signed=tx,
+            )
         )
 
     @staticmethod
