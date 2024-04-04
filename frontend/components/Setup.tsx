@@ -9,14 +9,7 @@ import {
   Spin,
   Typography,
 } from 'antd';
-import {
-  FormEvent,
-  useCallback,
-  useContext,
-  useEffect,
-  useMemo,
-  useState,
-} from 'react';
+import { useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { useInterval } from 'usehooks-ts';
 
 import { AccountIsSetup, Chain } from '@/client';
@@ -86,11 +79,9 @@ const SetupWelcome = () => {
   }, []);
 
   const handleLogin = useCallback(
-    async (values: any) => {
-      console.log(values);
-
+    async ({ password }: { password: string }) => {
       try {
-        await AccountService.loginAccount(values.password);
+        await AccountService.loginAccount(password);
         updateWallets();
         updateBalance();
         gotoPage(PageState.Main);
@@ -106,7 +97,7 @@ const SetupWelcome = () => {
     switch (isSetup) {
       case AccountIsSetup.True:
         return (
-          <Form onFinish={handleLogin}>
+          <Form form={form} onFinish={handleLogin}>
             <Form.Item
               name="password"
               rules={[
@@ -150,14 +141,12 @@ const SetupWelcome = () => {
 
 const SetupPassword = () => {
   const { goto, setMnemonic } = useSetup();
+  const [form] = Form.useForm();
 
-  const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
-  const handleCreateEoa = async (e: FormEvent) => {
-    e.preventDefault();
+  const handleCreateEoa = async ({ password }: { password: string }) => {
     setIsLoading(true);
-    // create account
     AccountService.createAccount(password)
       .then(() => AccountService.loginAccount(password))
       .then(() => WalletService.createEoa(Chain.GNOSIS))
@@ -172,16 +161,17 @@ const SetupPassword = () => {
     <Wrapper vertical>
       <Typography.Title>Password</Typography.Title>
       <Typography.Text>Enter a password</Typography.Text>
-      <form onSubmit={handleCreateEoa}>
-        <Input.Password
-          placeholder="Input a strong password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-        />
+      <Form form={form} onFinish={handleCreateEoa}>
+        <Form.Item
+          name="password"
+          rules={[{ required: true, message: 'Please input a Password!' }]}
+        >
+          <Input.Password placeholder="Password" />
+        </Form.Item>
         <Button htmlType="submit" loading={isLoading}>
           Next
         </Button>
-      </form>
+      </Form>
     </Wrapper>
   );
 };
