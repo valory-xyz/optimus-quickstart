@@ -1,5 +1,6 @@
 import { Address } from '@/types';
-import { Ledger, Chain, DeploymentStatus } from './enums';
+
+import { Chain, DeploymentStatus, Ledger } from './enums';
 
 export type ServiceHash = string;
 
