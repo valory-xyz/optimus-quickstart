@@ -1,5 +1,14 @@
 import { CopyOutlined } from '@ant-design/icons';
-import { Button, Flex, Input, message, QRCode, Spin, Typography } from 'antd';
+import {
+  Button,
+  Flex,
+  Form,
+  Input,
+  message,
+  QRCode,
+  Spin,
+  Typography,
+} from 'antd';
 import {
   FormEvent,
   useCallback,
@@ -10,7 +19,7 @@ import {
 } from 'react';
 import { useInterval } from 'usehooks-ts';
 
-import { Chain } from '@/client';
+import { AccountIsSetup, Chain } from '@/client';
 import { copyToClipboard } from '@/common-util';
 import { SetupContext } from '@/context';
 import { PageState, SetupScreen } from '@/enums';
@@ -20,16 +29,6 @@ import { AccountService } from '@/service/Account';
 import { WalletService } from '@/service/Wallet';
 
 import { Wrapper } from './Layout/Wrapper';
-
-/**
- * Remove RecoveryPage; add to Settings page
- *
- * 1. Setup password // post to /api/account, confirms user is created
- * 2. Backup mnemonic // post to /api/wallet, returns pubk and mnemonic
- * 3. Funding screen // initial funding polling screen,
- * 4. Finalization screen // PUT /api/wallet to setup Gnosis Safe.
- * 5. Open main window :yay:
- */
 
 export const Setup = () => {
   const { setupObject } = useContext(SetupContext);
@@ -56,48 +55,70 @@ export const Setup = () => {
 const SetupWelcome = () => {
   const { goto } = useSetup();
   const { goto: gotoPage } = usePageState();
-  const [isSetup, setIsSetup] = useState<boolean | undefined>();
-  const [password, setPassword] = useState('');
+  const [isSetup, setIsSetup] = useState<AccountIsSetup>(
+    AccountIsSetup.Loading,
+  );
+
+  const [form] = Form.useForm();
+
   const { updateWallets, updateBalance } = useWallet();
 
   // get is setup
   useEffect(() => {
-    AccountService.getAccount().then((res) => setIsSetup(res.is_setup));
+    AccountService.getAccount()
+      .then((res) => {
+        switch (res.is_setup) {
+          case true:
+            setIsSetup(AccountIsSetup.True);
+            break;
+          case false:
+            setIsSetup(AccountIsSetup.False);
+            break;
+          default:
+            setIsSetup(AccountIsSetup.Error);
+            break;
+        }
+      })
+      .catch((e) => {
+        console.error(e);
+        setIsSetup(AccountIsSetup.Error);
+      });
   }, []);
 
   const handleLogin = useCallback(
-    async (e: FormEvent) => {
-      e.preventDefault();
-      // login
+    async (values: any) => {
+      console.log(values);
 
       try {
-        await AccountService.loginAccount(password);
+        await AccountService.loginAccount(values.password);
         updateWallets();
         updateBalance();
         gotoPage(PageState.Main);
       } catch (e) {
+        console.error(e);
         message.error('Invalid password');
-        console.log(e);
       }
     },
-    [gotoPage, password, updateBalance, updateWallets],
+    [gotoPage, updateBalance, updateWallets],
   );
 
-  const form = useMemo(() => {
+  const welcomeScreen = useMemo(() => {
     switch (isSetup) {
-      // login form
-      case true:
+      case AccountIsSetup.True:
         return (
-          <form onSubmit={handleLogin}>
-            <Input.Password
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-            />
+          <Form onFinish={handleLogin}>
+            <Form.Item
+              name="password"
+              rules={[
+                { required: true, message: 'Please input your Password!' },
+              ]}
+            >
+              <Input.Password placeholder="Password" />
+            </Form.Item>
             <Button htmlType="submit">Login</Button>
-          </form>
+          </Form>
         );
-      // create account or import
-      case false:
+      case AccountIsSetup.False:
         return (
           <>
             <Button onClick={() => goto(SetupScreen.Password)}>
@@ -106,16 +127,23 @@ const SetupWelcome = () => {
             <Button disabled>Import</Button>
           </>
         );
-      // loading
+      case AccountIsSetup.Error:
+        return (
+          <>
+            <Typography.Text type="danger">
+              Error loading account status, please reload the application.
+            </Typography.Text>
+          </>
+        );
       default:
         return <Spin />;
     }
-  }, [goto, handleLogin, isSetup, password]);
+  }, [goto, handleLogin, isSetup]);
 
   return (
     <Wrapper vertical>
       <Typography.Title>Welcome</Typography.Title>
-      {form}
+      {welcomeScreen}
     </Wrapper>
   );
 };
@@ -126,7 +154,7 @@ const SetupPassword = () => {
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
-  const handleCreateEOA = async (e: FormEvent) => {
+  const handleCreateEoa = async (e: FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     // create account
@@ -144,7 +172,7 @@ const SetupPassword = () => {
     <Wrapper vertical>
       <Typography.Title>Password</Typography.Title>
       <Typography.Text>Enter a password</Typography.Text>
-      <form onSubmit={handleCreateEOA}>
+      <form onSubmit={handleCreateEoa}>
         <Input.Password
           placeholder="Input a strong password"
           value={password}
