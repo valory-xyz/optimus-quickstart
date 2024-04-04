@@ -7,6 +7,7 @@ import {
   SetStateAction,
   useCallback,
   useEffect,
+  useMemo,
   useState,
 } from 'react';
 import { useInterval } from 'usehooks-ts';
@@ -42,23 +43,19 @@ export const ServicesProvider = ({ children }: PropsWithChildren) => {
   >();
   const [hasInitialLoaded, setHasInitialLoaded] = useState(false);
 
-  const serviceAddresses = [
-    // instances
-    ...services.reduce(
-      (acc: Address[], { chain_data: { instances, multisig } }) => {
-        acc.push(
-          ...(instances ?? []).reduce(
-            (acc: Address[], instance: Address) =>
-              isAddress(`${instance}`) ? acc.concat(instance) : acc,
-            [],
-          ),
+  const serviceAddresses = useMemo(
+    () =>
+      services.flatMap(({ chain_data: { instances = [], multisig } }) => {
+        const validInstances = instances.filter((instance) =>
+          isAddress(`${instance}`),
         );
-        isAddress(`${multisig}`) ? acc.push(multisig!) : acc;
-        return acc;
-      },
-      [],
-    ),
-  ];
+        if (!multisig) return validInstances;
+        return isAddress(`${multisig}`)
+          ? [...validInstances, multisig]
+          : validInstances;
+      }) ?? [],
+    [services],
+  );
 
   const updateServicesState = useCallback(
     async (): Promise<void> =>

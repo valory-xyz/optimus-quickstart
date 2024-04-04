@@ -1,4 +1,4 @@
-import { getAddress } from 'ethers/lib/utils';
+import { isAddress } from 'ethers/lib/utils';
 import {
   createContext,
   PropsWithChildren,
@@ -39,14 +39,14 @@ export const WalletProvider = ({ children }: PropsWithChildren) => {
 
   const updateBalance = useCallback(async () => {
     const walletsToCheck: Address[] = [];
-    for (const wallet of wallets) {
-      if (!getAddress || !wallet.address) continue;
-      walletsToCheck.push(wallet.address);
-    }
-    for (const serviceAddress of serviceAddresses) {
-      if (!getAddress || !serviceAddress) continue;
-      walletsToCheck.push(serviceAddress);
-    }
+
+    for (const wallet of wallets)
+      if (wallet.address && isAddress(wallet.address))
+        walletsToCheck.push(wallet.address);
+
+    for (const serviceAddress of serviceAddresses)
+      if (serviceAddress && isAddress(serviceAddress))
+        walletsToCheck.push(serviceAddress);
 
     const balancePromises = walletsToCheck.map((address) =>
       EthersService.getEthBalance(address, `${process.env.GNOSIS_RPC}`),
