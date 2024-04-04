@@ -5,8 +5,9 @@ import {
   WarningOutlined,
 } from '@ant-design/icons';
 import { Alert, Button, Flex, message, QRCode, Typography } from 'antd';
+import { useCallback, useMemo } from 'react';
 
-import { copyToClipboard } from '@/common-util';
+import { copyToClipboard, truncateAddress } from '@/common-util';
 import { PageState } from '@/enums';
 import { usePageState, useWallet } from '@/hooks';
 
@@ -16,8 +17,20 @@ import { Wrapper } from '../Layout/Wrapper';
 export const Receive = () => {
   const { setPageState } = usePageState();
   const { wallets } = useWallet();
-  const handleCopy = () =>
-    copyToClipboard(wallets[0].address).then(() => message.success('Copied!'));
+
+  const walletAddress = useMemo(() => wallets[0]?.address, [wallets]);
+  const truncatedWalletAddress = useMemo(
+    () => truncateAddress(walletAddress),
+    [walletAddress],
+  );
+
+  const handleCopy = useCallback(
+    () =>
+      copyToClipboard(walletAddress).then(() =>
+        message.success('Copied successfully!'),
+      ),
+    [walletAddress],
+  );
 
   return (
     <>
@@ -50,18 +63,18 @@ export const Receive = () => {
             }
           />
           <QRCode
-            value={`https://metamask.app.link/send/${wallets[0].address}@${100}`}
+            value={`https://metamask.app.link/send/${walletAddress}@${100}`}
           />
           <Flex gap={10}>
             <Typography.Text
               className="can-select-text"
               code
-              title={wallets[0].address}
+              title={walletAddress}
             >
-              {`${wallets[0].address?.substring(0, 6)}...${wallets[0].address?.substring(wallets[0].address.length - 4, wallets[0].address.length)}`}
+              {truncatedWalletAddress}
             </Typography.Text>
-            <Button>
-              <CopyOutlined onClick={handleCopy} />
+            <Button onClick={handleCopy}>
+              <CopyOutlined />
             </Button>
           </Flex>
         </Flex>

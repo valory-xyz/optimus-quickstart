@@ -166,7 +166,7 @@ const Main = () => {
           <Typography style={{ margin: 0 }}>
             <span style={{ fontSize: 32, fontWeight: 900 }}>$</span>
             <span style={{ fontSize: 64, fontWeight: 900 }}>
-              {balance !== undefined ? balance?.toFixed(2) : '--'}
+              {balance === undefined ? '--' : balance.toFixed(2)}
             </span>
           </Typography>
           <Typography
