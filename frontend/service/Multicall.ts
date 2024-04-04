@@ -15,15 +15,17 @@ const getEthBalances = async (
   addresses: Address[],
   rpc: string,
 ): Promise<AddressNumberRecord> => {
-  const provider = new ethers.providers.JsonRpcProvider(rpc, {
+  const provider = new ethers.providers.StaticJsonRpcProvider(rpc, {
     chainId: 100,
     name: 'Gnosis',
-  }); // hardcode gnosis chainId
-  const multicallProvider = new Provider(provider, 100); // hardcode gnosis chainId
+  });
+
+  // hardcode gnosis chainId
+  const multicallProvider = new Provider(provider, 100);
   const multicallContract = new Contract(MULTICALL_CONTRACT, multicall3Abi);
 
   const callData: ContractCall[] = addresses.map((address: Address) =>
-    multicallContract.getEthBalance(ethers.utils.getAddress(address)),
+    multicallContract.getEthBalance(address),
   );
 
   return multicallProvider.all(callData).then((responseData: BigNumber[]) =>
@@ -49,7 +51,7 @@ const getErc20Balances = async (
   rpc: string,
   contractAddress: Address,
 ) => {
-  const provider = new ethers.providers.JsonRpcProvider(rpc);
+  const provider = new ethers.providers.StaticJsonRpcProvider(rpc);
   const multicallProvider = new Provider(provider, 100); // hardcoded to 100
   const multicallContract = new Contract(MULTICALL_CONTRACT, multicall3Abi);
 

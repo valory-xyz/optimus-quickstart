@@ -69,11 +69,16 @@ const SetupWelcome = () => {
     async (e: FormEvent) => {
       e.preventDefault();
       // login
-      AccountService.loginAccount(password)
-        .then(() => updateWallets())
-        .then(() => updateBalance())
-        .then(() => gotoPage(PageState.Main))
-        .catch(() => message.error('Invalid password'));
+
+      try {
+        await AccountService.loginAccount(password);
+        updateWallets();
+        updateBalance();
+        gotoPage(PageState.Main);
+      } catch (e) {
+        message.error('Invalid password');
+        console.log(e);
+      }
     },
     [gotoPage, password, updateBalance, updateWallets],
   );
@@ -202,7 +207,7 @@ const SetupFunding = () => {
   const { goto } = useSetup();
 
   useInterval(() => {
-    EthersService.getEthBalance(address, 'http://localhost:8545').then(
+    EthersService.getEthBalance(address, `${process.env.GNOSIS_RPC}`).then(
       (balance) => {
         if (balance > 0) {
           goto(SetupScreen.Finalizing);

@@ -20,6 +20,12 @@ const nextConfig = {
     'rc-pagination',
     'rc-picker',
   ],
+  env: {
+    GNOSIS_RPC:
+      process.env.NODE_ENV === 'production'
+        ? 'https://gnosis-rpc.publicnode.com'
+        : 'http://localhost:8545',
+  },
 };
 
 export default nextConfig;

@@ -1,3 +1,4 @@
+import { getAddress } from 'ethers/lib/utils';
 import {
   createContext,
   PropsWithChildren,
@@ -9,8 +10,8 @@ import { useInterval } from 'usehooks-ts';
 
 import { Wallet } from '@/client';
 import { EthersService } from '@/service';
-import MulticallService from '@/service/Multicall';
 import { WalletService } from '@/service/Wallet';
+import { Address } from '@/types';
 
 import { ServicesContext } from '.';
 
@@ -37,20 +38,31 @@ export const WalletProvider = ({ children }: PropsWithChildren) => {
   );
 
   const updateBalance = useCallback(async () => {
-    const isRpcActive = await EthersService.checkRpc('https://localhost:8545');
-    if (!isRpcActive) return;
-    const multicallBalances = await MulticallService.getEthBalances(
-      serviceAddresses,
-      'http://localhost:8545',
+    const walletsToCheck: Address[] = [];
+    for (const wallet of wallets) {
+      if (!getAddress || !wallet.address) continue;
+      walletsToCheck.push(wallet.address);
+    }
+    for (const serviceAddress of serviceAddresses) {
+      if (!getAddress || !serviceAddress) continue;
+      walletsToCheck.push(serviceAddress);
+    }
+
+    const balancePromises = walletsToCheck.map((address) =>
+      EthersService.getEthBalance(address, `${process.env.GNOSIS_RPC}`),
     );
 
-    setBalance(
-      Object.values(multicallBalances).reduce(
-        (acc, balance) => acc + balance,
-        0,
-      ),
-    );
-  }, [serviceAddresses]);
+    const settledBalances = await Promise.allSettled(balancePromises);
+
+    const balance = settledBalances.reduce((acc: number, promise) => {
+      if (promise.status === 'fulfilled') {
+        return acc + promise.value;
+      }
+      return acc;
+    }, 0);
+
+    setBalance(balance);
+  }, [serviceAddresses, wallets]);
 
   useInterval(() => updateBalance(), wallets.length ? 5000 : null);
 

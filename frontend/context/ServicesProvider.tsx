@@ -48,11 +48,12 @@ export const ServicesProvider = ({ children }: PropsWithChildren) => {
       (acc: Address[], { chain_data: { instances, multisig } }) => {
         acc.push(
           ...(instances ?? []).reduce(
-            (acc: Address[], instance: Address) => acc.concat(instance),
+            (acc: Address[], instance: Address) =>
+              isAddress(`${instance}`) ? acc.concat(instance) : acc,
             [],
           ),
         );
-        isAddress(`${multisig}`) && acc.push(multisig!);
+        isAddress(`${multisig}`) ? acc.push(multisig!) : acc;
         return acc;
       },
       [],
