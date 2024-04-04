@@ -124,7 +124,7 @@ const Main = () => {
         </Button>
       );
     }
-    if (balance !== undefined && balance < 1)
+    if (balance < 1)
       return (
         <Button type="text" disabled>
           Not funded
