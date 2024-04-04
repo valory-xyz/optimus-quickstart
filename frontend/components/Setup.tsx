@@ -129,7 +129,7 @@ const SetupWelcome = () => {
       default:
         return <Spin />;
     }
-  }, [goto, handleLogin, isSetup]);
+  }, [form, goto, handleLogin, isSetup]);
 
   return (
     <Wrapper vertical>

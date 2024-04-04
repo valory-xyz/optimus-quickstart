@@ -38,6 +38,9 @@ export const WalletProvider = ({ children }: PropsWithChildren) => {
   );
 
   const updateBalance = useCallback(async () => {
+    if ((await EthersService.checkRpc(`${process.env.GNOSIS_RPC}`)) === false)
+      return;
+
     const walletsToCheck: Address[] = [];
 
     for (const wallet of wallets)
