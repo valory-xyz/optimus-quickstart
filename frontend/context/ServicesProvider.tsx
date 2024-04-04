@@ -1,4 +1,5 @@
 import { message } from 'antd';
+import { isAddress } from 'ethers/lib/utils';
 import {
   createContext,
   Dispatch,
@@ -12,9 +13,11 @@ import { useInterval } from 'usehooks-ts';
 
 import { DeploymentStatus, Service } from '@/client';
 import { ServicesService } from '@/service';
+import { Address } from '@/types';
 
 type ServicesContextProps = {
   services: Service[];
+  serviceAddresses: Address[];
   setServices: Dispatch<SetStateAction<Service[]>>;
   serviceStatus: DeploymentStatus | undefined;
   setServiceStatus: Dispatch<SetStateAction<DeploymentStatus | undefined>>;
@@ -24,6 +27,7 @@ type ServicesContextProps = {
 
 export const ServicesContext = createContext<ServicesContextProps>({
   services: [],
+  serviceAddresses: [],
   setServices: () => {},
   serviceStatus: undefined,
   setServiceStatus: () => {},
@@ -37,6 +41,23 @@ export const ServicesProvider = ({ children }: PropsWithChildren) => {
     DeploymentStatus | undefined
   >();
   const [hasInitialLoaded, setHasInitialLoaded] = useState(false);
+
+  const serviceAddresses = [
+    // instances
+    ...services.reduce(
+      (acc: Address[], { chain_data: { instances, multisig } }) => {
+        acc.push(
+          ...(instances ?? []).reduce(
+            (acc: Address[], instance: Address) => acc.concat(instance),
+            [],
+          ),
+        );
+        isAddress(`${multisig}`) && acc.push(multisig!);
+        return acc;
+      },
+      [],
+    ),
+  ];
 
   const updateServicesState = useCallback(
     async (): Promise<void> =>
@@ -73,6 +94,7 @@ export const ServicesProvider = ({ children }: PropsWithChildren) => {
     <ServicesContext.Provider
       value={{
         services,
+        serviceAddresses,
         setServices,
         updateServicesState,
         hasInitialLoaded,

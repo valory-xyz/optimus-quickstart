@@ -117,7 +117,14 @@ const Main = () => {
           Pause
         </Button>
       );
-    if (balance < 1)
+    if (balance === undefined) {
+      return (
+        <Button type="text" disabled>
+          RPC Error
+        </Button>
+      );
+    }
+    if (balance !== undefined && balance < 1)
       return (
         <Button type="text" disabled>
           Not funded
@@ -159,7 +166,7 @@ const Main = () => {
           <Typography style={{ margin: 0 }}>
             <span style={{ fontSize: 32, fontWeight: 900 }}>$</span>
             <span style={{ fontSize: 64, fontWeight: 900 }}>
-              {balance.toFixed(2)}
+              {balance !== undefined ? balance?.toFixed(2) : '--'}
             </span>
           </Typography>
           <Typography

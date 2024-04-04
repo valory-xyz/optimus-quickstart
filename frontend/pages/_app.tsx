@@ -16,15 +16,15 @@ export default function App({ Component, pageProps }: AppProps) {
   return (
     <AppInfoProvider>
       <PageStateProvider>
-        <WalletProvider>
-          <ServicesProvider>
+        <ServicesProvider>
+          <WalletProvider>
             <ConfigProvider theme={mainTheme}>
               <SetupProvider>
                 <Component {...pageProps} />
               </SetupProvider>
             </ConfigProvider>
-          </ServicesProvider>
-        </WalletProvider>
+          </WalletProvider>
+        </ServicesProvider>
       </PageStateProvider>
     </AppInfoProvider>
   );

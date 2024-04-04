@@ -1,5 +1,6 @@
 {
   "compilerOptions": {
+    "target": "ES2015",
     "allowJs": true,
     "esModuleInterop": true,
     "incremental": true,

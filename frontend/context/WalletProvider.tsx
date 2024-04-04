@@ -1,25 +1,35 @@
-import { createContext, PropsWithChildren, useCallback, useState } from 'react';
+import {
+  createContext,
+  PropsWithChildren,
+  useCallback,
+  useContext,
+  useState,
+} from 'react';
 import { useInterval } from 'usehooks-ts';
 
 import { Wallet } from '@/client';
 import { EthersService } from '@/service';
+import MulticallService from '@/service/Multicall';
 import { WalletService } from '@/service/Wallet';
+
+import { ServicesContext } from '.';
 
 export const WalletContext = createContext<{
   wallets: Wallet[];
-  balance: number;
+  balance: number | undefined;
   updateWallets: () => Promise<void>;
   updateBalance: () => void;
 }>({
   wallets: [],
-  balance: 0,
+  balance: undefined,
   updateWallets: async () => {},
   updateBalance: () => {},
 });
 
 export const WalletProvider = ({ children }: PropsWithChildren) => {
+  const { serviceAddresses } = useContext(ServicesContext);
   const [wallets, setWallets] = useState<Wallet[]>([]);
-  const [balance, setBalance] = useState(0);
+  const [balance, setBalance] = useState<number>();
 
   const updateWallets = useCallback(
     async () => WalletService.getWallets().then(setWallets),
@@ -27,24 +37,20 @@ export const WalletProvider = ({ children }: PropsWithChildren) => {
   );
 
   const updateBalance = useCallback(async () => {
-    const balancePromises = [];
-    for (const wallet of wallets) {
-      balancePromises.push(
-        EthersService.getEthBalance(wallet.address, 'http://localhost:8545'),
-        EthersService.getEthBalance(wallet.safe, 'http://localhost:8545'),
-      );
-    }
+    const isRpcActive = await EthersService.checkRpc('https://localhost:8545');
+    if (!isRpcActive) return;
+    const multicallBalances = await MulticallService.getEthBalances(
+      serviceAddresses,
+      'http://localhost:8545',
+    );
 
-    return Promise.allSettled(balancePromises)
-      .then((results) =>
-        results.reduce(
-          (a: number, b: PromiseSettledResult<number>) =>
-            b.status === 'fulfilled' ? a + b.value : a,
-          0,
-        ),
-      )
-      .then(setBalance);
-  }, [wallets]);
+    setBalance(
+      Object.values(multicallBalances).reduce(
+        (acc, balance) => acc + balance,
+        0,
+      ),
+    );
+  }, [serviceAddresses]);
 
   useInterval(() => updateBalance(), wallets.length ? 5000 : null);
 
