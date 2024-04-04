@@ -46,7 +46,7 @@ const loginAccount = (password: string) =>
       password,
     }),
   }).then((res) => {
-    if (res.status !== 200) throw new Error('Login failed');
+    if (![200, 201].includes(res.status)) throw new Error('Login failed');
     res.json();
   });
 
