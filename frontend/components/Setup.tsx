@@ -132,7 +132,7 @@ const SetupPassword = () => {
     // create account
     AccountService.createAccount(password)
       .then(() => AccountService.loginAccount(password))
-      .then(() => WalletService.createEOA(Chain.GNOSIS))
+      .then(() => WalletService.createEoa(Chain.GNOSIS))
       .then(({ mnemonic }) => {
         setMnemonic(mnemonic);
         goto(SetupScreen.Backup);

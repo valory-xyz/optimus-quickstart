@@ -7,7 +7,7 @@ import { BACKEND_URL } from '@/constants';
 const getWallets = async () =>
   fetch(`${BACKEND_URL}/wallet`).then((res) => res.json());
 
-const createEOA = async (chain: Chain) =>
+const createEoa = async (chain: Chain) =>
   fetch(`${BACKEND_URL}/wallet`, {
     method: 'POST',
     headers: {
@@ -27,6 +27,6 @@ const createSafe = async (chain: Chain) =>
 
 export const WalletService = {
   getWallets,
-  createEOA,
+  createEoa,
   createSafe,
 };
