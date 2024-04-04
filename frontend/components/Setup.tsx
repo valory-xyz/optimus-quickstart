@@ -150,9 +150,13 @@ const SetupPassword = () => {
     AccountService.createAccount(password)
       .then(() => AccountService.loginAccount(password))
       .then(() => WalletService.createEoa(Chain.GNOSIS))
-      .then(({ mnemonic }) => {
+      .then(({ mnemonic }: { mnemonic: string[] }) => {
         setMnemonic(mnemonic);
         goto(SetupScreen.Backup);
+      })
+      .catch((e) => {
+        console.error(e);
+        message.error('Error creating account');
       })
       .finally(() => setIsLoading(false));
   };
