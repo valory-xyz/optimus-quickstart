@@ -1,0 +1,42 @@
+# TBA
+name: Build
+
+on: [push]
+
+jobs:
+    release:
+        runs-on: ${{ matrix.os }}
+
+        strategy:
+            matrix:
+                os: [macos-latest]
+
+        steps:           
+            - uses: actions/checkout@v2
+
+                # Node.js (for package scripts)
+            -   uses: actions/setup-node@v1
+                with:
+                    node-version: "20.11"
+
+            # Python
+            -   uses: actions/setup-python@v4
+                with:
+                    python-version: "3.10"
+
+            -   uses: snok/install-poetry@v1
+                with:
+                    version: "1.7.1"
+                    virtualenvs-create: true
+                    virtualenvs-in-project: false
+                    virtualenvs-path: ~/my-custom-path
+                    installer-parallel: true
+
+            # Install backend dependencies
+            -   run: yarn install-deps
+            -   run: yarn build:frontend
+            -   run: rm -rf /dist && npm exec --package=electron-builder -- electron-builder build --mac
+
+
+            # Run backend
+            # -   run: yarn dev:backend
