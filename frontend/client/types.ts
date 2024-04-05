@@ -103,3 +103,16 @@ export type AppInfo = {
     key: Address;
   };
 };
+
+export type WalletResponse = {
+  address: Address;
+  safe_chains: Chain[];
+  ledger_type: Ledger;
+  safe: Address;
+  safe_nonce: number;
+};
+
+export type Wallet = WalletResponse & {
+  ethBalance?: number;
+  olasBalance?: number;
+};

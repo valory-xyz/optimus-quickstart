@@ -1,4 +1,5 @@
 import { message } from 'antd';
+import { isAddress } from 'ethers/lib/utils';
 import {
   createContext,
   Dispatch,
@@ -6,15 +7,18 @@ import {
   SetStateAction,
   useCallback,
   useEffect,
+  useMemo,
   useState,
 } from 'react';
 import { useInterval } from 'usehooks-ts';
 
 import { DeploymentStatus, Service } from '@/client';
 import { ServicesService } from '@/service';
+import { Address } from '@/types';
 
 type ServicesContextProps = {
   services: Service[];
+  serviceAddresses: Address[];
   setServices: Dispatch<SetStateAction<Service[]>>;
   serviceStatus: DeploymentStatus | undefined;
   setServiceStatus: Dispatch<SetStateAction<DeploymentStatus | undefined>>;
@@ -24,6 +28,7 @@ type ServicesContextProps = {
 
 export const ServicesContext = createContext<ServicesContextProps>({
   services: [],
+  serviceAddresses: [],
   setServices: () => {},
   serviceStatus: undefined,
   setServiceStatus: () => {},
@@ -38,32 +43,44 @@ export const ServicesProvider = ({ children }: PropsWithChildren) => {
   >();
   const [hasInitialLoaded, setHasInitialLoaded] = useState(false);
 
-  const updateServicesState = useCallback(async (): Promise<void> => {
-    try {
-      return ServicesService.getServices().then((data: Service[]) => {
-        setServices(data);
-      });
-    } catch (e) {
-      Promise.reject(e);
-    }
-  }, []);
+  const serviceAddresses = useMemo(
+    () =>
+      services.flatMap(({ chain_data: { instances = [], multisig } }) => {
+        const validInstances = instances.filter((instance) =>
+          isAddress(`${instance}`),
+        );
+        if (!multisig) return validInstances;
+        return isAddress(`${multisig}`)
+          ? [...validInstances, multisig]
+          : validInstances;
+      }) ?? [],
+    [services],
+  );
+
+  const updateServicesState = useCallback(
+    async (): Promise<void> =>
+      ServicesService.getServices().then((data: Service[]) =>
+        setServices(data),
+      ),
+    [],
+  );
 
   useEffect(() => {
     // Update on load
-    updateServicesState()
-      .catch(() => {
-        message.error('Initial services update failed.');
-      })
-      .then(() => setHasInitialLoaded(true));
+    updateServicesState().then(() => setHasInitialLoaded(true));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Update service status
-  useInterval(async () => {
-    if (services.length < 1) return;
-    const serviceStatus = await ServicesService.getDeployment(services[0].hash);
-    setServiceStatus(serviceStatus.status);
-  }, 5000);
+  useInterval(
+    async () => {
+      const serviceStatus = await ServicesService.getDeployment(
+        services[0].hash,
+      );
+      setServiceStatus(serviceStatus.status);
+    },
+    services.length ? 5000 : null,
+  );
 
   // Update service state
   useInterval(
@@ -75,6 +92,7 @@ export const ServicesProvider = ({ children }: PropsWithChildren) => {
     <ServicesContext.Provider
       value={{
         services,
+        serviceAddresses,
         setServices,
         updateServicesState,
         hasInitialLoaded,

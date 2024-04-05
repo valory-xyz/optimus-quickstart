@@ -1,24 +1,15 @@
 import { message } from 'antd';
-import {
-  createContext,
-  Dispatch,
-  PropsWithChildren,
-  SetStateAction,
-  useEffect,
-  useState,
-} from 'react';
+import { createContext, PropsWithChildren, useEffect, useState } from 'react';
 
 import { AppInfo } from '@/client';
 import { AppInfoService } from '@/service';
 
 type AppInfoContextProps = {
   appInfo?: AppInfo;
-  setAppInfo: Dispatch<SetStateAction<AppInfo | undefined>>;
 };
 
 export const AppInfoContext = createContext<AppInfoContextProps>({
   appInfo: undefined,
-  setAppInfo: () => {},
 });
 
 export const AppInfoProvider = ({ children }: PropsWithChildren) => {
@@ -31,7 +22,7 @@ export const AppInfoProvider = ({ children }: PropsWithChildren) => {
   }, []);
 
   return (
-    <AppInfoContext.Provider value={{ appInfo, setAppInfo }}>
+    <AppInfoContext.Provider value={{ appInfo }}>
       {children}
     </AppInfoContext.Provider>
   );

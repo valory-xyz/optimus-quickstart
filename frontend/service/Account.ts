@@ -45,7 +45,10 @@ const loginAccount = (password: string) =>
     body: JSON.stringify({
       password,
     }),
-  }).then((res) => res.json());
+  }).then((res) => {
+    if (![200, 201].includes(res.status)) throw new Error('Login failed');
+    res.json();
+  });
 
 export const AccountService = {
   getAccount,

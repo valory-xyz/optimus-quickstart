@@ -53,6 +53,7 @@ export const Settings = () => {
         </Flex>
         <Button
           type="text"
+          disabled
           onClick={handleClick}
           style={{
             marginTop: 'auto',

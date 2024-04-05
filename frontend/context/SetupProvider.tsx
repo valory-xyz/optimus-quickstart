@@ -10,8 +10,7 @@ import { SetupScreen } from '@/enums/SetupScreen';
 
 type SetupObjectType = {
   state: SetupScreen;
-  mnemonic: string;
-  passwordHash: string;
+  mnemonic: string[];
 };
 
 type SetupContextType = {
@@ -22,8 +21,7 @@ type SetupContextType = {
 export const SetupContext = createContext<SetupContextType>({
   setupObject: {
     state: SetupScreen.Welcome,
-    mnemonic: '',
-    passwordHash: '',
+    mnemonic: [],
   },
   setSetupObject: () => {},
 });
@@ -31,8 +29,7 @@ export const SetupContext = createContext<SetupContextType>({
 export const SetupProvider = ({ children }: PropsWithChildren) => {
   const [setupObject, setSetupObject] = useState<SetupObjectType>({
     state: SetupScreen.Welcome,
-    mnemonic: '',
-    passwordHash: '',
+    mnemonic: [],
   });
 
   return (

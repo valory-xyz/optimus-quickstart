@@ -11,12 +11,12 @@ import Image from 'next/image';
 import { useCallback, useMemo, useState } from 'react';
 
 import { DeploymentStatus } from '@/client';
-import { Login, Settings, Setup } from '@/components';
+import { Settings, Setup } from '@/components';
 import { Header, Wrapper } from '@/components/Layout';
 import { Receive, Send } from '@/components/Wallet';
 import { serviceTemplates } from '@/constants';
 import { PageState } from '@/enums';
-import { usePageState, useServices, useUserBalance } from '@/hooks';
+import { usePageState, useServices, useWallet } from '@/hooks';
 import { ServicesService } from '@/service';
 
 const { useToken } = theme;
@@ -27,8 +27,6 @@ export default function Home() {
     switch (pageState) {
       case PageState.Setup:
         return <Setup />;
-      case PageState.Login:
-        return <Login />;
       case PageState.Main:
         return <Main />;
       case PageState.Settings:
@@ -49,7 +47,7 @@ const Main = () => {
   const { token } = useToken();
   const { setPageState } = usePageState();
   const { services, serviceStatus, setServiceStatus } = useServices();
-  const { balance } = useUserBalance();
+  const { balance } = useWallet();
 
   const [serviceButtonState, setServiceButtonState] = useState({
     isLoading: false,
@@ -119,6 +117,13 @@ const Main = () => {
           Pause
         </Button>
       );
+    if (balance === undefined) {
+      return (
+        <Button type="text" disabled>
+          RPC Error
+        </Button>
+      );
+    }
     if (balance < 1)
       return (
         <Button type="text" disabled>
@@ -161,14 +166,14 @@ const Main = () => {
           <Typography style={{ margin: 0 }}>
             <span style={{ fontSize: 32, fontWeight: 900 }}>$</span>
             <span style={{ fontSize: 64, fontWeight: 900 }}>
-              {balance.toFixed(2)}
+              {balance === undefined ? '--' : balance.toFixed(2)}
             </span>
           </Typography>
           <Typography
             style={{ display: 'flex', flexWrap: 'nowrap', fontSize: 18 }}
           >
             <span style={{ display: 'flex', flexWrap: 'nowrap' }}>
-              24hr change -%
+              24hr change -- %
             </span>
             {/* <CaretUpFilled style={{ color: token.colorSuccess }} /> */}
           </Typography>
