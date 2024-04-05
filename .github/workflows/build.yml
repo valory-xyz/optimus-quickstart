@@ -35,8 +35,8 @@ jobs:
             # Install backend dependencies
             -   run: yarn install-deps
             -   run: yarn build:frontend
-            -   run: rm -rf /dist && npm exec --package=electron-builder -- electron-builder build --mac
-
+            -   run: rm -rf /dist && GH_TOKEN=${{ secrets.github_token}} NODE_ENV=production npm exec --package=electron-builder -- electron-builder build --mac
+                
 
             # Run backend
             # -   run: yarn dev:backend
