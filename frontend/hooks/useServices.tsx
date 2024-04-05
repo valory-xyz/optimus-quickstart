@@ -14,7 +14,7 @@ const checkServiceIsFunded = async (
     chain_data: { instances, multisig },
   } = service;
 
-  if (!instances || !multisig) return Promise.resolve(false);
+  if (!instances || !multisig) return false;
 
   const addresses = [...instances, multisig];
 
@@ -23,21 +23,21 @@ const checkServiceIsFunded = async (
     service.ledger.rpc,
   );
 
-  if (!balances) return Promise.resolve(false);
+  if (!balances) return false;
 
   const fundRequirements: AddressBooleanRecord = addresses.reduce(
-    (acc: AddressBooleanRecord, address: Address) => ({
-      ...acc,
-      [address]: instances.includes(address)
-        ? balances[address] >
-          serviceTemplate.configuration.fund_requirements.agent
-        : balances[address] >
-          serviceTemplate.configuration.fund_requirements.safe,
-    }),
+    (acc: AddressBooleanRecord, address: Address) =>
+      Object.assign(acc, {
+        [address]: instances.includes(address)
+          ? balances[address] >
+            serviceTemplate.configuration.fund_requirements.agent
+          : balances[address] >
+            serviceTemplate.configuration.fund_requirements.safe,
+      }),
     {},
   );
 
-  return Promise.resolve(Object.values(fundRequirements).every((f) => f));
+  return Object.values(fundRequirements).every((f) => f);
 };
 
 export const useServices = () => {
@@ -54,9 +54,8 @@ export const useServices = () => {
   const getServiceFromState = (
     serviceHash: ServiceHash,
   ): Service | undefined => {
-    if (!hasInitialLoaded) {
-      return undefined;
-    }
+    if (!hasInitialLoaded) return;
+
     return services.find((service) => service.hash === serviceHash);
   };
 

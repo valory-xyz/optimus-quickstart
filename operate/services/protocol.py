@@ -49,9 +49,13 @@ from operate.data.contracts.service_staking_token.contract import (
     ServiceStakingTokenContract,
 )
 from operate.types import ContractAddresses
-
-
-ZERO_ETH = 0
+from operate.utils.gnosis import (
+    MultiSendOperation,
+    SafeOperation,
+    hash_payload_to_hex,
+    skill_input_hex_to_payload,
+)
+from operate.wallet.master import MasterWallet
 
 
 class StakingState(Enum):
@@ -62,123 +66,17 @@ class StakingState(Enum):
     EVICTED = 2
 
 
-NULL_ADDRESS: str = "0x" + "0" * 40
-MAX_UINT256 = 2**256 - 1
-
-
-class SafeOperation(Enum):
-    """Operation types."""
-
-    CALL = 0
-    DELEGATE_CALL = 1
-    CREATE = 2
-
-
-class MultiSendOperation(Enum):
-    """Operation types."""
-
-    CALL = 0
-    DELEGATE_CALL = 1
-
-
-def hash_payload_to_hex(  # pylint: disable=too-many-arguments,too-many-locals
-    safe_tx_hash: str,
-    ether_value: int,
-    safe_tx_gas: int,
-    to_address: str,
-    data: bytes,
-    operation: int = SafeOperation.CALL.value,
-    base_gas: int = 0,
-    safe_gas_price: int = 0,
-    gas_token: str = NULL_ADDRESS,
-    refund_receiver: str = NULL_ADDRESS,
-    use_flashbots: bool = False,
-    gas_limit: int = 0,
-    raise_on_failed_simulation: bool = False,
-) -> str:
-    """Serialise to a hex string."""
-    if len(safe_tx_hash) != 64:  # should be exactly 32 bytes!
-        raise ValueError(
-            "cannot encode safe_tx_hash of non-32 bytes"
-        )  # pragma: nocover
-
-    if len(to_address) != 42 or len(gas_token) != 42 or len(refund_receiver) != 42:
-        raise ValueError("cannot encode address of non 42 length")  # pragma: nocover
-
-    if (
-        ether_value > MAX_UINT256
-        or safe_tx_gas > MAX_UINT256
-        or base_gas > MAX_UINT256
-        or safe_gas_price > MAX_UINT256
-        or gas_limit > MAX_UINT256
-    ):
-        raise ValueError(
-            "Value is bigger than the max 256 bit value"
-        )  # pragma: nocover
-
-    if operation not in [v.value for v in SafeOperation]:
-        raise ValueError("SafeOperation value is not valid")  # pragma: nocover
-
-    if not isinstance(use_flashbots, bool):
-        raise ValueError(
-            f"`use_flashbots` value ({use_flashbots}) is not valid. A boolean value was expected instead"
-        )
-
-    ether_value_ = ether_value.to_bytes(32, "big").hex()
-    safe_tx_gas_ = safe_tx_gas.to_bytes(32, "big").hex()
-    operation_ = operation.to_bytes(1, "big").hex()
-    base_gas_ = base_gas.to_bytes(32, "big").hex()
-    safe_gas_price_ = safe_gas_price.to_bytes(32, "big").hex()
-    use_flashbots_ = use_flashbots.to_bytes(32, "big").hex()
-    gas_limit_ = gas_limit.to_bytes(32, "big").hex()
-    raise_on_failed_simulation_ = raise_on_failed_simulation.to_bytes(32, "big").hex()
-
-    concatenated = (
-        safe_tx_hash
-        + ether_value_
-        + safe_tx_gas_
-        + to_address
-        + operation_
-        + base_gas_
-        + safe_gas_price_
-        + gas_token
-        + refund_receiver
-        + use_flashbots_
-        + gas_limit_
-        + raise_on_failed_simulation_
-        + data.hex()
-    )
-    return concatenated
-
-
-def skill_input_hex_to_payload(payload: str) -> dict:
-    """Decode payload."""
-    tx_params = dict(
-        safe_tx_hash=payload[:64],
-        ether_value=int.from_bytes(bytes.fromhex(payload[64:128]), "big"),
-        safe_tx_gas=int.from_bytes(bytes.fromhex(payload[128:192]), "big"),
-        to_address=payload[192:234],
-        operation=int.from_bytes(bytes.fromhex(payload[234:236]), "big"),
-        base_gas=int.from_bytes(bytes.fromhex(payload[236:300]), "big"),
-        safe_gas_price=int.from_bytes(bytes.fromhex(payload[300:364]), "big"),
-        gas_token=payload[364:406],
-        refund_receiver=payload[406:448],
-        use_flashbots=bool.from_bytes(bytes.fromhex(payload[448:512]), "big"),
-        gas_limit=int.from_bytes(bytes.fromhex(payload[512:576]), "big"),
-        raise_on_failed_simulation=bool.from_bytes(
-            bytes.fromhex(payload[576:640]), "big"
-        ),
-        data=bytes.fromhex(payload[640:]),
-    )
-    return tx_params
-
-
 class StakingManager(OnChainHelper):
     """Helper class for staking a service."""
 
-    def __init__(self, key: Path, chain_type: ChainType = ChainType.CUSTOM) -> None:
+    def __init__(
+        self,
+        key: Path,
+        chain_type: ChainType = ChainType.CUSTOM,
+        password: Optional[str] = None,
+    ) -> None:
         """Initialize object."""
-        super().__init__(key=key, chain_type=chain_type)
+        super().__init__(key=key, chain_type=chain_type, password=password)
         self.staking_ctr = t.cast(
             ServiceStakingTokenContract,
             ServiceStakingTokenContract.from_dir(
@@ -361,12 +259,18 @@ class StakingManager(OnChainHelper):
 class OnChainManager:
     """On chain service management."""
 
-    def __init__(self, rpc: str, key: Path, contracts: ContractAddresses) -> None:
+    def __init__(
+        self,
+        rpc: str,
+        wallet: MasterWallet,
+        contracts: ContractAddresses,
+        chain_type: t.Optional[ChainType] = None,
+    ) -> None:
         """On chain manager."""
         self.rpc = rpc
-        self.key = key
-        self.chain_type = ChainType.CUSTOM
+        self.wallet = wallet
         self.contracts = contracts
+        self.chain_type = chain_type or ChainType.CUSTOM
 
     def _patch(self) -> None:
         """Patch contract and chain config."""
@@ -383,7 +287,8 @@ class OnChainManager:
         self._patch()
         _, crypto = OnChainHelper.get_ledger_and_crypto_objects(
             chain_type=self.chain_type,
-            key=self.key,
+            key=self.wallet.key_path,
+            password=self.wallet.password,
         )
         return crypto
 
@@ -393,7 +298,8 @@ class OnChainManager:
         self._patch()
         ledger_api, _ = OnChainHelper.get_ledger_and_crypto_objects(
             chain_type=self.chain_type,
-            key=self.key,
+            key=self.wallet.key_path,
+            password=self.wallet.password,
         )
         return ledger_api
 
@@ -450,7 +356,8 @@ class OnChainManager:
         self._patch()
         manager = MintManager(
             chain_type=self.chain_type,
-            key=self.key,
+            key=self.wallet.key_path,
+            password=self.wallet.password,
             update_token=update_token,
         )
 
@@ -469,17 +376,22 @@ class OnChainManager:
             io.StringIO()
         ):
             with cd(temp):
-                method = (
-                    manager.mint_service
-                    if update_token is None
-                    else manager.update_service
-                )
-                method(
+                kwargs = dict(
                     number_of_slots=number_of_slots,
                     cost_of_bond=cost_of_bond,
                     threshold=threshold,
                     token=token,
                 )
+                # TODO: Enable after consulting smart contracts team re a safe
+                # being a service owner
+                # if update_token is None:
+                #     kwargs["owner"] = self.wallet.safe # noqa: F401
+                method = (
+                    manager.mint_service
+                    if update_token is None
+                    else manager.update_service
+                )
+                method(**kwargs)
                 (metadata,) = Path(temp).glob("*.json")
                 published = {
                     "token": int(Path(metadata).name.replace(".json", "")),
@@ -499,7 +411,8 @@ class OnChainManager:
             ServiceManager(
                 service_id=service_id,
                 chain_type=self.chain_type,
-                key=self.key,
+                key=self.wallet.key_path,
+                password=self.wallet.password,
             ).check_is_service_token_secured(
                 token=token,
             ).activate_service()
@@ -517,7 +430,8 @@ class OnChainManager:
             ServiceManager(
                 service_id=service_id,
                 chain_type=self.chain_type,
-                key=self.key,
+                key=self.wallet.key_path,
+                password=self.wallet.password,
             ).check_is_service_token_secured(
                 token=token,
             ).register_instance(
@@ -538,7 +452,8 @@ class OnChainManager:
             ServiceManager(
                 service_id=service_id,
                 chain_type=self.chain_type,
-                key=self.key,
+                key=self.wallet.key_path,
+                password=self.wallet.password,
             ).check_is_service_token_secured(
                 token=token,
             ).deploy_service(
@@ -557,7 +472,8 @@ class OnChainManager:
         manager = ServiceManager(
             service_id=service_id,
             chain_type=self.chain_type,
-            key=self.key,
+            key=self.wallet.key_path,
+            password=self.wallet.password,
         )
         with tempfile.TemporaryDirectory() as temp_dir:
             key_file = Path(temp_dir, "key.txt")
@@ -645,7 +561,8 @@ class OnChainManager:
             ServiceManager(
                 service_id=service_id,
                 chain_type=self.chain_type,
-                key=self.key,
+                key=self.wallet.key_path,
+                password=self.wallet.password,
             ).check_is_service_token_secured(
                 token=token,
             ).terminate_service()
@@ -658,7 +575,8 @@ class OnChainManager:
             ServiceManager(
                 service_id=service_id,
                 chain_type=self.chain_type,
-                key=self.key,
+                key=self.wallet.key_path,
+                password=self.wallet.password,
             ).check_is_service_token_secured(
                 token=token,
             ).unbond_service()
@@ -667,7 +585,8 @@ class OnChainManager:
         """Stake service."""
         self._patch()
         return StakingManager(
-            key=self.key,
+            key=self.wallet.key_path,
+            password=self.wallet.password,
             chain_type=self.chain_type,
         ).slots_available(
             staking_contract=staking_contract,
@@ -682,7 +601,8 @@ class OnChainManager:
         """Stake service."""
         self._patch()
         StakingManager(
-            key=self.key,
+            key=self.wallet.key_path,
+            password=self.wallet.password,
             chain_type=self.chain_type,
         ).stake(
             service_id=service_id,
@@ -694,7 +614,8 @@ class OnChainManager:
         """Unstake service."""
         self._patch()
         StakingManager(
-            key=self.key,
+            key=self.wallet.key_path,
+            password=self.wallet.password,
             chain_type=self.chain_type,
         ).unstake(
             service_id=service_id,

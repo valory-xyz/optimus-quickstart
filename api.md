@@ -1,4 +1,4 @@
-`GET /api`
+#### `GET /api`
 
 Returns information of the operate daemon
 
@@ -19,7 +19,225 @@ Returns information of the operate daemon
 </details>
 
 ---
-`GET /api/services`
+#### `GET /api/account`
+
+Returns account status
+
+<details>
+  <summary>Before setup</summary>
+
+```json
+{
+  "is_setup": false
+}
+```
+
+</details>
+
+<details>
+  <summary>After setup</summary>
+
+```json
+{
+  "is_setup": true
+}
+```
+</details>
+
+---
+#### `POST /api/account`
+
+Create a local user account
+
+<details>
+  <summary>Request</summary>
+
+```json
+{
+  "password": "Hello,World!",
+}
+```
+
+</details>
+
+<details>
+  <summary>Response</summary>
+
+```json
+{
+  "error": null
+}
+```
+</details>
+
+If account already exists
+
+<details>
+  <summary>Response</summary>
+
+```json
+{
+  "error": "Account already exists"
+}
+```
+</details>
+
+---
+#### `PUT /api/account`
+
+Update password
+
+<details>
+  <summary>Request</summary>
+
+```json
+{
+  "old_password": "Hello,World!",
+  "new_password": "Hello,World",
+}
+```
+
+</details>
+
+<details>
+  <summary>Response</summary>
+
+```json
+{
+  "error": null
+}
+```
+</details>
+
+Old password is not valid
+
+<details>
+  <summary>Response</summary>
+
+```json
+{
+  "error": "Old password is not valid",
+  "traceback": "..."
+}
+```
+</details>
+
+---
+#### `POST /api/account/login`
+
+Login and create a session
+
+<details>
+  <summary>Request</summary>
+
+```json
+{
+  "password": "Hello,World",
+}
+```
+
+</details>
+
+<details>
+  <summary>Response</summary>
+
+```json
+{
+  "message": "Login successful"
+}
+```
+</details>
+
+---
+#### `GET /api/wallet`
+
+Returns a list of available wallets
+
+<details>
+  <summary>Response</summary>
+
+```json
+[
+  {
+    "address": "0xFafd5cb31a611C5e5aa65ea8c6226EB4328175E7",
+    "safe_chains": [
+      2
+    ],
+    "ledger_type": 0,
+    "safe": "0xd56fb274ce2C66008D5c4C09980c4f36Ab81ff23",
+    "safe_nonce": 110558881674480320952254000342160989674913430251257716940579305238321962891821
+  }
+]
+```
+</details>
+
+---
+#### `POST /api/wallet`
+
+Creates a master key for given chain type.
+
+<details>
+  <summary>Request</summary>
+
+```js
+{
+  "chain_type": ChainType,
+}
+```
+
+</details>
+
+<details>
+  <summary>Response</summary>
+
+```json
+{
+  "wallet": {
+    "address": "0xAafd5cb31a611C5e5aa65ea8c6226EB4328175E1",
+    "safe_chains": [],
+    "ledger_type": 0,
+    "safe": null,
+    "safe_nonce": null
+  },
+  "mnemonic": [...]
+}
+```
+</details>
+
+---
+#### `PUT /api/wallet`
+
+Creates a gnosis safe for given chain type.
+
+<details>
+  <summary>Request</summary>
+
+```js
+{
+  "chain_type": ChainType,
+}
+```
+
+</details>
+
+<details>
+  <summary>Response</summary>
+
+```json
+{
+  "address": "0xaaFd5cb31A611C5e5aa65ea8c6226EB4328175E3",
+  "safe_chains": [
+    2
+  ],
+  "ledger_type": 0,
+  "safe": "0xe56fb574ce2C66008d5c4C09980c4f36Ab81ff22",
+  "safe_nonce": 110558881674480320952254000342160989674913430251157716140571305138121962898821
+}
+```
+</details>
+
+---
+#### `GET /api/services`
 
 Returns the list of services
 
@@ -74,7 +292,7 @@ Returns the list of services
 </details>
 
 ---
-`POST /api/services`
+#### `POST /api/services`
 
 Create a service using the service template
 
@@ -157,10 +375,9 @@ Optionally you can add `deploy` parameter and set it to `true` for a full deploy
 </details>
 
 ---
-`PUT /api/services`
+#### `PUT /api/services`
 
 Update a service
-
 
 <details>
   <summary>Request</summary>
@@ -225,7 +442,7 @@ Optionally you can add `deploy` parameter and set it to `true` for a full deploy
 </details>
 
 ---
-`GET /api/services/{service}`
+#### `GET /api/services/{service}`
 
 <details>
   <summary>Response</summary>
@@ -276,7 +493,49 @@ Optionally you can add `deploy` parameter and set it to `true` for a full deploy
 </details>
 
 ---
-`GET /api/services/{service}/deployment`
+#### `POST /api/services/{service}/onchain/deploy`
+
+Deploy service on-chain
+
+<details>
+  <summary>Request</summary>
+
+```json
+```
+
+</details>
+
+<details>
+  <summary>Response</summary>
+
+```json
+```
+
+</details>
+
+---
+#### `POST /api/services/{service}/onchain/stop`
+
+Stop service on-chain
+
+<details>
+  <summary>Request</summary>
+
+```json
+```
+
+</details>
+
+<details>
+  <summary>Response</summary>
+
+```json
+```
+
+</details>
+
+---
+#### `GET /api/services/{service}/deployment`
 
 <details>
   <summary>Response</summary>
@@ -298,49 +557,7 @@ Optionally you can add `deploy` parameter and set it to `true` for a full deploy
 </details>
 
 ---
-`POST /api/services/{service}/onchain/deploy`
-
-Deploy service on-chain
-
-<details>
-  <summary>Request</summary>
-
-```json
-```
-
-</details>
-
-<details>
-  <summary>Response</summary>
-
-```json
-```
-
-</details>
-
----
-`POST /api/services/{service}/onchain/stop`
-
-Stop service on-chain
-
-<details>
-  <summary>Request</summary>
-
-```json
-```
-
-</details>
-
-<details>
-  <summary>Response</summary>
-
-```json
-```
-
-</details>
-
----
-`POST /api/services/{service}/deployment/build`
+#### `POST /api/services/{service}/deployment/build`
 
 Build service locally
 
@@ -361,7 +578,7 @@ Build service locally
 </details>
 
 ---
-`POST /api/services/{service}/deployment/start`
+#### `POST /api/services/{service}/deployment/start`
 
 Start agent
 
@@ -382,7 +599,7 @@ Start agent
 </details>
 
 ---
-`POST /api/services/{service}/deployment/stop`
+#### `POST /api/services/{service}/deployment/stop`
 
 Stop agent
 
@@ -390,7 +607,7 @@ Stop agent
 ```
 
 ---
-`POST /api/services/{service}/deployment/delete`
+#### `POST /api/services/{service}/deployment/delete`
 
 Delete local deployment
 
@@ -410,7 +627,9 @@ Delete local deployment
 
 </details>
 
-<!-- <details>
+<!-- 
+
+<details>
   <summary>Request</summary>
 
 ```json
@@ -423,6 +642,8 @@ Delete local deployment
 
 ```json
 ```
+</details>
 
----
-</details`-->
+-->
+
+

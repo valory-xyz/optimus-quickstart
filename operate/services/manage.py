@@ -37,6 +37,7 @@ from operate.services.service import (
     OnChainUserParams,
     Service,
 )
+from operate.wallet.master import MasterWalletManager
 
 
 # pylint: disable=redefined-builtin
@@ -60,7 +61,7 @@ class ServiceManager:
         self,
         path: Path,
         keys_manager: KeysManager,
-        master_key_path: Path,
+        wallet_manager: MasterWalletManager,
         logger: t.Optional[logging.Logger] = None,
     ) -> None:
         """
@@ -73,13 +74,12 @@ class ServiceManager:
         """
         self.path = path
         self.keys_manager = keys_manager
-        self.master_key_path = master_key_path
+        self.wallet_manager = wallet_manager
         self.logger = logger or setup_logger(name="operate.manager")
 
     def setup(self) -> None:
         """Setup service manager."""
         self.path.mkdir(exist_ok=True)
-        self.keys_manager.setup()
 
     @property
     def json(self) -> t.List[t.Dict]:
@@ -94,7 +94,7 @@ class ServiceManager:
         """Get OnChainManager instance."""
         return OnChainManager(
             rpc=service.ledger_config.rpc,
-            key=self.master_key_path,
+            wallet=self.wallet_manager.load(service.ledger_config.type),
             contracts=CONTRACTS[service.ledger_config.chain],
         )
 
@@ -354,6 +354,37 @@ class ServiceManager:
         )
         service.chain_data.staked = False
         service.store()
+
+    def fund_service(self, hash: str) -> None:
+        """Fund service if required."""
+        service = self.create_or_load(hash=hash)
+        wallet = self.wallet_manager.load(ledger_type=service.ledger_config.type)
+        ledger_api = wallet.ledger_api(chain_type=service.ledger_config.chain)
+        agent_fund_requirement = service.chain_data.user_params.fund_requirements.agent
+
+        self.logger.info("Funding agents")
+        for key in service.keys:
+            agent_balance = ledger_api.get_balance(address=key.address)
+            if agent_balance < agent_fund_requirement:
+                to_transfer = agent_fund_requirement - agent_balance
+                self.logger.info(f"Transferring {to_transfer} units to {key.address}")
+                wallet.transfer(
+                    to=key.address,
+                    amount=to_transfer,
+                    chain_type=service.ledger_config.chain,
+                )
+
+        self.logger.info("Funding safe")
+        safe_fund_requirement = service.chain_data.user_params.fund_requirements.safe
+        safe_balanace = ledger_api.get_balance(wallet.safe)
+        if safe_balanace < safe_fund_requirement:
+            to_transfer = safe_fund_requirement - safe_balanace
+            self.logger.info(f"Transferring {to_transfer} units to {wallet.safe}")
+            wallet.transfer(
+                to=t.cast(str, wallet.safe),
+                amount=to_transfer,
+                chain_type=service.ledger_config.chain,
+            )
 
     def deploy_service_locally(self, hash: str, force: bool = False) -> Deployment:
         """

@@ -19,6 +19,7 @@
 
 """Ledger helpers."""
 
+import os
 import typing as t
 
 from operate.ledger.base import LedgerHelper
@@ -27,10 +28,10 @@ from operate.ledger.solana import Solana
 from operate.types import ChainType, LedgerType
 
 
-ETHEREUM_RPC = "https://ethereum.publicnode.com"
-GNOSIS_RPC = "https://rpc.gnosischain.com"
-GOERLI_RPC = "https://ethereum-goerli.publicnode.com"
-SOLANA_RPC = "https://api.mainnet-beta.solana.com"
+ETHEREUM_RPC = os.environ.get("DEV_RPC", "https://ethereum.publicnode.com")
+GNOSIS_RPC = os.environ.get("DEV_RPC", "https://rpc.gnosischain.com")
+GOERLI_RPC = os.environ.get("DEV_RPC", "https://ethereum-goerli.publicnode.com")
+SOLANA_RPC = os.environ.get("DEV_RPC", "https://api.mainnet-beta.solana.com")
 
 
 DEFAULT_RPCS = {
@@ -63,6 +64,13 @@ CURRENCY_DENOMS = {
 def get_default_rpc(chain: ChainType) -> str:
     """Get default RPC chain type."""
     return DEFAULT_RPCS.get(chain, ETHEREUM_RPC)
+
+
+def get_ledger_type_from_chain_type(chain: ChainType) -> LedgerType:
+    """Get LedgerType from ChainType."""
+    if chain in (ChainType.ETHEREUM, ChainType.GOERLI, ChainType.GNOSIS):
+        return LedgerType.ETHEREUM
+    return LedgerType.SOLANA
 
 
 def get_ledger_helper_by_chain(rpc: str, chain: ChainType) -> LedgerHelper:

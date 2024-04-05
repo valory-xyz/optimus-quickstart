@@ -5,19 +5,32 @@ import {
   WarningOutlined,
 } from '@ant-design/icons';
 import { Alert, Button, Flex, message, QRCode, Typography } from 'antd';
+import { useCallback, useMemo } from 'react';
 
-import { copyToClipboard } from '@/common-util';
+import { copyToClipboard, truncateAddress } from '@/common-util';
 import { PageState } from '@/enums';
-import { useAppInfo, usePageState } from '@/hooks';
+import { usePageState, useWallet } from '@/hooks';
 
 import { Header } from '../Layout/Header';
 import { Wrapper } from '../Layout/Wrapper';
 
 export const Receive = () => {
   const { setPageState } = usePageState();
-  const { userPublicKey } = useAppInfo();
-  const handleCopy = () =>
-    copyToClipboard(`${userPublicKey}`).then(() => message.success('Copied!'));
+  const { wallets } = useWallet();
+
+  const walletAddress = useMemo(() => wallets[0]?.address, [wallets]);
+  const truncatedWalletAddress = useMemo(
+    () => truncateAddress(walletAddress),
+    [walletAddress],
+  );
+
+  const handleCopy = useCallback(
+    () =>
+      copyToClipboard(walletAddress).then(() =>
+        message.success('Copied successfully!'),
+      ),
+    [walletAddress],
+  );
 
   return (
     <>
@@ -50,18 +63,18 @@ export const Receive = () => {
             }
           />
           <QRCode
-            value={`https://metamask.app.link/send/${userPublicKey}@${100}`}
+            value={`https://metamask.app.link/send/${walletAddress}@${100}`}
           />
           <Flex gap={10}>
             <Typography.Text
               className="can-select-text"
               code
-              title={userPublicKey}
+              title={walletAddress}
             >
-              {`${userPublicKey?.substring(0, 6)}...${userPublicKey?.substring(userPublicKey.length - 4, userPublicKey.length)}`}
+              {truncatedWalletAddress}
             </Typography.Text>
-            <Button>
-              <CopyOutlined onClick={handleCopy} />
+            <Button onClick={handleCopy}>
+              <CopyOutlined />
             </Button>
           </Flex>
         </Flex>

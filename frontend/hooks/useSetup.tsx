@@ -10,17 +10,12 @@ export const useSetup = () => {
     setSetupObject((prev) => ({ ...prev, state }));
   };
 
-  const { passwordHash, setPasswordHash } = {
-    passwordHash: setupObject.passwordHash,
-    setPasswordHash: (passwordHash: string) => {
-      setSetupObject((prev) => ({ ...prev, passwordHash }));
-    },
-  };
+  const setMnemonic = (mnemonic: string[]) =>
+    setSetupObject((prev) => Object.assign(prev, { mnemonic }));
 
   return {
-    passwordHash,
-    setPasswordHash,
-    setupObject,
+    ...setupObject,
+    setMnemonic,
     goto,
   };
 };

@@ -26,3 +26,10 @@ export enum DeploymentStatus {
   STOPPED = 5,
   DELETED = 6,
 }
+
+export enum AccountIsSetup {
+  True,
+  False,
+  Loading,
+  Error,
+}

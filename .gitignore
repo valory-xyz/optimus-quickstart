@@ -34,3 +34,5 @@ temp/
 !operate/data
 dist/
 electron/.next
+
+cache

@@ -50,6 +50,8 @@ _CHAIN_ID_TO_CHAIN_NAME = {
     1399811149: "solana",
 }
 
+_CHAIN_NAME_TO_ID = {val: key for key, val in _CHAIN_ID_TO_CHAIN_NAME.items()}
+
 _LEDGER_TYPE_TO_ENUM = {
     "ethereum": 0,
     "solana": 1,
@@ -67,6 +69,16 @@ class LedgerType(enum.IntEnum):
         """Load from string."""
         return cls(_LEDGER_TYPE_TO_ENUM[chain.lower()])
 
+    @property
+    def config_file(self) -> str:
+        """Config filename."""
+        return f"{self.name.lower()}.json"
+
+    @property
+    def key_file(self) -> str:
+        """Key filename."""
+        return f"{self.name.lower()}.txt"
+
 
 class ChainType(enum.IntEnum):
     """Chain type enum."""
@@ -75,6 +87,11 @@ class ChainType(enum.IntEnum):
     GOERLI = 1
     GNOSIS = 2
     SOLANA = 3
+
+    @property
+    def id(self) -> int:
+        """Returns chain id."""
+        return _CHAIN_NAME_TO_ID[self.name.lower()]
 
     @classmethod
     def from_string(cls, chain: str) -> "ChainType":
@@ -168,8 +185,8 @@ class DeploymentConfig(TypedDict):
 class FundRequirementsTemplate(TypedDict):
     """Fund requirement template."""
 
-    agent: float
-    safe: float
+    agent: int
+    safe: int
 
 
 class ConfigurationTemplate(TypedDict):

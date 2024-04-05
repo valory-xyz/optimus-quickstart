@@ -26,7 +26,6 @@ import typing as t
 from pathlib import Path
 
 from aea.helpers.logging import setup_logger
-from aea_ledger_ethereum.ethereum import EthereumCrypto
 from clea import group, params, run
 from docker.errors import APIError
 from fastapi import FastAPI, Request
@@ -36,13 +35,20 @@ from typing_extensions import Annotated
 from uvicorn.main import run as uvicorn
 
 from operate import services
+from operate.account.user import UserAccount
 from operate.constants import KEY, KEYS, OPERATE, SERVICES
+from operate.ledger import get_ledger_type_from_chain_type
+from operate.types import ChainType
+from operate.wallet.master import MasterWalletManager
 
 
 DEFAULT_HARDHAT_KEY = (
     "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80"
 ).encode()
 DEFAULT_MAX_RETRIES = 3
+USER_NOT_LOGGED_IN_ERROR = JSONResponse(
+    content={"error": "User not logged in!"}, status_code=401
+)
 
 
 class OperateApp:
@@ -66,25 +72,41 @@ class OperateApp:
             path=self._keys,
             logger=self.logger,
         )
-        self.service_manager = services.manage.ServiceManager(
+        self.password: t.Optional[str] = os.environ.get("OPERATE_USER_PASSWORD")
+
+    def service_manager(self) -> services.manage.ServiceManager:
+        """Load service manager."""
+        return services.manage.ServiceManager(
             path=self._services,
             keys_manager=self.keys_manager,
-            master_key_path=self._master_key,
+            wallet_manager=self.wallet_manager,
             logger=self.logger,
         )
+
+    @property
+    def user_account(self) -> t.Optional[UserAccount]:
+        """Load user account."""
+        return (
+            UserAccount.load(self._path / "user.json")
+            if (self._path / "user.json").exists()
+            else None
+        )
+
+    @property
+    def wallet_manager(self) -> MasterWalletManager:
+        """Load master wallet."""
+        manager = MasterWalletManager(
+            path=self._path / "wallets",
+            password=self.password,
+        )
+        manager.setup()
+        return manager
 
     def setup(self) -> None:
         """Make the root directory."""
         self._path.mkdir(exist_ok=True)
         self._services.mkdir(exist_ok=True)
         self._keys.mkdir(exist_ok=True)
-        if not self._master_key.exists():
-            # TODO: Add support for multiple master keys
-            self._master_key.write_bytes(
-                DEFAULT_HARDHAT_KEY
-                if os.environ.get("DEV", "false") == "true"
-                else EthereumCrypto().private_key.encode()
-            )
 
     @property
     def json(self) -> dict:
@@ -92,14 +114,11 @@ class OperateApp:
         return {
             "name": "Operate HTTP server",
             "version": "0.1.0.rc0",
-            "account": {
-                "key": EthereumCrypto(self._master_key).address,
-            },
             "home": str(self._path),
         }
 
 
-def create_app(  # pylint: disable=too-many-locals, unused-argument
+def create_app(  # pylint: disable=too-many-locals, unused-argument, too-many-statements
     home: t.Optional[Path] = None,
 ) -> FastAPI:
     """Create FastAPI object."""
@@ -150,18 +169,158 @@ def create_app(  # pylint: disable=too-many-locals, unused-argument
         """Get API info."""
         return JSONResponse(content=operate.json)
 
+    @app.get("/api/account")
+    @with_retries
+    async def _get_account(request: Request) -> t.Dict:
+        """Get account information."""
+        return {"is_setup": operate.user_account is not None}
+
+    @app.post("/api/account")
+    @with_retries
+    async def _setup_account(request: Request) -> t.Dict:
+        """Setup account."""
+        if operate.user_account is not None:
+            return JSONResponse(
+                content={"error": "Account already exists"},
+                status_code=400,
+            )
+
+        data = await request.json()
+        UserAccount.new(
+            password=data["password"],
+            path=operate._path / "user.json",  # pylint: disable=protected-access
+        )
+        return JSONResponse(content={"error": None})
+
+    @app.put("/api/account")
+    @with_retries
+    async def _update_password(request: Request) -> t.Dict:
+        """Update password."""
+        if operate.user_account is None:
+            return JSONResponse(
+                content={"error": "Account does not exist"},
+                status_code=400,
+            )
+
+        data = await request.json()
+        try:
+            operate.user_account.update(
+                old_password=data["old_password"],
+                new_password=data["new_password"],
+            )
+            return JSONResponse(content={"error": None})
+        except ValueError as e:
+            return JSONResponse(
+                content={"error": str(e), "traceback": traceback.format_exc()},
+                status_code=400,
+            )
+
+    @app.post("/api/account/login")
+    @with_retries
+    async def _validate_password(request: Request) -> t.Dict:
+        """Validate password."""
+        if operate.user_account is None:
+            return JSONResponse(
+                content={"error": "Account does not exist"},
+                status_code=400,
+            )
+
+        data = await request.json()
+        if not operate.user_account.is_valid(password=data["password"]):
+            return JSONResponse(
+                content={"error": "Password is not valid"},
+                status_code=401,
+            )
+
+        operate.password = data["password"]
+        return JSONResponse(
+            content={"message": "Login successful"},
+            status_code=200,
+        )
+
+    @app.get("/api/wallet")
+    @with_retries
+    async def _get_wallets(request: Request) -> t.List[t.Dict]:
+        """Get wallets."""
+        wallets = []
+        for wallet in operate.wallet_manager:
+            wallets.append(wallet.json)
+        return JSONResponse(content=wallets)
+
+    @app.post("/api/wallet")
+    @with_retries
+    async def _create_wallet(request: Request) -> t.List[t.Dict]:
+        """Create wallet"""
+        if operate.user_account is None:
+            return JSONResponse(
+                content={"error": "Cannot create wallet; User account does not exist!"},
+                status_code=400,
+            )
+
+        if operate.password is None:
+            return JSONResponse(
+                content={"error": "You need to login before creating a wallet"},
+                status_code=401,
+            )
+
+        data = await request.json()
+        chain_type = ChainType(data["chain_type"])
+        ledger_type = get_ledger_type_from_chain_type(chain=chain_type)
+        manager = operate.wallet_manager
+        if manager.exists(ledger_type=ledger_type):
+            return JSONResponse(
+                content={
+                    "wallet": manager.load(ledger_type=ledger_type).json,
+                    "mnemonic": None,
+                }
+            )
+        wallet, mnemonic = manager.create(ledger_type=ledger_type)
+        return JSONResponse(content={"wallet": wallet.json, "mnemonic": mnemonic})
+
+    @app.put("/api/wallet")
+    @with_retries
+    async def _create_safe(request: Request) -> t.List[t.Dict]:
+        """Create wallet safe"""
+        if operate.user_account is None:
+            return JSONResponse(
+                content={"error": "Cannot create safe; User account does not exist!"},
+                status_code=400,
+            )
+
+        if operate.password is None:
+            return JSONResponse(
+                content={"error": "You need to login before creating a safe"},
+                status_code=401,
+            )
+
+        data = await request.json()
+        chain_type = ChainType(data["chain_type"])
+        ledger_type = get_ledger_type_from_chain_type(chain=chain_type)
+        manager = operate.wallet_manager
+        if not manager.exists(ledger_type=ledger_type):
+            return JSONResponse(content={"error": "Wallet does not exist"})
+
+        wallet = manager.load(ledger_type=ledger_type)
+        wallet.create_safe(  # pylint: disable=no-member
+            chain_type=chain_type,
+            owner=data.get("owner"),
+        )
+        return JSONResponse(content=wallet.json)
+
     @app.get("/api/services")
     @with_retries
     async def _get_services(request: Request) -> JSONResponse:
         """Get available services."""
-        return JSONResponse(content=operate.service_manager.json)
+        return JSONResponse(content=operate.service_manager().json)
 
     @app.post("/api/services")
     @with_retries
     async def _create_services(request: Request) -> JSONResponse:
         """Create a service."""
+        if operate.password is None:
+            return USER_NOT_LOGGED_IN_ERROR
         template = await request.json()
-        service = operate.service_manager.create_or_load(
+        service = operate.service_manager().create_or_load(
             hash=template["hash"],
             rpc=template["configuration"]["rpc"],
             on_chain_user_params=services.manage.OnChainUserParams.from_json(
@@ -169,28 +328,32 @@ def create_app(  # pylint: disable=too-many-locals, unused-argument
             ),
         )
         if template.get("deploy", False):
-            operate.service_manager.deploy_service_onchain(hash=service.hash)
-            operate.service_manager.stake_service_on_chain(hash=service.hash)
-            service.deployment.build()
-            service.deployment.start()
+            manager = operate.service_manager()
+            manager.deploy_service_onchain(hash=service.hash)
+            manager.stake_service_on_chain(hash=service.hash)
+            manager.fund_service(hash=service.hash)
+            manager.deploy_service_locally(hash=service.hash)
         return JSONResponse(
-            content=operate.service_manager.create_or_load(hash=service.hash).json
+            content=operate.service_manager().create_or_load(hash=service.hash).json
         )
 
     @app.put("/api/services")
     @with_retries
     async def _update_services(request: Request) -> JSONResponse:
         """Create a service."""
+        if operate.password is None:
+            return USER_NOT_LOGGED_IN_ERROR
         template = await request.json()
-        service = operate.service_manager.update_service(
+        service = operate.service_manager().update_service(
             old_hash=template["old_service_hash"],
             new_hash=template["new_service_hash"],
         )
         if template.get("deploy", False):
-            operate.service_manager.deploy_service_onchain(hash=service.hash)
-            operate.service_manager.stake_service_on_chain(hash=service.hash)
-            service.deployment.build()
-            service.deployment.start()
+            manager = operate.service_manager()
+            manager.deploy_service_onchain(hash=service.hash)
+            manager.stake_service_on_chain(hash=service.hash)
+            manager.fund_service(hash=service.hash)
+            manager.deploy_service_locally(hash=service.hash)
         return JSONResponse(content=service.json)
 
     @app.get("/api/services/{service}")
@@ -198,44 +361,56 @@ def create_app(  # pylint: disable=too-many-locals, unused-argument
     async def _get_service(request: Request) -> JSONResponse:
         """Create a service."""
         return JSONResponse(
-            content=operate.service_manager.create_or_load(
-                hash=request.path_params["service"],
-            ).json
+            content=(
+                operate.service_manager()
+                .create_or_load(
+                    hash=request.path_params["service"],
+                )
+                .json
+            )
         )
 
     @app.post("/api/services/{service}/onchain/deploy")
     @with_retries
     async def _deploy_service_onchain(request: Request) -> JSONResponse:
         """Create a service."""
-        operate.service_manager.deploy_service_onchain(
+        if operate.password is None:
+            return USER_NOT_LOGGED_IN_ERROR
+        operate.service_manager().deploy_service_onchain(
             hash=request.path_params["service"]
         )
-        operate.service_manager.stake_service_on_chain(
+        operate.service_manager().stake_service_on_chain(
             hash=request.path_params["service"]
         )
         return JSONResponse(
-            content=operate.service_manager.create_or_load(
-                hash=request.path_params["service"]
-            ).json
+            content=(
+                operate.service_manager()
+                .create_or_load(hash=request.path_params["service"])
+                .json
+            )
         )
 
     @app.post("/api/services/{service}/onchain/stop")
     @with_retries
     async def _stop_service_onchain(request: Request) -> JSONResponse:
         """Create a service."""
-        operate.service_manager.terminate_service_on_chain(
+        if operate.password is None:
+            return USER_NOT_LOGGED_IN_ERROR
+        operate.service_manager().terminate_service_on_chain(
             hash=request.path_params["service"]
         )
-        operate.service_manager.unbond_service_on_chain(
+        operate.service_manager().unbond_service_on_chain(
             hash=request.path_params["service"]
         )
-        operate.service_manager.unstake_service_on_chain(
+        operate.service_manager().unstake_service_on_chain(
             hash=request.path_params["service"]
         )
         return JSONResponse(
-            content=operate.service_manager.create_or_load(
-                hash=request.path_params["service"]
-            ).json
+            content=(
+                operate.service_manager()
+                .create_or_load(hash=request.path_params["service"])
+                .json
+            )
         )
 
     @app.get("/api/services/{service}/deployment")
@@ -243,18 +418,24 @@ def create_app(  # pylint: disable=too-many-locals, unused-argument
     async def _get_service_deployment(request: Request) -> JSONResponse:
         """Create a service."""
         return JSONResponse(
-            content=operate.service_manager.create_or_load(
+            content=operate.service_manager()
+            .create_or_load(
                 request.path_params["service"],
-            ).deployment.json
+            )
+            .deployment.json
         )
 
     @app.post("/api/services/{service}/deployment/build")
     @with_retries
     async def _build_service_locally(request: Request) -> JSONResponse:
         """Create a service."""
-        deployment = operate.service_manager.create_or_load(
-            request.path_params["service"],
-        ).deployment
+        deployment = (
+            operate.service_manager()
+            .create_or_load(
+                request.path_params["service"],
+            )
+            .deployment
+        )
         deployment.build()
         return JSONResponse(content=deployment.json)
 
@@ -262,10 +443,15 @@ def create_app(  # pylint: disable=too-many-locals, unused-argument
     @with_retries
     async def _start_service_locally(request: Request) -> JSONResponse:
         """Create a service."""
-        deployment = operate.service_manager.create_or_load(
-            request.path_params["service"],
-        ).deployment
+        deployment = (
+            operate.service_manager()
+            .create_or_load(
+                request.path_params["service"],
+            )
+            .deployment
+        )
         deployment.build()
+        operate.service_manager().fund_service(hash=request.path_params["service"])
         deployment.start()
         return JSONResponse(content=deployment.json)
 
@@ -273,9 +459,13 @@ def create_app(  # pylint: disable=too-many-locals, unused-argument
     @with_retries
     async def _stop_service_locally(request: Request) -> JSONResponse:
         """Create a service."""
-        deployment = operate.service_manager.create_or_load(
-            request.path_params["service"],
-        ).deployment
+        deployment = (
+            operate.service_manager()
+            .create_or_load(
+                request.path_params["service"],
+            )
+            .deployment
+        )
         deployment.stop()
         return JSONResponse(content=deployment.json)
 
@@ -283,9 +473,14 @@ def create_app(  # pylint: disable=too-many-locals, unused-argument
     @with_retries
     async def _delete_service_locally(request: Request) -> JSONResponse:
         """Create a service."""
-        deployment = operate.service_manager.create_or_load(
-            request.path_params["service"],
-        ).deployment
+        # TODO: Drain safe before deleting service
+        deployment = (
+            operate.service_manager()
+            .create_or_load(
+                request.path_params["service"],
+            )
+            .deployment
+        )
         deployment.delete()
         return JSONResponse(content=deployment.json)
 

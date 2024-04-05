@@ -1,5 +1,6 @@
 import { Address } from '@/types';
-import { Ledger, Chain, DeploymentStatus } from './enums';
+
+import { Chain, DeploymentStatus, Ledger } from './enums';
 
 export type ServiceHash = string;
 
@@ -101,4 +102,17 @@ export type AppInfo = {
   account: {
     key: Address;
   };
+};
+
+export type WalletResponse = {
+  address: Address;
+  safe_chains: Chain[];
+  ledger_type: Ledger;
+  safe: Address;
+  safe_nonce: number;
+};
+
+export type Wallet = WalletResponse & {
+  ethBalance?: number;
+  olasBalance?: number;
 };

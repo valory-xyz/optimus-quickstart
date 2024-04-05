@@ -42,7 +42,7 @@ const createService = async ({
       deploy,
       configuration: {
         ...serviceTemplate.configuration,
-        rpc: 'http://localhost:8545',
+        rpc: `${process.env.GNOSIS_RPC}` || 'http://localhost:8545',
       },
     }),
     headers: {
