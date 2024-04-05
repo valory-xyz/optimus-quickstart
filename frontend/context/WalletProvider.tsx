@@ -43,13 +43,17 @@ export const WalletProvider = ({ children }: PropsWithChildren) => {
 
     const walletsToCheck: Address[] = [];
 
-    for (const wallet of wallets)
-      if (wallet.address && isAddress(wallet.address))
+    for (const wallet of wallets) {
+      if (wallet.address && isAddress(wallet.address)) {
         walletsToCheck.push(wallet.address);
+      }
+    }
 
-    for (const serviceAddress of serviceAddresses)
-      if (serviceAddress && isAddress(serviceAddress))
+    for (const serviceAddress of serviceAddresses) {
+      if (serviceAddress && isAddress(serviceAddress)) {
         walletsToCheck.push(serviceAddress);
+      }
+    }
 
     const balancePromises = walletsToCheck.map((address) =>
       EthersService.getEthBalance(address, `${process.env.GNOSIS_RPC}`),
