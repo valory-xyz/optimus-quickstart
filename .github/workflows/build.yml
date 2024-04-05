@@ -1,7 +1,10 @@
 # TBA
 name: Build
 
-on: [push]
+on: 
+    push:
+        tags:
+            - 'v*.*.*'
 
 jobs:
     release:
@@ -35,7 +38,7 @@ jobs:
             # Install backend dependencies
             -   run: yarn install-deps
             -   run: yarn build:frontend
-            -   run: rm -rf /dist && GH_TOKEN=${{ secrets.github_token}} NODE_ENV=production npm exec --package=electron-builder -- electron-builder build --mac --arm64 --publish always
+            -   run: rm -rf /dist && GH_TOKEN=${{ secrets.github_token}} NODE_ENV=production npm exec --package=electron-builder -- electron-builder build --mac --arm64 --publish onTagOrDraft
                 
 
             # Run backend
