@@ -68,7 +68,7 @@
 
 "@balena/dockerignore@^1.0.2":
   version "1.0.2"
-  resolved "https://registry.npmjs.org/@balena/dockerignore/-/dockerignore-1.0.2.tgz"
+  resolved "https://registry.yarnpkg.com/@balena/dockerignore/-/dockerignore-1.0.2.tgz#9ffe4726915251e8eb69f44ef3547e0da2c03e0d"
   integrity sha512-wMue2Sy4GAVTk6Ic4tJVcnfdau+gx2EnG7S+uAEe+TWJFqE4YoWN4/H8MSLj4eYJKxGg26lZwboEniNiNwZQ6Q==
 
 "@ctrl/tinycolor@^3.6.1":
@@ -1089,10 +1089,10 @@
   dependencies:
     undici-types "~5.26.4"
 
-"@types/node@^18.11.18":
-  version "18.19.15"
-  resolved "https://registry.npmjs.org/@types/node/-/node-18.19.15.tgz"
-  integrity sha512-AMZ2UWx+woHNfM11PyAEQmfSxi05jm9OlkxczuHeEqmvwPkYj6MWv44gbzDPefYOLysTOFyI3ziiy2ONmUZfpA==
+"@types/node@^20.9.0":
+  version "20.12.5"
+  resolved "https://registry.yarnpkg.com/@types/node/-/node-20.12.5.tgz#74c4f31ab17955d0b5808cdc8fd2839526ad00b3"
+  integrity sha512-BD+BjQ9LS/D8ST9p5uqBxghlN+S42iuNxjsUGjeZobe/ciXzk2qb1B6IXc6AnRLS+yFJRpN2IPEHMzwspfDJNw==
   dependencies:
     undici-types "~5.26.4"
 
@@ -1361,7 +1361,7 @@ array-tree-filter@^2.1.0:
 
 asn1@^0.2.6:
   version "0.2.6"
-  resolved "https://registry.npmjs.org/asn1/-/asn1-0.2.6.tgz"
+  resolved "https://registry.yarnpkg.com/asn1/-/asn1-0.2.6.tgz#0d3a7bb6e64e02a90c0303b31f292868ea09a08d"
   integrity sha512-ix/FxPn0MDjeyJ7i/yoHGFt/EX6LyNbxSEhPPXODPL+KB0VPk86UYfL0lMdy+KCnv+fmvIzySwaK5COwqVbWTQ==
   dependencies:
     safer-buffer "~2.1.0"
@@ -1428,7 +1428,7 @@ base64-js@^1.3.1, base64-js@^1.5.1:
 
 bcrypt-pbkdf@^1.0.2:
   version "1.0.2"
-  resolved "https://registry.npmjs.org/bcrypt-pbkdf/-/bcrypt-pbkdf-1.0.2.tgz"
+  resolved "https://registry.yarnpkg.com/bcrypt-pbkdf/-/bcrypt-pbkdf-1.0.2.tgz#a4301d389b6a43f9b67ff3ca11a3f6637e360e9e"
   integrity sha512-qeFIXtP4MSoi6NLqO12WfqARWWuCKi2Rn/9hJLEmtB5yTNr9DqFWkJRCf2qShWzPeAMRnOgCrq0sg/KLv5ES9w==
   dependencies:
     tweetnacl "^0.14.3"
@@ -1445,7 +1445,7 @@ binary-extensions@^2.0.0:
 
 bl@^4.0.3:
   version "4.1.0"
-  resolved "https://registry.npmjs.org/bl/-/bl-4.1.0.tgz"
+  resolved "https://registry.yarnpkg.com/bl/-/bl-4.1.0.tgz#451535264182bec2fbbc83a62ab98cf11d9f7b3a"
   integrity sha512-1W07cM9gS6DcLperZfFSj+bWLtaPGSOHWhPiGzXmvVJbRLdG82sH/Kn8EtW1VqWVA54AKf2h5k5BbnIbwF3h6w==
   dependencies:
     buffer "^5.5.0"
@@ -1588,7 +1588,7 @@ buffer@^5.1.0, buffer@^5.5.0:
 
 buildcheck@~0.0.6:
   version "0.0.6"
-  resolved "https://registry.npmjs.org/buildcheck/-/buildcheck-0.0.6.tgz"
+  resolved "https://registry.yarnpkg.com/buildcheck/-/buildcheck-0.0.6.tgz#89aa6e417cfd1e2196e3f8fe915eb709d2fe4238"
   integrity sha512-8f9ZJCUXyT1M35Jx7MkBgmBMo3oHTTBIPLiY9xyL0pl3T5RwcPEY8cUHr5LBNfu/fk6c2T4DJZuVM/8ZZT2D2A==
 
 builder-util-runtime@9.2.4:
@@ -1720,7 +1720,7 @@ chokidar@3.5.3:
 
 chownr@^1.1.1:
   version "1.1.4"
-  resolved "https://registry.npmjs.org/chownr/-/chownr-1.1.4.tgz"
+  resolved "https://registry.yarnpkg.com/chownr/-/chownr-1.1.4.tgz#6fc9d7b42d32a583596337666e7d08084da2cc6b"
   integrity sha512-jJ0bqzaylmJtVnNgzTeSOs8DPavpbYgEr/b0YL8/2GO3xJEhInFmhKMUnEJQjZumK7KXGFhUy89PrsJWlakBVg==
 
 chownr@^2.0.0:
@@ -1912,7 +1912,7 @@ core-util-is@1.0.2:
 
 cpu-features@~0.0.9:
   version "0.0.9"
-  resolved "https://registry.npmjs.org/cpu-features/-/cpu-features-0.0.9.tgz"
+  resolved "https://registry.yarnpkg.com/cpu-features/-/cpu-features-0.0.9.tgz#5226b92f0f1c63122b0a3eb84cb8335a4de499fc"
   integrity sha512-AKjgn2rP2yJyfbepsmLfiYcmtNn/2eUvocUyM/09yB0YDiz39HteK/5/T4Onf0pmdYDMgkBoGvRLvEguzyL7wQ==
   dependencies:
     buildcheck "~0.0.6"
@@ -2086,7 +2086,7 @@ dmg-license@^1.0.11:
 
 docker-modem@^5.0.3:
   version "5.0.3"
-  resolved "https://registry.npmjs.org/docker-modem/-/docker-modem-5.0.3.tgz"
+  resolved "https://registry.yarnpkg.com/docker-modem/-/docker-modem-5.0.3.tgz#50c06f11285289f58112b5c4c4d89824541c41d0"
   integrity sha512-89zhop5YVhcPEt5FpUFGr3cDyceGhq/F9J+ZndQ4KfqNvfbJpPMfgeixFgUj5OjCYAboElqODxY5Z1EBsSa6sg==
   dependencies:
     debug "^4.1.1"
@@ -2096,7 +2096,7 @@ docker-modem@^5.0.3:
 
 dockerode@^4.0.2:
   version "4.0.2"
-  resolved "https://registry.npmjs.org/dockerode/-/dockerode-4.0.2.tgz"
+  resolved "https://registry.yarnpkg.com/dockerode/-/dockerode-4.0.2.tgz#dedc8529a1db3ac46d186f5912389899bc309f7d"
   integrity sha512-9wM1BVpVMFr2Pw3eJNXrYYt6DT9k0xMcsSCjtPvyQ+xa1iPg/Mo3T/gUcwI0B2cczqCeCYRPF8yFYDwtFXT0+w==
   dependencies:
     "@balena/dockerignore" "^1.0.2"
@@ -2180,13 +2180,13 @@ electron-sudo@^4.0.12:
     babel-runtime "^6.18.0"
     bluebird "^3.4.6"
 
-electron@^28.2.1:
-  version "28.2.2"
-  resolved "https://registry.npmjs.org/electron/-/electron-28.2.2.tgz"
-  integrity sha512-8UcvIGFcjplHdjPFNAHVFg5bS0atDyT3Zx21WwuE4iLfxcAMsyMEOgrQX3im5LibA8srwsUZs7Cx0JAUfcQRpw==
+electron@29.2.0:
+  version "29.2.0"
+  resolved "https://registry.yarnpkg.com/electron/-/electron-29.2.0.tgz#98e9d45dcebda124fb0bd1ff20fc509ec692101c"
+  integrity sha512-ALKrCN52RG4g9prx4DriXSPnY5WoiyRUCNp7zEVQuoiNOpHTNqMMpRidQAHzntV4hajF1LMWHVoBkwqIs1jHhg==
   dependencies:
     "@electron/get" "^2.0.0"
-    "@types/node" "^18.11.18"
+    "@types/node" "^20.9.0"
     extract-zip "^2.0.1"
 
 elliptic@6.5.4:
@@ -2653,7 +2653,7 @@ from@~0:
 
 fs-constants@^1.0.0:
   version "1.0.0"
-  resolved "https://registry.npmjs.org/fs-constants/-/fs-constants-1.0.0.tgz"
+  resolved "https://registry.yarnpkg.com/fs-constants/-/fs-constants-1.0.0.tgz#6be0de9be998ce16af8afc24497b9ee9b7ccd9ad"
   integrity sha512-y6OAwoSIf7FyjMIv94u+b5rdheZEjzR63GTyZJm5qh4Bi+2YgwLCcI/fPFZkL5PSixOt6ZNKm+w+Hfp/Bciwow==
 
 fs-extra@^0.30.0:
@@ -3494,7 +3494,7 @@ minizlib@^2.1.1:
 
 mkdirp-classic@^0.5.2:
   version "0.5.3"
-  resolved "https://registry.npmjs.org/mkdirp-classic/-/mkdirp-classic-0.5.3.tgz"
+  resolved "https://registry.yarnpkg.com/mkdirp-classic/-/mkdirp-classic-0.5.3.tgz#fa10c9115cc6d8865be221ba47ee9bed78601113"
   integrity sha512-gKLcREMhtuZRwRAfqP3RFW+TK4JqApVBtOIftVgjuABpAtpxhPGaDcfvbhNvD0B8iD1oUr/txX35NjcaY6Ns/A==
 
 mkdirp@^1.0.3:
@@ -3546,9 +3546,9 @@ ms@2.1.3:
   integrity sha512-6FlzubTLZG3J2a/NVCAleEhjzq5oxgHyaCU9yYXvcLsvoVaHJq/s5xXI6/XXP6tz7R9xAOtHnSO/tXtF3WRTlA==
 
 nan@^2.17.0, nan@^2.18.0:
-  version "2.18.0"
-  resolved "https://registry.npmjs.org/nan/-/nan-2.18.0.tgz"
-  integrity sha512-W7tfG7vMOGtD30sHoZSSc/JVYiyDPEyQVso/Zz+/uQd0B0L46gtC+pHha5FFMRpil6fm/AoEcRWyOVi4+E/f8w==
+  version "2.19.0"
+  resolved "https://registry.yarnpkg.com/nan/-/nan-2.19.0.tgz#bb58122ad55a6c5bc973303908d5b16cfdd5a8c0"
+  integrity sha512-nO1xXxfh/RWNxfd/XPfbIfFk5vgLsAxUR9y5O0cHMJu/AW9U95JLXqthYHjEp+8gQ5p96K9jUp8nbVOxCdRbtw==
 
 nanoid@^3.3.6:
   version "3.3.7"
@@ -4579,7 +4579,7 @@ spawn-command@0.0.2:
 
 split-ca@^1.0.1:
   version "1.0.1"
-  resolved "https://registry.npmjs.org/split-ca/-/split-ca-1.0.1.tgz"
+  resolved "https://registry.yarnpkg.com/split-ca/-/split-ca-1.0.1.tgz#6c83aff3692fa61256e0cd197e05e9de157691a6"
   integrity sha512-Q5thBSxp5t8WPTTJQS59LrGqOZqOsrhDGDVm8azCqIBjSBd7nd9o2PM+mDulQQkh8h//4U6hFZnc/mul8t5pWQ==
 
 split@0.3:
@@ -4596,7 +4596,7 @@ sprintf-js@^1.1.2:
 
 ssh2@^1.15.0:
   version "1.15.0"
-  resolved "https://registry.npmjs.org/ssh2/-/ssh2-1.15.0.tgz"
+  resolved "https://registry.yarnpkg.com/ssh2/-/ssh2-1.15.0.tgz#2f998455036a7f89e0df5847efb5421748d9871b"
   integrity sha512-C0PHgX4h6lBxYx7hcXwu3QWdh4tg6tZZsTfXcdvc5caW/EMxaB4H9dWsl7qk+F7LAW762hp8VbXOX7x4xUYvEw==
   dependencies:
     asn1 "^0.2.6"
@@ -4745,7 +4745,7 @@ synckit@^0.8.6:
 
 tar-fs@~2.0.1:
   version "2.0.1"
-  resolved "https://registry.npmjs.org/tar-fs/-/tar-fs-2.0.1.tgz"
+  resolved "https://registry.yarnpkg.com/tar-fs/-/tar-fs-2.0.1.tgz#e44086c1c60d31a4f0cf893b1c4e155dabfae9e2"
   integrity sha512-6tzWDMeroL87uF/+lin46k+Q+46rAJ0SyPGz7OW7wTgblI273hsBqk2C1j0/xNadNLKDTUL9BukSjB7cwgmlPA==
   dependencies:
     chownr "^1.1.1"
@@ -4755,7 +4755,7 @@ tar-fs@~2.0.1:
 
 tar-stream@^2.0.0:
   version "2.2.0"
-  resolved "https://registry.npmjs.org/tar-stream/-/tar-stream-2.2.0.tgz"
+  resolved "https://registry.yarnpkg.com/tar-stream/-/tar-stream-2.2.0.tgz#acad84c284136b060dc3faa64474aa9aebd77287"
   integrity sha512-ujeqbceABgwMZxEJnk2HDY2DlnUZ+9oEcb1KzTVfYHio0UE6dG71n60d8D2I4qNvleWrrXpmjpt7vZeF1LnMZQ==
   dependencies:
     bl "^4.0.3"
@@ -4869,7 +4869,7 @@ tweetnacl-util@^0.15.1:
 
 tweetnacl@^0.14.3:
   version "0.14.5"
-  resolved "https://registry.npmjs.org/tweetnacl/-/tweetnacl-0.14.5.tgz"
+  resolved "https://registry.yarnpkg.com/tweetnacl/-/tweetnacl-0.14.5.tgz#5ae68177f192d4456269d108afa93ff8743f4f64"
   integrity sha512-KXXFFdAbFXY4geFIwoyNK+f5Z1b7swfXABfL7HXCmoIWMKU3dmS26672A4EeQtDzLKy7SXmfBu51JolvEKwtGA==
 
 tweetnacl@^1.0.3:
