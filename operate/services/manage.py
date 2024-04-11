@@ -386,7 +386,7 @@ class ServiceManager:
                 chain_type=service.ledger_config.chain,
             )
 
-    def deploy_service_locally(self, hash: str, force: bool = False) -> Deployment:
+    def deploy_service_locally(self, hash: str, force: bool = True) -> Deployment:
         """
         Deploy service locally
 

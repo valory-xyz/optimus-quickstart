@@ -90,16 +90,22 @@ def mkdirs(build_dir: Path) -> None:
             continue
 
 
-def remove_service_network(service_name: str) -> None:
+def remove_service_network(service_name: str, force: bool = True) -> None:
     """Remove service network cache."""
     client = from_env()
     network_names = (
         f"deployment_service_{service_name}_localnet",
         f"abci_build_service_{service_name}_localnet",
     )
-    for network in client.networks.list():
+    for network in client.networks.list(greedy=True):
         if network.attrs["Name"] not in network_names:
             continue
+
+        if force:
+            for container in network.attrs["Containers"]:
+                print(f"Killing {container}")
+                client.api.kill(container=container)
+
         print("Deleting network: " + network.attrs["Name"])
         client.api.remove_network(net_id=network.attrs["Id"])
 
@@ -216,6 +222,7 @@ class Deployment(LocalResource):
         # if the service is still running so we can do an early exit
         remove_service_network(
             service_name=service.helper.config.name,
+            force=force,
         )
 
         build = self.path / DEPLOYMENT
