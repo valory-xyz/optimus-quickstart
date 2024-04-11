@@ -26,7 +26,9 @@ from pathlib import Path
 
 from aea.crypto.base import Crypto, LedgerApi
 from aea.crypto.registries import make_ledger_api
-from aea_ledger_ethereum.ethereum import EthereumCrypto
+from aea_ledger_ethereum.ethereum import EthereumApi, EthereumCrypto
+from autonomy.chain.config import ChainType as ChainProfile
+from autonomy.chain.tx import TxSettler
 from web3 import Account
 
 from operate.ledger import get_default_rpc
@@ -85,24 +87,7 @@ class MasterWallet(LocalResource):
 
     def transfer(self, to: str, amount: int, chain_type: ChainType) -> None:
         """Transfer funds to the given account."""
-        ledger_api = self.ledger_api(chain_type=chain_type)
-        tx = ledger_api.get_transfer_transaction(
-            sender_address=self.crypto.address,
-            destination_address=to,
-            amount=amount,
-            tx_fee=50000,
-            tx_nonce=ledger_api.generate_tx_nonce(
-                seller=self.crypto.address,
-                client=to,
-            ),
-        )
-        tx = ledger_api.update_with_gas_estimate(tx)
-        tx = self.crypto.sign_transaction(tx)
-        ledger_api.get_transaction_receipt(
-            tx_digest=ledger_api.send_signed_transaction(
-                tx_signed=tx,
-            )
-        )
+        raise NotImplementedError()
 
     @staticmethod
     def new(password: str, path: Path) -> t.Tuple["MasterWallet", t.List[str]]:
@@ -135,12 +120,34 @@ class EthereumMasterWallet(MasterWallet):
     _key = ledger_type.key_file
     _crypto_cls = EthereumCrypto
 
-    def get_crypto_obj(self, password: str) -> EthereumCrypto:
-        """Load ethereum crypto object."""
-        return EthereumCrypto(
-            private_key_path=self.path / self._key,
-            password=password,
+    def transfer(self, to: str, amount: int, chain_type: ChainType) -> None:
+        """Transfer funds to the given account."""
+        ledger_api = t.cast(EthereumApi, self.ledger_api(chain_type=chain_type))
+        tx_helper = TxSettler(
+            ledger_api=ledger_api,
+            crypto=self.crypto,
+            chain_type=ChainProfile.CUSTOM,
         )
+
+        def _build_tx(  # pylint: disable=unused-argument
+            *args: t.Any, **kwargs: t.Any
+        ) -> t.Dict:
+            """Build transaction"""
+            tx = ledger_api.get_transfer_transaction(
+                sender_address=self.crypto.address,
+                destination_address=to,
+                amount=amount,
+                tx_fee=50000,
+                tx_nonce=ledger_api.generate_tx_nonce(
+                    seller=self.crypto.address,
+                    client=to,
+                ),
+                raise_on_try=True,
+            )
+            return ledger_api.update_with_gas_estimate(tx, raise_on_try=True)
+
+        setattr(tx_helper, "build", _build_tx)  # noqa: B010
+        tx_helper.transact(lambda x: x, "", kwargs={})
 
     @classmethod
     def new(
