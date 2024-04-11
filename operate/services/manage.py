@@ -362,10 +362,12 @@ class ServiceManager:
         ledger_api = wallet.ledger_api(chain_type=service.ledger_config.chain)
         agent_fund_requirement = service.chain_data.user_params.fund_requirements.agent
 
-        self.logger.info("Funding agents")
         for key in service.keys:
             agent_balance = ledger_api.get_balance(address=key.address)
+            self.logger.info(f"Agent {key.address} balance: {agent_balance}")
+            self.logger.info(f"Required balance: {agent_fund_requirement}")
             if agent_balance < agent_fund_requirement:
+                self.logger.info("Funding agents")
                 to_transfer = agent_fund_requirement - agent_balance
                 self.logger.info(f"Transferring {to_transfer} units to {key.address}")
                 wallet.transfer(
@@ -374,19 +376,23 @@ class ServiceManager:
                     chain_type=service.ledger_config.chain,
                 )
 
-        self.logger.info("Funding safe")
+        safe_balanace = ledger_api.get_balance(service.chain_data.multisig)
         safe_fund_requirement = service.chain_data.user_params.fund_requirements.safe
-        safe_balanace = ledger_api.get_balance(wallet.safe)
+        self.logger.info(f"Safe {service.chain_data.multisig} balance: {safe_balanace}")
+        self.logger.info(f"Required balance: {safe_fund_requirement}")
         if safe_balanace < safe_fund_requirement:
+            self.logger.info("Funding safe")
             to_transfer = safe_fund_requirement - safe_balanace
-            self.logger.info(f"Transferring {to_transfer} units to {wallet.safe}")
+            self.logger.info(
+                f"Transferring {to_transfer} units to {service.chain_data.multisig}"
+            )
             wallet.transfer(
-                to=t.cast(str, wallet.safe),
+                to=t.cast(str, service.chain_data.multisig),
                 amount=to_transfer,
                 chain_type=service.ledger_config.chain,
             )
 
-    def deploy_service_locally(self, hash: str, force: bool = False) -> Deployment:
+    def deploy_service_locally(self, hash: str, force: bool = True) -> Deployment:
         """
         Deploy service locally
 
