@@ -378,12 +378,14 @@ class ServiceManager:
 
         safe_balanace = ledger_api.get_balance(service.chain_data.multisig)
         safe_fund_requirement = service.chain_data.user_params.fund_requirements.safe
-        self.logger.info(f"Safe {wallet.safe} balance: {safe_balanace}")
+        self.logger.info(f"Safe {service.chain_data.multisig} balance: {safe_balanace}")
         self.logger.info(f"Required balance: {safe_fund_requirement}")
         if safe_balanace < safe_fund_requirement:
             self.logger.info("Funding safe")
             to_transfer = safe_fund_requirement - safe_balanace
-            self.logger.info(f"Transferring {to_transfer} units to {wallet.safe}")
+            self.logger.info(
+                f"Transferring {to_transfer} units to {service.chain_data.multisig}"
+            )
             wallet.transfer(
                 to=t.cast(str, service.chain_data.multisig),
                 amount=to_transfer,

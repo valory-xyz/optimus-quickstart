@@ -138,13 +138,14 @@ class EthereumMasterWallet(MasterWallet):
                 destination_address=to,
                 amount=amount,
                 tx_fee=50000,
-                tx_nonce=ledger_api.generate_tx_nonce(
-                    seller=self.crypto.address,
-                    client=to,
-                ),
+                tx_nonce="0x",
+                chain_id=chain_type.id,
                 raise_on_try=True,
             )
-            return ledger_api.update_with_gas_estimate(tx, raise_on_try=True)
+            return ledger_api.update_with_gas_estimate(
+                transaction=tx,
+                raise_on_try=True,
+            )
 
         setattr(tx_helper, "build", _build_tx)  # noqa: B010
         tx_helper.transact(lambda x: x, "", kwargs={})
