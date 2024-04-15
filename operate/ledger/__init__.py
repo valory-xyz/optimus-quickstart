@@ -29,7 +29,9 @@ from operate.types import ChainType, LedgerType
 
 
 ETHEREUM_RPC = os.environ.get("DEV_RPC", "https://ethereum.publicnode.com")
-GNOSIS_RPC = os.environ.get("DEV_RPC", "https://rpc.gnosischain.com")
+GNOSIS_RPC = os.environ.get(
+    "DEV_RPC", "https://go.getblock.io/2a1fa1ade5d547ca86eab099c35ce2a7"
+)
 GOERLI_RPC = os.environ.get("DEV_RPC", "https://ethereum-goerli.publicnode.com")
 SOLANA_RPC = os.environ.get("DEV_RPC", "https://api.mainnet-beta.solana.com")
 
