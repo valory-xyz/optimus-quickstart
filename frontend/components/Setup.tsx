@@ -227,12 +227,13 @@ const SetupFunding = () => {
     wallets: [{ address }],
   } = useWallet();
   const { goto } = useSetup();
+  const { update } = useWallet();
 
   useInterval(() => {
     EthersService.getEthBalance(address, `${process.env.GNOSIS_RPC}`).then(
       (balance) => {
         if (balance > 0) {
-          goto(SetupScreen.Finalizing);
+          update().then(() => goto(SetupScreen.Finalizing));
         }
       },
     );

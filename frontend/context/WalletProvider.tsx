@@ -10,6 +10,7 @@ import { useInterval } from 'usehooks-ts';
 
 import { Wallet } from '@/client';
 import { EthersService } from '@/service';
+import MulticallService from '@/service/Multicall';
 import { WalletService } from '@/service/Wallet';
 import { Address } from '@/types';
 
@@ -44,8 +45,12 @@ export const WalletProvider = ({ children }: PropsWithChildren) => {
     const walletsToCheck: Address[] = [];
 
     for (const wallet of wallets) {
-      if (wallet.address && isAddress(wallet.address)) {
-        walletsToCheck.push(wallet.address);
+      const { address, safe } = wallet;
+      if (address && isAddress(address)) {
+        walletsToCheck.push(address);
+      }
+      if (safe && isAddress(safe)) {
+        walletsToCheck.push(safe);
       }
     }
 
@@ -55,23 +60,23 @@ export const WalletProvider = ({ children }: PropsWithChildren) => {
       }
     }
 
-    const balancePromises = walletsToCheck.map((address) =>
-      EthersService.getEthBalance(address, `${process.env.GNOSIS_RPC}`),
+    const ethBalances = await MulticallService.getEthBalances(
+      walletsToCheck,
+      `${process.env.GNOSIS_RPC}`,
     );
 
-    const settledBalances = await Promise.allSettled(balancePromises);
-
-    const balance = settledBalances.reduce((acc: number, promise) => {
-      if (promise.status === 'fulfilled') {
-        return acc + promise.value;
-      }
-      return acc;
-    }, 0);
+    const balance = Object.values(ethBalances).reduce(
+      (acc: number, value) => acc + value,
+      0,
+    );
 
     setBalance(balance);
   }, [serviceAddresses, wallets]);
 
-  useInterval(() => updateBalance(), wallets.length ? 5000 : null);
+  useInterval(
+    () => updateWallets().then(updateBalance),
+    wallets.length ? 5000 : null,
+  );
 
   return (
     <WalletContext.Provider

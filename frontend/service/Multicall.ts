@@ -28,15 +28,19 @@ const getEthBalances = async (
     multicallContract.getEthBalance(address),
   );
 
-  return multicallProvider.all(callData).then((responseData: BigNumber[]) =>
-    responseData.reduce(
-      (acc: AddressNumberRecord, balance: BigNumber, index: number) => ({
-        ...acc,
-        [addresses[index]]: parseFloat(ethers.utils.formatEther(balance)),
-      }),
-      {},
-    ),
-  );
+  const multicallResponse = await multicallProvider
+    .all(callData)
+    .then((responseData: BigNumber[]) =>
+      responseData.reduce(
+        (acc: AddressNumberRecord, balance: BigNumber, index: number) => ({
+          ...acc,
+          [addresses[index]]: parseFloat(ethers.utils.formatEther(balance)),
+        }),
+        {},
+      ),
+    );
+
+  return multicallResponse;
 };
 
 /**

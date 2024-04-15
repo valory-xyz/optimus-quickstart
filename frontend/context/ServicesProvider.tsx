@@ -1,5 +1,4 @@
 import { message } from 'antd';
-import { isAddress } from 'ethers/lib/utils';
 import {
   createContext,
   Dispatch,
@@ -45,23 +44,25 @@ export const ServicesProvider = ({ children }: PropsWithChildren) => {
 
   const serviceAddresses = useMemo(
     () =>
-      services.flatMap(({ chain_data: { instances = [], multisig } }) => {
-        const validInstances = instances.filter((instance) =>
-          isAddress(`${instance}`),
-        );
-        if (!multisig) return validInstances;
-        return isAddress(`${multisig}`)
-          ? [...validInstances, multisig]
-          : validInstances;
-      }) ?? [],
+      services.reduce<Address[]>((acc, service: Service) => {
+        if (service.chain_data.instances) {
+          acc.push(...service.chain_data.instances);
+        }
+        if (service.chain_data.multisig) {
+          acc.push(service.chain_data.multisig);
+        }
+        return acc;
+      }, []),
     [services],
   );
 
   const updateServicesState = useCallback(
     async (): Promise<void> =>
-      ServicesService.getServices().then((data: Service[]) =>
-        setServices(data),
-      ),
+      ServicesService.getServices()
+        .then((data: Service[]) => setServices(data))
+        .catch((e) => {
+          message.error(e.message);
+        }),
     [],
   );
 

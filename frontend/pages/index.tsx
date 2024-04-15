@@ -175,7 +175,6 @@ const Main = () => {
             <span style={{ display: 'flex', flexWrap: 'nowrap' }}>
               24hr change -- %
             </span>
-            {/* <CaretUpFilled style={{ color: token.colorSuccess }} /> */}
           </Typography>
         </Flex>
         <Flex vertical gap={20} style={{ marginLeft: 'auto' }}>
