@@ -436,7 +436,7 @@ def create_app(  # pylint: disable=too-many-locals, unused-argument, too-many-st
             )
             .deployment
         )
-        deployment.build(force=False)
+        deployment.build(force=True)
         return JSONResponse(content=deployment.json)
 
     @app.post("/api/services/{service}/deployment/start")
@@ -450,7 +450,7 @@ def create_app(  # pylint: disable=too-many-locals, unused-argument, too-many-st
             )
             .deployment
         )
-        deployment.build(force=False)
+        deployment.build(force=True)
         operate.service_manager().fund_service(hash=request.path_params["service"])
         deployment.start()
         return JSONResponse(content=deployment.json)
