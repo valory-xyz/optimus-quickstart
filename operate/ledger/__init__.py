@@ -28,6 +28,11 @@ from operate.ledger.solana import Solana
 from operate.types import ChainType, LedgerType
 
 
+ETHEREUM_PUBLIC_RPC = "https://ethereum.publicnode.com"
+GNOSIS_PUBLIC_RPC = "https://gnosis-rpc.publicnode.com"
+GOERLI_PUBLIC_RPC = "https://ethereum-goerli.publicnode.com"
+SOLANA_PUBLIC_RPC = "https://api.mainnet-beta.solana.com"
+
 ETHEREUM_RPC = os.environ.get("DEV_RPC", "https://ethereum.publicnode.com")
 GNOSIS_RPC = os.environ.get(
     "DEV_RPC", "https://go.getblock.io/2a1fa1ade5d547ca86eab099c35ce2a7"
@@ -35,6 +40,12 @@ GNOSIS_RPC = os.environ.get(
 GOERLI_RPC = os.environ.get("DEV_RPC", "https://ethereum-goerli.publicnode.com")
 SOLANA_RPC = os.environ.get("DEV_RPC", "https://api.mainnet-beta.solana.com")
 
+PUBLIC_RPCS = {
+    ChainType.ETHEREUM: ETHEREUM_PUBLIC_RPC,
+    ChainType.GNOSIS: GNOSIS_PUBLIC_RPC,
+    ChainType.GOERLI: GOERLI_PUBLIC_RPC,
+    ChainType.SOLANA: SOLANA_PUBLIC_RPC,
+}
 
 DEFAULT_RPCS = {
     ChainType.ETHEREUM: ETHEREUM_RPC,
