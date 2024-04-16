@@ -19,8 +19,10 @@
 # ------------------------------------------------------------------------------
 """Service manager."""
 
+import asyncio
 import logging
 import typing as t
+from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
 from aea.helpers.base import IPFSHash
@@ -28,6 +30,7 @@ from aea.helpers.logging import setup_logger
 from autonomy.chain.base import registry_contracts
 
 from operate.keys import Key, KeysManager
+from operate.ledger import PUBLIC_RPCS
 from operate.ledger.profiles import CONTRACTS, OLAS, STAKING
 from operate.services.protocol import OnChainManager
 from operate.services.service import (
@@ -355,12 +358,21 @@ class ServiceManager:
         service.chain_data.staked = False
         service.store()
 
-    def fund_service(self, hash: str) -> None:
+    def fund_service(
+        self,
+        hash: str,
+        rpc: t.Optional[str] = None,
+        agent_fund_requirement: t.Optional[float] = None,
+        safe_fund_requirement: t.Optional[float] = None,
+    ) -> None:
         """Fund service if required."""
         service = self.create_or_load(hash=hash)
         wallet = self.wallet_manager.load(ledger_type=service.ledger_config.type)
-        ledger_api = wallet.ledger_api(chain_type=service.ledger_config.chain)
-        agent_fund_requirement = service.chain_data.user_params.fund_requirements.agent
+        ledger_api = wallet.ledger_api(chain_type=service.ledger_config.chain, rpc=rpc)
+        agent_fund_requirement = (
+            agent_fund_requirement
+            or service.chain_data.user_params.fund_requirements.agent
+        )
 
         for key in service.keys:
             agent_balance = ledger_api.get_balance(address=key.address)
@@ -377,7 +389,10 @@ class ServiceManager:
                 )
 
         safe_balanace = ledger_api.get_balance(service.chain_data.multisig)
-        safe_fund_requirement = service.chain_data.user_params.fund_requirements.safe
+        safe_fund_requirement = (
+            safe_fund_requirement
+            or service.chain_data.user_params.fund_requirements.safe
+        )
         self.logger.info(f"Safe {service.chain_data.multisig} balance: {safe_balanace}")
         self.logger.info(f"Required balance: {safe_fund_requirement}")
         if safe_balanace < safe_fund_requirement:
@@ -391,6 +406,26 @@ class ServiceManager:
                 amount=to_transfer,
                 chain_type=service.ledger_config.chain,
             )
+
+    async def funding_job(
+        self,
+        hash: str,
+        loop: t.Optional[asyncio.AbstractEventLoop] = None,
+    ) -> None:
+        """Start a background funding job."""
+        loop = loop or asyncio.get_event_loop()
+        service = self.create_or_load(hash=hash)
+        with ThreadPoolExecutor() as executor:
+            while True:
+                await loop.run_in_executor(
+                    executor,
+                    self.fund_service,
+                    hash,
+                    PUBLIC_RPCS[service.ledger_config.chain],
+                    10000000000000000,
+                    50000000000000000,
+                )
+                await asyncio.sleep(60)
 
     def deploy_service_locally(self, hash: str, force: bool = True) -> Deployment:
         """
