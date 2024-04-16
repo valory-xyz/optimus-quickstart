@@ -144,7 +144,7 @@ function createVirtualEnvUbuntu(path) {
 function installOperatePackageUnix(path) {
   return runCmdUnix(
     `${path}/venv/bin/python3.10`,
-    ['-m', 'pip', 'install', 'olas-operate-middleware==0.1.0rc3']
+    ['-m', 'pip', 'install', 'olas-operate-middleware==0.1.0rc4']
   )
 }
 
@@ -155,7 +155,7 @@ function reInstallOperatePackageUnix(path) {
   console.log(appendLog("Reinstalling operate CLI"))
   return runCmdUnix(
     `${path}/venv/bin/python3.10`,
-    ['-m', 'pip', 'install', 'olas-operate-middleware==0.1.0rc3', '--force-reinstall']
+    ['-m', 'pip', 'install', 'olas-operate-middleware==0.1.0rc4', '--force-reinstall']
   )
 }
 
