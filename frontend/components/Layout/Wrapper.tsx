@@ -1,4 +1,4 @@
-import { Flex } from 'antd';
+import { Card, Flex } from 'antd';
 import { PropsWithChildren } from 'react';
 
 export const Wrapper = ({
@@ -6,11 +6,10 @@ export const Wrapper = ({
   vertical,
 }: PropsWithChildren & { vertical?: boolean }) => {
   return (
-    <Flex
-      style={{ padding: 20, alignItems: 'center', gap: 10 }}
-      vertical={vertical}
-    >
-      {children}
-    </Flex>
+    <Card>
+      <Flex style={{ alignItems: 'center', gap: 10 }} vertical={vertical}>
+        {children}
+      </Flex>
+    </Card>
   );
 };

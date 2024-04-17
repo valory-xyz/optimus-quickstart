@@ -5,17 +5,9 @@
 html, body {
     margin: 0;
     padding: 0;    
-    max-height: fit-content;
-    // box-sizing: border-box; /* Includes padding and border in the element's total width and height */
   }
 
-html {
-  min-width: 400px;
-  background: transparent;
-}
-
 body {
-    background: white;
     border: 1px solid #d9d9d9;
     border-radius: 8px;
     -webkit-app-region: drag;
@@ -26,6 +18,24 @@ button, input, select, textarea, .ant-input-suffix {
     -webkit-app-region: no-drag;
 }
 
+.antd-card {
+  background-color: white;
+}
+
 .can-select-text {
   user-select: text !important;
 }
+
+.balance {
+  font-family: 'Inter';
+  font-weight: 900;
+  font-size: 64px;
+  letter-spacing: -4%;
+}
+
+.balance-small {
+  @extend .balance;
+  font-size: 24px;
+  margin-bottom: 10px
+}
+

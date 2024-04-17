@@ -8,10 +8,15 @@ export const mainTheme: ThemeConfig = {
     colorFillSecondary: '#E4E4E4',
     fontSize: 24,
     fontFamily: 'Inter',
+    colorBgContainer: '#FFFFFF',
   },
   components: {
     Alert: {
       colorWarningBg: 'transparent',
+    },
+    Card: {
+      colorBgContainer: '#FFFFFF',
+      padding: 20,
     },
     Button: {
       fontSize: 20,

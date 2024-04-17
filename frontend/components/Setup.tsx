@@ -35,8 +35,6 @@ export const Setup = () => {
         return <SetupBackup />;
       case SetupScreen.Funding:
         return <SetupFunding />;
-      case SetupScreen.Finalizing:
-        return <SetupFinalizing />;
       default:
         return <>Error</>;
     }

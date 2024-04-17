@@ -1,11 +1,9 @@
 {
   "extends": [
-    "next/core-web-vitals",
     "eslint:recommended",
     "plugin:@typescript-eslint/recommended",
     "plugin:jest/recommended",
-    "plugin:react/recommended",
-    "plugin:react-hooks/recommended",
+    "next/core-web-vitals",
     "plugin:prettier/recommended"
   ],
   "globals": {
@@ -15,8 +13,6 @@
   "plugins": [
     "jest",
     "prettier",
-    "react",
-    "react-hooks",
     "unused-imports",
     "simple-import-sort",
     "import"
@@ -39,6 +35,6 @@
     "react/no-array-index-key": "off",
     "react/react-in-jsx-scope": "off",    
     "react-hooks/rules-of-hooks": "error", 
-    "react-hooks/exhaustive-deps": "warn" 
+    "react-hooks/exhaustive-deps": "warn"
   }
 }

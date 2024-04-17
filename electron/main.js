@@ -131,12 +131,11 @@ const createMainWindow = () => {
     title: 'Olas Operate',
     resizable: false,
     draggable: true,
-    frame: true,
+    frame: false,
     transparent: true,
     fullscreenable: false,
     maximizable: false,
-    width: 420,
-    minHeight: 210,
+    width: 335,
     webPreferences: {
       nodeIntegration: false,
       contextIsolation: true,
@@ -144,6 +143,7 @@ const createMainWindow = () => {
   });
 
   mainWindow.setMenuBarVisibility(false);
+
   if (isDev) {
     mainWindow.loadURL(`http://localhost:${appConfig.ports.dev.next}`);
   } else {
