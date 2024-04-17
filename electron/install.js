@@ -6,7 +6,6 @@ const sudo = require('sudo-prompt');
 const process = require('process');
 const { spawnSync } = require('child_process');
 const Docker = require('dockerode');
-const { VersionedMessage } = require('@solana/web3.js');
 
 const Version = "0.1.0-rc5"
 const OperateDirectory = `${os.homedir()}/.operate`;
