@@ -8,7 +8,7 @@ const { spawnSync } = require('child_process');
 const Docker = require('dockerode');
 const { VersionedMessage } = require('@solana/web3.js');
 
-const Version = "0.1.0-rc4"
+const Version = "0.1.0-rc5"
 const OperateDirectory = `${os.homedir()}/.operate`;
 const VenvDir = `${OperateDirectory}/venv`;
 const VersionFile = `${OperateDirectory}/version.txt`;
@@ -148,7 +148,7 @@ function createVirtualEnvUbuntu(path) {
 function installOperatePackageUnix(path) {
   return runCmdUnix(
     `${path}/venv/bin/python3.10`,
-    ['-m', 'pip', 'install', 'olas-operate-middleware==0.1.0rc4']
+    ['-m', 'pip', 'install', 'olas-operate-middleware==0.1.0rc5']
   )
 }
 
@@ -156,7 +156,7 @@ function reInstallOperatePackageUnix(path) {
   console.log(appendLog("Reinstalling operate CLI"))
   return runCmdUnix(
     `${path}/venv/bin/python3.10`,
-    ['-m', 'pip', 'install', 'olas-operate-middleware==0.1.0rc4', '--force-reinstall']
+    ['-m', 'pip', 'install', 'olas-operate-middleware==0.1.0rc5', '--force-reinstall']
   )
 }
 
