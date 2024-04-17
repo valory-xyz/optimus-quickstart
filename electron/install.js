@@ -6,9 +6,13 @@ const sudo = require('sudo-prompt');
 const process = require('process');
 const { spawnSync } = require('child_process');
 const Docker = require('dockerode');
+const { VersionedMessage } = require('@solana/web3.js');
 
-
+const Version = "0.1.0-rc4"
 const OperateDirectory = `${os.homedir()}/.operate`;
+const VenvDir = `${OperateDirectory}/venv`;
+const VersionFile = `${OperateDirectory}/version.txt`;
+const LogFile = `${OperateDirectory}/logs.txt`;
 const OperateInstallationLog = `${os.homedir()}/operate.log`;
 const OperateCmd = `${os.homedir()}/.operate/venv/bin/operate`;
 const Env = { ...process.env, PATH: `${process.env.PATH}:/opt/homebrew/bin:/usr/local/bin` }
@@ -149,9 +153,6 @@ function installOperatePackageUnix(path) {
 }
 
 function reInstallOperatePackageUnix(path) {
-  if (fs.existsSync(`${path}/venv/bin/operate`)) {
-    return
-  }
   console.log(appendLog("Reinstalling operate CLI"))
   return runCmdUnix(
     `${path}/venv/bin/python3.10`,
@@ -186,8 +187,24 @@ function createDirectory(path) {
   });
 }
 
+function writeVersion() {
+  fs.writeFileSync(VersionFile, Version)
+}
+
+function versionBumpRequired() {
+  if (!fs.existsSync(VersionFile)) {
+    return true
+  }
+  const version = fs.readFileSync(VersionFile).toString()
+  return version != Version
+}
+
+function removeLogFile() {
+  fs.rmSync(LogFile)
+}
 
 async function setupDarwin(ipcChannel) {
+  fs.rmSync(OperateInstallationLog)
   console.log(appendLog("Checking brew installation"))
   if (!isBrewInstalled()) {
     ipcChannel.send('response', 'Installing Operate Daemon')
@@ -213,22 +230,34 @@ async function setupDarwin(ipcChannel) {
   await createDirectory(`${OperateDirectory}`);
   await createDirectory(`${OperateDirectory}/temp`);
 
-  if (!fs.existsSync(`${OperateDirectory}/venv`)) {
+  if (!fs.existsSync(VenvDir)) {
     ipcChannel.send('response', 'Installing Operate Daemon')
     console.log(appendLog("Creating virtual environment"))
-    createVirtualEnvUnix(`${OperateDirectory}/venv`);
+    createVirtualEnvUnix(VenvDir);
+
+    console.log(appendLog("Installing operate backend"))
+    installOperatePackageUnix(OperateDirectory)
   }
 
-  console.log(appendLog("Installing operate backend"))
-  installOperatePackageUnix(OperateDirectory)
-  reInstallOperatePackageUnix(OperateDirectory)
+
+  console.log(appendLog("Checking if upgrade is required"))
+  if (versionBumpRequired()) {
+    console.log(appendLog(`Upgrading operate daemon to ${Version}`))
+    reInstallOperatePackageUnix(OperateDirectory)
+    writeVersion();
+    removeLogFile()
+  }
+
+  if (!fs.existsSync(`${OperateDirectory}/venv/bin/operate`)) {
+    reInstallOperatePackageUnix(OperateDirectory)
+  }
 
   console.log(appendLog("Installing operate CLI"))
   await installOperateCli('/opt/homebrew/bin/operate')
 }
 
 async function setupUbuntu(ipcChannel) {
-
+  fs.rmSync(OperateInstallationLog)
   console.log(appendLog("Checking docker installation"))
   if (!isDockerInstalledUbuntu()) {
     ipcChannel.send('response', 'Installing Operate Daemon')
@@ -254,20 +283,36 @@ async function setupUbuntu(ipcChannel) {
   await createDirectory(`${OperateDirectory}`);
   await createDirectory(`${OperateDirectory}/temp`);
 
-  if (!fs.existsSync(`${OperateDirectory}/venv`)) {
-    ipcChannel.send('response', 'Installing Operate Daemon')
-    console.log(appendLog("Creating virtual environment"))
-    createVirtualEnvUnix(`${OperateDirectory}/venv`);
+  if (versionBumpRequired()) {
+    removePreviousInstallation();
+    writeVersion();
   }
 
-  console.log(appendLog("Installing operate backend"))
-  installOperatePackageUnix(OperateDirectory)
-  reInstallOperatePackageUnix(OperateDirectory)
+  if (!fs.existsSync(VenvDir)) {
+    ipcChannel.send('response', 'Installing Operate Daemon')
+    console.log(appendLog("Creating virtual environment"))
+    createVirtualEnvUnix(VenvDir);
+
+    console.log(appendLog("Installing operate backend"))
+    installOperatePackageUnix(OperateDirectory)
+  }
+
+
+  console.log(appendLog("Checking if upgrade is required"))
+  if (versionBumpRequired()) {
+    console.log(appendLog(`Upgrading operate daemon to ${Version}`))
+    reInstallOperatePackageUnix(OperateDirectory)
+    writeVersion();
+    removeLogFile()
+  }
+
+  if (!fs.existsSync(`${OperateDirectory}/venv/bin/operate`)) {
+    reInstallOperatePackageUnix(OperateDirectory)
+  }
 
   console.log(appendLog("Installing operate CLI"))
   await installOperateCli('/usr/local/bin')
 }
-
 
 async function startDocker(ipcChannel) {
   const docker = new Docker();
