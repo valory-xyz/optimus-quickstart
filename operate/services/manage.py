@@ -21,6 +21,7 @@
 
 import asyncio
 import logging
+import traceback
 import typing as t
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
@@ -417,14 +418,19 @@ class ServiceManager:
         service = self.create_or_load(hash=hash)
         with ThreadPoolExecutor() as executor:
             while True:
-                await loop.run_in_executor(
-                    executor,
-                    self.fund_service,
-                    hash,
-                    PUBLIC_RPCS[service.ledger_config.chain],
-                    10000000000000000,
-                    50000000000000000,
-                )
+                try:
+                    await loop.run_in_executor(
+                        executor,
+                        self.fund_service,
+                        hash,
+                        PUBLIC_RPCS[service.ledger_config.chain],
+                        10000000000000000,
+                        50000000000000000,
+                    )
+                except Exception:  # pylint: disable=broad-except
+                    logging.info(
+                        f"Error occured while funding the service\n{traceback.format_exc()}"
+                    )
                 await asyncio.sleep(60)
 
     def deploy_service_locally(self, hash: str, force: bool = True) -> Deployment:
