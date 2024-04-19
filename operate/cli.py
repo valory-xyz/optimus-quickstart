@@ -489,10 +489,11 @@ def create_app(  # pylint: disable=too-many-locals, unused-argument, too-many-st
         deployment = operate.service_manager().create_or_load(service).deployment
         deployment.stop()
 
-        logger.info(f"Cancelling funding job for {service}")
-        status = funding_jobs[service].cancel()
-        if not status:
-            logger.info(f"Funding job cancellation for {service} failed")
+        if service in funding_jobs:
+            logger.info(f"Cancelling funding job for {service}")
+            status = funding_jobs[service].cancel()
+            if not status:
+                logger.info(f"Funding job cancellation for {service} failed")
         return JSONResponse(content=deployment.json)
 
     @app.post("/api/services/{service}/deployment/delete")
