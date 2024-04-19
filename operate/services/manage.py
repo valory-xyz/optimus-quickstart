@@ -176,6 +176,16 @@ class ServiceManager:
                     f"required olas: {required_olas}; your balance {balance}"
                 )
 
+        if service.chain_data.token > -1:
+            self.logger.info("Syncing service state")
+            info = ocm.info(token_id=service.chain_data.token)
+            service.chain_data.on_chain_state = OnChainState(info["service_state"])
+            service.chain_data.instances = info["instances"]
+            service.chain_data.multisig = info["multisig"]
+
+            service.store()
+        self.logger.info(f"Service state: {service.chain_data.on_chain_state.name}")
+
         if service.chain_data.on_chain_state == OnChainState.NOTMINTED:
             self.logger.info("Minting service")
             service.chain_data.token = t.cast(
@@ -201,8 +211,6 @@ class ServiceManager:
             )
             service.chain_data.on_chain_state = OnChainState.MINTED
             service.store()
-        else:
-            self.logger.info("Service already minted")
 
         if service.chain_data.on_chain_state == OnChainState.MINTED:
             self.logger.info("Activating service")
@@ -216,8 +224,6 @@ class ServiceManager:
             )
             service.chain_data.on_chain_state = OnChainState.ACTIVATED
             service.store()
-        else:
-            self.logger.info("Service already activated")
 
         if service.chain_data.on_chain_state == OnChainState.ACTIVATED:
             self.logger.info("Registering service")
@@ -229,8 +235,6 @@ class ServiceManager:
             service.chain_data.on_chain_state = OnChainState.REGISTERED
             service.keys = keys
             service.store()
-        else:
-            self.logger.info("Service already registered")
 
         if service.chain_data.on_chain_state == OnChainState.REGISTERED:
             self.logger.info("Deploying service")
@@ -245,8 +249,6 @@ class ServiceManager:
             )
             service.chain_data.on_chain_state = OnChainState.DEPLOYED
             service.store()
-        else:
-            self.logger.info("Service already deployed")
 
         info = ocm.info(token_id=service.chain_data.token)
         service.keys = keys
