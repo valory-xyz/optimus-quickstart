@@ -355,4 +355,5 @@ module.exports = {
   setupUbuntu,
   OperateDirectory,
   OperateCmd,
+  Env
 };

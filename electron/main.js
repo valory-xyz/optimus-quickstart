@@ -21,6 +21,7 @@ const {
   OperateCmd,
   OperateDirectory,
   startDocker,
+  Env
 } = require('./install');
 const { killProcesses } = require('./processes');
 const { isPortAvailable, findAvailablePort } = require('./ports');
@@ -180,7 +181,7 @@ async function launchDaemon() {
       'daemon',
       `--port=${appConfig.ports.prod.operate}`,
       `--home=${OperateDirectory}`,
-    ]);
+    ], { env: Env });
     operateDaemonPid = operateDaemon.pid;
     operateDaemon.stderr.on('data', (data) => {
       if (data.toString().includes('Uvicorn running on')) {
