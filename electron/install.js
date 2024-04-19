@@ -7,7 +7,7 @@ const process = require('process');
 const { spawnSync } = require('child_process');
 const Docker = require('dockerode');
 
-const Version = "0.1.0-rc5"
+const Version = "0.1.0rc6"
 const OperateDirectory = `${os.homedir()}/.operate`;
 const VenvDir = `${OperateDirectory}/venv`;
 const VersionFile = `${OperateDirectory}/version.txt`;
@@ -147,7 +147,7 @@ function createVirtualEnvUbuntu(path) {
 function installOperatePackageUnix(path) {
   return runCmdUnix(
     `${path}/venv/bin/python3.10`,
-    ['-m', 'pip', 'install', 'olas-operate-middleware==0.1.0rc5']
+    ['-m', 'pip', 'install', `olas-operate-middleware==${Version}`]
   )
 }
 
@@ -155,7 +155,7 @@ function reInstallOperatePackageUnix(path) {
   console.log(appendLog("Reinstalling operate CLI"))
   return runCmdUnix(
     `${path}/venv/bin/python3.10`,
-    ['-m', 'pip', 'install', 'olas-operate-middleware==0.1.0rc5', '--force-reinstall']
+    ['-m', 'pip', 'install', `olas-operate-middleware==${Version}`, '--force-reinstall']
   )
 }
 
@@ -199,11 +199,19 @@ function versionBumpRequired() {
 }
 
 function removeLogFile() {
-  fs.rmSync(LogFile)
+  if (fs.existsSync()) {
+    fs.rmSync(LogFile)
+  }
+}
+
+function removeInstallationLogFile() {
+  if (fs.existsSync(OperateInstallationLog)) {
+    fs.rmSync(OperateInstallationLog)
+  }
 }
 
 async function setupDarwin(ipcChannel) {
-  fs.rmSync(OperateInstallationLog)
+  removeInstallationLogFile()
   console.log(appendLog("Checking brew installation"))
   if (!isBrewInstalled()) {
     ipcChannel.send('response', 'Installing Operate Daemon')
@@ -256,7 +264,7 @@ async function setupDarwin(ipcChannel) {
 }
 
 async function setupUbuntu(ipcChannel) {
-  fs.rmSync(OperateInstallationLog)
+  removeInstallationLogFile()
   console.log(appendLog("Checking docker installation"))
   if (!isDockerInstalledUbuntu()) {
     ipcChannel.send('response', 'Installing Operate Daemon')
