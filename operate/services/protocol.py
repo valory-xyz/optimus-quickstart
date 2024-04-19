@@ -44,6 +44,11 @@ from autonomy.cli.helpers.chain import OnChainHelper
 from autonomy.cli.helpers.chain import ServiceHelper as ServiceManager
 from hexbytes import HexBytes
 
+from operate.constants import (
+    ON_CHAIN_INTERACT_RETRIES,
+    ON_CHAIN_INTERACT_SLEEP,
+    ON_CHAIN_INTERACT_TIMEOUT,
+)
 from operate.data import DATA_DIR
 from operate.data.contracts.service_staking_token.contract import (
     ServiceStakingTokenContract,
@@ -135,9 +140,9 @@ class StakingManager(OnChainHelper):
             ledger_api=self.ledger_api,
             crypto=self.crypto,
             chain_type=self.chain_type,
-            timeout=self.timeout,
-            retries=self.retries,
-            sleep=self.sleep,
+            timeout=ON_CHAIN_INTERACT_TIMEOUT,
+            retries=ON_CHAIN_INTERACT_RETRIES,
+            sleep=ON_CHAIN_INTERACT_SLEEP,
         )
 
         # we make use of the ERC20 contract to build the approval transaction
@@ -226,9 +231,9 @@ class StakingManager(OnChainHelper):
             ledger_api=self.ledger_api,
             crypto=self.crypto,
             chain_type=self.chain_type,
-            timeout=self.timeout,
-            retries=self.retries,
-            sleep=self.sleep,
+            timeout=ON_CHAIN_INTERACT_TIMEOUT,
+            retries=ON_CHAIN_INTERACT_RETRIES,
+            sleep=ON_CHAIN_INTERACT_SLEEP,
         )
 
         def _build_unstaking_tx(  # pylint: disable=unused-argument
@@ -359,6 +364,9 @@ class OnChainManager:
             key=self.wallet.key_path,
             password=self.wallet.password,
             update_token=update_token,
+            timeout=ON_CHAIN_INTERACT_TIMEOUT,
+            retries=ON_CHAIN_INTERACT_RETRIES,
+            sleep=ON_CHAIN_INTERACT_SLEEP,
         )
 
         # Prepare for minting
@@ -413,6 +421,9 @@ class OnChainManager:
                 chain_type=self.chain_type,
                 key=self.wallet.key_path,
                 password=self.wallet.password,
+                timeout=ON_CHAIN_INTERACT_TIMEOUT,
+                retries=ON_CHAIN_INTERACT_RETRIES,
+                sleep=ON_CHAIN_INTERACT_SLEEP,
             ).check_is_service_token_secured(
                 token=token,
             ).activate_service()
@@ -432,6 +443,9 @@ class OnChainManager:
                 chain_type=self.chain_type,
                 key=self.wallet.key_path,
                 password=self.wallet.password,
+                timeout=ON_CHAIN_INTERACT_TIMEOUT,
+                retries=ON_CHAIN_INTERACT_RETRIES,
+                sleep=ON_CHAIN_INTERACT_SLEEP,
             ).check_is_service_token_secured(
                 token=token,
             ).register_instance(
@@ -454,6 +468,9 @@ class OnChainManager:
                 chain_type=self.chain_type,
                 key=self.wallet.key_path,
                 password=self.wallet.password,
+                timeout=ON_CHAIN_INTERACT_TIMEOUT,
+                retries=ON_CHAIN_INTERACT_RETRIES,
+                sleep=ON_CHAIN_INTERACT_SLEEP,
             ).check_is_service_token_secured(
                 token=token,
             ).deploy_service(
@@ -474,6 +491,9 @@ class OnChainManager:
             chain_type=self.chain_type,
             key=self.wallet.key_path,
             password=self.wallet.password,
+            timeout=ON_CHAIN_INTERACT_TIMEOUT,
+            retries=ON_CHAIN_INTERACT_RETRIES,
+            sleep=ON_CHAIN_INTERACT_SLEEP,
         )
         with tempfile.TemporaryDirectory() as temp_dir:
             key_file = Path(temp_dir, "key.txt")
@@ -563,6 +583,9 @@ class OnChainManager:
                 chain_type=self.chain_type,
                 key=self.wallet.key_path,
                 password=self.wallet.password,
+                timeout=ON_CHAIN_INTERACT_TIMEOUT,
+                retries=ON_CHAIN_INTERACT_RETRIES,
+                sleep=ON_CHAIN_INTERACT_SLEEP,
             ).check_is_service_token_secured(
                 token=token,
             ).terminate_service()
@@ -577,6 +600,9 @@ class OnChainManager:
                 chain_type=self.chain_type,
                 key=self.wallet.key_path,
                 password=self.wallet.password,
+                timeout=ON_CHAIN_INTERACT_TIMEOUT,
+                retries=ON_CHAIN_INTERACT_RETRIES,
+                sleep=ON_CHAIN_INTERACT_SLEEP,
             ).check_is_service_token_secured(
                 token=token,
             ).unbond_service()
