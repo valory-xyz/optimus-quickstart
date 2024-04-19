@@ -31,6 +31,11 @@ from autonomy.chain.config import ChainType as ChainProfile
 from autonomy.chain.tx import TxSettler
 from web3 import Account
 
+from operate.constants import (
+    ON_CHAIN_INTERACT_RETRIES,
+    ON_CHAIN_INTERACT_SLEEP,
+    ON_CHAIN_INTERACT_TIMEOUT,
+)
 from operate.ledger import get_default_rpc
 from operate.resource import LocalResource
 from operate.types import ChainType, LedgerType
@@ -127,6 +132,9 @@ class EthereumMasterWallet(MasterWallet):
             ledger_api=ledger_api,
             crypto=self.crypto,
             chain_type=ChainProfile.CUSTOM,
+            timeout=ON_CHAIN_INTERACT_TIMEOUT,
+            retries=ON_CHAIN_INTERACT_RETRIES,
+            sleep=ON_CHAIN_INTERACT_SLEEP,
         )
 
         def _build_tx(  # pylint: disable=unused-argument

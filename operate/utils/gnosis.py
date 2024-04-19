@@ -28,6 +28,12 @@ from autonomy.chain.base import registry_contracts
 from autonomy.chain.config import ChainType as ChainProfile
 from autonomy.chain.tx import TxSettler
 
+from operate.constants import (
+    ON_CHAIN_INTERACT_RETRIES,
+    ON_CHAIN_INTERACT_SLEEP,
+    ON_CHAIN_INTERACT_TIMEOUT,
+)
+
 
 NULL_ADDRESS: str = "0x" + "0" * 40
 MAX_UINT256 = 2**256 - 1
@@ -180,6 +186,9 @@ def create_safe(
         ledger_api=ledger_api,
         crypto=crypto,
         chain_type=ChainProfile.CUSTOM,
+        timeout=ON_CHAIN_INTERACT_TIMEOUT,
+        retries=ON_CHAIN_INTERACT_RETRIES,
+        sleep=ON_CHAIN_INTERACT_SLEEP,
     )
     setattr(  # noqa: B010
         tx_settler,
