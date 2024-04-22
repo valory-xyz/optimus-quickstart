@@ -90,6 +90,8 @@ class ServiceManager:
         """Returns the list of available services."""
         data = []
         for path in self.path.iterdir():
+            if not path.name.startswith("bafybei"):
+                continue
             service = Service.load(path=path)
             data.append(service.json)
         return data

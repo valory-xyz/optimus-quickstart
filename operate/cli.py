@@ -27,6 +27,13 @@ import typing as t
 from pathlib import Path
 
 from aea.helpers.logging import setup_logger
+from autonomy.constants import (
+    AUTONOMY_IMAGE_NAME,
+    AUTONOMY_IMAGE_VERSION,
+    TENDERMINT_IMAGE_NAME,
+    TENDERMINT_IMAGE_VERSION,
+)
+from autonomy.deploy.generators.docker_compose.base import get_docker_client
 from clea import group, params, run
 from docker.errors import APIError
 from fastapi import FastAPI, Request
@@ -127,7 +134,28 @@ def create_app(  # pylint: disable=too-many-locals, unused-argument, too-many-st
     logger = setup_logger(name="operate")
     operate = OperateApp(home=home, logger=logger)
 
-    app = FastAPI()
+    def pull_latest_images() -> None:
+        """Pull latest docker images."""
+        logger.info("Pulling latest images")
+        client = get_docker_client()
+
+        logger.info(f"Pulling {AUTONOMY_IMAGE_NAME}:{AUTONOMY_IMAGE_VERSION}")
+        client.images.pull(
+            repository=AUTONOMY_IMAGE_NAME,
+            tag=AUTONOMY_IMAGE_VERSION,
+        )
+
+        logger.info(f"Pulling {TENDERMINT_IMAGE_NAME}:{TENDERMINT_IMAGE_VERSION}")
+        client.images.pull(
+            repository=TENDERMINT_IMAGE_NAME,
+            tag=TENDERMINT_IMAGE_VERSION,
+        )
+
+    app = FastAPI(
+        on_startup=[
+            pull_latest_images,
+        ],
+    )
     app.add_middleware(
         CORSMiddleware,
         allow_origins=["*"],
