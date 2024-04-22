@@ -19,6 +19,7 @@
 
 """Operate app CLI module."""
 
+import asyncio
 import logging
 import os
 import traceback
@@ -26,6 +27,13 @@ import typing as t
 from pathlib import Path
 
 from aea.helpers.logging import setup_logger
+from autonomy.constants import (
+    AUTONOMY_IMAGE_NAME,
+    AUTONOMY_IMAGE_VERSION,
+    TENDERMINT_IMAGE_NAME,
+    TENDERMINT_IMAGE_VERSION,
+)
+from autonomy.deploy.generators.docker_compose.base import get_docker_client
 from clea import group, params, run
 from docker.errors import APIError
 from fastapi import FastAPI, Request
@@ -125,13 +133,36 @@ def create_app(  # pylint: disable=too-many-locals, unused-argument, too-many-st
 
     logger = setup_logger(name="operate")
     operate = OperateApp(home=home, logger=logger)
-    app = FastAPI()
 
+    def pull_latest_images() -> None:
+        """Pull latest docker images."""
+        logger.info("Pulling latest images")
+        client = get_docker_client()
+
+        logger.info(f"Pulling {AUTONOMY_IMAGE_NAME}:{AUTONOMY_IMAGE_VERSION}")
+        client.images.pull(
+            repository=AUTONOMY_IMAGE_NAME,
+            tag=AUTONOMY_IMAGE_VERSION,
+        )
+
+        logger.info(f"Pulling {TENDERMINT_IMAGE_NAME}:{TENDERMINT_IMAGE_VERSION}")
+        client.images.pull(
+            repository=TENDERMINT_IMAGE_NAME,
+            tag=TENDERMINT_IMAGE_VERSION,
+        )
+
+    app = FastAPI(
+        on_startup=[
+            pull_latest_images,
+        ],
+    )
     app.add_middleware(
         CORSMiddleware,
         allow_origins=["*"],
         allow_methods=["GET", "POST", "PUT", "DELETE"],
     )
+
+    funding_jobs: t.Dict[str, asyncio.Task] = {}
 
     def with_retries(f: t.Callable) -> t.Callable:
         """Retries decorator."""
@@ -333,6 +364,16 @@ def create_app(  # pylint: disable=too-many-locals, unused-argument, too-many-st
             manager.stake_service_on_chain(hash=service.hash)
             manager.fund_service(hash=service.hash)
             manager.deploy_service_locally(hash=service.hash)
+
+            # Start funding job
+            logger.info(f"Starting funding job for {service}")
+            loop = asyncio.get_running_loop()
+            funding_jobs[service.hash] = loop.create_task(
+                operate.service_manager().funding_job(
+                    hash=service.hash,
+                    loop=loop,
+                )
+            )
         return JSONResponse(
             content=operate.service_manager().create_or_load(hash=service.hash).json
         )
@@ -354,6 +395,15 @@ def create_app(  # pylint: disable=too-many-locals, unused-argument, too-many-st
             manager.stake_service_on_chain(hash=service.hash)
             manager.fund_service(hash=service.hash)
             manager.deploy_service_locally(hash=service.hash)
+
+            logger.info(f"Starting funding job for {service}")
+            loop = asyncio.get_running_loop()
+            funding_jobs[service.hash] = loop.create_task(
+                operate.service_manager().funding_job(
+                    hash=service.hash,
+                    loop=loop,
+                )
+            )
         return JSONResponse(content=service.json)
 
     @app.get("/api/services/{service}")
@@ -436,37 +486,42 @@ def create_app(  # pylint: disable=too-many-locals, unused-argument, too-many-st
             )
             .deployment
         )
-        deployment.build(force=False)
+        deployment.build(force=True)
         return JSONResponse(content=deployment.json)
 
     @app.post("/api/services/{service}/deployment/start")
     @with_retries
     async def _start_service_locally(request: Request) -> JSONResponse:
         """Create a service."""
-        deployment = (
-            operate.service_manager()
-            .create_or_load(
-                request.path_params["service"],
-            )
-            .deployment
-        )
-        deployment.build(force=False)
-        operate.service_manager().fund_service(hash=request.path_params["service"])
+        service = request.path_params["service"]
+        deployment = operate.service_manager().create_or_load(service).deployment
+        operate.service_manager().fund_service(service)
+        deployment.build(force=True)
         deployment.start()
+
+        # Start funding job
+        loop = asyncio.get_running_loop()
+        funding_jobs[service] = loop.create_task(
+            operate.service_manager().funding_job(
+                hash=service,
+                loop=loop,
+            )
+        )
         return JSONResponse(content=deployment.json)
 
     @app.post("/api/services/{service}/deployment/stop")
     @with_retries
     async def _stop_service_locally(request: Request) -> JSONResponse:
         """Create a service."""
-        deployment = (
-            operate.service_manager()
-            .create_or_load(
-                request.path_params["service"],
-            )
-            .deployment
-        )
+        service = request.path_params["service"]
+        deployment = operate.service_manager().create_or_load(service).deployment
         deployment.stop()
+
+        if service in funding_jobs:
+            logger.info(f"Cancelling funding job for {service}")
+            status = funding_jobs[service].cancel()
+            if not status:
+                logger.info(f"Funding job cancellation for {service} failed")
         return JSONResponse(content=deployment.json)
 
     @app.post("/api/services/{service}/deployment/delete")

@@ -23,7 +23,7 @@ const nextConfig = {
   env: {
     GNOSIS_RPC:
       process.env.NODE_ENV === 'production'
-        ? 'https://gnosis-rpc.publicnode.com'
+        ? 'https://lb.nodies.app/v1/b58a5d7d3a3044fca1d069039fa03228'
         : 'http://localhost:8545',
   },
 };

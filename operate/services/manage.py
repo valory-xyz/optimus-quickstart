@@ -19,8 +19,11 @@
 # ------------------------------------------------------------------------------
 """Service manager."""
 
+import asyncio
 import logging
+import traceback
 import typing as t
+from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
 from aea.helpers.base import IPFSHash
@@ -28,6 +31,7 @@ from aea.helpers.logging import setup_logger
 from autonomy.chain.base import registry_contracts
 
 from operate.keys import Key, KeysManager
+from operate.ledger import PUBLIC_RPCS
 from operate.ledger.profiles import CONTRACTS, OLAS, STAKING
 from operate.services.protocol import OnChainManager
 from operate.services.service import (
@@ -86,6 +90,8 @@ class ServiceManager:
         """Returns the list of available services."""
         data = []
         for path in self.path.iterdir():
+            if not path.name.startswith("bafybei"):
+                continue
             service = Service.load(path=path)
             data.append(service.json)
         return data
@@ -172,6 +178,16 @@ class ServiceManager:
                     f"required olas: {required_olas}; your balance {balance}"
                 )
 
+        if service.chain_data.token > -1:
+            self.logger.info("Syncing service state")
+            info = ocm.info(token_id=service.chain_data.token)
+            service.chain_data.on_chain_state = OnChainState(info["service_state"])
+            service.chain_data.instances = info["instances"]
+            service.chain_data.multisig = info["multisig"]
+
+            service.store()
+        self.logger.info(f"Service state: {service.chain_data.on_chain_state.name}")
+
         if service.chain_data.on_chain_state == OnChainState.NOTMINTED:
             self.logger.info("Minting service")
             service.chain_data.token = t.cast(
@@ -197,8 +213,6 @@ class ServiceManager:
             )
             service.chain_data.on_chain_state = OnChainState.MINTED
             service.store()
-        else:
-            self.logger.info("Service already minted")
 
         if service.chain_data.on_chain_state == OnChainState.MINTED:
             self.logger.info("Activating service")
@@ -212,8 +226,6 @@ class ServiceManager:
             )
             service.chain_data.on_chain_state = OnChainState.ACTIVATED
             service.store()
-        else:
-            self.logger.info("Service already activated")
 
         if service.chain_data.on_chain_state == OnChainState.ACTIVATED:
             self.logger.info("Registering service")
@@ -225,8 +237,6 @@ class ServiceManager:
             service.chain_data.on_chain_state = OnChainState.REGISTERED
             service.keys = keys
             service.store()
-        else:
-            self.logger.info("Service already registered")
 
         if service.chain_data.on_chain_state == OnChainState.REGISTERED:
             self.logger.info("Deploying service")
@@ -241,8 +251,6 @@ class ServiceManager:
             )
             service.chain_data.on_chain_state = OnChainState.DEPLOYED
             service.store()
-        else:
-            self.logger.info("Service already deployed")
 
         info = ocm.info(token_id=service.chain_data.token)
         service.keys = keys
@@ -355,12 +363,21 @@ class ServiceManager:
         service.chain_data.staked = False
         service.store()
 
-    def fund_service(self, hash: str) -> None:
+    def fund_service(
+        self,
+        hash: str,
+        rpc: t.Optional[str] = None,
+        agent_fund_requirement: t.Optional[float] = None,
+        safe_fund_requirement: t.Optional[float] = None,
+    ) -> None:
         """Fund service if required."""
         service = self.create_or_load(hash=hash)
         wallet = self.wallet_manager.load(ledger_type=service.ledger_config.type)
-        ledger_api = wallet.ledger_api(chain_type=service.ledger_config.chain)
-        agent_fund_requirement = service.chain_data.user_params.fund_requirements.agent
+        ledger_api = wallet.ledger_api(chain_type=service.ledger_config.chain, rpc=rpc)
+        agent_fund_requirement = (
+            agent_fund_requirement
+            or service.chain_data.user_params.fund_requirements.agent
+        )
 
         for key in service.keys:
             agent_balance = ledger_api.get_balance(address=key.address)
@@ -377,7 +394,10 @@ class ServiceManager:
                 )
 
         safe_balanace = ledger_api.get_balance(service.chain_data.multisig)
-        safe_fund_requirement = service.chain_data.user_params.fund_requirements.safe
+        safe_fund_requirement = (
+            safe_fund_requirement
+            or service.chain_data.user_params.fund_requirements.safe
+        )
         self.logger.info(f"Safe {service.chain_data.multisig} balance: {safe_balanace}")
         self.logger.info(f"Required balance: {safe_fund_requirement}")
         if safe_balanace < safe_fund_requirement:
@@ -391,6 +411,31 @@ class ServiceManager:
                 amount=to_transfer,
                 chain_type=service.ledger_config.chain,
             )
+
+    async def funding_job(
+        self,
+        hash: str,
+        loop: t.Optional[asyncio.AbstractEventLoop] = None,
+    ) -> None:
+        """Start a background funding job."""
+        loop = loop or asyncio.get_event_loop()
+        service = self.create_or_load(hash=hash)
+        with ThreadPoolExecutor() as executor:
+            while True:
+                try:
+                    await loop.run_in_executor(
+                        executor,
+                        self.fund_service,
+                        hash,
+                        PUBLIC_RPCS[service.ledger_config.chain],
+                        10000000000000000,
+                        50000000000000000,
+                    )
+                except Exception:  # pylint: disable=broad-except
+                    logging.info(
+                        f"Error occured while funding the service\n{traceback.format_exc()}"
+                    )
+                await asyncio.sleep(60)
 
     def deploy_service_locally(self, hash: str, force: bool = True) -> Deployment:
         """

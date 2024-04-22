@@ -7,7 +7,11 @@ const process = require('process');
 const { spawnSync } = require('child_process');
 const Docker = require('dockerode');
 
+const Version = '0.1.0rc8';
 const OperateDirectory = `${os.homedir()}/.operate`;
+const VenvDir = `${OperateDirectory}/venv`;
+const VersionFile = `${OperateDirectory}/version.txt`;
+const LogFile = `${OperateDirectory}/logs.txt`;
 const OperateInstallationLog = `${os.homedir()}/operate.log`;
 const OperateCmd = `${os.homedir()}/.operate/venv/bin/operate`;
 const Env = {
@@ -153,20 +157,17 @@ function installOperatePackageUnix(path) {
     '-m',
     'pip',
     'install',
-    'olas-operate-middleware==0.1.0rc2',
+    `olas-operate-middleware==${Version}`,
   ]);
 }
 
 function reInstallOperatePackageUnix(path) {
-  if (fs.existsSync(`${path}/venv/bin/operate`)) {
-    return;
-  }
   console.log(appendLog('Reinstalling operate CLI'));
   return runCmdUnix(`${path}/venv/bin/python3.10`, [
     '-m',
     'pip',
     'install',
-    'olas-operate-middleware==0.1.0rc2',
+    `olas-operate-middleware==${Version}`,
     '--force-reinstall',
   ]);
 }
@@ -198,7 +199,32 @@ function createDirectory(path) {
   });
 }
 
+function writeVersion() {
+  fs.writeFileSync(VersionFile, Version);
+}
+
+function versionBumpRequired() {
+  if (!fs.existsSync(VersionFile)) {
+    return true;
+  }
+  const version = fs.readFileSync(VersionFile).toString();
+  return version != Version;
+}
+
+function removeLogFile() {
+  if (fs.existsSync()) {
+    fs.rmSync(LogFile);
+  }
+}
+
+function removeInstallationLogFile() {
+  if (fs.existsSync(OperateInstallationLog)) {
+    fs.rmSync(OperateInstallationLog);
+  }
+}
+
 async function setupDarwin(ipcChannel) {
+  removeInstallationLogFile();
   console.log(appendLog('Checking brew installation'));
   if (!isBrewInstalled()) {
     ipcChannel.send('response', 'Installing Operate Daemon');
@@ -224,21 +250,33 @@ async function setupDarwin(ipcChannel) {
   await createDirectory(`${OperateDirectory}`);
   await createDirectory(`${OperateDirectory}/temp`);
 
-  if (!fs.existsSync(`${OperateDirectory}/venv`)) {
+  if (!fs.existsSync(VenvDir)) {
     ipcChannel.send('response', 'Installing Operate Daemon');
     console.log(appendLog('Creating virtual environment'));
-    createVirtualEnvUnix(`${OperateDirectory}/venv`);
+    createVirtualEnvUnix(VenvDir);
+
+    console.log(appendLog('Installing operate backend'));
+    installOperatePackageUnix(OperateDirectory);
   }
 
-  console.log(appendLog('Installing operate backend'));
-  installOperatePackageUnix(OperateDirectory);
-  reInstallOperatePackageUnix(OperateDirectory);
+  console.log(appendLog('Checking if upgrade is required'));
+  if (versionBumpRequired()) {
+    console.log(appendLog(`Upgrading operate daemon to ${Version}`));
+    reInstallOperatePackageUnix(OperateDirectory);
+    writeVersion();
+    removeLogFile();
+  }
+
+  if (!fs.existsSync(`${OperateDirectory}/venv/bin/operate`)) {
+    reInstallOperatePackageUnix(OperateDirectory);
+  }
 
   console.log(appendLog('Installing operate CLI'));
   await installOperateCli('/opt/homebrew/bin/operate');
 }
 
 async function setupUbuntu(ipcChannel) {
+  removeInstallationLogFile();
   console.log(appendLog('Checking docker installation'));
   if (!isDockerInstalledUbuntu()) {
     ipcChannel.send('response', 'Installing Operate Daemon');
@@ -264,15 +302,31 @@ async function setupUbuntu(ipcChannel) {
   await createDirectory(`${OperateDirectory}`);
   await createDirectory(`${OperateDirectory}/temp`);
 
-  if (!fs.existsSync(`${OperateDirectory}/venv`)) {
-    ipcChannel.send('response', 'Installing Operate Daemon');
-    console.log(appendLog('Creating virtual environment'));
-    createVirtualEnvUnix(`${OperateDirectory}/venv`);
+  if (versionBumpRequired()) {
+    removePreviousInstallation();
+    writeVersion();
   }
 
-  console.log(appendLog('Installing operate backend'));
-  installOperatePackageUnix(OperateDirectory);
-  reInstallOperatePackageUnix(OperateDirectory);
+  if (!fs.existsSync(VenvDir)) {
+    ipcChannel.send('response', 'Installing Operate Daemon');
+    console.log(appendLog('Creating virtual environment'));
+    createVirtualEnvUnix(VenvDir);
+
+    console.log(appendLog('Installing operate backend'));
+    installOperatePackageUnix(OperateDirectory);
+  }
+
+  console.log(appendLog('Checking if upgrade is required'));
+  if (versionBumpRequired()) {
+    console.log(appendLog(`Upgrading operate daemon to ${Version}`));
+    reInstallOperatePackageUnix(OperateDirectory);
+    writeVersion();
+    removeLogFile();
+  }
+
+  if (!fs.existsSync(`${OperateDirectory}/venv/bin/operate`)) {
+    reInstallOperatePackageUnix(OperateDirectory);
+  }
 
   console.log(appendLog('Installing operate CLI'));
   await installOperateCli('/usr/local/bin');
@@ -311,4 +365,5 @@ module.exports = {
   setupUbuntu,
   OperateDirectory,
   OperateCmd,
+  Env,
 };

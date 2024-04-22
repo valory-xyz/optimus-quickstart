@@ -234,7 +234,17 @@ class Deployment(LocalResource):
 
         keys_file = self.path / KEYS_JSON
         keys_file.write_text(
-            json.dumps([key.json for key in service.keys], indent=4),
+            json.dumps(
+                [
+                    {
+                        "address": key.address,
+                        "private_key": key.private_key,
+                        "ledger": key.ledger.name.lower(),
+                    }
+                    for key in service.keys
+                ],
+                indent=4,
+            ),
             encoding="utf-8",
         )
         try:
