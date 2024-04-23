@@ -3,14 +3,22 @@ import { useContext } from 'react';
 import { WalletContext } from '@/context/WalletProvider';
 
 export const useWallet = () => {
-  const { updateBalance, updateWallets, wallets, balance } =
-    useContext(WalletContext);
-  const update = () => updateWallets().then(updateBalance);
-  return {
-    balance,
-    update,
-    updateBalance,
+  const {
+    updateWalletBalances,
     updateWallets,
     wallets,
+    walletBalances,
+    totalEthBalance,
+    totalOlasBalance,
+  } = useContext(WalletContext);
+  const update = () => updateWallets().then(updateWalletBalances);
+  return {
+    totalEthBalance,
+    totalOlasBalance,
+    update,
+    updateWalletBalances,
+    updateWallets,
+    wallets,
+    walletBalances,
   };
 };

@@ -1,8 +1,7 @@
-import { Card, Flex, Typography } from 'antd';
 import { useMemo } from 'react';
 
 import { Settings, Setup } from '@/components';
-import { Balance } from '@/components/Main/Balance';
+import { Main } from '@/components/Main/Main';
 import { PageState } from '@/enums';
 import { usePageState } from '@/hooks';
 
@@ -23,20 +22,3 @@ export default function Home() {
 
   return page;
 }
-
-const Main = () => {
-  return (
-    <Card>
-      <Flex vertical>
-        <Balance />
-        <Typography
-          style={{ display: 'flex', flexWrap: 'nowrap', fontSize: 18 }}
-        >
-          <span style={{ display: 'flex', flexWrap: 'nowrap' }}>
-            24hr change -- %
-          </span>
-        </Typography>
-      </Flex>
-    </Card>
-  );
-};

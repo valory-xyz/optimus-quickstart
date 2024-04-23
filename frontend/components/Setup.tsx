@@ -1,6 +1,7 @@
 import { CopyOutlined } from '@ant-design/icons';
 import {
   Button,
+  Card,
   Flex,
   Form,
   Input,
@@ -52,7 +53,7 @@ const SetupWelcome = () => {
 
   const [form] = Form.useForm();
 
-  const { updateWallets, updateBalance } = useWallet();
+  const { update } = useWallet();
 
   // get is setup
   useEffect(() => {
@@ -80,15 +81,14 @@ const SetupWelcome = () => {
     async ({ password }: { password: string }) => {
       try {
         await AccountService.loginAccount(password);
-        updateWallets();
-        updateBalance();
+        await update();
         gotoPage(PageState.Main);
       } catch (e) {
         console.error(e);
         message.error('Invalid password');
       }
     },
-    [gotoPage, updateBalance, updateWallets],
+    [gotoPage, update],
   );
 
   const welcomeScreen = useMemo(() => {
@@ -224,21 +224,21 @@ const SetupFunding = () => {
   const {
     wallets: [{ address }],
   } = useWallet();
-  const { goto } = useSetup();
+  const { goto } = usePageState();
   const { update } = useWallet();
 
   useInterval(() => {
     EthersService.getEthBalance(address, `${process.env.GNOSIS_RPC}`).then(
       (balance) => {
         if (balance > 0) {
-          update().then(() => goto(SetupScreen.Finalizing));
+          update().then(() => goto(PageState.Main));
         }
       },
     );
   }, 3000);
 
   return (
-    <Wrapper vertical>
+    <Card>
       <Typography.Title>Funding</Typography.Title>
       <Typography.Text>
         You&apos;ll need to fund your wallet with at least 1 XDAI.
@@ -254,27 +254,6 @@ const SetupFunding = () => {
           />
         </Button>
       </Flex>
-    </Wrapper>
-  );
-};
-
-const SetupFinalizing = () => {
-  const { goto } = usePageState();
-  const { updateWallets, updateBalance } = useWallet();
-
-  useEffect(() => {
-    WalletService.createSafe(Chain.GNOSIS)
-      .then(() => updateWallets())
-      .then(() => updateBalance())
-      .then(() => goto(PageState.Main));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  return (
-    <Wrapper vertical>
-      <Typography.Title>Finalizing</Typography.Title>
-      <Spin />
-      <Typography.Text>Setting up your account...</Typography.Text>
-    </Wrapper>
+    </Card>
   );
 };

@@ -1,26 +1,18 @@
-import {
-  MinusOutlined,
-  PauseCircleOutlined,
-  PlayCircleOutlined,
-  SettingOutlined,
-} from '@ant-design/icons';
+import { PauseCircleOutlined, PlayCircleOutlined } from '@ant-design/icons';
 import { Badge, Button } from 'antd';
 import Image from 'next/image';
 import { useCallback, useMemo, useState } from 'react';
 
 import { DeploymentStatus } from '@/client';
-import { PageState } from '@/enums';
 import { usePageState, useServiceTemplates, useWallet } from '@/hooks';
 import { useServices } from '@/hooks/useServices';
 import { ServicesService } from '@/service';
-
-import { Header } from './Header';
 
 export const MainHeader = () => {
   const { setPageState } = usePageState();
   const { services, serviceStatus, setServiceStatus } = useServices();
   const { getServiceTemplates } = useServiceTemplates();
-  const { balance } = useWallet();
+  const { totalOlasBalance, totalEthBalance: totalBalance } = useWallet();
 
   const [serviceButtonState, setServiceButtonState] = useState({
     isLoading: false,
@@ -93,14 +85,14 @@ export const MainHeader = () => {
           Pause
         </Button>
       );
-    if (balance === undefined) {
+    if (totalOlasBalance === undefined || totalBalance === undefined) {
       return (
         <Button type="text" disabled>
           RPC Error
         </Button>
       );
     }
-    if (balance < 1)
+    if (totalOlasBalance < 1)
       return (
         <Button type="text" disabled>
           Not funded
@@ -112,28 +104,18 @@ export const MainHeader = () => {
       </Button>
     );
   }, [
-    balance,
-    handleStart,
-    handleStop,
     serviceButtonState.isLoading,
     serviceStatus,
+    handleStop,
+    totalOlasBalance,
+    totalBalance,
+    handleStart,
   ]);
   return (
-    <Header>
+    <>
       {agentHead}
 
       {serviceToggleButton}
-
-      <Button
-        type="text"
-        style={{ marginLeft: 'auto' }}
-        onClick={() => setPageState(PageState.Settings)}
-      >
-        <SettingOutlined />
-      </Button>
-      <Button type="text" disabled>
-        <MinusOutlined />
-      </Button>
-    </Header>
+    </>
   );
 };

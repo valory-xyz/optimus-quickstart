@@ -1,12 +1,9 @@
 import { CloseOutlined, SettingOutlined } from '@ant-design/icons';
-import { Button, Flex, Input, message, theme, Typography } from 'antd';
+import { Button, Card, Flex, Input, message, theme, Typography } from 'antd';
 import { useState } from 'react';
 
 import { PageState } from '@/enums';
 import { usePageState } from '@/hooks';
-
-import { Header } from './Layout/Header';
-import { Wrapper } from './Layout/Wrapper';
 
 const { useToken } = theme;
 
@@ -26,14 +23,23 @@ export const Settings = () => {
   };
 
   return (
-    <>
-      <Header>
-        <Typography.Text
-          style={{ margin: 0, display: 'inline-flex', gap: 5, fontWeight: 400 }}
-        >
-          <SettingOutlined />
-          Settings
-        </Typography.Text>
+    <Card
+      title={
+        <>
+          <Typography.Text
+            style={{
+              margin: 0,
+              display: 'inline-flex',
+              gap: 5,
+              fontWeight: 400,
+            }}
+          >
+            <SettingOutlined />
+            Settings
+          </Typography.Text>
+        </>
+      }
+      extra={
         <Button
           type="text"
           style={{ marginLeft: 'auto' }}
@@ -41,29 +47,28 @@ export const Settings = () => {
         >
           <CloseOutlined />
         </Button>
-      </Header>
-      <Wrapper>
-        <Flex gap={5} vertical>
-          <Typography.Text style={{ fontSize: 16 }}>PASSWORD</Typography.Text>
-          {isUpdating ? (
-            <Input.Password></Input.Password>
-          ) : (
-            <Typography.Text>********</Typography.Text>
-          )}
-        </Flex>
-        <Button
-          type="text"
-          disabled
-          onClick={handleClick}
-          style={{
-            marginTop: 'auto',
-            marginLeft: 'auto',
-            background: token.colorFillSecondary,
-          }}
-        >
-          {isUpdating ? 'Save' : 'Update'}
-        </Button>
-      </Wrapper>
-    </>
+      }
+    >
+      <Flex gap={5} vertical>
+        <Typography.Text style={{ fontSize: 16 }}>PASSWORD</Typography.Text>
+        {isUpdating ? (
+          <Input.Password></Input.Password>
+        ) : (
+          <Typography.Text>********</Typography.Text>
+        )}
+      </Flex>
+      <Button
+        type="text"
+        disabled
+        onClick={handleClick}
+        style={{
+          marginTop: 'auto',
+          marginLeft: 'auto',
+          background: token.colorFillSecondary,
+        }}
+      >
+        {isUpdating ? 'Save' : 'Update'}
+      </Button>
+    </Card>
   );
 };
