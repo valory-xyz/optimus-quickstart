@@ -11,7 +11,7 @@ export const SERVICE_TEMPLATES: ServiceTemplate[] = [
       nft: 'bafybeig64atqaladigoc3ds4arltdu63wkdrk3gesjfvnfdmz35amv7faq',
       agent_id: 14,
       threshold: 1,
-      use_staking: false,
+      use_staking: true,
       cost_of_bond: 10000000000000000,
       olas_cost_of_bond: 10000000000000000000,
       olas_required_to_stake: 10000000000000000000,
