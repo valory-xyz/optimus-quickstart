@@ -405,7 +405,7 @@ def create_app(  # pylint: disable=too-many-locals, unused-argument, too-many-st
         )
         if template.get("deploy", False):
             manager = operate.service_manager()
-            manager.deploy_service_onchain(hash=service.hash)
+            manager.deploy_service_onchain(hash=service.hash, update=True)
             manager.stake_service_on_chain(hash=service.hash)
             manager.fund_service(hash=service.hash)
             manager.deploy_service_locally(hash=service.hash)

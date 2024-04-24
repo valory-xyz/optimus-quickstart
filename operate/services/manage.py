@@ -140,16 +140,17 @@ class ServiceManager:
     def deploy_service_onchain(  # pylint: disable=too-many-statements
         self,
         hash: str,
+        update: bool = False,
     ) -> None:
         """
         Deploy as service on-chain
 
         :param hash: Service hash
+        :param update: Update the existing deployment
         """
         self.logger.info("Loading service")
         service = self.create_or_load(hash=hash)
         user_params = service.chain_data.user_params
-        update = service.chain_data.token != -1
         keys = service.keys or [
             self.keys_manager.get(self.keys_manager.create())
             for _ in range(service.helper.config.number_of_agents)
@@ -179,8 +180,10 @@ class ServiceManager:
                 required_olas = (
                     user_params.olas_cost_of_bond + user_params.olas_required_to_stake
                 )
-            else:
+            elif service.chain_data.on_chain_state == OnChainState.ACTIVATED:
                 required_olas = user_params.olas_required_to_stake
+            else:
+                required_olas = 0
 
             balance = (
                 registry_contracts.erc20.get_instance(
