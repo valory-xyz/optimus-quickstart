@@ -167,7 +167,6 @@ class ServiceManager:
             service.chain_data.on_chain_state = OnChainState(info["service_state"])
             service.chain_data.instances = info["instances"]
             service.chain_data.multisig = info["multisig"]
-
             service.store()
         self.logger.info(f"Service state: {service.chain_data.on_chain_state.name}")
 
