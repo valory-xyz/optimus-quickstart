@@ -500,12 +500,13 @@ def create_app(  # pylint: disable=too-many-locals, unused-argument, too-many-st
     async def _start_service_locally(request: Request) -> JSONResponse:
         """Create a service."""
         service = request.path_params["service"]
-        deployment = operate.service_manager().create_or_load(service).deployment
-        operate.service_manager().fund_service(service)
-        deployment.build(force=True)
-        deployment.start()
+        manager = operate.service_manager()
+        manager.deploy_service_onchain(hash=service)
+        manager.stake_service_on_chain(hash=service)
+        manager.fund_service(hash=service)
+        manager.deploy_service_locally(hash=service, force=True)
         schedule_funding_job(service=service)
-        return JSONResponse(content=deployment.json)
+        return JSONResponse(content=manager.create_or_load(service).deployment)
 
     @app.post("/api/services/{service}/deployment/stop")
     @with_retries
