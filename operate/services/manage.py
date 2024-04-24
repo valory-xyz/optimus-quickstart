@@ -137,7 +137,10 @@ class ServiceManager:
             on_chain_user_params=on_chain_user_params,
         )
 
-    def deploy_service_onchain(self, hash: str) -> None:
+    def deploy_service_onchain(  # pylint: disable=too-many-statements
+        self,
+        hash: str,
+    ) -> None:
         """
         Deploy as service on-chain
 
@@ -158,26 +161,6 @@ class ServiceManager:
         ):
             raise ValueError("No staking slots available")
 
-        if user_params.use_staking:
-            self.logger.info("Checking staking compatibility")
-            required_olas = (
-                user_params.olas_cost_of_bond + user_params.olas_required_to_stake
-            )
-            balance = (
-                registry_contracts.erc20.get_instance(
-                    ledger_api=ocm.ledger_api,
-                    contract_address=OLAS[service.ledger_config.chain],
-                )
-                .functions.balanceOf(ocm.crypto.address)
-                .call()
-            )
-
-            if balance < required_olas:
-                raise ValueError(
-                    "You don't have enough olas to stake, "
-                    f"required olas: {required_olas}; your balance {balance}"
-                )
-
         if service.chain_data.token > -1:
             self.logger.info("Syncing service state")
             info = ocm.info(token_id=service.chain_data.token)
@@ -187,6 +170,32 @@ class ServiceManager:
 
             service.store()
         self.logger.info(f"Service state: {service.chain_data.on_chain_state.name}")
+
+        if user_params.use_staking:
+            self.logger.info("Checking staking compatibility")
+            if service.chain_data.on_chain_state in (
+                OnChainState.NOTMINTED,
+                OnChainState.MINTED,
+            ):
+                required_olas = (
+                    user_params.olas_cost_of_bond + user_params.olas_required_to_stake
+                )
+            else:
+                required_olas = user_params.olas_required_to_stake
+
+            balance = (
+                registry_contracts.erc20.get_instance(
+                    ledger_api=ocm.ledger_api,
+                    contract_address=OLAS[service.ledger_config.chain],
+                )
+                .functions.balanceOf(ocm.crypto.address)
+                .call()
+            )
+            if balance < required_olas:
+                raise ValueError(
+                    "You don't have enough olas to stake, "
+                    f"required olas: {required_olas}; your balance {balance}"
+                )
 
         if service.chain_data.on_chain_state == OnChainState.NOTMINTED:
             self.logger.info("Minting service")
@@ -233,6 +242,11 @@ class ServiceManager:
                 service_id=service.chain_data.token,
                 instances=instances,
                 agents=[user_params.agent_id for _ in instances],
+                token=(
+                    OLAS[service.ledger_config.chain]
+                    if user_params.use_staking
+                    else None
+                ),
             )
             service.chain_data.on_chain_state = OnChainState.REGISTERED
             service.keys = keys
