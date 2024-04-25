@@ -1,4 +1,5 @@
 import { isAddress } from 'ethers/lib/utils';
+import { isEmpty } from 'lodash';
 import {
   createContext,
   PropsWithChildren,
@@ -69,7 +70,7 @@ export const WalletProvider = ({ children }: PropsWithChildren) => {
 
   const totalEthBalance: number | undefined = useMemo(
     () =>
-      walletBalances
+      walletBalances && !isEmpty(walletBalances)
         ? Object.values(walletBalances).reduce(
             (acc: number, walletBalance) => acc + walletBalance.ETH,
             0,
@@ -80,7 +81,7 @@ export const WalletProvider = ({ children }: PropsWithChildren) => {
 
   const totalOlasBalance: number | undefined = useMemo(
     () =>
-      walletBalances
+      walletBalances && !isEmpty(walletBalances)
         ? Object.values(walletBalances).reduce(
             (acc: number, walletBalance) => acc + walletBalance.OLAS,
             0,

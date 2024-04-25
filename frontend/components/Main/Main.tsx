@@ -9,7 +9,6 @@ import { MainGasBalance } from './MainGasBalance';
 import { MainHeader } from './MainHeader';
 import { MainNeedsFunds } from './MainNeedsFunds';
 import { MainOlasBalance } from './MainOlasBalance';
-import { MainTotalEarnings } from './MainTotalEarnings';
 
 export const Main = () => {
   const { goto } = usePageState();
@@ -28,7 +27,7 @@ export const Main = () => {
     >
       <Flex vertical>
         <MainOlasBalance />
-        <MainTotalEarnings />
+        {/* <MainTotalEarnings /> */}
         <MainGasBalance />
         <MainNeedsFunds />
         <MainAddFunds />

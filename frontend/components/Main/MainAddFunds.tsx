@@ -1,5 +1,6 @@
 import {
   ArrowDownOutlined,
+  CloseOutlined,
   CopyOutlined,
   WarningOutlined,
 } from '@ant-design/icons';
@@ -8,6 +9,7 @@ import Link from 'next/link';
 import { useCallback, useMemo, useState } from 'react';
 
 import { copyToClipboard, truncateAddress } from '@/common-util';
+import { UNICODE_SYMBOLS } from '@/constants/unicode';
 import { useWallet } from '@/hooks';
 
 export const MainAddFunds = () => {
@@ -35,9 +37,9 @@ export const MainAddFunds = () => {
           type="default"
           onClick={() => setIsAddFundsVisible((prev) => !prev)}
           style={{ marginTop: 20, marginBottom: 20 }}
-          icon={<ArrowDownOutlined />}
+          icon={isAddFundsVisible ? <CloseOutlined /> : <ArrowDownOutlined />}
         >
-          Add Funds
+          {isAddFundsVisible ? 'Close' : 'Add Funds'}
         </Button>
       </Flex>
       {isAddFundsVisible && (
@@ -49,10 +51,10 @@ export const MainAddFunds = () => {
             message={
               <Flex vertical gap={5}>
                 <Typography.Text style={{ fontSize: 16 }} strong>
-                  Only send assets on Gnosis Chain!
+                  Only send assets on Gnosis
                 </Typography.Text>
                 <Typography.Text style={{ fontSize: 16 }}>
-                  You will lose any assets you send on other chains
+                  You will lose any assets you send on other chains.
                 </Typography.Text>
               </Flex>
             }
@@ -77,10 +79,10 @@ export const MainAddFunds = () => {
             vertical
             style={{
               marginTop: 10,
-              display: 'block',
-              border: '1px solid black',
+              border: '1px solid lightgrey',
               borderRadius: '2.5px',
-              padding: '5px',
+              padding: 10,
+              gap: 10,
             }}
           >
             <strong style={{ fontSize: 'medium', lineHeight: '0.9em' }}>
@@ -92,9 +94,10 @@ export const MainAddFunds = () => {
                 textDecoration: 'underline',
                 color: 'black',
               }}
+              target="_blank"
               href={'https://swap.cow.fi/#/100/swap/WXDAI/OLAS'}
             >
-              Get some on CowSwap
+              Get some on CowSwap {UNICODE_SYMBOLS.EXTERNAL_LINK}
             </Link>
           </Flex>
         </Flex>

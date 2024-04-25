@@ -1,9 +1,10 @@
 import { PauseCircleOutlined, PlayCircleOutlined } from '@ant-design/icons';
-import { Badge, Button } from 'antd';
+import { Badge, Button, Flex } from 'antd';
 import Image from 'next/image';
 import { useCallback, useMemo, useState } from 'react';
 
 import { Chain, DeploymentStatus } from '@/client';
+import { SERVICE_TEMPLATES } from '@/constants';
 import { useServiceTemplates, useWallet } from '@/hooks';
 import { useServices } from '@/hooks/useServices';
 import { ServicesService } from '@/service';
@@ -106,7 +107,10 @@ export const MainHeader = () => {
         </Button>
       );
     }
-    if (totalOlasBalance < 1)
+    if (
+      totalOlasBalance < SERVICE_TEMPLATES[0].configuration.olas_cost_of_bond ||
+      totalEthBalance < SERVICE_TEMPLATES[0].configuration.monthly_gas_estimate
+    )
       return (
         <Button type="text" disabled>
           Not funded
@@ -126,10 +130,9 @@ export const MainHeader = () => {
     handleStart,
   ]);
   return (
-    <>
+    <Flex justify="start" align="center">
       {agentHead}
-
       {serviceToggleButton}
-    </>
+    </Flex>
   );
 };

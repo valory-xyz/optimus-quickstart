@@ -36,6 +36,7 @@ const SetupWelcome = () => {
   const [isSetup, setIsSetup] = useState<AccountIsSetup>(
     AccountIsSetup.Loading,
   );
+  const [isLoggingIn, setIsLoggingIn] = useState(false);
 
   const [form] = Form.useForm();
 
@@ -65,6 +66,7 @@ const SetupWelcome = () => {
 
   const handleLogin = useCallback(
     async ({ password }: { password: string }) => {
+      setIsLoggingIn(true);
       try {
         await AccountService.loginAccount(password);
         await update();
@@ -73,6 +75,7 @@ const SetupWelcome = () => {
         console.error(e);
         message.error('Invalid password');
       }
+      setIsLoggingIn(false);
     },
     [gotoPage, update],
   );
@@ -90,7 +93,9 @@ const SetupWelcome = () => {
             >
               <Input.Password placeholder="Password" />
             </Form.Item>
-            <Button htmlType="submit">Login</Button>
+            <Button htmlType="submit" loading={isLoggingIn}>
+              Login
+            </Button>
           </Form>
         );
       case AccountIsSetup.False:
@@ -113,7 +118,7 @@ const SetupWelcome = () => {
       default:
         return <Spin />;
     }
-  }, [form, goto, handleLogin, isSetup]);
+  }, [form, goto, handleLogin, isLoggingIn, isSetup]);
 
   return (
     <Wrapper vertical>
@@ -165,14 +170,14 @@ const SetupPassword = () => {
 };
 
 const SetupBackup = () => {
-  const { updateWallets } = useWallet();
+  const { update } = useWallet();
   const { mnemonic, setMnemonic } = useSetup();
   const { goto } = usePageState();
   const [isLoading, setIsLoading] = useState(false);
 
   const handleNext = () => {
     setIsLoading(true);
-    updateWallets()
+    update()
       .then(() => setMnemonic([]))
       .then(() => goto(PageState.Main))
       .finally(() => setIsLoading(false));

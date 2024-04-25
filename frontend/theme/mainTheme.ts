@@ -6,7 +6,7 @@ export const mainTheme: ThemeConfig = {
     colorWarning: '#FF9C27',
     colorText: '#0F172A ',
     colorFillSecondary: '#E4E4E4',
-    fontSize: 24,
+    fontSize: 20,
     fontFamily: 'Inter',
     colorBgContainer: '#FFFFFF',
   },

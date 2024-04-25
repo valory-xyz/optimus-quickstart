@@ -136,7 +136,7 @@ const createMainWindow = () => {
     transparent: true,
     fullscreenable: false,
     maximizable: false,
-    width: isDev ? 800 : 335,
+    width: isDev ? 800 : 360,
     webPreferences: {
       nodeIntegration: false,
       contextIsolation: true,
@@ -157,6 +157,12 @@ const createMainWindow = () => {
 
   mainWindow.webContents.on('ready-to-show', () => {
     mainWindow.show();
+  });
+
+  mainWindow.webContents.setWindowOpenHandler(({ url }) => {
+    // open url in a browser and prevent default
+    require('electron').shell.openExternal(url);
+    return { action: 'deny' };
   });
 
   mainWindow.on('close', function (event) {
