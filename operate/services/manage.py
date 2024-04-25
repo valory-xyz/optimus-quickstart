@@ -33,7 +33,7 @@ from autonomy.chain.base import registry_contracts
 from operate.keys import Key, KeysManager
 from operate.ledger import PUBLIC_RPCS
 from operate.ledger.profiles import CONTRACTS, OLAS, STAKING
-from operate.services.protocol import OnChainManager
+from operate.services.protocol import OnChainManager, StakingState
 from operate.services.service import (
     Deployment,
     OnChainData,
@@ -339,15 +339,20 @@ class ServiceManager:
             self.logger.info("Cannot stake service, `use_staking` is set to false")
             return
 
-        if service.chain_data.staked:
-            self.logger.info("Cannot stake service, it's already staked")
-            return
-
         if service.chain_data.on_chain_state != OnChainState.DEPLOYED:
             self.logger.info("Cannot stake service, it's not in deployed state")
             return
 
         ocm = self.get_on_chain_manager(service=service)
+        state = ocm.staking_status(
+            service_id=service.chain_data.token,
+            staking_contract=STAKING[service.ledger_config.chain],
+        )
+        if state == StakingState.STAKED:
+            service.chain_data.staked = True
+            service.store()
+            return
+
         ocm.stake(
             service_id=service.chain_data.token,
             service_registry=CONTRACTS[service.ledger_config.chain]["service_registry"],
@@ -367,11 +372,17 @@ class ServiceManager:
             self.logger.info("Cannot unstake service, `use_staking` is set to false")
             return
 
-        if not service.chain_data.staked:
+        ocm = self.get_on_chain_manager(service=service)
+        state = ocm.staking_status(
+            service_id=service.chain_data.token,
+            staking_contract=STAKING[service.ledger_config.chain],
+        )
+        if state != StakingState.STAKED:
             self.logger.info("Cannot unstake service, it's not staked")
+            service.chain_data.staked = False
+            service.store()
             return
 
-        ocm = self.get_on_chain_manager(service=service)
         ocm.unstake(
             service_id=service.chain_data.token,
             staking_contract=STAKING[service.ledger_config.chain],
