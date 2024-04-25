@@ -136,7 +136,7 @@ const createMainWindow = () => {
     transparent: true,
     fullscreenable: false,
     maximizable: false,
-    width: 335,
+    width: isDev ? 800 : 335,
     webPreferences: {
       nodeIntegration: false,
       contextIsolation: true,

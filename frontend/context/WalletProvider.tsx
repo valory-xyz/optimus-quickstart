@@ -67,21 +67,25 @@ export const WalletProvider = ({ children }: PropsWithChildren) => {
     return walletsToCheck;
   }, [serviceAddresses, wallets]);
 
-  const totalEthBalance = useMemo(
+  const totalEthBalance: number | undefined = useMemo(
     () =>
-      Object.values(walletBalances).reduce(
-        (acc: number, walletBalance) => acc + walletBalance.ETH,
-        0,
-      ),
+      walletBalances
+        ? Object.values(walletBalances).reduce(
+            (acc: number, walletBalance) => acc + walletBalance.ETH,
+            0,
+          )
+        : undefined,
     [walletBalances],
   );
 
-  const totalOlasBalance = useMemo(
+  const totalOlasBalance: number | undefined = useMemo(
     () =>
-      Object.values(walletBalances).reduce(
-        (acc: number, walletBalance) => acc + walletBalance.OLAS,
-        0,
-      ),
+      walletBalances
+        ? Object.values(walletBalances).reduce(
+            (acc: number, walletBalance) => acc + walletBalance.OLAS,
+            0,
+          )
+        : undefined,
     [walletBalances],
   );
 

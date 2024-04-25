@@ -3,15 +3,16 @@ import { Badge, Button } from 'antd';
 import Image from 'next/image';
 import { useCallback, useMemo, useState } from 'react';
 
-import { DeploymentStatus } from '@/client';
+import { Chain, DeploymentStatus } from '@/client';
 import { useServiceTemplates, useWallet } from '@/hooks';
 import { useServices } from '@/hooks/useServices';
 import { ServicesService } from '@/service';
+import { WalletService } from '@/service/Wallet';
 
 export const MainHeader = () => {
   const { services, serviceStatus, setServiceStatus } = useServices();
   const { getServiceTemplates } = useServiceTemplates();
-  const { totalOlasBalance, totalEthBalance } = useWallet();
+  const { totalOlasBalance, totalEthBalance, wallets } = useWallet();
 
   const [serviceButtonState, setServiceButtonState] = useState({
     isLoading: false,
@@ -41,14 +42,22 @@ export const MainHeader = () => {
     );
   }, [serviceStatus]);
 
-  const handleStart = useCallback(() => {
+  const handleStart = useCallback(async () => {
     setServiceButtonState({ ...serviceButtonState, isLoading: true });
+
+    if (!wallets?.[0]) return;
+
+    if (!wallets?.[0].safe) {
+      await WalletService.createSafe(Chain.GNOSIS);
+    }
+
     if (services.length > 0) {
       return ServicesService.startDeployment(services[0].hash).then(() => {
         setServiceStatus(DeploymentStatus.DEPLOYED);
         setServiceButtonState({ ...serviceButtonState, isLoading: false });
       });
     }
+
     return ServicesService.createService({
       serviceTemplate,
       deploy: true,
@@ -56,7 +65,13 @@ export const MainHeader = () => {
       setServiceStatus(DeploymentStatus.DEPLOYED);
       setServiceButtonState({ ...serviceButtonState, isLoading: false });
     });
-  }, [serviceButtonState, serviceTemplate, services, setServiceStatus]);
+  }, [
+    serviceButtonState,
+    serviceTemplate,
+    services,
+    setServiceStatus,
+    wallets,
+  ]);
 
   const handleStop = useCallback(() => {
     if (services.length === 0) return;
