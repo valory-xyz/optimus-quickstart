@@ -205,14 +205,14 @@ def create_app(  # pylint: disable=too-many-locals, unused-argument, too-many-st
                     else:
                         error["error"] = str(e)
                     errors.append(error)
-                    return errors
+                    return JSONResponse(content={"errors": errors}, status_code=500)
                 except Exception as e:  # pylint: disable=broad-except
                     errors.append(
                         {"error": str(e), "traceback": traceback.format_exc()}
                     )
                     logger.error(f"Error {e}\n{traceback.format_exc()}")
                 retries += 1
-            return {"errors": errors}
+            return JSONResponse(content={"errors": errors}, status_code=500)
 
         return _call
 
