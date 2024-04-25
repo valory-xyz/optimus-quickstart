@@ -4,15 +4,14 @@ import Image from 'next/image';
 import { useCallback, useMemo, useState } from 'react';
 
 import { DeploymentStatus } from '@/client';
-import { usePageState, useServiceTemplates, useWallet } from '@/hooks';
+import { useServiceTemplates, useWallet } from '@/hooks';
 import { useServices } from '@/hooks/useServices';
 import { ServicesService } from '@/service';
 
 export const MainHeader = () => {
-  const { setPageState } = usePageState();
   const { services, serviceStatus, setServiceStatus } = useServices();
   const { getServiceTemplates } = useServiceTemplates();
-  const { totalOlasBalance, totalEthBalance: totalBalance } = useWallet();
+  const { totalOlasBalance, totalEthBalance } = useWallet();
 
   const [serviceButtonState, setServiceButtonState] = useState({
     isLoading: false,
@@ -85,7 +84,7 @@ export const MainHeader = () => {
           Pause
         </Button>
       );
-    if (totalOlasBalance === undefined || totalBalance === undefined) {
+    if (totalOlasBalance === undefined || totalEthBalance === undefined) {
       return (
         <Button type="text" disabled>
           RPC Error
@@ -108,7 +107,7 @@ export const MainHeader = () => {
     serviceStatus,
     handleStop,
     totalOlasBalance,
-    totalBalance,
+    totalEthBalance,
     handleStart,
   ]);
   return (

@@ -22,4 +22,4 @@ export const SERVICE_TEMPLATES: ServiceTemplate[] = [
       },
     },
   },
-] as const;
+];

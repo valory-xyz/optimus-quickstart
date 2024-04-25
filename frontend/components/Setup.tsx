@@ -1,24 +1,12 @@
 import { CopyOutlined } from '@ant-design/icons';
-import {
-  Button,
-  Card,
-  Flex,
-  Form,
-  Input,
-  message,
-  QRCode,
-  Spin,
-  Typography,
-} from 'antd';
+import { Button, Form, Input, message, Spin, Typography } from 'antd';
 import { useCallback, useContext, useEffect, useMemo, useState } from 'react';
-import { useInterval } from 'usehooks-ts';
 
 import { AccountIsSetup, Chain } from '@/client';
 import { copyToClipboard } from '@/common-util';
 import { SetupContext } from '@/context';
 import { PageState, SetupScreen } from '@/enums';
 import { usePageState, useSetup, useWallet } from '@/hooks';
-import { EthersService } from '@/service';
 import { AccountService } from '@/service/Account';
 import { WalletService } from '@/service/Wallet';
 
@@ -34,8 +22,6 @@ export const Setup = () => {
         return <SetupPassword />;
       case SetupScreen.Backup:
         return <SetupBackup />;
-      case SetupScreen.Funding:
-        return <SetupFunding />;
       default:
         return <>Error</>;
     }
@@ -180,14 +166,15 @@ const SetupPassword = () => {
 
 const SetupBackup = () => {
   const { updateWallets } = useWallet();
-  const { goto, mnemonic, setMnemonic } = useSetup();
+  const { mnemonic, setMnemonic } = useSetup();
+  const { goto } = usePageState();
   const [isLoading, setIsLoading] = useState(false);
 
   const handleNext = () => {
     setIsLoading(true);
     updateWallets()
       .then(() => setMnemonic([]))
-      .then(() => goto(SetupScreen.Funding))
+      .then(() => goto(PageState.Main))
       .finally(() => setIsLoading(false));
   };
 
@@ -217,43 +204,5 @@ const SetupBackup = () => {
         Next
       </Button>
     </Wrapper>
-  );
-};
-
-const SetupFunding = () => {
-  const {
-    wallets: [{ address }],
-  } = useWallet();
-  const { goto } = usePageState();
-  const { update } = useWallet();
-
-  useInterval(() => {
-    EthersService.getEthBalance(address, `${process.env.GNOSIS_RPC}`).then(
-      (balance) => {
-        if (balance > 0) {
-          update().then(() => goto(PageState.Main));
-        }
-      },
-    );
-  }, 3000);
-
-  return (
-    <Card>
-      <Typography.Title>Funding</Typography.Title>
-      <Typography.Text>
-        You&apos;ll need to fund your wallet with at least 1 XDAI.
-      </Typography.Text>
-      <QRCode value={`https://metamask.app.link/send/${address}@${100}`} />
-      <Flex gap={10}>
-        <Typography.Text className="can-select-text" code title={address}>
-          {`${address?.substring(0, 6)}...${address?.substring(address.length - 4, address.length)}`}
-        </Typography.Text>
-        <Button>
-          <CopyOutlined
-            onClick={() => navigator.clipboard.writeText(address)}
-          />
-        </Button>
-      </Flex>
-    </Card>
   );
 };

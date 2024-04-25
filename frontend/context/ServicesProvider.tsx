@@ -44,7 +44,7 @@ export const ServicesProvider = ({ children }: PropsWithChildren) => {
 
   const serviceAddresses = useMemo(
     () =>
-      services.reduce<Address[]>((acc, service: Service) => {
+      services?.reduce<Address[]>((acc, service: Service) => {
         if (service.chain_data.instances) {
           acc.push(...service.chain_data.instances);
         }
@@ -59,7 +59,10 @@ export const ServicesProvider = ({ children }: PropsWithChildren) => {
   const updateServicesState = useCallback(
     async (): Promise<void> =>
       ServicesService.getServices()
-        .then((data: Service[]) => setServices(data))
+        .then((data: Service[]) => {
+          if (!data.length) return;
+          setServices(data);
+        })
         .catch((e) => {
           message.error(e.message);
         }),
@@ -75,6 +78,7 @@ export const ServicesProvider = ({ children }: PropsWithChildren) => {
   // Update service status
   useInterval(
     async () => {
+      if (!services?.[0]) return;
       const serviceStatus = await ServicesService.getDeployment(
         services[0].hash,
       );
