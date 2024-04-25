@@ -245,6 +245,12 @@ async function launchNextApp() {
     dev: false,
     dir: path.join(__dirname),
     port: appConfig.ports.prod.next,
+    env: {
+      GNOSIS_RPC:
+        process.env.NODE_ENV === 'production'
+          ? process.env.FORK_URL
+          : process.env.DEV_RPC,
+    },
   });
   await nextApp.prepare();
 
@@ -273,7 +279,7 @@ async function launchNextAppDev() {
       console.log(data.toString().trim());
       setTimeout(function () {
         resolve(true);
-      }, 1000);
+      }, 4000);
     });
   });
 }

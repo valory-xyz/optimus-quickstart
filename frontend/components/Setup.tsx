@@ -180,6 +180,7 @@ const SetupBackup = () => {
     update()
       .then(() => setMnemonic([]))
       .then(() => goto(PageState.Main))
+      .catch((e) => console.log(e))
       .finally(() => setIsLoading(false));
   };
 

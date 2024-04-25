@@ -1,13 +1,17 @@
-// temporary during development
-require("dotenv").config();
-module.exports = {
-  defaultNetwork: "hardhat",
+const dotenv = require("dotenv");
+
+dotenv.config();
+
+/**@type import('hardhat/config').HardhatUserConfig */
+const config = {
   networks: {
     hardhat: {
-      hostname: "0.0.0.0",
-      forking: {url: process.env.FORK_URL},
-      chainId: 100,
-      port: process.env.PORT || 8545,      
+      forking: {
+        url: process.env.FORK_URL,    
+      },
+      chainId: 100
     },
   },  
 };
+
+module.exports = config

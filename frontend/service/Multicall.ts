@@ -16,10 +16,7 @@ const getEthBalances = async (
   addresses: Address[],
   rpc: string,
 ): Promise<AddressNumberRecord> => {
-  const provider = new ethers.providers.StaticJsonRpcProvider(rpc, {
-    chainId: 100,
-    name: 'Gnosis',
-  });
+  const provider = new ethers.providers.StaticJsonRpcProvider(rpc);
 
   // hardcode gnosis chainId
   const multicallProvider = new Provider(provider, 100);
