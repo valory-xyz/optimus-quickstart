@@ -16,15 +16,12 @@ export const Main = () => {
     <Card
       title={<MainHeader />}
       extra={
-        <Button
-          type="text"
-          style={{ marginLeft: 'auto' }}
-          onClick={() => goto(PageState.Settings)}
-        >
+        <Button type="text" onClick={() => goto(PageState.Settings)}>
           <SettingOutlined />
         </Button>
       }
     >
+      <a href="https://google.com">Test</a>
       <Flex vertical>
         <MainOlasBalance />
         {/* <MainTotalEarnings /> */}

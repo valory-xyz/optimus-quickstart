@@ -40,13 +40,12 @@ export const MainNeedsFunds = () => {
   ]);
 
   const hasEnoughEth = useMemo(
-    () => differenceFundRequirements.eth && differenceFundRequirements.eth < 0,
+    () => differenceFundRequirements?.eth < 0,
     [differenceFundRequirements.eth],
   );
 
   const hasEnoughOlas = useMemo(
-    () =>
-      differenceFundRequirements.olas && differenceFundRequirements.olas < 0,
+    () => differenceFundRequirements?.olas < 0,
     [differenceFundRequirements.olas],
   );
 

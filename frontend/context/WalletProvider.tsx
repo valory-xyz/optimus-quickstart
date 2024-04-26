@@ -27,8 +27,8 @@ import { ServicesContext } from '.';
 export const WalletContext = createContext<{
   wallets: Wallet[];
   walletBalances: WalletAddressNumberRecord;
-  totalEthBalance: number | undefined;
-  totalOlasBalance: number | undefined;
+  totalEthBalance?: number;
+  totalOlasBalance?: number;
   updateWallets: () => Promise<void>;
   updateWalletBalances: () => Promise<void>;
 }>({
@@ -68,16 +68,14 @@ export const WalletProvider = ({ children }: PropsWithChildren) => {
     return walletsToCheck;
   }, [serviceAddresses, wallets]);
 
-  const totalEthBalance: number | undefined = useMemo(
-    () =>
-      walletBalances && !isEmpty(walletBalances)
-        ? Object.values(walletBalances).reduce(
-            (acc: number, walletBalance) => acc + walletBalance.ETH,
-            0,
-          )
-        : undefined,
-    [walletBalances],
-  );
+  const totalEthBalance: number | undefined = useMemo(() => {
+    if (!walletBalances) return;
+    if (isEmpty(walletBalances)) return;
+    return Object.values(walletBalances).reduce(
+      (acc: number, walletBalance) => acc + walletBalance.ETH,
+      0,
+    );
+  }, [walletBalances]);
 
   const totalOlasBalance: number | undefined = useMemo(
     () =>
@@ -138,21 +136,23 @@ export const WalletProvider = ({ children }: PropsWithChildren) => {
     if (!ethBalances) return;
     if (!olasBalances) return;
 
-    setWalletBalances(
-      Object.entries(ethBalances).reduce(
-        (
-          acc: WalletAddressNumberRecord,
-          [address, balance]: [string, number],
-        ) => ({
-          ...acc,
-          [address]: {
-            [Token.ETH]: balance,
-            [Token.OLAS]: olasBalances[address as Address],
-          },
-        }),
-        {},
-      ),
+    const tempWalletBalances: WalletAddressNumberRecord = {};
+
+    Object.entries(ethBalances).reduce(
+      (
+        acc: WalletAddressNumberRecord,
+        [address, balance]: [string, number],
+      ) => ({
+        ...acc,
+        [address]: {
+          [Token.ETH]: balance,
+          [Token.OLAS]: olasBalances[address as Address],
+        },
+      }),
+      {},
     );
+
+    setWalletBalances(tempWalletBalances);
   }, [getEthBalances, getOlasBalances]);
 
   useInterval(

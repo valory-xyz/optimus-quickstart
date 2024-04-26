@@ -25,19 +25,17 @@ export const Settings = () => {
   return (
     <Card
       title={
-        <>
-          <Typography.Text
-            style={{
-              margin: 0,
-              display: 'inline-flex',
-              gap: 5,
-              fontWeight: 400,
-            }}
-          >
-            <SettingOutlined />
-            Settings
-          </Typography.Text>
-        </>
+        <Typography.Text
+          style={{
+            margin: 0,
+            display: 'inline-flex',
+            gap: 5,
+            fontWeight: 400,
+          }}
+        >
+          <SettingOutlined />
+          Settings
+        </Typography.Text>
       }
       extra={
         <Button
