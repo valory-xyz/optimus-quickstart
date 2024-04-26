@@ -12,7 +12,6 @@ const nextConfig = {
       },
     ],
   },
-  reactStrictMode: false,
   transpilePackages: [
     'rc-util',
     '@babel/runtime',

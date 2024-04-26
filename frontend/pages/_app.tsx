@@ -29,11 +29,11 @@ export default function App({ Component, pageProps }: AppProps) {
         <ServicesProvider>
           <WalletProvider>
             <SetupProvider>
-              {isMounted && (
+              {isMounted ? (
                 <ConfigProvider theme={mainTheme}>
                   <Component {...pageProps} />
                 </ConfigProvider>
-              )}
+              ) : null}
             </SetupProvider>
           </WalletProvider>
         </ServicesProvider>
