@@ -1,6 +1,7 @@
 import { CloseOutlined, SettingOutlined } from '@ant-design/icons';
 import { Button, Card, Flex, Input, message, theme, Typography } from 'antd';
 import { useState } from 'react';
+import styled from 'styled-components';
 
 import { PageState } from '@/enums';
 import { usePageState } from '@/hooks';
@@ -25,17 +26,10 @@ export const Settings = () => {
   return (
     <Card
       title={
-        <Typography.Text
-          style={{
-            margin: 0,
-            display: 'inline-flex',
-            gap: 5,
-            fontWeight: 400,
-          }}
-        >
+        <CardTitleText>
           <SettingOutlined />
           Settings
-        </Typography.Text>
+        </CardTitleText>
       }
       extra={
         <Button type="text" onClick={() => setPageState(PageState.Main)}>
@@ -44,7 +38,7 @@ export const Settings = () => {
       }
     >
       <Flex gap={5} vertical>
-        <Typography.Text style={{ fontSize: 16 }}>PASSWORD</Typography.Text>
+        <Typography.Text>PASSWORD</Typography.Text>
         {isUpdating ? (
           <Input.Password></Input.Password>
         ) : (
@@ -66,3 +60,10 @@ export const Settings = () => {
     </Card>
   );
 };
+
+const CardTitleText = styled(Typography.Text)`
+  margin: 0;
+  display: inline-flex;
+  gap: 5;
+  font-weight: 400;
+`;

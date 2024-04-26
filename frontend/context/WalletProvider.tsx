@@ -134,19 +134,13 @@ export const WalletProvider = ({ children }: PropsWithChildren) => {
     if (!ethBalances) return;
     if (!olasBalances) return;
 
-    const tempWalletBalances = Object.entries(ethBalances).reduce(
-      (
-        acc: WalletAddressNumberRecord,
-        [address, balance]: [string, number],
-      ) => ({
-        ...acc,
-        [address]: {
-          [Token.ETH]: balance,
-          [Token.OLAS]: olasBalances[address as Address],
-        },
-      }),
-      {},
-    );
+    const tempWalletBalances: WalletAddressNumberRecord = {};
+    for (const [address, balance] of Object.entries(ethBalances)) {
+      tempWalletBalances[address as Address] = {
+        [Token.ETH]: balance,
+        [Token.OLAS]: olasBalances[address as Address],
+      };
+    }
 
     setWalletBalances(tempWalletBalances);
   }, [getEthBalances, getOlasBalances]);

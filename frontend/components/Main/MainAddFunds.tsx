@@ -46,7 +46,6 @@ export const MainAddFunds = () => {
         <Button
           type="default"
           onClick={() => setIsAddFundsVisible((prev) => !prev)}
-          style={{ marginTop: 20, marginBottom: 20 }}
           icon={isAddFundsVisible ? <CloseOutlined /> : <ArrowDownOutlined />}
         >
           {isAddFundsVisible ? 'Close' : 'Add Funds'}
@@ -60,10 +59,10 @@ export const MainAddFunds = () => {
             showIcon
             message={
               <Flex vertical gap={5}>
-                <Typography.Text style={{ fontSize: 16 }} strong>
+                <Typography.Text className="text-base" strong>
                   Only send assets on Gnosis
                 </Typography.Text>
-                <Typography.Text style={{ fontSize: 16 }}>
+                <Typography.Text className="text-base">
                   You will lose any assets you send on other chains.
                 </Typography.Text>
               </Flex>

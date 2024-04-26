@@ -49,7 +49,9 @@ export const MainNeedsFunds = () => {
     [differenceFundRequirements.olas],
   );
 
+  console.log('component render');
   const isVisible: boolean = useMemo(() => {
+    console.log('isVisible render');
     if (
       [totalEthBalance, totalOlasBalance].some(
         (balance) => balance === undefined,

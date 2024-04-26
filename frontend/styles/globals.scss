@@ -19,21 +19,17 @@ body {
     user-select: none;
 }
 
-.ant-card-head {
-    -webkit-app-region: drag;
-}
-
 button, input, select, textarea, .ant-input-suffix {
     -webkit-app-region: no-drag;
+}
+
+.ant-card-head {
+    -webkit-app-region: drag;
 }
 
 .antd-card {
   background-color: white;
     overflow-y: scroll;
-}
-
-.can-select-text {
-  user-select: text !important;
 }
 
 .balance {
@@ -48,4 +44,13 @@ button, input, select, textarea, .ant-input-suffix {
   font-size: 24px;
   margin-bottom: 10px
 }
+
+.can-select-text {
+  user-select: text !important;
+}
+
+.text-base {
+  font-size: 16px;
+}
+
 
