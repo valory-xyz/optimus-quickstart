@@ -38,11 +38,7 @@ export const Settings = () => {
         </Typography.Text>
       }
       extra={
-        <Button
-          type="text"
-          style={{ marginLeft: 'auto' }}
-          onClick={() => setPageState(PageState.Main)}
-        >
+        <Button type="text" onClick={() => setPageState(PageState.Main)}>
           <CloseOutlined />
         </Button>
       }

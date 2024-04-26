@@ -21,7 +21,6 @@ export const Main = () => {
         </Button>
       }
     >
-      <a href="https://google.com">Test</a>
       <Flex vertical>
         <MainOlasBalance />
         {/* <MainTotalEarnings /> */}

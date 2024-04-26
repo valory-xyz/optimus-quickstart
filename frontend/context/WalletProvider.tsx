@@ -70,23 +70,21 @@ export const WalletProvider = ({ children }: PropsWithChildren) => {
 
   const totalEthBalance: number | undefined = useMemo(() => {
     if (!walletBalances) return;
-    if (isEmpty(walletBalances)) return;
+    if (!isEmpty(walletBalances)) return;
     return Object.values(walletBalances).reduce(
       (acc: number, walletBalance) => acc + walletBalance.ETH,
       0,
     );
   }, [walletBalances]);
 
-  const totalOlasBalance: number | undefined = useMemo(
-    () =>
-      walletBalances && !isEmpty(walletBalances)
-        ? Object.values(walletBalances).reduce(
-            (acc: number, walletBalance) => acc + walletBalance.OLAS,
-            0,
-          )
-        : undefined,
-    [walletBalances],
-  );
+  const totalOlasBalance: number | undefined = useMemo(() => {
+    if (!walletBalances) return;
+    if (!isEmpty(walletBalances)) return;
+    return Object.values(walletBalances).reduce(
+      (acc: number, walletBalance) => acc + walletBalance.OLAS,
+      0,
+    );
+  }, [walletBalances]);
 
   const getEthBalances = useCallback(async (): Promise<
     AddressNumberRecord | undefined
