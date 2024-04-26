@@ -65,12 +65,12 @@ export const MainNeedsFunds = () => {
           {differenceFundRequirements.olas &&
             differenceFundRequirements.olas >= 0 && (
               <li>
-                {UNICODE_SYMBOLS.OLAS} {differenceFundRequirements.olas}
+                {UNICODE_SYMBOLS.OLAS} {differenceFundRequirements.olas} OLAS
               </li>
             )}
           {differenceFundRequirements.eth &&
             differenceFundRequirements.eth >= 0 && (
-              <li>{differenceFundRequirements.eth}</li>
+              <li>${differenceFundRequirements.eth} XDAI</li>
             )}
         </ul>
       </Flex>
