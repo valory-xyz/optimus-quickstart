@@ -7,7 +7,7 @@ const process = require('process');
 const { spawnSync } = require('child_process');
 const Docker = require('dockerode');
 
-const Version = "0.1.0rc9"
+const Version = "0.1.0rc12"
 const OperateDirectory = `${os.homedir()}/.operate`;
 const VenvDir = `${OperateDirectory}/venv`;
 const VersionFile = `${OperateDirectory}/version.txt`;

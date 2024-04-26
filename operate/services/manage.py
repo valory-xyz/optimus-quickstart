@@ -33,7 +33,7 @@ from autonomy.chain.base import registry_contracts
 from operate.keys import Key, KeysManager
 from operate.ledger import PUBLIC_RPCS
 from operate.ledger.profiles import CONTRACTS, OLAS, STAKING
-from operate.services.protocol import OnChainManager
+from operate.services.protocol import OnChainManager, StakingState
 from operate.services.service import (
     Deployment,
     OnChainData,
@@ -137,16 +137,20 @@ class ServiceManager:
             on_chain_user_params=on_chain_user_params,
         )
 
-    def deploy_service_onchain(self, hash: str) -> None:
+    def deploy_service_onchain(  # pylint: disable=too-many-statements
+        self,
+        hash: str,
+        update: bool = False,
+    ) -> None:
         """
         Deploy as service on-chain
 
         :param hash: Service hash
+        :param update: Update the existing deployment
         """
         self.logger.info("Loading service")
         service = self.create_or_load(hash=hash)
         user_params = service.chain_data.user_params
-        update = service.chain_data.token != -1
         keys = service.keys or [
             self.keys_manager.get(self.keys_manager.create())
             for _ in range(service.helper.config.number_of_agents)
@@ -158,11 +162,29 @@ class ServiceManager:
         ):
             raise ValueError("No staking slots available")
 
+        if service.chain_data.token > -1:
+            self.logger.info("Syncing service state")
+            info = ocm.info(token_id=service.chain_data.token)
+            service.chain_data.on_chain_state = OnChainState(info["service_state"])
+            service.chain_data.instances = info["instances"]
+            service.chain_data.multisig = info["multisig"]
+            service.store()
+        self.logger.info(f"Service state: {service.chain_data.on_chain_state.name}")
+
         if user_params.use_staking:
             self.logger.info("Checking staking compatibility")
-            required_olas = (
-                user_params.olas_cost_of_bond + user_params.olas_required_to_stake
-            )
+            if service.chain_data.on_chain_state in (
+                OnChainState.NOTMINTED,
+                OnChainState.MINTED,
+            ):
+                required_olas = (
+                    user_params.olas_cost_of_bond + user_params.olas_required_to_stake
+                )
+            elif service.chain_data.on_chain_state == OnChainState.ACTIVATED:
+                required_olas = user_params.olas_required_to_stake
+            else:
+                required_olas = 0
+
             balance = (
                 registry_contracts.erc20.get_instance(
                     ledger_api=ocm.ledger_api,
@@ -171,22 +193,11 @@ class ServiceManager:
                 .functions.balanceOf(ocm.crypto.address)
                 .call()
             )
-
             if balance < required_olas:
                 raise ValueError(
                     "You don't have enough olas to stake, "
                     f"required olas: {required_olas}; your balance {balance}"
                 )
-
-        if service.chain_data.token > -1:
-            self.logger.info("Syncing service state")
-            info = ocm.info(token_id=service.chain_data.token)
-            service.chain_data.on_chain_state = OnChainState(info["service_state"])
-            service.chain_data.instances = info["instances"]
-            service.chain_data.multisig = info["multisig"]
-
-            service.store()
-        self.logger.info(f"Service state: {service.chain_data.on_chain_state.name}")
 
         if service.chain_data.on_chain_state == OnChainState.NOTMINTED:
             self.logger.info("Minting service")
@@ -233,6 +244,11 @@ class ServiceManager:
                 service_id=service.chain_data.token,
                 instances=instances,
                 agents=[user_params.agent_id for _ in instances],
+                token=(
+                    OLAS[service.ledger_config.chain]
+                    if user_params.use_staking
+                    else None
+                ),
             )
             service.chain_data.on_chain_state = OnChainState.REGISTERED
             service.keys = keys
@@ -323,15 +339,20 @@ class ServiceManager:
             self.logger.info("Cannot stake service, `use_staking` is set to false")
             return
 
-        if service.chain_data.staked:
-            self.logger.info("Cannot stake service, it's already staked")
-            return
-
         if service.chain_data.on_chain_state != OnChainState.DEPLOYED:
             self.logger.info("Cannot stake service, it's not in deployed state")
             return
 
         ocm = self.get_on_chain_manager(service=service)
+        state = ocm.staking_status(
+            service_id=service.chain_data.token,
+            staking_contract=STAKING[service.ledger_config.chain],
+        )
+        if state == StakingState.STAKED:
+            service.chain_data.staked = True
+            service.store()
+            return
+
         ocm.stake(
             service_id=service.chain_data.token,
             service_registry=CONTRACTS[service.ledger_config.chain]["service_registry"],
@@ -351,11 +372,17 @@ class ServiceManager:
             self.logger.info("Cannot unstake service, `use_staking` is set to false")
             return
 
-        if not service.chain_data.staked:
+        ocm = self.get_on_chain_manager(service=service)
+        state = ocm.staking_status(
+            service_id=service.chain_data.token,
+            staking_contract=STAKING[service.ledger_config.chain],
+        )
+        if state != StakingState.STAKED:
             self.logger.info("Cannot unstake service, it's not staked")
+            service.chain_data.staked = False
+            service.store()
             return
 
-        ocm = self.get_on_chain_manager(service=service)
         ocm.unstake(
             service_id=service.chain_data.token,
             staking_contract=STAKING[service.ledger_config.chain],
