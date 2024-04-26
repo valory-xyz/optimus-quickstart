@@ -14,7 +14,7 @@ import {
   Typography,
 } from 'antd';
 import Link from 'next/link';
-import { useCallback, useMemo } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import styled from 'styled-components';
 
 import { copyToClipboard, truncateAddress } from '@/common-util';
