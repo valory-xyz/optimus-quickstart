@@ -4,9 +4,18 @@ import {
   CopyOutlined,
   WarningOutlined,
 } from '@ant-design/icons';
-import { Alert, Button, Flex, message, QRCode, Typography } from 'antd';
+import {
+  Alert,
+  Button,
+  Flex,
+  FlexProps,
+  message,
+  QRCode,
+  Typography,
+} from 'antd';
 import Link from 'next/link';
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useMemo } from 'react';
+import styled from 'styled-components';
 
 import { copyToClipboard, truncateAddress } from '@/common-util';
 import { UNICODE_SYMBOLS } from '@/constants/unicode';
@@ -17,6 +26,7 @@ export const MainAddFunds = () => {
   const [isAddFundsVisible, setIsAddFundsVisible] = useState(false);
 
   const walletAddress = useMemo(() => wallets[0]?.address, [wallets]);
+
   const truncatedWalletAddress = useMemo(
     () => truncateAddress(walletAddress),
     [walletAddress],
@@ -75,33 +85,32 @@ export const MainAddFunds = () => {
             </Button>
           </Flex>
 
-          <Flex
-            vertical
-            style={{
-              marginTop: 10,
-              border: '1px solid lightgrey',
-              borderRadius: '2.5px',
-              padding: 10,
-              gap: 10,
-            }}
-          >
+          <NoFundsCTA vertical gap={10}>
             <strong style={{ fontSize: 'medium', lineHeight: '0.9em' }}>
               No OLAS or XDAI on Gnosis Chain?
             </strong>
             <Link
-              style={{
-                fontSize: 'medium',
-                textDecoration: 'underline',
-                color: 'black',
-              }}
               target="_blank"
               href={'https://swap.cow.fi/#/100/swap/WXDAI/OLAS'}
             >
               Get some on CowSwap {UNICODE_SYMBOLS.EXTERNAL_LINK}
             </Link>
-          </Flex>
+          </NoFundsCTA>
         </Flex>
       )}
     </>
   );
 };
+
+const NoFundsCTA: React.FC<FlexProps> = styled(Flex)`
+  margin-top: 10;
+  border: '1px solid lightgrey';
+  border-radius: '2.5px';
+  padding: 10;
+
+  a {
+    font-size: 'medium';
+    text-decoration: 'underline';
+    color: 'black';
+  }
+`;
