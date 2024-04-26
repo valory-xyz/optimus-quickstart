@@ -9,10 +9,7 @@ export const MainGasBalance = () => {
   return (
     <Typography.Text>
       Gas balance: {balanceFormat(totalEthBalance, 2)} XDAI&nbsp;
-      <Tooltip
-        title="Gas balance is the amount of XDAI you have to pay for transactions."
-        overlayInnerStyle={{ fontSize: 'medium' }}
-      >
+      <Tooltip title="Gas balance is the amount of XDAI you have to pay for transactions.">
         <QuestionCircleTwoTone />
       </Tooltip>
     </Typography.Text>

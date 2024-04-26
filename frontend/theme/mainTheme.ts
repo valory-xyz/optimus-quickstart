@@ -28,5 +28,11 @@ export const mainTheme: ThemeConfig = {
     QRCode: {
       size: 150,
     },
+    Tooltip: {
+      fontSize: 16,
+      colorText: 'black',
+      colorTextLightSolid: 'black',
+      colorBgSpotlight: 'white',
+    },
   },
 };
