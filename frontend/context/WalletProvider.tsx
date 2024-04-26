@@ -70,7 +70,7 @@ export const WalletProvider = ({ children }: PropsWithChildren) => {
 
   const totalEthBalance: number | undefined = useMemo(() => {
     if (!walletBalances) return;
-    if (!isEmpty(walletBalances)) return;
+    if (isEmpty(walletBalances)) return;
     return Object.values(walletBalances).reduce(
       (acc: number, walletBalance) => acc + walletBalance.ETH,
       0,
@@ -79,7 +79,7 @@ export const WalletProvider = ({ children }: PropsWithChildren) => {
 
   const totalOlasBalance: number | undefined = useMemo(() => {
     if (!walletBalances) return;
-    if (!isEmpty(walletBalances)) return;
+    if (isEmpty(walletBalances)) return;
     return Object.values(walletBalances).reduce(
       (acc: number, walletBalance) => acc + walletBalance.OLAS,
       0,
@@ -134,9 +134,7 @@ export const WalletProvider = ({ children }: PropsWithChildren) => {
     if (!ethBalances) return;
     if (!olasBalances) return;
 
-    const tempWalletBalances: WalletAddressNumberRecord = {};
-
-    Object.entries(ethBalances).reduce(
+    const tempWalletBalances = Object.entries(ethBalances).reduce(
       (
         acc: WalletAddressNumberRecord,
         [address, balance]: [string, number],
@@ -153,10 +151,7 @@ export const WalletProvider = ({ children }: PropsWithChildren) => {
     setWalletBalances(tempWalletBalances);
   }, [getEthBalances, getOlasBalances]);
 
-  useInterval(
-    updateWalletBalances,
-    wallets && wallets.length > 0 ? 5000 : null,
-  );
+  useInterval(() => updateWalletBalances(), 5000);
 
   return (
     <WalletContext.Provider

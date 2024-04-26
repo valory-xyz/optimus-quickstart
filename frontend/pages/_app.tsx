@@ -2,7 +2,7 @@ import '../styles/globals.scss';
 
 import { ConfigProvider } from 'antd';
 import type { AppProps } from 'next/app';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef } from 'react';
 
 import {
   AppInfoProvider,
@@ -14,10 +14,13 @@ import { WalletProvider } from '@/context/WalletProvider';
 import { mainTheme } from '@/theme';
 
 export default function App({ Component, pageProps }: AppProps) {
-  const [isMounted, setIsMounted] = useState(false);
+  const isMounted = useRef(false);
 
   useEffect(() => {
-    setIsMounted(true);
+    isMounted.current = true;
+    return () => {
+      isMounted.current = false;
+    };
   }, []);
 
   return (
@@ -25,13 +28,13 @@ export default function App({ Component, pageProps }: AppProps) {
       <PageStateProvider>
         <ServicesProvider>
           <WalletProvider>
-            <ConfigProvider theme={mainTheme}>
+            <SetupProvider>
               {isMounted && (
-                <SetupProvider>
+                <ConfigProvider theme={mainTheme}>
                   <Component {...pageProps} />
-                </SetupProvider>
+                </ConfigProvider>
               )}
-            </ConfigProvider>
+            </SetupProvider>
           </WalletProvider>
         </ServicesProvider>
       </PageStateProvider>
