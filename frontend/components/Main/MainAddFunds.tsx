@@ -85,7 +85,7 @@ export const MainAddFunds = () => {
             </Button>
           </Flex>
 
-          <NoFundsCTA vertical gap={10}>
+          <NoFundsCTAFlex vertical gap={10}>
             <strong style={{ fontSize: 'medium', lineHeight: '0.9em' }}>
               No OLAS or XDAI on Gnosis Chain?
             </strong>
@@ -95,14 +95,14 @@ export const MainAddFunds = () => {
             >
               Get some on CowSwap {UNICODE_SYMBOLS.EXTERNAL_LINK}
             </Link>
-          </NoFundsCTA>
+          </NoFundsCTAFlex>
         </Flex>
       )}
     </>
   );
 };
 
-const NoFundsCTA: React.FC<FlexProps> = styled(Flex)`
+const NoFundsCTAFlex: React.FC<FlexProps> = styled(Flex)`
   margin-top: 10;
   border: '1px solid lightgrey';
   border-radius: '2.5px';
