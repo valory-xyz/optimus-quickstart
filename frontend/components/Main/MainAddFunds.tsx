@@ -107,4 +107,10 @@ const NoFundsCTAFlex = styled(Flex)<FlexProps>`
   border: 1px solid lightgrey;
   border-radius: 2.5px;
   padding: 10px;
+
+  a {
+    font-size: medium;
+    text-decoration: underline;
+    color: black;
+  }
 `;
