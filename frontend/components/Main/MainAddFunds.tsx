@@ -69,6 +69,7 @@ export const MainAddFunds = () => {
             }
           />
           <QRCode
+            size={250}
             value={`https://metamask.app.link/send/${walletAddress}@${100}`}
           />
           <Flex gap={10}>
@@ -106,7 +107,8 @@ const NoFundsCTAFlex = styled(Flex)<FlexProps>`
   padding: 10px;
 
   strong {
-    fontSize: medium, lineHeight: 0.9em
+    font-size: medium;
+    line-height: 0.9em;
   }
 
   a {

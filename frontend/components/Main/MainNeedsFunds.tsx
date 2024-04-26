@@ -68,7 +68,8 @@ export const MainNeedsFunds = () => {
         <ul>
           {!hasEnoughOlas && (
             <li>
-              {UNICODE_SYMBOLS.OLAS} {differenceFundRequirements.olas} OLAS
+              {UNICODE_SYMBOLS.OLAS}
+              {differenceFundRequirements.olas} OLAS
             </li>
           )}
           {!hasEnoughEth && <li>${differenceFundRequirements.eth} XDAI</li>}
@@ -83,11 +84,5 @@ export const MainNeedsFunds = () => {
     ],
   );
 
-  return isVisible ? (
-    <Alert
-      message={message}
-      style={{ fontSize: 'medium', marginTop: 20 }}
-      type="info"
-    />
-  ) : null;
+  return isVisible ? <Alert showIcon message={message} type="info" /> : null;
 };

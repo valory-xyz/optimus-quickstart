@@ -12,7 +12,7 @@ export const mainTheme: ThemeConfig = {
   },
   components: {
     Alert: {
-      colorWarningBg: 'transparent',
+      fontSize: 16,
     },
     Card: {
       colorBgContainer: '#FFFFFF',
@@ -24,9 +24,6 @@ export const mainTheme: ThemeConfig = {
     Input: {
       fontSize: 20,
       colorTextDisabled: '#334155',
-    },
-    QRCode: {
-      size: 150,
     },
     Tooltip: {
       fontSize: 16,
