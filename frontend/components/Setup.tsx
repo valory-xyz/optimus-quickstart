@@ -182,6 +182,7 @@ const SetupBackup = () => {
     setIsLoading(true);
     updateServicesState()
       .then(updateWalletState)
+      .then(() => new Promise((resolve) => setTimeout(resolve, 5000)))
       .then(() => setMnemonic([]))
       .then(() => goto(PageState.Main))
       .catch((e) => console.log(e))

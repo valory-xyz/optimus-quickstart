@@ -60,7 +60,7 @@ export const ServicesProvider = ({ children }: PropsWithChildren) => {
     async (): Promise<void> =>
       ServicesService.getServices()
         .then((data: Service[]) => {
-          if (!data.length || !Array.isArray(data)) return;
+          if (!data?.length || !Array.isArray(data)) return;
           setServices(data);
         })
         .catch((e) => {
