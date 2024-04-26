@@ -22,8 +22,8 @@ const nextConfig = {
   env: {
     GNOSIS_RPC:
       process.env.NODE_ENV === 'production'
-        ? 'https://lb.nodies.app/v1/b58a5d7d3a3044fca1d069039fa03228'
-        : 'https://rpc.tenderly.co/fork/a383dab0-dcd0-48da-84e9-d282b586b09d',
+        ? process.env.FORK_URL
+        : process.env.DEV_RPC,
   },
 };
 
