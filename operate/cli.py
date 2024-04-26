@@ -133,6 +133,7 @@ def create_app(  # pylint: disable=too-many-locals, unused-argument, too-many-st
 
     logger = setup_logger(name="operate")
     operate = OperateApp(home=home, logger=logger)
+    funding_jobs: t.Dict[str, asyncio.Task] = {}
 
     def pull_latest_images() -> None:
         """Pull latest docker images."""
@@ -151,6 +152,29 @@ def create_app(  # pylint: disable=too-many-locals, unused-argument, too-many-st
             tag=TENDERMINT_IMAGE_VERSION,
         )
 
+    def schedule_funding_job(service: str) -> None:
+        """Schedule a funding job."""
+        logger.info(f"Starting funding job for {service}")
+        if service in funding_jobs:
+            logger.info(f"Cancelling existing funding job for {service}")
+            cancel_funding_job(service=service)
+
+        loop = asyncio.get_running_loop()
+        funding_jobs[service] = loop.create_task(
+            operate.service_manager().funding_job(
+                hash=service,
+                loop=loop,
+            )
+        )
+
+    def cancel_funding_job(service: str) -> None:
+        """Cancel funding job."""
+        if service not in funding_jobs:
+            return
+        status = funding_jobs[service].cancel()
+        if not status:
+            logger.info(f"Funding job cancellation for {service} failed")
+
     app = FastAPI(
         on_startup=[
             pull_latest_images,
@@ -161,8 +185,6 @@ def create_app(  # pylint: disable=too-many-locals, unused-argument, too-many-st
         allow_origins=["*"],
         allow_methods=["GET", "POST", "PUT", "DELETE"],
     )
-
-    funding_jobs: t.Dict[str, asyncio.Task] = {}
 
     def with_retries(f: t.Callable) -> t.Callable:
         """Retries decorator."""
@@ -183,14 +205,14 @@ def create_app(  # pylint: disable=too-many-locals, unused-argument, too-many-st
                     else:
                         error["error"] = str(e)
                     errors.append(error)
-                    return errors
+                    return JSONResponse(content={"errors": errors}, status_code=500)
                 except Exception as e:  # pylint: disable=broad-except
                     errors.append(
                         {"error": str(e), "traceback": traceback.format_exc()}
                     )
                     logger.error(f"Error {e}\n{traceback.format_exc()}")
                 retries += 1
-            return {"errors": errors}
+            return JSONResponse(content={"errors": errors}, status_code=500)
 
         return _call
 
@@ -364,16 +386,8 @@ def create_app(  # pylint: disable=too-many-locals, unused-argument, too-many-st
             manager.stake_service_on_chain(hash=service.hash)
             manager.fund_service(hash=service.hash)
             manager.deploy_service_locally(hash=service.hash)
+            schedule_funding_job(service=service.hash)
 
-            # Start funding job
-            logger.info(f"Starting funding job for {service}")
-            loop = asyncio.get_running_loop()
-            funding_jobs[service.hash] = loop.create_task(
-                operate.service_manager().funding_job(
-                    hash=service.hash,
-                    loop=loop,
-                )
-            )
         return JSONResponse(
             content=operate.service_manager().create_or_load(hash=service.hash).json
         )
@@ -391,19 +405,11 @@ def create_app(  # pylint: disable=too-many-locals, unused-argument, too-many-st
         )
         if template.get("deploy", False):
             manager = operate.service_manager()
-            manager.deploy_service_onchain(hash=service.hash)
+            manager.deploy_service_onchain(hash=service.hash, update=True)
             manager.stake_service_on_chain(hash=service.hash)
             manager.fund_service(hash=service.hash)
             manager.deploy_service_locally(hash=service.hash)
-
-            logger.info(f"Starting funding job for {service}")
-            loop = asyncio.get_running_loop()
-            funding_jobs[service.hash] = loop.create_task(
-                operate.service_manager().funding_job(
-                    hash=service.hash,
-                    loop=loop,
-                )
-            )
+            schedule_funding_job(service=service.hash)
         return JSONResponse(content=service.json)
 
     @app.get("/api/services/{service}")
@@ -494,20 +500,13 @@ def create_app(  # pylint: disable=too-many-locals, unused-argument, too-many-st
     async def _start_service_locally(request: Request) -> JSONResponse:
         """Create a service."""
         service = request.path_params["service"]
-        deployment = operate.service_manager().create_or_load(service).deployment
-        operate.service_manager().fund_service(service)
-        deployment.build(force=True)
-        deployment.start()
-
-        # Start funding job
-        loop = asyncio.get_running_loop()
-        funding_jobs[service] = loop.create_task(
-            operate.service_manager().funding_job(
-                hash=service,
-                loop=loop,
-            )
-        )
-        return JSONResponse(content=deployment.json)
+        manager = operate.service_manager()
+        manager.deploy_service_onchain(hash=service)
+        manager.stake_service_on_chain(hash=service)
+        manager.fund_service(hash=service)
+        manager.deploy_service_locally(hash=service, force=True)
+        schedule_funding_job(service=service)
+        return JSONResponse(content=manager.create_or_load(service).deployment)
 
     @app.post("/api/services/{service}/deployment/stop")
     @with_retries
@@ -516,12 +515,8 @@ def create_app(  # pylint: disable=too-many-locals, unused-argument, too-many-st
         service = request.path_params["service"]
         deployment = operate.service_manager().create_or_load(service).deployment
         deployment.stop()
-
-        if service in funding_jobs:
-            logger.info(f"Cancelling funding job for {service}")
-            status = funding_jobs[service].cancel()
-            if not status:
-                logger.info(f"Funding job cancellation for {service} failed")
+        logger.info(f"Cancelling funding job for {service}")
+        cancel_funding_job(service=service)
         return JSONResponse(content=deployment.json)
 
     @app.post("/api/services/{service}/deployment/delete")

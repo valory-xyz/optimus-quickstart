@@ -647,3 +647,15 @@ class OnChainManager:
             service_id=service_id,
             staking_contract=staking_contract,
         )
+
+    def staking_status(self, service_id: int, staking_contract: str) -> StakingState:
+        """Stake the service"""
+        self._patch()
+        return StakingManager(
+            key=self.wallet.key_path,
+            password=self.wallet.password,
+            chain_type=self.chain_type,
+        ).status(
+            service_id=service_id,
+            staking_contract=staking_contract,
+        )
