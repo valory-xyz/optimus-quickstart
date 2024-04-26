@@ -1,16 +1,13 @@
 import { CloseOutlined, SettingOutlined } from '@ant-design/icons';
-import { Button, Card, Flex, Input, message, theme, Typography } from 'antd';
+import { Button, Card, Flex, Input, message, Typography } from 'antd';
 import { useState } from 'react';
 import styled from 'styled-components';
 
 import { PageState } from '@/enums';
 import { usePageState } from '@/hooks';
 
-const { useToken } = theme;
-
 export const Settings = () => {
   const { setPageState } = usePageState();
-  const { token } = useToken();
 
   const [isUpdating, setIsUpdating] = useState(false);
 
@@ -37,26 +34,19 @@ export const Settings = () => {
         </Button>
       }
     >
-      <Flex gap={5} vertical>
-        <Typography.Text>PASSWORD</Typography.Text>
-        {isUpdating ? (
-          <Input.Password></Input.Password>
-        ) : (
-          <Typography.Text>********</Typography.Text>
-        )}
+      <Flex justify="space-between" align="center">
+        <Flex gap={5} vertical>
+          <Typography.Text>Password</Typography.Text>
+          {isUpdating ? (
+            <Input.Password></Input.Password>
+          ) : (
+            <Typography.Text>********</Typography.Text>
+          )}
+        </Flex>
+        <Button disabled onClick={handleClick}>
+          {isUpdating ? 'Save' : 'Update'}
+        </Button>
       </Flex>
-      <Button
-        type="text"
-        disabled
-        onClick={handleClick}
-        style={{
-          marginTop: 'auto',
-          marginLeft: 'auto',
-          background: token.colorFillSecondary,
-        }}
-      >
-        {isUpdating ? 'Save' : 'Update'}
-      </Button>
     </Card>
   );
 };
@@ -64,6 +54,6 @@ export const Settings = () => {
 const CardTitleText = styled(Typography.Text)`
   margin: 0;
   display: inline-flex;
-  gap: 5;
+  gap: 5px;
   font-weight: 400;
 `;

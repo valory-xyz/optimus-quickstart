@@ -85,9 +85,7 @@ export const MainAddFunds = () => {
           </Flex>
 
           <NoFundsCTAFlex vertical gap={10}>
-            <strong style={{ fontSize: 'medium', lineHeight: '0.9em' }}>
-              No OLAS or XDAI on Gnosis Chain?
-            </strong>
+            <strong>No OLAS or XDAI on Gnosis Chain?</strong>
             <Link
               target="_blank"
               href={'https://swap.cow.fi/#/100/swap/WXDAI/OLAS'}
@@ -106,6 +104,10 @@ const NoFundsCTAFlex = styled(Flex)<FlexProps>`
   border: 1px solid lightgrey;
   border-radius: 2.5px;
   padding: 10px;
+
+  strong {
+    fontSize: medium, lineHeight: 0.9em
+  }
 
   a {
     font-size: medium;

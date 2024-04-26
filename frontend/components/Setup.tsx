@@ -198,7 +198,6 @@ const SetupBackup = () => {
       <Input.TextArea
         readOnly
         value={mnemonic.join(' ')}
-        style={{ resize: 'none' }}
         autoSize={{ minRows: 3, maxRows: 6 }}
         disabled
       />
