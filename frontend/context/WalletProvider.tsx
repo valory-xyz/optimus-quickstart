@@ -65,6 +65,8 @@ export const WalletProvider = ({ children }: PropsWithChildren) => {
         walletsToCheck.push(serviceAddress);
       }
     }
+
+    console.log(walletsToCheck);
     return walletsToCheck;
   }, [serviceAddresses, wallets]);
 

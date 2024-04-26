@@ -1,5 +1,6 @@
 import { PauseCircleOutlined, PlayCircleOutlined } from '@ant-design/icons';
 import { Badge, Button, Flex } from 'antd';
+import { formatUnits } from 'ethers/lib/utils';
 import Image from 'next/image';
 import { useCallback, useMemo, useState } from 'react';
 
@@ -108,8 +109,20 @@ export const MainHeader = () => {
       );
     }
     if (
-      totalOlasBalance < SERVICE_TEMPLATES[0].configuration.olas_cost_of_bond ||
-      totalEthBalance < SERVICE_TEMPLATES[0].configuration.monthly_gas_estimate
+      totalOlasBalance <
+        Number(
+          formatUnits(
+            `${SERVICE_TEMPLATES[0].configuration.olas_cost_of_bond}`,
+            18,
+          ),
+        ) ||
+      totalEthBalance <
+        Number(
+          formatUnits(
+            `${SERVICE_TEMPLATES[0].configuration.monthly_gas_estimate}`,
+            18,
+          ),
+        )
     )
       return (
         <Button type="text" disabled>
@@ -129,6 +142,7 @@ export const MainHeader = () => {
     totalEthBalance,
     handleStart,
   ]);
+
   return (
     <Flex justify="start" align="center">
       {agentHead}

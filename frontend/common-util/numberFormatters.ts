@@ -1,4 +1,7 @@
-export const balanceFormat = (balance: number, decimals: 2): string =>
+export const balanceFormat = (
+  balance: number | undefined,
+  decimals: 2,
+): string =>
   balance !== undefined
     ? Intl.NumberFormat('en-US', {
         notation: 'compact',

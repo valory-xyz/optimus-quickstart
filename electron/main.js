@@ -277,9 +277,7 @@ async function launchNextAppDev() {
     nextAppProcessPid = nextAppProcess.pid;
     nextAppProcess.stdout.on('data', (data) => {
       console.log(data.toString().trim());
-      setTimeout(function () {
-        resolve(true);
-      }, 4000);
+      resolve();
     });
   });
 }

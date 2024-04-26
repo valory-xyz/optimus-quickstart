@@ -7,11 +7,12 @@ const config = {
   networks: {
     hardhat: {
       forking: {
-        url: process.env.FORK_URL,    
+        url: "https://rpc.gnosis.gateway.fm",            
       },
-      chainId: 100
-    },
-  },  
+      chainId: 100,
+      hardfork: "cancun"      
+    },    
+  },    
 };
 
 module.exports = config

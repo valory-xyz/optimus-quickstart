@@ -46,9 +46,9 @@ export const MainNeedsFunds = () => {
       )
     )
       return false;
-    if (serviceFundRequirements.eth < totalEthBalance!) return true;
-    if (serviceFundRequirements.olas < totalOlasBalance!) return true;
-    return false;
+    if (serviceFundRequirements.eth < totalEthBalance!) return false;
+    if (serviceFundRequirements.olas < totalOlasBalance!) return false;
+    return true;
   }, [
     serviceFundRequirements.eth,
     serviceFundRequirements.olas,
