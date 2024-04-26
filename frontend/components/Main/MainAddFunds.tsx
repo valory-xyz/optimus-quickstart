@@ -102,15 +102,9 @@ export const MainAddFunds = () => {
   );
 };
 
-const NoFundsCTAFlex: React.FC<FlexProps> = styled(Flex)`
-  margin-top: 10;
-  border: '1px solid lightgrey';
-  border-radius: '2.5px';
-  padding: 10;
-
-  a {
-    font-size: 'medium';
-    text-decoration: 'underline';
-    color: 'black';
-  }
+const NoFundsCTAFlex = styled(Flex)<FlexProps>`
+  margin-top: 10px;
+  border: 1px solid lightgrey;
+  border-radius: 2.5px;
+  padding: 10px;
 `;
