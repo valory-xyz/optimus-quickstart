@@ -65,7 +65,7 @@ export const MainNeedsFunds = () => {
       <Flex vertical>
         <strong>Your agent needs funds</strong>
         <span>To run your agent, add at least: </span>
-        <ul>
+        <ul className="alert-list">
           {!hasEnoughOlas && (
             <li>
               {UNICODE_SYMBOLS.OLAS}

@@ -2,13 +2,12 @@ import {
   ArrowDownOutlined,
   CloseOutlined,
   CopyOutlined,
-  WarningOutlined,
 } from '@ant-design/icons';
 import {
   Alert,
+  AlertProps,
   Button,
   Flex,
-  FlexProps,
   message,
   QRCode,
   Typography,
@@ -55,7 +54,6 @@ export const MainAddFunds = () => {
         <Flex vertical align="center" gap={20}>
           <Alert
             type="warning"
-            icon={<WarningOutlined />}
             showIcon
             message={
               <Flex vertical gap={5}>
@@ -85,34 +83,32 @@ export const MainAddFunds = () => {
             </Button>
           </Flex>
 
-          <NoFundsCTAFlex vertical gap={10}>
-            <strong>No OLAS or XDAI on Gnosis Chain?</strong>
-            <Link
-              target="_blank"
-              href={'https://swap.cow.fi/#/100/swap/WXDAI/OLAS'}
-            >
-              Get some on CowSwap {UNICODE_SYMBOLS.EXTERNAL_LINK}
-            </Link>
-          </NoFundsCTAFlex>
+          <NoFundsAlert
+            message={
+              <Flex vertical>
+                <Typography.Text className="text-base" strong>
+                  No OLAS or XDAI on Gnosis Chain?
+                </Typography.Text>
+                <Link
+                  target="_blank"
+                  href={'https://swap.cow.fi/#/100/swap/WXDAI/OLAS'}
+                >
+                  Get some on CowSwap {UNICODE_SYMBOLS.EXTERNAL_LINK}
+                </Link>
+              </Flex>
+            }
+          />
         </Flex>
       )}
     </>
   );
 };
 
-const NoFundsCTAFlex = styled(Flex)<FlexProps>`
-  margin-top: 10px;
-  border: 1px solid lightgrey;
-  border-radius: 2.5px;
-  padding: 10px;
-
-  strong {
-    font-size: medium;
-    line-height: 0.9em;
-  }
+const NoFundsAlert = styled(Alert)<AlertProps>`
+  background-color: #f5f5f5;
+  border: 1px solid #d9d9d9;
 
   a {
-    font-size: medium;
     text-decoration: underline;
     color: black;
   }

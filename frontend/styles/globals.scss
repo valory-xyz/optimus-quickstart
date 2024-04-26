@@ -36,13 +36,13 @@ button, input, select, textarea, .ant-input-suffix {
   font-family: 'Inter';
   font-weight: 900;
   font-size: 58px;
-  letter-spacing: -8% !important;
+  letter-spacing: -0.025em;
 }
 
 .balance-small {
   @extend .balance;
   font-size: 24px;
-  margin-bottom: 10px
+  margin-bottom: 0.1em;
 }
 
 .can-select-text {
@@ -53,4 +53,7 @@ button, input, select, textarea, .ant-input-suffix {
   font-size: 16px;
 }
 
+ul.alert-list {
+  padding-left: 1.25em;
+}
 

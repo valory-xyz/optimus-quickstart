@@ -21,7 +21,7 @@ export const Main = () => {
         </Button>
       }
     >
-      <Flex vertical gap={10}>
+      <Flex vertical gap={20}>
         <MainOlasBalance />
         {/* <MainTotalEarnings /> */}
         <MainGasBalance />

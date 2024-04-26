@@ -45,7 +45,7 @@ export const MainHeader = () => {
   }, [serviceStatus]);
 
   const handleStart = useCallback(async () => {
-    setServiceButtonState({ ...serviceButtonState, isLoading: true });
+    setServiceButtonState({ isLoading: true });
 
     if (!wallets?.[0]) return;
 
@@ -56,7 +56,7 @@ export const MainHeader = () => {
     if (services.length > 0) {
       return ServicesService.startDeployment(services[0].hash).then(() => {
         setServiceStatus(DeploymentStatus.DEPLOYED);
-        setServiceButtonState({ ...serviceButtonState, isLoading: false });
+        setServiceButtonState({ isLoading: false });
       });
     }
 
@@ -65,22 +65,16 @@ export const MainHeader = () => {
       deploy: true,
     }).then(() => {
       setServiceStatus(DeploymentStatus.DEPLOYED);
-      setServiceButtonState({ ...serviceButtonState, isLoading: false });
+      setServiceButtonState({ isLoading: false });
     });
-  }, [
-    serviceButtonState,
-    serviceTemplate,
-    services,
-    setServiceStatus,
-    wallets,
-  ]);
+  }, [serviceTemplate, services, setServiceStatus, wallets]);
 
   const handleStop = useCallback(() => {
     if (services.length === 0) return;
-    setServiceButtonState((prev) => ({ ...prev, isLoading: true }));
+    setServiceButtonState({ isLoading: true });
     ServicesService.stopDeployment(services[0].hash).then(() => {
       setServiceStatus(DeploymentStatus.STOPPED);
-      setServiceButtonState((prev) => ({ ...prev, isLoading: false }));
+      setServiceButtonState({ isLoading: false });
     });
   }, [services, setServiceStatus]);
 
