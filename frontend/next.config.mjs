@@ -12,7 +12,7 @@ const nextConfig = {
       },
     ],
   },
-  reactStrictMode: true,
+  reactStrictMode: false,
   transpilePackages: [
     'rc-util',
     '@babel/runtime',

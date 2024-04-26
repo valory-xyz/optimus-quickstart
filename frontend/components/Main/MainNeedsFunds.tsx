@@ -39,6 +39,17 @@ export const MainNeedsFunds = () => {
     totalOlasBalance,
   ]);
 
+  const hasEnoughEth = useMemo(
+    () => differenceFundRequirements.eth && differenceFundRequirements.eth < 0,
+    [differenceFundRequirements.eth],
+  );
+
+  const hasEnoughOlas = useMemo(
+    () =>
+      differenceFundRequirements.olas && differenceFundRequirements.olas < 0,
+    [differenceFundRequirements.olas],
+  );
+
   const isVisible: boolean = useMemo(() => {
     if (
       [totalEthBalance, totalOlasBalance].some(
@@ -46,15 +57,9 @@ export const MainNeedsFunds = () => {
       )
     )
       return false;
-    if (serviceFundRequirements.eth < totalEthBalance!) return false;
-    if (serviceFundRequirements.olas < totalOlasBalance!) return false;
+    if (hasEnoughEth && hasEnoughOlas) return false;
     return true;
-  }, [
-    serviceFundRequirements.eth,
-    serviceFundRequirements.olas,
-    totalEthBalance,
-    totalOlasBalance,
-  ]);
+  }, [hasEnoughEth, hasEnoughOlas, totalEthBalance, totalOlasBalance]);
 
   const message: ReactNode = useMemo(
     () => (
@@ -62,20 +67,21 @@ export const MainNeedsFunds = () => {
         <strong>Your agent needs funds</strong>
         <span>To run your agent, add at least: </span>
         <ul>
-          {differenceFundRequirements.olas &&
-            differenceFundRequirements.olas >= 0 && (
-              <li>
-                {UNICODE_SYMBOLS.OLAS} {differenceFundRequirements.olas} OLAS
-              </li>
-            )}
-          {differenceFundRequirements.eth &&
-            differenceFundRequirements.eth >= 0 && (
-              <li>${differenceFundRequirements.eth} XDAI</li>
-            )}
+          {!hasEnoughOlas && (
+            <li>
+              {UNICODE_SYMBOLS.OLAS} {differenceFundRequirements.olas} OLAS
+            </li>
+          )}
+          {!hasEnoughEth && <li>${differenceFundRequirements.eth} XDAI</li>}
         </ul>
       </Flex>
     ),
-    [differenceFundRequirements.eth, differenceFundRequirements.olas],
+    [
+      differenceFundRequirements.eth,
+      differenceFundRequirements.olas,
+      hasEnoughEth,
+      hasEnoughOlas,
+    ],
   );
 
   return isVisible ? (

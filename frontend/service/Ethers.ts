@@ -13,7 +13,7 @@ const getEthBalance = async (
   rpc: string,
 ): Promise<number> => {
   try {
-    const provider = new providers.JsonRpcProvider(rpc, {
+    const provider = new providers.StaticJsonRpcProvider(rpc, {
       name: 'Gnosis',
       chainId: 100, // we currently only support Gnosis Trader agent
     });
@@ -41,7 +41,7 @@ const getErc20Balance = async (
   try {
     if (!contractAddress)
       throw new Error('Contract address is required for ERC20 balance');
-    const provider = new providers.JsonRpcProvider(rpc, {
+    const provider = new providers.StaticJsonRpcProvider(rpc, {
       name: 'Gnosis',
       chainId: 100, // we currently only support Gnosis Trader agent
     });
@@ -74,7 +74,7 @@ const checkRpc = async (rpc: string): Promise<boolean> => {
   try {
     if (!rpc) throw new Error('RPC is required');
 
-    const provider = new providers.JsonRpcProvider(rpc, {
+    const provider = new providers.StaticJsonRpcProvider(rpc, {
       name: 'Gnosis',
       chainId: 100, // we currently only support Gnosis Trader agent
     });

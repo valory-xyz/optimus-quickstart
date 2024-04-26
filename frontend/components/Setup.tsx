@@ -6,7 +6,7 @@ import { AccountIsSetup, Chain } from '@/client';
 import { copyToClipboard } from '@/common-util';
 import { SetupContext } from '@/context';
 import { PageState, SetupScreen } from '@/enums';
-import { usePageState, useSetup, useWallet } from '@/hooks';
+import { usePageState, useServices, useSetup, useWallet } from '@/hooks';
 import { AccountService } from '@/service/Account';
 import { WalletService } from '@/service/Wallet';
 
@@ -40,7 +40,8 @@ const SetupWelcome = () => {
 
   const [form] = Form.useForm();
 
-  const { update } = useWallet();
+  const { updateWalletState } = useWallet();
+  const { updateServicesState } = useServices();
 
   // get is setup
   useEffect(() => {
@@ -67,17 +68,18 @@ const SetupWelcome = () => {
   const handleLogin = useCallback(
     async ({ password }: { password: string }) => {
       setIsLoggingIn(true);
-      try {
-        await AccountService.loginAccount(password);
-        await update();
-        gotoPage(PageState.Main);
-      } catch (e) {
-        console.error(e);
-        message.error('Invalid password');
-      }
-      setIsLoggingIn(false);
+      AccountService.loginAccount(password)
+        .then(updateServicesState)
+        .then(updateWalletState)
+        .then(() => new Promise((resolve) => setTimeout(resolve, 5000))) // wait for one poll
+        .then(() => gotoPage(PageState.Main))
+        .catch((e) => {
+          console.error(e);
+          message.error('Invalid password');
+        })
+        .finally(() => setIsLoggingIn(false));
     },
-    [gotoPage, update],
+    [gotoPage, updateServicesState, updateWalletState],
   );
 
   const welcomeScreen = useMemo(() => {
@@ -170,14 +172,16 @@ const SetupPassword = () => {
 };
 
 const SetupBackup = () => {
-  const { update } = useWallet();
+  const { updateWalletState } = useWallet();
+  const { updateServicesState } = useServices();
   const { mnemonic, setMnemonic } = useSetup();
   const { goto } = usePageState();
   const [isLoading, setIsLoading] = useState(false);
 
   const handleNext = () => {
     setIsLoading(true);
-    update()
+    updateServicesState()
+      .then(updateWalletState)
       .then(() => setMnemonic([]))
       .then(() => goto(PageState.Main))
       .catch((e) => console.log(e))

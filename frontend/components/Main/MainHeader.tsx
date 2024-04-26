@@ -104,7 +104,7 @@ export const MainHeader = () => {
     if (totalOlasBalance === undefined || totalEthBalance === undefined) {
       return (
         <Button type="text" disabled>
-          RPC Error
+          --
         </Button>
       );
     }

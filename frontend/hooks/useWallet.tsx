@@ -11,11 +11,14 @@ export const useWallet = () => {
     totalEthBalance,
     totalOlasBalance,
   } = useContext(WalletContext);
-  const update = () => updateWallets().then(updateWalletBalances);
+
+  const updateWalletState = async () =>
+    await updateWallets().then(updateWalletBalances);
+
   return {
     totalEthBalance,
     totalOlasBalance,
-    update,
+    updateWalletState,
     updateWalletBalances,
     updateWallets,
     wallets,

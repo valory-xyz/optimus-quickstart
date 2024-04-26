@@ -84,7 +84,7 @@ export const ServicesProvider = ({ children }: PropsWithChildren) => {
       );
       setServiceStatus(serviceStatus.status);
     },
-    services.length ? 5000 : null,
+    services?.length ? 5000 : null,
   );
 
   // Update service state

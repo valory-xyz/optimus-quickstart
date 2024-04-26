@@ -65,8 +65,6 @@ export const WalletProvider = ({ children }: PropsWithChildren) => {
         walletsToCheck.push(serviceAddress);
       }
     }
-
-    console.log(walletsToCheck);
     return walletsToCheck;
   }, [serviceAddresses, wallets]);
 
@@ -126,7 +124,8 @@ export const WalletProvider = ({ children }: PropsWithChildren) => {
   }, [walletAddresses]);
 
   const updateWallets = useCallback(
-    async () => WalletService.getWallets().then(setWallets),
+    async () =>
+      WalletService.getWallets().then((wallets) => setWallets(wallets)),
     [],
   );
 
