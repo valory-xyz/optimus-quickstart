@@ -94,10 +94,7 @@ export const WalletProvider = ({ children }: PropsWithChildren) => {
     );
     if (!rpcIsValid) return;
 
-    const ethBalances = await MulticallService.getEthBalances(
-      walletAddresses,
-      `${process.env.GNOSIS_RPC}`,
-    );
+    const ethBalances = await MulticallService.getEthBalances(walletAddresses);
 
     return ethBalances;
   }, [walletAddresses]);
@@ -112,7 +109,6 @@ export const WalletProvider = ({ children }: PropsWithChildren) => {
 
     const olasBalances = await MulticallService.getErc20Balances(
       walletAddresses,
-      `${process.env.GNOSIS_RPC}`,
       TOKENS.gnosis.OLAS,
     );
 
@@ -120,7 +116,7 @@ export const WalletProvider = ({ children }: PropsWithChildren) => {
   }, [walletAddresses]);
 
   const updateWallets = useCallback(
-    async () =>
+    async (): Promise<void> =>
       WalletService.getWallets().then((wallets) => setWallets(wallets)),
     [],
   );
@@ -145,7 +141,7 @@ export const WalletProvider = ({ children }: PropsWithChildren) => {
     setWalletBalances(tempWalletBalances);
   }, [getEthBalances, getOlasBalances]);
 
-  useInterval(() => updateWalletBalances(), 5000);
+  useInterval(() => updateWallets().then(() => updateWalletBalances()), 5000);
 
   return (
     <WalletContext.Provider

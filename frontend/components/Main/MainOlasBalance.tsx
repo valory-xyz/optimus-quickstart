@@ -1,5 +1,4 @@
-import { Flex, FlexProps } from 'antd';
-import styled from 'styled-components';
+import { Flex } from 'antd';
 
 import { balanceFormat } from '@/common-util/numberFormatters';
 import { UNICODE_SYMBOLS } from '@/constants/unicode';
@@ -8,18 +7,14 @@ import { useWallet } from '@/hooks';
 export const MainOlasBalance = () => {
   const { totalOlasBalance } = useWallet();
   return (
-    <LineHeightFlex gap={7.5} align="end">
-      <span className="balance-small">{UNICODE_SYMBOLS.OLAS}</span>
+    <Flex align="end" gap={5}>
+      <span className="balance-symbol">{UNICODE_SYMBOLS.OLAS}</span>
       <span className="balance">
         {totalOlasBalance === undefined
           ? '--'
           : balanceFormat(totalOlasBalance, 2)}
       </span>
-      <span className="balance-small">OLAS</span>
-    </LineHeightFlex>
+      <span className="balance-currency">OLAS</span>
+    </Flex>
   );
 };
-
-const LineHeightFlex = styled(Flex)<FlexProps>`
-  line-height: 0.9;
-`;

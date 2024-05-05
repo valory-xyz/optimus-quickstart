@@ -7,10 +7,8 @@ const config = {
   networks: {
     hardhat: {
       forking: {
-        url: "https://rpc.gnosis.gateway.fm",            
+        url: "https://gnosis-pokt.nodies.app"
       },
-      chainId: 100,
-      hardfork: "cancun"      
     },    
   },    
 };

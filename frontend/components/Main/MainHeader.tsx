@@ -1,4 +1,3 @@
-import { PauseCircleOutlined, PlayCircleOutlined } from '@ant-design/icons';
 import { Badge, Button, Flex } from 'antd';
 import { formatUnits } from 'ethers/lib/utils';
 import Image from 'next/image';
@@ -32,14 +31,14 @@ export const MainHeader = () => {
           <Image
             src="/happy-robot.svg"
             alt="Happy Robot"
-            width={35}
-            height={35}
+            width={40}
+            height={40}
           />
         </Badge>
       );
     return (
       <Badge dot offset={[-5, 32.5]}>
-        <Image src="/sad-robot.svg" alt="Sad Robot" width={35} height={35} />
+        <Image src="/sad-robot.svg" alt="Sad Robot" width={40} height={40} />
       </Badge>
     );
   }, [serviceStatus]);
@@ -81,24 +80,20 @@ export const MainHeader = () => {
   const serviceToggleButton = useMemo(() => {
     if (serviceButtonState.isLoading)
       return (
-        <Button type="text" loading>
-          Loading
+        <Button type="text" size="large" loading>
+          Starting...
         </Button>
       );
     if (serviceStatus === DeploymentStatus.DEPLOYED)
       return (
-        <Button
-          type="text"
-          icon={<PauseCircleOutlined color="red" />}
-          onClick={handleStop}
-        >
+        <Button type="default" size="large" onClick={handleStop}>
           Pause
         </Button>
       );
     if (totalOlasBalance === undefined || totalEthBalance === undefined) {
       return (
-        <Button type="text" disabled>
-          --
+        <Button type="primary" size="large" disabled>
+          Start agent
         </Button>
       );
     }
@@ -119,13 +114,13 @@ export const MainHeader = () => {
         )
     )
       return (
-        <Button type="text" disabled>
-          Not funded
+        <Button type="default" size="large" disabled>
+          Start agent
         </Button>
       );
     return (
-      <Button type="text" icon={<PlayCircleOutlined />} onClick={handleStart}>
-        Start
+      <Button type="primary" size="large" onClick={handleStart}>
+        Start agent
       </Button>
     );
   }, [
@@ -138,7 +133,7 @@ export const MainHeader = () => {
   ]);
 
   return (
-    <Flex justify="start" align="center">
+    <Flex justify="start" align="center" gap={10}>
       {agentHead}
       {serviceToggleButton}
     </Flex>

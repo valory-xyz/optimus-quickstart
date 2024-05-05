@@ -12,7 +12,8 @@
     "react-dom": "^18",
     "sass": "^1.72.0",
     "styled-components": "^6.1.8",
-    "usehooks-ts": "^2.14.0"
+    "usehooks-ts": "^2.14.0",
+    "electron": "29.2.0"
   },
   "devDependencies": {
     "@testing-library/jest-dom": "^6.4.2",

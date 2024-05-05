@@ -1,12 +1,17 @@
-import { Typography } from 'antd';
+import { Flex, Typography } from 'antd';
 
-import { balanceFormat } from '@/common-util/numberFormatters';
+import { balanceFormat } from '@/common-util';
 
-const earnings = 0;
+const earnings = undefined;
 export const MainTotalEarnings = () => {
   return (
-    <Typography.Text>
-      Total earnings: {balanceFormat(earnings, 2)} OLAS
-    </Typography.Text>
+    <Flex justify="space-between">
+      <Typography.Text type="secondary" strong>
+        Total Earnings:{' '}
+      </Typography.Text>
+      <Typography.Text strong>
+        {balanceFormat(earnings, 2)} OLAS
+      </Typography.Text>
+    </Flex>
   );
 };

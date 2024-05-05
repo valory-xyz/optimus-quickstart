@@ -9,6 +9,7 @@ import { MainGasBalance } from './MainGasBalance';
 import { MainHeader } from './MainHeader';
 import { MainNeedsFunds } from './MainNeedsFunds';
 import { MainOlasBalance } from './MainOlasBalance';
+import { MainTotalEarnings } from './MainTotalEarnings';
 
 export const Main = () => {
   const { goto } = usePageState();
@@ -16,16 +17,20 @@ export const Main = () => {
     <Card
       title={<MainHeader />}
       extra={
-        <Button type="text" onClick={() => goto(PageState.Settings)}>
+        <Button
+          type="default"
+          size="large"
+          onClick={() => goto(PageState.Settings)}
+        >
           <SettingOutlined />
         </Button>
       }
     >
-      <Flex vertical gap={20}>
-        <MainOlasBalance />
-        {/* <MainTotalEarnings /> */}
-        <MainGasBalance />
+      <Flex vertical gap={15}>
         <MainNeedsFunds />
+        <MainOlasBalance />
+        <MainTotalEarnings />
+        <MainGasBalance />
         <MainAddFunds />
       </Flex>
     </Card>

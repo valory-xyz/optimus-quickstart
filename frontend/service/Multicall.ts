@@ -6,6 +6,13 @@ import { ERC20_BALANCEOF_FRAGMENT } from '@/abi/erc20Abi';
 import { MULTICALL_CONTRACT } from '@/constants';
 import { Address, AddressNumberRecord } from '@/types';
 
+const provider = new ethers.providers.StaticJsonRpcProvider(
+  process.env.GNOSIS_RPC,
+);
+const multicallProvider = new Provider(provider, 100);
+
+const multicallContract = new Contract(MULTICALL_CONTRACT, multicall3Abi);
+
 /**
  * Gets ETH balances for a list of addresses
  * @param addresses
@@ -14,31 +21,25 @@ import { Address, AddressNumberRecord } from '@/types';
  */
 const getEthBalances = async (
   addresses: Address[],
-  rpc: string,
 ): Promise<AddressNumberRecord> => {
-  const provider = new ethers.providers.StaticJsonRpcProvider(rpc);
-
-  // hardcode gnosis chainId
-  const multicallProvider = new Provider(provider, 100);
-  const multicallContract = new Contract(MULTICALL_CONTRACT, multicall3Abi);
+  if (!addresses.length) return {};
 
   const callData: ContractCall[] = addresses.map((address: Address) =>
     multicallContract.getEthBalance(address),
   );
 
-  const multicallResponse = await multicallProvider
-    .all(callData)
-    .then((responseData: BigNumber[]) =>
-      responseData.reduce(
-        (acc: AddressNumberRecord, balance: BigNumber, index: number) => ({
-          ...acc,
-          [addresses[index]]: parseFloat(ethers.utils.formatEther(balance)),
-        }),
-        {},
-      ),
-    );
+  if (!callData.length) return {};
 
-  return multicallResponse;
+  await multicallProvider.init();
+  const multicallResponse = await multicallProvider.all(callData);
+
+  return multicallResponse.reduce(
+    (acc: AddressNumberRecord, balance: BigNumber, index: number) => ({
+      ...acc,
+      [addresses[index]]: parseFloat(ethers.utils.formatUnits(balance, 18)),
+    }),
+    {},
+  );
 };
 
 /**
@@ -50,24 +51,25 @@ const getEthBalances = async (
  */
 const getErc20Balances = async (
   addresses: Address[],
-  rpc: string,
   contractAddress: Address,
 ): Promise<AddressNumberRecord> => {
-  const provider = new ethers.providers.StaticJsonRpcProvider(rpc);
-  const multicallProvider = new Provider(provider, 100); // hardcoded to 100
+  if (!contractAddress) return {};
+  if (!addresses.length) return {};
 
   const callData: ContractCall[] = addresses.map((address: Address) =>
     new Contract(contractAddress, ERC20_BALANCEOF_FRAGMENT).balanceOf(address),
   );
 
-  return multicallProvider.all(callData).then((r: BigNumber[]) =>
-    r.reduce(
-      (acc: AddressNumberRecord, balance: BigNumber, index: number) => ({
-        ...acc,
-        [addresses[index]]: parseFloat(ethers.utils.formatUnits(balance, 18)),
-      }),
-      {},
-    ),
+  await multicallProvider.init();
+
+  const multicallResponse = await multicallProvider.all(callData);
+
+  return multicallResponse.reduce(
+    (acc: AddressNumberRecord, balance: BigNumber, index: number) => ({
+      ...acc,
+      [addresses[index]]: parseFloat(ethers.utils.formatUnits(balance, 18)),
+    }),
+    {},
   );
 };
 

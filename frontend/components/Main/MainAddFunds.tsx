@@ -1,8 +1,4 @@
-import {
-  ArrowDownOutlined,
-  CloseOutlined,
-  CopyOutlined,
-} from '@ant-design/icons';
+import { CopyOutlined } from '@ant-design/icons';
 import {
   Alert,
   AlertProps,
@@ -41,15 +37,13 @@ export const MainAddFunds = () => {
 
   return (
     <>
-      <Flex>
-        <Button
-          type="default"
-          onClick={() => setIsAddFundsVisible((prev) => !prev)}
-          icon={isAddFundsVisible ? <CloseOutlined /> : <ArrowDownOutlined />}
-        >
-          {isAddFundsVisible ? 'Close' : 'Add Funds'}
-        </Button>
-      </Flex>
+      <Button
+        type="default"
+        size="large"
+        onClick={() => setIsAddFundsVisible((prev) => !prev)}
+      >
+        {isAddFundsVisible ? 'Close' : 'Add Funds'}
+      </Button>
       {isAddFundsVisible && (
         <Flex vertical align="center" gap={20}>
           <Alert

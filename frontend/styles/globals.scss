@@ -35,25 +35,44 @@ button, input, select, textarea, .ant-input-suffix {
 .balance {
   font-family: 'Inter';
   font-weight: 900;
-  font-size: 58px;
-  letter-spacing: -0.025em;
+  font-size: 56px;
+  line-height: 56px;
 }
 
-.balance-small {
+.balance-symbol {
+  @extend .balance;
+  font-size: 32px;
+  line-height: 32px;
+}
+
+.balance-currency {
   @extend .balance;
   font-size: 24px;
-  margin-bottom: 0.1em;
+  line-height: 24px;
 }
 
 .can-select-text {
   user-select: text !important;
 }
 
+.justify-start {
+  justify-content: flex-start;
+}
+
+.mb-auto {
+  margin-bottom: auto !important;
+}
+
 .text-base {
   font-size: 16px;
 }
 
+.text-sm {
+  font-size: 14px;
+}
+
 ul.alert-list {
+  margin: 0 0.5em;
   padding-left: 1.25em;
 }
 

@@ -14,6 +14,7 @@ const fs = require('fs');
 const os = require('os');
 const next = require('next');
 const http = require('http');
+const { TRAY_ICONS, TRAY_ICONS_PATHS } = require('./icons');
 
 const {
   setupDarwin,
@@ -25,7 +26,7 @@ const {
 } = require('./install');
 const { killProcesses } = require('./processes');
 const { isPortAvailable, findAvailablePort } = require('./ports');
-const { PORT_RANGE } = require('./constants');
+const { PORT_RANGE, isWindows, isMac } = require('./constants');
 
 // Attempt to acquire the single instance lock
 const singleInstanceLock = app.requestSingleInstanceLock();
@@ -79,12 +80,20 @@ async function beforeQuit() {
  * Creates the tray
  */
 const createTray = () => {
-  tray = new Tray(path.join(__dirname, 'assets/icons/robot-head-tray.png'));
+  tray = new Tray(
+    isWindows || isMac ? TRAY_ICONS.LOGGED_OUT : TRAY_ICONS_PATHS.LOGGED_OUT,
+  );
   const contextMenu = Menu.buildFromTemplate([
     {
-      label: 'Show App',
+      label: 'Show app',
       click: function () {
         mainWindow.show();
+      },
+    },
+    {
+      label: 'Hide app',
+      click: function () {
+        mainWindow.hide();
       },
     },
     {
@@ -99,6 +108,26 @@ const createTray = () => {
   tray.setContextMenu(contextMenu);
   tray.on('click', () => {
     mainWindow.show();
+  });
+
+  ipcMain.on('tray', (event, status) => {
+    switch (status) {
+      case 'low-gas':
+        tray.setImage(
+          isWindows || isMac ? TRAY_ICONS.LOW_GAS : TRAY_ICONS_PATHS.LOW_GAS,
+        );
+        break;
+      case 'running':
+        tray.setImage(
+          isWindows || isMac ? TRAY_ICONS.RUNNING : TRAY_ICONS_PATHS.RUNNING,
+        );
+        break;
+      case 'paused':
+        tray.setImage(
+          isWindows || isMac ? TRAY_ICONS.PAUSED : TRAY_ICONS_PATHS.PAUSED,
+        );
+        break;
+    }
   });
 };
 
@@ -141,6 +170,7 @@ const createMainWindow = () => {
     webPreferences: {
       nodeIntegration: false,
       contextIsolation: true,
+      preload: path.join(__dirname, 'preload.js'),
     },
   });
 
@@ -371,8 +401,9 @@ ipcMain.on('check', async function (event, argument) {
 // APP-SPECIFIC EVENTS
 app.on('ready', async () => {
   if (platform === 'darwin') {
-    app.dock?.setIcon(path.join(__dirname, 'assets/icons/robot-head.png'));
-    app.dock?.setBadge('Olas Operate');
+    app.dock?.setIcon(
+      path.join(__dirname, 'assets/icons/tray-logged-outd.png'),
+    );
   }
   createSplashWindow();
 });

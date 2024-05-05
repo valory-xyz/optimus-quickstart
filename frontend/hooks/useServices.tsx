@@ -18,10 +18,7 @@ const checkServiceIsFunded = async (
 
   const addresses = [...instances, multisig];
 
-  const balances = await MulticallService.getEthBalances(
-    addresses,
-    service.ledger.rpc,
-  );
+  const balances = await MulticallService.getEthBalances(addresses);
 
   if (!balances) return false;
 

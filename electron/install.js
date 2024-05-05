@@ -303,7 +303,7 @@ async function setupUbuntu(ipcChannel) {
   await createDirectory(`${OperateDirectory}/temp`);
 
   if (versionBumpRequired()) {
-    removePreviousInstallation();
+    // removePreviousInstallation();
     writeVersion();
   }
 

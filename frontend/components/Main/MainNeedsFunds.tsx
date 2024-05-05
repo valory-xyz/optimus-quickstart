@@ -1,4 +1,5 @@
-import { Alert, Flex } from 'antd';
+import { InfoCircleOutlined } from '@ant-design/icons';
+import { Alert, Flex, Typography } from 'antd';
 import { formatUnits } from 'ethers/lib/utils';
 import { ReactNode, useMemo } from 'react';
 
@@ -27,26 +28,14 @@ export const MainNeedsFunds = () => {
     serviceTemplate.configuration.olas_cost_of_bond,
   ]);
 
-  const differenceFundRequirements = useMemo(() => {
-    return {
-      eth: serviceFundRequirements.eth - (totalEthBalance ?? 0),
-      olas: serviceFundRequirements.olas - (totalOlasBalance ?? 0),
-    };
-  }, [
-    serviceFundRequirements.eth,
-    serviceFundRequirements.olas,
-    totalEthBalance,
-    totalOlasBalance,
-  ]);
-
   const hasEnoughEth = useMemo(
-    () => differenceFundRequirements?.eth < 0,
-    [differenceFundRequirements.eth],
+    () => serviceFundRequirements?.eth < 0,
+    [serviceFundRequirements.eth],
   );
 
   const hasEnoughOlas = useMemo(
-    () => differenceFundRequirements?.olas < 0,
-    [differenceFundRequirements.olas],
+    () => serviceFundRequirements?.olas < 0,
+    [serviceFundRequirements.olas],
   );
 
   const isVisible: boolean = useMemo(() => {
@@ -63,26 +52,31 @@ export const MainNeedsFunds = () => {
   const message: ReactNode = useMemo(
     () => (
       <Flex vertical>
-        <strong>Your agent needs funds</strong>
-        <span>To run your agent, add at least: </span>
-        <ul className="alert-list">
+        <Typography.Text strong>Your agent needs funds</Typography.Text>
+        <small>
+          To run your agent, you must have at least these amounts in your
+          account:
+        </small>
+        <ul className="alert-list text-sm">
           {!hasEnoughOlas && (
             <li>
               {UNICODE_SYMBOLS.OLAS}
-              {differenceFundRequirements.olas} OLAS
+              {serviceFundRequirements.olas} OLAS
             </li>
           )}
-          {!hasEnoughEth && <li>${differenceFundRequirements.eth} XDAI</li>}
+          {!hasEnoughEth && <li>${serviceFundRequirements.eth} XDAI</li>}
         </ul>
       </Flex>
     ),
-    [
-      differenceFundRequirements.eth,
-      differenceFundRequirements.olas,
-      hasEnoughEth,
-      hasEnoughOlas,
-    ],
+    [serviceFundRequirements, hasEnoughEth, hasEnoughOlas],
   );
 
-  return isVisible ? <Alert showIcon message={message} type="info" /> : null;
+  return isVisible ? (
+    <Alert
+      icon={<InfoCircleOutlined className="mb-auto" />}
+      showIcon
+      message={message}
+      type="info"
+    />
+  ) : null;
 };
