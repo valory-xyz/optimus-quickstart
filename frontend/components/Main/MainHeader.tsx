@@ -78,18 +78,27 @@ export const MainHeader = () => {
   }, [services, setServiceStatus]);
 
   const serviceToggleButton = useMemo(() => {
-    if (serviceButtonState.isLoading)
+    if (serviceButtonState.isLoading) {
       return (
         <Button type="text" size="large" loading>
           Starting...
         </Button>
       );
-    if (serviceStatus === DeploymentStatus.DEPLOYED)
+    }
+    if (serviceStatus === DeploymentStatus.DEPLOYED) {
       return (
         <Button type="default" size="large" onClick={handleStop}>
           Pause
         </Button>
       );
+    }
+    if (serviceStatus === DeploymentStatus.CREATED) {
+      return (
+        <Button type="default" size="large" disabled>
+          Agent error
+        </Button>
+      );
+    }
     if (totalOlasBalance === undefined || totalEthBalance === undefined) {
       return (
         <Button type="primary" size="large" disabled>
@@ -104,7 +113,13 @@ export const MainHeader = () => {
             `${SERVICE_TEMPLATES[0].configuration.olas_cost_of_bond}`,
             18,
           ),
-        ) ||
+        ) +
+          Number(
+            formatUnits(
+              `${SERVICE_TEMPLATES[0].configuration.olas_required_to_stake}`,
+              18,
+            ),
+          ) ||
       totalEthBalance <
         Number(
           formatUnits(
@@ -112,12 +127,13 @@ export const MainHeader = () => {
             18,
           ),
         )
-    )
+    ) {
       return (
         <Button type="default" size="large" disabled>
           Start agent
         </Button>
       );
+    }
     return (
       <Button type="primary" size="large" onClick={handleStart}>
         Start agent

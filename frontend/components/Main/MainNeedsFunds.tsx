@@ -19,22 +19,30 @@ export const MainNeedsFunds = () => {
           18,
         ),
       ),
-      olas: Number(
-        formatUnits(`${serviceTemplate.configuration.olas_cost_of_bond}`, 18),
-      ),
+      olas:
+        Number(
+          formatUnits(`${serviceTemplate.configuration.olas_cost_of_bond}`, 18),
+        ) +
+        Number(
+          formatUnits(
+            `${serviceTemplate.configuration.olas_required_to_stake}`,
+            18,
+          ),
+        ),
     };
   }, [
     serviceTemplate.configuration.monthly_gas_estimate,
     serviceTemplate.configuration.olas_cost_of_bond,
+    serviceTemplate.configuration.olas_required_to_stake,
   ]);
 
   const hasEnoughEth = useMemo(
-    () => (serviceFundRequirements?.eth || 0) < (totalEthBalance || 0),
+    () => (totalEthBalance || 0) >= (serviceFundRequirements?.eth || 0),
     [serviceFundRequirements?.eth, totalEthBalance],
   );
 
   const hasEnoughOlas = useMemo(
-    () => (serviceFundRequirements?.olas || 0) < (totalOlasBalance || 0),
+    () => (totalOlasBalance || 0) >= (serviceFundRequirements?.olas || 0),
     [serviceFundRequirements?.olas, totalOlasBalance],
   );
 

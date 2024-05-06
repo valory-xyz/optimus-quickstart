@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 
 import { AccountIsSetup } from '@/client';
 import { PageState, SetupScreen } from '@/enums';
-import { usePageState, useServices, useSetup } from '@/hooks';
+import { usePageState, useSetup } from '@/hooks';
 import { AccountService } from '@/service/Account';
 
 import { Wrapper } from '../Layout';
@@ -78,7 +78,6 @@ export const SetupWelcomeCreate = () => {
 
 export const SetupWelcomeLogin = () => {
   const { goto: gotoPage } = usePageState();
-  const { updateServicesState } = useServices();
 
   const [isLoggingIn, setIsLoggingIn] = useState(false);
 
@@ -88,7 +87,6 @@ export const SetupWelcomeLogin = () => {
     async ({ password }: { password: string }) => {
       setIsLoggingIn(true);
       AccountService.loginAccount(password)
-        .then(() => updateServicesState())
         .then(() => gotoPage(PageState.Main))
         .catch((e) => {
           console.error(e);
@@ -96,7 +94,7 @@ export const SetupWelcomeLogin = () => {
         })
         .finally(() => setIsLoggingIn(false));
     },
-    [gotoPage, updateServicesState],
+    [gotoPage],
   );
 
   return (

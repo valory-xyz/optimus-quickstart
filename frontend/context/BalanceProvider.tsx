@@ -15,7 +15,7 @@ import {
 import { useInterval } from 'usehooks-ts';
 
 import { SERVICE_REGISTRY_TOKEN_UTILITY_ABI } from '@/abi/serviceRegistryTokenUtility';
-import { Chain, Service, Wallet } from '@/client';
+import { Chain, Wallet } from '@/client';
 import { SERVICE_REGISTRY_TOKEN_UTILITY } from '@/constants';
 import { gnosisMulticallProvider } from '@/constants/providers';
 import { TOKENS } from '@/constants/tokens';
@@ -63,60 +63,65 @@ export const BalanceProvider = ({ children }: PropsWithChildren) => {
   const [walletBalances, setWalletBalances] =
     useState<WalletAddressNumberRecord>({});
 
-  const walletAddresses: Address[] = useMemo(() => {
-    return getWalletAddresses(wallets, serviceAddresses);
-  }, [serviceAddresses, wallets]);
-
   const totalEthBalance: number | undefined = useMemo(() => {
-    if (!isLoaded) return;
     return Object.values(walletBalances).reduce(
       (acc: number, walletBalance) => acc + walletBalance.ETH,
       0,
     );
-  }, [isLoaded, walletBalances]);
+  }, [walletBalances]);
 
   const totalOlasBalance: number | undefined = useMemo(() => {
-    if (!isLoaded) return;
-    if (!olasDepositBalance) return;
-    if (!olasBondBalance) return;
-
     const sumWalletBalances = Object.values(walletBalances).reduce(
       (acc: number, walletBalance) => acc + walletBalance.OLAS,
       0,
     );
 
-    return sumWalletBalances + olasDepositBalance + olasBondBalance;
-  }, [isLoaded, olasBondBalance, olasDepositBalance, walletBalances]);
+    return (
+      sumWalletBalances + (olasDepositBalance ?? 0) + (olasBondBalance ?? 0)
+    );
+  }, [olasBondBalance, olasDepositBalance, walletBalances]);
 
   const isPolling = useMemo(
-    () => !isEmpty(wallets) && !isEmpty(walletBalances) && isLoaded,
-    [isLoaded, walletBalances, wallets],
+    () => !isEmpty(wallets) && !isEmpty(walletBalances),
+    [walletBalances, wallets],
   );
 
   const updateBalances = useCallback(async (): Promise<void> => {
     try {
       const wallets = await getWallets();
-      const [walletBalances, serviceRegistryBalances] = await Promise.all([
-        getWalletBalances(getWalletAddresses(wallets, serviceAddresses)),
-        getServiceRegistryBalances(
-          getWalletAddresses(wallets, serviceAddresses),
-          services,
-        ),
-      ]);
+
       if (!wallets) return;
+
+      const walletAddresses = getWalletAddresses(wallets, serviceAddresses);
+      const walletBalances = await getWalletBalances(walletAddresses);
+
       if (!walletBalances) return;
-      if (!serviceRegistryBalances) return;
+
+      if (services?.[0]?.chain_data.token) {
+        const serviceRegistryBalances = await getServiceRegistryBalances(
+          wallets[0].address,
+          services[0].chain_data.token,
+        );
+        if (serviceRegistryBalances) {
+          setOlasDepositBalance(serviceRegistryBalances.depositValue);
+          setOlasBondBalance(serviceRegistryBalances.bondValue);
+        }
+      }
+
       setWallets(wallets);
       setWalletBalances(walletBalances);
-      setOlasDepositBalance(serviceRegistryBalances.depositValue);
-      setOlasBondBalance(serviceRegistryBalances.bondValue);
       setIsLoaded(true);
     } catch (error) {
       console.error(error);
     }
-  }, [services, walletAddresses]);
+  }, [serviceAddresses, services]);
 
-  useInterval(async () => updateBalances(), isPolling ? 5000 : null);
+  useInterval(
+    () => {
+      updateBalances();
+    },
+    isPolling ? 5000 : null,
+  );
 
   return (
     <BalanceContext.Provider
@@ -186,6 +191,7 @@ export const getWalletAddresses = (
       walletsToCheck.push(serviceAddress);
     }
   }
+
   return walletsToCheck;
 };
 
@@ -207,14 +213,15 @@ export const getWalletBalances = async (
       [Token.OLAS]: olasBalances[address as Address],
     };
   }
+
   return tempWalletBalances;
 };
 
 export const getServiceRegistryBalances = async (
-  walletAddresses: Address[],
-  services: Service[],
+  masterEoa: Address,
+  serviceId: number,
 ): Promise<{ bondValue: number; depositValue: number } | undefined> => {
-  if (!walletAddresses.length) return;
+  if (serviceId === undefined || serviceId < 0) return;
 
   const serviceRegistryL2Contract = new MulticallContract(
     SERVICE_REGISTRY_TOKEN_UTILITY[Chain.GNOSIS],
@@ -222,13 +229,8 @@ export const getServiceRegistryBalances = async (
   );
 
   const contractCalls = [
-    serviceRegistryL2Contract.getOperatorBalance(
-      walletAddresses[0],
-      services[0].chain_data.token,
-    ),
-    serviceRegistryL2Contract.mapServiceIdTokenDeposit(
-      services[0].chain_data.token,
-    ),
+    serviceRegistryL2Contract.getOperatorBalance(masterEoa, serviceId),
+    serviceRegistryL2Contract.mapServiceIdTokenDeposit(serviceId),
   ];
 
   try {

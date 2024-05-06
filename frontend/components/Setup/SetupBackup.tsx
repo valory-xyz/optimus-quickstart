@@ -4,26 +4,20 @@ import { useState } from 'react';
 
 import { copyToClipboard } from '@/common-util';
 import { PageState } from '@/enums';
-import { useBalance, usePageState, useServices, useSetup } from '@/hooks';
+import { usePageState, useSetup } from '@/hooks';
 
 import { Wrapper } from '../Layout';
 
 export const SetupBackup = () => {
-  const { updateBalances } = useBalance();
-  const { updateServicesState } = useServices();
   const { mnemonic, setMnemonic } = useSetup();
   const { goto } = usePageState();
   const [isLoading, setIsLoading] = useState(false);
 
   const handleNext = () => {
     setIsLoading(true);
-    updateServicesState()
-      .then(updateBalances)
-      .then(() => new Promise((resolve) => setTimeout(resolve, 5000)))
-      .then(() => setMnemonic([]))
-      .then(() => goto(PageState.Main))
-      .catch((e) => console.log(e))
-      .finally(() => setIsLoading(false));
+    setMnemonic([]);
+    goto(PageState.Main);
+    setIsLoading(false);
   };
 
   return (

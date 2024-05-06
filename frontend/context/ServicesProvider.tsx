@@ -73,21 +73,16 @@ export const ServicesProvider = ({ children }: PropsWithChildren) => {
   );
 
   // Update service status
-  useInterval(
-    async () => {
-      if (!services?.[0]) return;
-      const serviceStatus = await ServicesService.getDeployment(
-        services[0].hash,
-      );
-      setServiceStatus(serviceStatus.status);
-    },
-    services?.length ? 5000 : null,
-  );
+  useInterval(async () => {
+    if (!services?.[0]) return;
+    const serviceStatus = await ServicesService.getDeployment(services[0].hash);
+    setServiceStatus(serviceStatus.status);
+  }, 5000);
 
   // Update service state
   useInterval(
     () => updateServicesState().catch((e) => message.error(e.message)),
-    hasInitialLoaded ? 5000 : null,
+    5000,
   );
 
   return (
