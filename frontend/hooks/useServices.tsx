@@ -45,6 +45,7 @@ export const useServices = () => {
     setServices,
     serviceStatus,
     setServiceStatus,
+    updateServiceStatus,
   } = useContext(ServicesContext);
 
   // STATE METHODS
@@ -83,6 +84,7 @@ export const useServices = () => {
     checkServiceIsFunded,
     updateServicesState,
     updateServiceState,
+    updateServiceStatus,
     deleteServiceState,
     hasInitialLoaded,
   };

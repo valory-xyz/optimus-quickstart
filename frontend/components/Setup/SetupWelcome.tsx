@@ -67,12 +67,18 @@ export const SetupWelcomeCreate = () => {
   const { goto } = useSetup();
 
   return (
-    <>
-      <Button color="primary" onClick={() => goto(SetupScreen.Password)}>
+    <Flex vertical gap={10}>
+      <Button
+        color="primary"
+        size="large"
+        onClick={() => goto(SetupScreen.Password)}
+      >
         Create Account
       </Button>
-      <Button disabled>Import</Button>
-    </>
+      <Button size="large" disabled>
+        Import
+      </Button>
+    </Flex>
   );
 };
 

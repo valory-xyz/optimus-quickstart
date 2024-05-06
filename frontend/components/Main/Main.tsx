@@ -17,12 +17,12 @@ export const Main = () => {
   const { updateServicesState } = useServices();
   const { updateBalances, isLoaded, setIsLoaded } = useBalance();
 
+  console.log(isLoaded);
+
   useEffect(() => {
     if (!isLoaded) {
       setIsLoaded(true);
-      updateServicesState()
-        .then(() => updateBalances())
-        .catch(() => setIsLoaded(false));
+      updateServicesState().then(() => updateBalances());
     }
   }, [isLoaded, setIsLoaded, updateBalances, updateServicesState]);
 

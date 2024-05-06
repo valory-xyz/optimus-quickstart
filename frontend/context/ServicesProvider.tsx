@@ -21,6 +21,7 @@ type ServicesContextProps = {
   serviceStatus: DeploymentStatus | undefined;
   setServiceStatus: Dispatch<SetStateAction<DeploymentStatus | undefined>>;
   updateServicesState: () => Promise<void>;
+  updateServiceStatus: () => Promise<void>;
   hasInitialLoaded: boolean;
   setHasInitialLoaded: Dispatch<SetStateAction<boolean>>;
 };
@@ -32,6 +33,7 @@ export const ServicesContext = createContext<ServicesContextProps>({
   serviceStatus: undefined,
   setServiceStatus: () => {},
   updateServicesState: async () => {},
+  updateServiceStatus: async () => {},
   hasInitialLoaded: false,
   setHasInitialLoaded: () => {},
 });
@@ -72,12 +74,14 @@ export const ServicesProvider = ({ children }: PropsWithChildren) => {
     [],
   );
 
-  // Update service status
-  useInterval(async () => {
+  const updateServiceStatus = useCallback(async () => {
     if (!services?.[0]) return;
     const serviceStatus = await ServicesService.getDeployment(services[0].hash);
     setServiceStatus(serviceStatus.status);
-  }, 5000);
+  }, [services]);
+
+  // Update service status
+  useInterval(() => updateServiceStatus(), hasInitialLoaded ? 5000 : null);
 
   // Update service state
   useInterval(
@@ -92,6 +96,7 @@ export const ServicesProvider = ({ children }: PropsWithChildren) => {
         serviceAddresses,
         setServices,
         updateServicesState,
+        updateServiceStatus,
         hasInitialLoaded,
         serviceStatus,
         setServiceStatus,

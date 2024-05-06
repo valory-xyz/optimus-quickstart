@@ -12,23 +12,21 @@ export const MainNeedsFunds = () => {
   const { totalEthBalance, totalOlasBalance } = useBalance();
 
   const serviceFundRequirements = useMemo(() => {
-    return {
-      eth: Number(
-        formatUnits(
-          `${serviceTemplate.configuration.monthly_gas_estimate}`,
-          18,
-        ),
+    const monthlyGasEstimate = Number(
+      formatUnits(`${serviceTemplate.configuration.monthly_gas_estimate}`, 18),
+    );
+    const olasCostOfBond = Number(
+      formatUnits(`${serviceTemplate.configuration.olas_cost_of_bond}`, 18),
+    );
+    const olasRequiredToStake = Number(
+      formatUnits(
+        `${serviceTemplate.configuration.olas_required_to_stake}`,
+        18,
       ),
-      olas:
-        Number(
-          formatUnits(`${serviceTemplate.configuration.olas_cost_of_bond}`, 18),
-        ) +
-        Number(
-          formatUnits(
-            `${serviceTemplate.configuration.olas_required_to_stake}`,
-            18,
-          ),
-        ),
+    );
+    return {
+      eth: monthlyGasEstimate,
+      olas: olasCostOfBond + olasRequiredToStake,
     };
   }, [
     serviceTemplate.configuration.monthly_gas_estimate,

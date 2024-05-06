@@ -13,7 +13,12 @@ import { WalletService } from '@/service/Wallet';
 export const MainHeader = () => {
   const { services, serviceStatus, setServiceStatus } = useServices();
   const { getServiceTemplates } = useServiceTemplates();
-  const { totalOlasBalance, totalEthBalance, wallets } = useBalance();
+  const {
+    totalOlasBalance,
+    totalEthBalance,
+    wallets,
+    setIsPaused: setIsBalancePollingPaused,
+  } = useBalance();
 
   const [serviceButtonState, setServiceButtonState] = useState({
     isLoading: false,
@@ -44,29 +49,43 @@ export const MainHeader = () => {
   }, [serviceStatus]);
 
   const handleStart = useCallback(async () => {
-    setServiceButtonState({ isLoading: true });
-
     if (!wallets?.[0]) return;
 
-    if (!wallets?.[0].safe) {
-      await WalletService.createSafe(Chain.GNOSIS);
-    }
+    setServiceButtonState({ isLoading: true });
+    setIsBalancePollingPaused(true);
 
-    if (services.length > 0) {
-      return ServicesService.startDeployment(services[0].hash).then(() => {
+    try {
+      if (!wallets?.[0].safe) {
+        await WalletService.createSafe(Chain.GNOSIS);
+      }
+
+      if (services.length > 0) {
+        return ServicesService.startDeployment(services[0].hash).then(() => {
+          setServiceStatus(DeploymentStatus.DEPLOYED);
+          setIsBalancePollingPaused(false);
+          setServiceButtonState({ isLoading: false });
+        });
+      }
+
+      return ServicesService.createService({
+        serviceTemplate,
+        deploy: true,
+      }).then(() => {
         setServiceStatus(DeploymentStatus.DEPLOYED);
+        setIsBalancePollingPaused(false);
         setServiceButtonState({ isLoading: false });
       });
-    }
-
-    return ServicesService.createService({
-      serviceTemplate,
-      deploy: true,
-    }).then(() => {
-      setServiceStatus(DeploymentStatus.DEPLOYED);
+    } catch (error) {
+      setIsBalancePollingPaused(false);
       setServiceButtonState({ isLoading: false });
-    });
-  }, [serviceTemplate, services, setServiceStatus, wallets]);
+    }
+  }, [
+    serviceTemplate,
+    services,
+    setIsBalancePollingPaused,
+    setServiceStatus,
+    wallets,
+  ]);
 
   const handleStop = useCallback(() => {
     if (services.length === 0) return;
@@ -106,27 +125,27 @@ export const MainHeader = () => {
         </Button>
       );
     }
+    const olasCostOfBond = Number(
+      formatUnits(
+        `${SERVICE_TEMPLATES[0].configuration.olas_cost_of_bond}`,
+        18,
+      ),
+    );
+    const olasRequiredToStake = Number(
+      formatUnits(
+        `${SERVICE_TEMPLATES[0].configuration.olas_required_to_stake}`,
+        18,
+      ),
+    );
+    const monthlyGasEstimate = Number(
+      formatUnits(
+        `${SERVICE_TEMPLATES[0].configuration.monthly_gas_estimate}`,
+        18,
+      ),
+    );
     if (
-      totalOlasBalance <
-        Number(
-          formatUnits(
-            `${SERVICE_TEMPLATES[0].configuration.olas_cost_of_bond}`,
-            18,
-          ),
-        ) +
-          Number(
-            formatUnits(
-              `${SERVICE_TEMPLATES[0].configuration.olas_required_to_stake}`,
-              18,
-            ),
-          ) ||
-      totalEthBalance <
-        Number(
-          formatUnits(
-            `${SERVICE_TEMPLATES[0].configuration.monthly_gas_estimate}`,
-            18,
-          ),
-        )
+      totalOlasBalance < olasCostOfBond + olasRequiredToStake ||
+      totalEthBalance < monthlyGasEstimate
     ) {
       return (
         <Button type="default" size="large" disabled>

@@ -11,6 +11,7 @@ export const useBalance = () => {
     wallets,
     walletBalances,
     updateBalances,
+    setIsPaused,
   } = useContext(BalanceContext);
 
   return {
@@ -21,5 +22,6 @@ export const useBalance = () => {
     wallets,
     walletBalances,
     updateBalances,
+    setIsPaused,
   };
 };

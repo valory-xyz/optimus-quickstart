@@ -41,6 +41,7 @@ export const BalanceContext = createContext<{
   wallets: Wallet[];
   walletBalances: WalletAddressNumberRecord;
   updateBalances: () => Promise<void>;
+  setIsPaused: Dispatch<SetStateAction<boolean>>;
 }>({
   isLoaded: false,
   setIsLoaded: () => {},
@@ -51,12 +52,14 @@ export const BalanceContext = createContext<{
   wallets: [],
   walletBalances: {},
   updateBalances: async () => {},
+  setIsPaused: () => {},
 });
 
 export const BalanceProvider = ({ children }: PropsWithChildren) => {
   const { services, serviceAddresses } = useContext(ServicesContext);
 
   const [isLoaded, setIsLoaded] = useState<boolean>(false);
+  const [isPaused, setIsPaused] = useState<boolean>(false);
   const [olasDepositBalance, setOlasDepositBalance] = useState<number>();
   const [olasBondBalance, setOlasBondBalance] = useState<number>();
   const [wallets, setWallets] = useState<Wallet[]>([]);
@@ -64,13 +67,15 @@ export const BalanceProvider = ({ children }: PropsWithChildren) => {
     useState<WalletAddressNumberRecord>({});
 
   const totalEthBalance: number | undefined = useMemo(() => {
+    if (!isLoaded) return;
     return Object.values(walletBalances).reduce(
       (acc: number, walletBalance) => acc + walletBalance.ETH,
       0,
     );
-  }, [walletBalances]);
+  }, [isLoaded, walletBalances]);
 
   const totalOlasBalance: number | undefined = useMemo(() => {
+    if (!isLoaded) return;
     const sumWalletBalances = Object.values(walletBalances).reduce(
       (acc: number, walletBalance) => acc + walletBalance.OLAS,
       0,
@@ -79,7 +84,7 @@ export const BalanceProvider = ({ children }: PropsWithChildren) => {
     return (
       sumWalletBalances + (olasDepositBalance ?? 0) + (olasBondBalance ?? 0)
     );
-  }, [olasBondBalance, olasDepositBalance, walletBalances]);
+  }, [isLoaded, olasBondBalance, olasDepositBalance, walletBalances]);
 
   const isPolling = useMemo(
     () => !isEmpty(wallets) && !isEmpty(walletBalances),
@@ -120,7 +125,7 @@ export const BalanceProvider = ({ children }: PropsWithChildren) => {
     () => {
       updateBalances();
     },
-    isPolling ? 5000 : null,
+    isPolling && !isPaused ? 5000 : null,
   );
 
   return (
@@ -135,6 +140,7 @@ export const BalanceProvider = ({ children }: PropsWithChildren) => {
         wallets,
         walletBalances,
         updateBalances,
+        setIsPaused,
       }}
     >
       {children}

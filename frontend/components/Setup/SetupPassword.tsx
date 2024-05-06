@@ -40,9 +40,9 @@ export const SetupPassword = () => {
           name="password"
           rules={[{ required: true, message: 'Please input a Password!' }]}
         >
-          <Input.Password placeholder="Password" />
+          <Input.Password size="large" placeholder="Password" />
         </Form.Item>
-        <Button htmlType="submit" loading={isLoading}>
+        <Button size="large" htmlType="submit" loading={isLoading}>
           Next
         </Button>
       </Form>

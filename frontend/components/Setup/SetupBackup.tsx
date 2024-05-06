@@ -1,5 +1,5 @@
 import { CopyOutlined } from '@ant-design/icons';
-import { Button, Input, message, Typography } from 'antd';
+import { Button, Flex, message, Tag, Typography } from 'antd';
 import { useState } from 'react';
 
 import { copyToClipboard } from '@/common-util';
@@ -22,16 +22,16 @@ export const SetupBackup = () => {
 
   return (
     <Wrapper vertical>
-      <Typography.Title>Backup</Typography.Title>
+      <Typography.Title level={3}>Back up seed phrase</Typography.Title>
       <Typography.Text>
-        Write down your mnemonic phrase and keep it safe.
+        Seed phrase is needed to regain access to your account if you forgot the
+        password.
       </Typography.Text>
-      <Input.TextArea
-        readOnly
-        value={mnemonic.join(' ')}
-        autoSize={{ minRows: 3, maxRows: 6 }}
-        disabled
-      />
+      <Flex gap={10} wrap="wrap">
+        {mnemonic.map((word) => (
+          <Tag key={word}>{word}</Tag>
+        ))}
+      </Flex>
       <Button
         onClick={() =>
           copyToClipboard(mnemonic.join(' ')).then(() =>
