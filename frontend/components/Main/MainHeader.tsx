@@ -5,7 +5,7 @@ import { useCallback, useMemo, useState } from 'react';
 
 import { Chain, DeploymentStatus } from '@/client';
 import { SERVICE_TEMPLATES } from '@/constants';
-import { useServiceTemplates, useWallet } from '@/hooks';
+import { useBalance, useServiceTemplates } from '@/hooks';
 import { useServices } from '@/hooks/useServices';
 import { ServicesService } from '@/service';
 import { WalletService } from '@/service/Wallet';
@@ -13,7 +13,7 @@ import { WalletService } from '@/service/Wallet';
 export const MainHeader = () => {
   const { services, serviceStatus, setServiceStatus } = useServices();
   const { getServiceTemplates } = useServiceTemplates();
-  const { totalOlasBalance, totalEthBalance, wallets } = useWallet();
+  const { totalOlasBalance, totalEthBalance, wallets } = useBalance();
 
   const [serviceButtonState, setServiceButtonState] = useState({
     isLoading: false,

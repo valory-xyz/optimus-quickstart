@@ -2,10 +2,10 @@ import { Flex } from 'antd';
 
 import { balanceFormat } from '@/common-util/numberFormatters';
 import { UNICODE_SYMBOLS } from '@/constants/unicode';
-import { useWallet } from '@/hooks';
+import { useBalance } from '@/hooks';
 
 export const MainOlasBalance = () => {
-  const { totalOlasBalance } = useWallet();
+  const { totalOlasBalance } = useBalance();
   return (
     <Flex align="end" gap={5}>
       <span className="balance-symbol">{UNICODE_SYMBOLS.OLAS}</span>

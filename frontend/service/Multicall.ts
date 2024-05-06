@@ -1,17 +1,16 @@
 import { BigNumber, ethers } from 'ethers';
-import { Contract, ContractCall, Provider } from 'ethers-multicall';
+import { Contract as MulticallContract, ContractCall } from 'ethers-multicall';
 
-import { multicall3Abi } from '@/abi';
+import { MULTICALL3_ABI } from '@/abi';
 import { ERC20_BALANCEOF_FRAGMENT } from '@/abi/erc20Abi';
 import { MULTICALL_CONTRACT } from '@/constants';
+import { gnosisMulticallProvider } from '@/constants/providers';
 import { Address, AddressNumberRecord } from '@/types';
 
-const provider = new ethers.providers.StaticJsonRpcProvider(
-  process.env.GNOSIS_RPC,
+const multicallContract = new MulticallContract(
+  MULTICALL_CONTRACT,
+  MULTICALL3_ABI,
 );
-const multicallProvider = new Provider(provider, 100);
-
-const multicallContract = new Contract(MULTICALL_CONTRACT, multicall3Abi);
 
 /**
  * Gets ETH balances for a list of addresses
@@ -30,8 +29,8 @@ const getEthBalances = async (
 
   if (!callData.length) return {};
 
-  await multicallProvider.init();
-  const multicallResponse = await multicallProvider.all(callData);
+  await gnosisMulticallProvider.init();
+  const multicallResponse = await gnosisMulticallProvider.all(callData);
 
   return multicallResponse.reduce(
     (acc: AddressNumberRecord, balance: BigNumber, index: number) => ({
@@ -57,12 +56,14 @@ const getErc20Balances = async (
   if (!addresses.length) return {};
 
   const callData: ContractCall[] = addresses.map((address: Address) =>
-    new Contract(contractAddress, ERC20_BALANCEOF_FRAGMENT).balanceOf(address),
+    new MulticallContract(contractAddress, ERC20_BALANCEOF_FRAGMENT).balanceOf(
+      address,
+    ),
   );
 
-  await multicallProvider.init();
+  await gnosisMulticallProvider.init();
 
-  const multicallResponse = await multicallProvider.all(callData);
+  const multicallResponse = await gnosisMulticallProvider.all(callData);
 
   return multicallResponse.reduce(
     (acc: AddressNumberRecord, balance: BigNumber, index: number) => ({

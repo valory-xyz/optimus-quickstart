@@ -10,7 +10,7 @@ import {
   ServicesProvider,
   SetupProvider,
 } from '@/context';
-import { WalletProvider } from '@/context/WalletProvider';
+import { BalanceProvider } from '@/context/BalanceProvider';
 import { mainTheme } from '@/theme';
 
 export default function App({ Component, pageProps }: AppProps) {
@@ -27,7 +27,7 @@ export default function App({ Component, pageProps }: AppProps) {
     <AppInfoProvider>
       <PageStateProvider>
         <ServicesProvider>
-          <WalletProvider>
+          <BalanceProvider>
             <SetupProvider>
               {isMounted ? (
                 <ConfigProvider theme={mainTheme}>
@@ -35,7 +35,7 @@ export default function App({ Component, pageProps }: AppProps) {
                 </ConfigProvider>
               ) : null}
             </SetupProvider>
-          </WalletProvider>
+          </BalanceProvider>
         </ServicesProvider>
       </PageStateProvider>
     </AppInfoProvider>

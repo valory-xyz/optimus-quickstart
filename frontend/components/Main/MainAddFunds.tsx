@@ -14,10 +14,10 @@ import styled from 'styled-components';
 
 import { copyToClipboard, truncateAddress } from '@/common-util';
 import { UNICODE_SYMBOLS } from '@/constants/unicode';
-import { useWallet } from '@/hooks';
+import { useBalance } from '@/hooks';
 
 export const MainAddFunds = () => {
-  const { wallets } = useWallet();
+  const { wallets } = useBalance();
   const [isAddFundsVisible, setIsAddFundsVisible] = useState(false);
 
   const walletAddress = useMemo(() => wallets[0]?.address, [wallets]);

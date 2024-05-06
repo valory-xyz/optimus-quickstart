@@ -7,6 +7,7 @@ import { usePageState } from '@/hooks';
 
 export default function Home() {
   const { pageState } = usePageState();
+
   const page = useMemo(() => {
     switch (pageState) {
       case PageState.Setup:

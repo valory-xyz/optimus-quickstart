@@ -5,11 +5,11 @@ import { ReactNode, useMemo } from 'react';
 
 import { SERVICE_TEMPLATES } from '@/constants';
 import { UNICODE_SYMBOLS } from '@/constants/unicode';
-import { useWallet } from '@/hooks';
+import { useBalance } from '@/hooks';
 
 export const MainNeedsFunds = () => {
   const serviceTemplate = SERVICE_TEMPLATES[0];
-  const { totalEthBalance, totalOlasBalance } = useWallet();
+  const { totalEthBalance, totalOlasBalance } = useBalance();
 
   const serviceFundRequirements = useMemo(() => {
     return {
@@ -29,13 +29,13 @@ export const MainNeedsFunds = () => {
   ]);
 
   const hasEnoughEth = useMemo(
-    () => serviceFundRequirements?.eth < 0,
-    [serviceFundRequirements.eth],
+    () => (serviceFundRequirements?.eth || 0) < (totalEthBalance || 0),
+    [serviceFundRequirements?.eth, totalEthBalance],
   );
 
   const hasEnoughOlas = useMemo(
-    () => serviceFundRequirements?.olas < 0,
-    [serviceFundRequirements.olas],
+    () => (serviceFundRequirements?.olas || 0) < (totalOlasBalance || 0),
+    [serviceFundRequirements?.olas, totalOlasBalance],
   );
 
   const isVisible: boolean = useMemo(() => {

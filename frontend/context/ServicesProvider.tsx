@@ -5,7 +5,6 @@ import {
   PropsWithChildren,
   SetStateAction,
   useCallback,
-  useEffect,
   useMemo,
   useState,
 } from 'react';
@@ -23,6 +22,7 @@ type ServicesContextProps = {
   setServiceStatus: Dispatch<SetStateAction<DeploymentStatus | undefined>>;
   updateServicesState: () => Promise<void>;
   hasInitialLoaded: boolean;
+  setHasInitialLoaded: Dispatch<SetStateAction<boolean>>;
 };
 
 export const ServicesContext = createContext<ServicesContextProps>({
@@ -31,12 +31,14 @@ export const ServicesContext = createContext<ServicesContextProps>({
   setServices: () => {},
   serviceStatus: undefined,
   setServiceStatus: () => {},
-  hasInitialLoaded: false,
   updateServicesState: async () => {},
+  hasInitialLoaded: false,
+  setHasInitialLoaded: () => {},
 });
 
 export const ServicesProvider = ({ children }: PropsWithChildren) => {
   const [services, setServices] = useState<Service[]>([]);
+
   const [serviceStatus, setServiceStatus] = useState<
     DeploymentStatus | undefined
   >();
@@ -62,18 +64,13 @@ export const ServicesProvider = ({ children }: PropsWithChildren) => {
         .then((data: Service[]) => {
           if (!Array.isArray(data) || !data?.length) return;
           setServices(data);
+          setHasInitialLoaded(true);
         })
         .catch((e) => {
           message.error(e.message);
         }),
     [],
   );
-
-  useEffect(() => {
-    // Update on load
-    updateServicesState().then(() => setHasInitialLoaded(true));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
 
   // Update service status
   useInterval(
@@ -103,6 +100,7 @@ export const ServicesProvider = ({ children }: PropsWithChildren) => {
         hasInitialLoaded,
         serviceStatus,
         setServiceStatus,
+        setHasInitialLoaded,
       }}
     >
       {children}
