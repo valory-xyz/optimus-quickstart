@@ -4,11 +4,13 @@ dotenv.config();
 
 /**@type import('hardhat/config').HardhatUserConfig */
 const config = {
-  networks: {
+  defaultNetwork: "hardhat",
+  networks: {    
     hardhat: {
       forking: {
-        url: "https://gnosis-pokt.nodies.app"
+        url: "https://gnosis-pokt.nodies.app"      
       },
+      chainId: 100,
     },    
   },    
 };
