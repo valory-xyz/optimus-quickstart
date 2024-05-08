@@ -528,7 +528,5 @@ class ServiceManager:
         new_service.ledger_config = old_service.ledger_config
         new_service.chain_data.on_chain_state = OnChainState.NOTMINTED
         new_service.store()
-
-        self.deploy_service_onchain(hash=new_service.hash)
         old_service.delete()
         return new_service

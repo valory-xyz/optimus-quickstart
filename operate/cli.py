@@ -35,6 +35,7 @@ from autonomy.constants import (
 )
 from autonomy.deploy.generators.docker_compose.base import get_docker_client
 from clea import group, params, run
+from compose.project import ProjectError
 from docker.errors import APIError
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
@@ -180,6 +181,7 @@ def create_app(  # pylint: disable=too-many-locals, unused-argument, too-many-st
             pull_latest_images,
         ],
     )
+
     app.add_middleware(
         CORSMiddleware,
         allow_origins=["*"],
@@ -197,7 +199,7 @@ def create_app(  # pylint: disable=too-many-locals, unused-argument, too-many-st
             while retries < DEFAULT_MAX_RETRIES:
                 try:
                     return await f(request)
-                except APIError as e:
+                except (APIError, ProjectError) as e:
                     logger.error(f"Error {e}\n{traceback.format_exc()}")
                     error = {"traceback": traceback.format_exc()}
                     if "has active endpoints" in e.explanation:
@@ -208,9 +210,9 @@ def create_app(  # pylint: disable=too-many-locals, unused-argument, too-many-st
                     return JSONResponse(content={"errors": errors}, status_code=500)
                 except Exception as e:  # pylint: disable=broad-except
                     errors.append(
-                        {"error": str(e), "traceback": traceback.format_exc()}
+                        {"error": str(e.args[0]), "traceback": traceback.format_exc()}
                     )
-                    logger.error(f"Error {e}\n{traceback.format_exc()}")
+                    logger.error(f"Error {str(e.args[0])}\n{traceback.format_exc()}")
                 retries += 1
             return JSONResponse(content={"errors": errors}, status_code=500)
 
@@ -373,16 +375,42 @@ def create_app(  # pylint: disable=too-many-locals, unused-argument, too-many-st
         if operate.password is None:
             return USER_NOT_LOGGED_IN_ERROR
         template = await request.json()
-        service = operate.service_manager().create_or_load(
-            hash=template["hash"],
-            rpc=template["configuration"]["rpc"],
-            on_chain_user_params=services.manage.OnChainUserParams.from_json(
-                template["configuration"]
-            ),
-        )
+        manager = operate.service_manager()
+        update = False
+        if len(manager.json) > 0:
+            old_hash = manager.json[0]["hash"]
+            if old_hash == template["hash"]:
+                logger.info("Loading service " + template["hash"])
+                service = manager.create_or_load(
+                    hash=template["hash"],
+                    rpc=template["configuration"]["rpc"],
+                    on_chain_user_params=services.manage.OnChainUserParams.from_json(
+                        template["configuration"]
+                    ),
+                )
+            else:
+                logger.info(f"Updating service from {old_hash} to " + template["hash"])
+                service = manager.update_service(
+                    old_hash=old_hash,
+                    new_hash=template["hash"],
+                    rpc=template["configuration"]["rpc"],
+                    on_chain_user_params=services.manage.OnChainUserParams.from_json(
+                        template["configuration"]
+                    ),
+                )
+                update = True
+        else:
+            logger.info("Creating service " + template["hash"])
+            service = manager.create_or_load(
+                hash=template["hash"],
+                rpc=template["configuration"]["rpc"],
+                on_chain_user_params=services.manage.OnChainUserParams.from_json(
+                    template["configuration"]
+                ),
+            )
+
         if template.get("deploy", False):
-            manager = operate.service_manager()
-            manager.deploy_service_onchain(hash=service.hash)
+            manager.deploy_service_onchain(hash=service.hash, update=update)
             manager.stake_service_on_chain(hash=service.hash)
             manager.fund_service(hash=service.hash)
             manager.deploy_service_locally(hash=service.hash)
