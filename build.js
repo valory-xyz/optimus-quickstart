@@ -31,7 +31,7 @@ const main = async () => {
         entitlements: 'electron/entitlements.mac.plist',
         entitlementsInherit: 'electron/entitlements.mac.plist',
         notarize: {
-          teamId: process.env.APPLETEAMID,
+          teamId: process.env.APPLETEAMID
         },
       },
     },

@@ -36,30 +36,6 @@
   "main": "electron/main.js",
   "name": "olas-operate-app",
   "private": true,
-  "build": {
-    "appId": "xyz.valory.olas-operate-app",
-    "productName": "Olas Operate",
-    "directories": {
-      "output": "dist"
-    },
-    "win": {
-      "target": "nsis",
-      "icon": "electron/assets/icons/splash-robot-head.png"
-    },
-    "mac": {
-      "target": "dmg",
-      "icon": "electron/assets/icons/splash-robot-head.png",
-      "hardenedRuntime": true,
-      "gatekeeperAssess": false,
-      "entitlements": "electron/entitlements.mac.plist",
-      "entitlementsInherit": "electron/entitlements.mac.plist",
-      "category": "public.app-category.utilities"
-    },
-    "linux": {
-      "target": "AppImage",
-      "icon": "electron/assets/icons/splash-robot-head.png"
-    }
-  },
   "scripts": {
     "build:frontend": "cd frontend && yarn build && rm -rf ../electron/.next && cp -r .next ../electron/.next && rm -rf ../electron/public && cp -r public ../electron/public",
     "dev:backend": "poetry run python operate/cli.py",
