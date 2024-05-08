@@ -2,6 +2,9 @@ const { promises: fs } = require('fs');
 const log = (...messages) => console.log(...messages);
 
 exports.default = async function (context) {
+  if (context.electronPlatformName !== 'darwin') {
+    return context;
+  }
   const troublesome_files = [
     `dist/mac-arm64/Operate App.app/Contents/Resources/app.asar.unpacked/node_modules/electron-sudo/LICENSE`,
     `dist/mac-arm64/Operate App.app/Contents/Resources/app.asar.unpacked/node_modules/electron-sudo/dist/bin/applet.app/LICENSE`,
