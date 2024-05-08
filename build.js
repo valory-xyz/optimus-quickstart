@@ -11,7 +11,6 @@ const main = async () => {
     config: {
       productName: 'Olas Operate',
       artifactName: '${productName}-${version}-${platform}-${arch}.${ext}',
-
       appId: 'xyz.valory.olas-operate-app',
       category: 'public.app-category.utilities',
       directories: {
@@ -29,7 +28,6 @@ const main = async () => {
         gatekeeperAssess: false,
         entitlements: 'electron/entitlements.mac.plist',
         entitlementsInherit: 'electron/entitlements.mac.plist',
-        category: 'public.app-category.utilities',
         notarize: {
           teamId: process.env.APPLETEAMID,
         },
