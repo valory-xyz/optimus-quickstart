@@ -12,10 +12,11 @@ const main = async () => {
       productName: 'Olas Operate',
       artifactName: '${productName}-${version}-${platform}-${arch}.${ext}',
       appId: 'xyz.valory.olas-operate-app',
-      category: 'public.app-category.utilities',
       directories: {
         output: 'dist',
       },
+      cscKeyPassword: process.env.CSC_KEY_PASSWORD,
+      cscLink: process.env.CSC_LINK,
       mac: {
         target: [
           {
@@ -23,6 +24,7 @@ const main = async () => {
             arch: ['arm64'],
           },
         ],
+        category: 'public.app-category.utilities',
         icon: 'electron/assets/icons/splash-robot-head.png',
         hardenedRuntime: true,
         gatekeeperAssess: false,
