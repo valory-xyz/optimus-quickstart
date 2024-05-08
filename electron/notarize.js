@@ -1,8 +1,10 @@
 const { notarize } = require('@electron/notarize');
 
 exports.default = async function notarizing(context) {
+  console.log('Notarizing');
   const { electronPlatformName, appOutDir } = context;
   if (electronPlatformName !== 'darwin') {
+    console.log('Only notarizing for macOS, exiting');
     return;
   }
 
@@ -14,5 +16,6 @@ exports.default = async function notarizing(context) {
     appleId: process.env.APPLEID,
     appleIdPassword: process.env.APPLEIDPASS,
     teamId: process.env.APPLETEAMID,
+    tool: 'notarytool',
   });
 };

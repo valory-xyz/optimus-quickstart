@@ -52,26 +52,19 @@ jobs:
                     APPLETEAMID: ${{ secrets.APPLETEAMID }}
                     GH_TOKEN: ${{ secrets.github_token}}
                     NODE_ENV: production
+                    DEBUG: electron-notarize
                 run: rm -rf /dist && npm exec --package=electron-builder -- electron-builder build --mac --arm64 --publish never
 
-            -   name: Upload release attachment
-                uses: actions/github-script@v4
+            # Zip after notarization 
+            -   name: Zip distribution
+                run: |
+                    cd dist/mac-arm64
+                    ditto -c -k --keepParent "Operate App.app" "Operate App.app.zip"
+            
+            # Upload artifact to GitHub repo
+            -   name: Upload artifact
+                uses: actions/upload-artifact@v2
                 with:
-                    script: |
-                        const fs = require('fs');
-                        const tag = context.ref.replace("refs/tags/", "");
-                        console.log("tag = ", tag);
-                        // Get release for this tag
-                        const release = await github.repos.getReleaseByTag({
-                            owner: context.repo.owner,
-                            repo: context.repo.repo,
-                            tag
-                        });
-                        // Upload the release asset
-                        await github.repos.uploadReleaseAsset({
-                            owner: context.repo.owner,
-                            repo: context.repo.repo,
-                            release_id: release.data.id,
-                            name: "Operate App.app",
-                            data: await fs.readFileSync("dist/mac/Operate App.app")
-                        });
+                    name: OperateApp-macOS
+                    path: |
+                        dist/mac/Operate App.app.zip
