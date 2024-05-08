@@ -1,6 +1,6 @@
 import { ServiceTemplate } from '@/client';
 
-export const serviceTemplates: ServiceTemplate[] = [
+export const SERVICE_TEMPLATES: ServiceTemplate[] = [
   {
     name: 'Trader Agent',
     hash: 'bafybeiha6dxygx2ntgjxhs6zzymgqk3s5biy3ozeqw6zuhr6yxgjlebfmq',

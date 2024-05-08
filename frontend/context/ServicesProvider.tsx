@@ -1,12 +1,10 @@
 import { message } from 'antd';
-import { isAddress } from 'ethers/lib/utils';
 import {
   createContext,
   Dispatch,
   PropsWithChildren,
   SetStateAction,
   useCallback,
-  useEffect,
   useMemo,
   useState,
 } from 'react';
@@ -23,7 +21,9 @@ type ServicesContextProps = {
   serviceStatus: DeploymentStatus | undefined;
   setServiceStatus: Dispatch<SetStateAction<DeploymentStatus | undefined>>;
   updateServicesState: () => Promise<void>;
+  updateServiceStatus: () => Promise<void>;
   hasInitialLoaded: boolean;
+  setHasInitialLoaded: Dispatch<SetStateAction<boolean>>;
 };
 
 export const ServicesContext = createContext<ServicesContextProps>({
@@ -32,12 +32,15 @@ export const ServicesContext = createContext<ServicesContextProps>({
   setServices: () => {},
   serviceStatus: undefined,
   setServiceStatus: () => {},
-  hasInitialLoaded: false,
   updateServicesState: async () => {},
+  updateServiceStatus: async () => {},
+  hasInitialLoaded: false,
+  setHasInitialLoaded: () => {},
 });
 
 export const ServicesProvider = ({ children }: PropsWithChildren) => {
   const [services, setServices] = useState<Service[]>([]);
+
   const [serviceStatus, setServiceStatus] = useState<
     DeploymentStatus | undefined
   >();
@@ -45,47 +48,45 @@ export const ServicesProvider = ({ children }: PropsWithChildren) => {
 
   const serviceAddresses = useMemo(
     () =>
-      services.flatMap(({ chain_data: { instances = [], multisig } }) => {
-        const validInstances = instances.filter((instance) =>
-          isAddress(`${instance}`),
-        );
-        if (!multisig) return validInstances;
-        return isAddress(`${multisig}`)
-          ? [...validInstances, multisig]
-          : validInstances;
-      }) ?? [],
+      services?.reduce<Address[]>((acc, service: Service) => {
+        if (service.chain_data.instances) {
+          acc.push(...service.chain_data.instances);
+        }
+        if (service.chain_data.multisig) {
+          acc.push(service.chain_data.multisig);
+        }
+        return acc;
+      }, []),
     [services],
   );
 
   const updateServicesState = useCallback(
     async (): Promise<void> =>
-      ServicesService.getServices().then((data: Service[]) =>
-        setServices(data),
-      ),
+      ServicesService.getServices()
+        .then((data: Service[]) => {
+          if (!Array.isArray(data) || !data?.length) return;
+          setServices(data);
+          setHasInitialLoaded(true);
+        })
+        .catch((e) => {
+          message.error(e.message);
+        }),
     [],
   );
 
-  useEffect(() => {
-    // Update on load
-    updateServicesState().then(() => setHasInitialLoaded(true));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  const updateServiceStatus = useCallback(async () => {
+    if (!services?.[0]) return;
+    const serviceStatus = await ServicesService.getDeployment(services[0].hash);
+    setServiceStatus(serviceStatus.status);
+  }, [services]);
 
   // Update service status
-  useInterval(
-    async () => {
-      const serviceStatus = await ServicesService.getDeployment(
-        services[0].hash,
-      );
-      setServiceStatus(serviceStatus.status);
-    },
-    services.length ? 5000 : null,
-  );
+  useInterval(() => updateServiceStatus(), hasInitialLoaded ? 5000 : null);
 
   // Update service state
   useInterval(
     () => updateServicesState().catch((e) => message.error(e.message)),
-    hasInitialLoaded ? 5000 : null,
+    5000,
   );
 
   return (
@@ -95,9 +96,11 @@ export const ServicesProvider = ({ children }: PropsWithChildren) => {
         serviceAddresses,
         setServices,
         updateServicesState,
+        updateServiceStatus,
         hasInitialLoaded,
         serviceStatus,
         setServiceStatus,
+        setHasInitialLoaded,
       }}
     >
       {children}

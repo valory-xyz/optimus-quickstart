@@ -1,13 +1,18 @@
-// temporary during development
-require("dotenv").config();
-module.exports = {
+const dotenv = require("dotenv");
+
+dotenv.config();
+
+/**@type import('hardhat/config').HardhatUserConfig */
+const config = {
   defaultNetwork: "hardhat",
-  networks: {
+  networks: {    
     hardhat: {
-      hostname: "0.0.0.0",
-      forking: {url: process.env.FORK_URL},
+      forking: {
+        url: "https://gnosis-pokt.nodies.app"      
+      },
       chainId: 100,
-      port: process.env.PORT || 8545,      
-    },
-  },  
+    },    
+  },    
 };
+
+module.exports = config

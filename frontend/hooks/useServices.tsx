@@ -18,10 +18,7 @@ const checkServiceIsFunded = async (
 
   const addresses = [...instances, multisig];
 
-  const balances = await MulticallService.getEthBalances(
-    addresses,
-    service.ledger.rpc,
-  );
+  const balances = await MulticallService.getEthBalances(addresses);
 
   if (!balances) return false;
 
@@ -48,6 +45,7 @@ export const useServices = () => {
     setServices,
     serviceStatus,
     setServiceStatus,
+    updateServiceStatus,
   } = useContext(ServicesContext);
 
   // STATE METHODS
@@ -62,16 +60,17 @@ export const useServices = () => {
   const getServicesFromState = (): Service[] =>
     hasInitialLoaded ? services : [];
 
-  const updateServiceState = (serviceHash: ServiceHash) =>
-    ServicesService.getService(serviceHash).then((service: Service) =>
+  const updateServiceState = (serviceHash: ServiceHash) => {
+    ServicesService.getService(serviceHash).then((service: Service) => {
       setServices((prev) => {
         const index = prev.findIndex((s) => s.hash === serviceHash); // findIndex returns -1 if not found
         if (index === -1) return [...prev, service];
         const newServices = [...prev];
         newServices[index] = service;
         return newServices;
-      }),
-    );
+      });
+    });
+  };
 
   const deleteServiceState = (serviceHash: ServiceHash) =>
     setServices((prev) => prev.filter((s) => s.hash !== serviceHash));
@@ -85,6 +84,7 @@ export const useServices = () => {
     checkServiceIsFunded,
     updateServicesState,
     updateServiceState,
+    updateServiceStatus,
     deleteServiceState,
     hasInitialLoaded,
   };
