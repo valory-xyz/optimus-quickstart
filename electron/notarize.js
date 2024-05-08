@@ -10,12 +10,16 @@ exports.default = async function notarizing(context) {
 
   const appName = context.packager.appInfo.productFilename;
 
-  return await notarize({
-    appBundleId: 'xyz.valory.olas-operate-app',
+  await notarize({
     appPath: `${appOutDir}/${appName}.app`,
+    // appBundleId: 'xyz.valory.olas-operate-app',
     appleId: process.env.APPLEID,
     appleIdPassword: process.env.APPLEIDPASS,
     teamId: process.env.APPLETEAMID,
     tool: 'notarytool',
+  }).catch((error) => {
+    console.log(error);
+    process.exit(1);
   });
+  return context;
 };
