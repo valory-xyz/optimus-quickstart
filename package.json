@@ -9,7 +9,6 @@
     "cross-env": "^7.0.3",
     "dockerode": "^4.0.2",
     "dotenv": "^16.4.5",
-    "electron-sudo": "^4.0.12",
     "ethers": "5.7.2",
     "ethers-multicall": "^0.2.3",
     "lodash": "^4.17.21",
@@ -41,7 +40,6 @@
     "appId": "xyz.valory.olas-operate-app",
     "afterSign": "electron/notarize.js",
     "productName": "Olas Operate",
-    "afterPack": "electron/afterPack.js",
     "directories": {
       "output": "dist"
     },
