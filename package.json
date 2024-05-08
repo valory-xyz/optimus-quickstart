@@ -38,7 +38,6 @@
   "private": true,
   "build": {    
     "appId": "xyz.valory.olas-operate-app",
-    "afterSign": "electron/notarize.js",
     "productName": "Olas Operate",
     "directories": {
       "output": "dist"
