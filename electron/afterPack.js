@@ -6,9 +6,7 @@ exports.default = async function (context) {
     return context;
   }
   const troublesome_files = [
-    `dist/mac-arm64/Operate App.app/Contents/Resources/app.asar.unpacked/node_modules/electron-sudo/LICENSE`,
-    `dist/mac-arm64/Operate App.app/Contents/Resources/app.asar.unpacked/node_modules/electron-sudo/dist/bin/applet.app/LICENSE`,
-    `dist/mac-arm64/Operate App.app/Contents/Resources/app.asar.unpacked/node_modules/electron-sudo/src/bin/applet.app/LICENSE`,
+    `dist/mac-arm64/Olas Operate.app/Contents/Resources/app.asar.unpacked/node_modules/electron-sudo/dist/bin/applet.app/Contents/MacOS/applet/LICENSE`,
   ];
 
   try {
