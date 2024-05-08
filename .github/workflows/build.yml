@@ -1,10 +1,11 @@
-# TBA
-name: Build
+name: Build & Notarize
 
-on: 
-    push:
-        tags:
-            - 'v*.*.*'
+# on: 
+#     push:
+#         tags:
+#             - 'v*.*.*'
+
+on: "pull_request" # only active during testing
 
 jobs:
     release:
@@ -38,8 +39,4 @@ jobs:
             # Install backend dependencies
             -   run: yarn install-deps
             -   run: yarn build:frontend
-            -   run: rm -rf /dist && GH_TOKEN=${{ secrets.github_token}} NODE_ENV=production npm exec --package=electron-builder -- electron-builder build --mac --arm64 --publish onTagOrDraft
-                
-
-            # Run backend
-            # -   run: yarn dev:backend
+            -   run: rm -rf /dist && GH_TOKEN=${{ secrets.github_token}} NODE_ENV=production npm exec --package=electron-builder -- electron-builder build --mac --arm64 --publish always
