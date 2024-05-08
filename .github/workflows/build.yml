@@ -48,7 +48,9 @@ jobs:
                     CSC_LINK: ${{ secrets.CSC_LINK }}
                     APPLEID: ${{ secrets.APPLEID }}
                     APPLEIDPASS: ${{ secrets.APPLEIDPASS }}
-                run: npm run dist
+                    GH_TOKEN: ${{ secrets.github_token}}
+                    NODE_ENV: production
+                run: rm -rf /dist && npm exec --package=electron-builder -- electron-builder build --mac --arm64 --publish always
 
             -   name: Upload release attachment
                 uses: actions/github-script@v4
