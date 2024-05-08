@@ -49,6 +49,7 @@ jobs:
                     CSC_FOR_PULL_REQUEST: true
                     APPLEID: ${{ secrets.APPLEID }}
                     APPLEIDPASS: ${{ secrets.APPLEIDPASS }}
+                    APPLETEAMID: ${{ secrets.APPLETEAMID }}
                     GH_TOKEN: ${{ secrets.github_token}}
                     NODE_ENV: production
                 run: rm -rf /dist && npm exec --package=electron-builder -- electron-builder build --mac --arm64 --publish never
