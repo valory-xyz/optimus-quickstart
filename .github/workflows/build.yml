@@ -16,6 +16,11 @@ jobs:
                 os: [macos-latest]
 
         steps:           
+            # Check for notarytool
+            -   name: Check for notarytool
+                run: xcrun --find notarytool
+
+            # Checkout branch
             - uses: actions/checkout@v2
 
             # Node.js (for package scripts)
