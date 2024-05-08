@@ -11,3 +11,7 @@ export const SERVICE_REGISTRY_L2: Record<number, Address> = {
 export const SERVICE_REGISTRY_TOKEN_UTILITY: Record<number, Address> = {
   [Chain.GNOSIS]: '0xa45E64d13A30a51b91ae0eb182e88a40e9b18eD8',
 };
+
+export const SERVICE_STAKING_TOKEN_MECH_USAGE: Record<number, Address> = {
+  [Chain.GNOSIS]: '0x43fb32f25dce34eb76c78c7a42c8f40f84bcd237',
+};
