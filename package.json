@@ -35,30 +35,32 @@
     "prettier": "^3.2.5"
   },
   "main": "electron/main.js",
-  "name": "olas-operate-app",
+  "name": "olas-operate-app",  
   "private": true,
-  "build": {
+  "build": {    
     "appId": "xyz.valory.olas-operate-app",
+    "afterSign": "electron/notarize.js",   
+    "forceCodeSigning": true,
     "productName": "Olas Operate",
-    "afterSign": "electron/scripts/notarize.js",   
     "directories": {
       "output": "dist"
     },
     "win": {
       "target": "nsis",
-      "icon": "electron/assets/icons/robot-head.png"
+      "icon": "electron/assets/icons/splash-robot-head.png"
     },
     "mac": {
       "target": "dmg",
-      "icon": "electron/assets/icons/robot-head.png",
+      "icon": "electron/assets/icons/splash-robot-head.png",
       "hardenedRuntime": true,
       "gatekeeperAssess": false,
       "entitlements": "electron/entitlements.mac.plist",
-      "entitlementsInherit": "electron/entitlements.mac.plist"    
+      "entitlementsInherit": "electron/entitlements.mac.plist",
+      "category": "public.app-category.utilities"
     },
     "linux": {
       "target": "AppImage",
-      "icon": "electron/assets/icons/robot-head.png"
+      "icon": "electron/assets/icons/splash-robot-head.png"
     }
   },
   "scripts": {
