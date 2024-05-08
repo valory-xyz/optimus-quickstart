@@ -18,7 +18,7 @@ jobs:
         steps:           
             - uses: actions/checkout@v2
 
-                # Node.js (for package scripts)
+            # Node.js (for package scripts)
             -   uses: actions/setup-node@v1
                 with:
                     node-version: "20.11"
@@ -36,7 +36,38 @@ jobs:
                     virtualenvs-path: ~/my-custom-path
                     installer-parallel: true
 
-            # Install backend dependencies
+            # Install & Build
             -   run: yarn install-deps
             -   run: yarn build:frontend
-            -   run: rm -rf /dist && GH_TOKEN=${{ secrets.github_token}} NODE_ENV=production npm exec --package=electron-builder -- electron-builder build --mac --arm64 --publish always
+            #-   run: rm -rf /dist && GH_TOKEN=${{ secrets.github_token}} NODE_ENV=production npm exec --package=electron-builder -- electron-builder build --mac --arm64 --publish always
+            
+            # Prepare distribution release (build and notarize .etc)
+            -   name: "Build distribution"
+                env:
+                    CSC_KEY_PASSWORD: ${{ secrets.CSC_KEY_PASSWORD }}
+                    CSC_LINK: ${{ secrets.CSC_LINK }}
+                    APPLEID: ${{ secrets.APPLEID }}
+                    APPLEIDPASS: ${{ secrets.APPLEIDPASS }}
+                run: npm run dist
+
+            -   name: Upload release attachment
+                uses: actions/github-script@v4
+                with:
+                    script: |
+                        const fs = require('fs');
+                        const tag = context.ref.replace("refs/tags/", "");
+                        console.log("tag = ", tag);
+                        // Get release for this tag
+                        const release = await github.repos.getReleaseByTag({
+                            owner: context.repo.owner,
+                            repo: context.repo.repo,
+                            tag
+                        });
+                        // Upload the release asset
+                        await github.repos.uploadReleaseAsset({
+                            owner: context.repo.owner,
+                            repo: context.repo.repo,
+                            release_id: release.data.id,
+                            name: "Operate App.app",
+                            data: await fs.readFileSync("dist/mac/Operate App.app")
+                        });
