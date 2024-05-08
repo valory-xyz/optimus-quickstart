@@ -402,7 +402,7 @@ ipcMain.on('check', async function (event, argument) {
 app.on('ready', async () => {
   if (platform === 'darwin') {
     app.dock?.setIcon(
-      path.join(__dirname, 'assets/icons/tray-logged-outd.png'),
+      path.join(__dirname, 'assets/icons/tray-logged-out.png'),
     );
   }
   createSplashWindow();
