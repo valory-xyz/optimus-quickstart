@@ -36,7 +36,7 @@ const main = async () => {
         publish: [
           {
             provider: 'github',
-            owner: 'valory',
+            owner: 'valory-xyz',
             repo: 'olas-operate-app',
           },
         ],
