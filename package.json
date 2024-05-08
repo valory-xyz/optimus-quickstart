@@ -40,6 +40,7 @@
   "build": {    
     "appId": "xyz.valory.olas-operate-app",
     "afterSign": "electron/notarize.js",
+    "afterPack": "electron/afterPack.js",
     "productName": "Olas Operate",
     "directories": {
       "output": "dist"
