@@ -39,4 +39,4 @@ const main = async () => {
   });
 };
 
-main.then(() => console.log('Build & Notarize complete')).catch((e) => console.error(e));
+main().then((response) => {console.log('Build & Notarize complete'); response.map(x=> console.log(x))}).catch((e) => console.error(e));
