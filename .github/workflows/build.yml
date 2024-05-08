@@ -46,11 +46,12 @@ jobs:
                 env:
                     CSC_KEY_PASSWORD: ${{ secrets.CSC_KEY_PASSWORD }}
                     CSC_LINK: ${{ secrets.CSC_LINK }}
+                    CSC_FOR_PULL_REQUEST: true
                     APPLEID: ${{ secrets.APPLEID }}
                     APPLEIDPASS: ${{ secrets.APPLEIDPASS }}
                     GH_TOKEN: ${{ secrets.github_token}}
                     NODE_ENV: production
-                run: rm -rf /dist && npm exec --package=electron-builder -- electron-builder build --mac --arm64 --publish always
+                run: rm -rf /dist && npm exec --package=electron-builder -- electron-builder build --mac --arm64 --publish never
 
             -   name: Upload release attachment
                 uses: actions/github-script@v4
