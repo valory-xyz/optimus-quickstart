@@ -1,18 +1,13 @@
 import { CloseOutlined, SettingOutlined } from '@ant-design/icons';
-import { Button, Flex, Input, message, theme, Typography } from 'antd';
+import { Button, Card, Flex, Input, message, Typography } from 'antd';
 import { useState } from 'react';
+import styled from 'styled-components';
 
 import { PageState } from '@/enums';
 import { usePageState } from '@/hooks';
 
-import { Header } from './Layout/Header';
-import { Wrapper } from './Layout/Wrapper';
-
-const { useToken } = theme;
-
 export const Settings = () => {
   const { setPageState } = usePageState();
-  const { token } = useToken();
 
   const [isUpdating, setIsUpdating] = useState(false);
 
@@ -26,44 +21,39 @@ export const Settings = () => {
   };
 
   return (
-    <>
-      <Header>
-        <Typography.Text
-          style={{ margin: 0, display: 'inline-flex', gap: 5, fontWeight: 400 }}
-        >
+    <Card
+      title={
+        <CardTitleText>
           <SettingOutlined />
           Settings
-        </Typography.Text>
-        <Button
-          type="text"
-          style={{ marginLeft: 'auto' }}
-          onClick={() => setPageState(PageState.Main)}
-        >
+        </CardTitleText>
+      }
+      extra={
+        <Button type="text" onClick={() => setPageState(PageState.Main)}>
           <CloseOutlined />
         </Button>
-      </Header>
-      <Wrapper>
+      }
+    >
+      <Flex justify="space-between" align="center">
         <Flex gap={5} vertical>
-          <Typography.Text style={{ fontSize: 16 }}>PASSWORD</Typography.Text>
+          <Typography.Text>Password</Typography.Text>
           {isUpdating ? (
             <Input.Password></Input.Password>
           ) : (
             <Typography.Text>********</Typography.Text>
           )}
         </Flex>
-        <Button
-          type="text"
-          disabled
-          onClick={handleClick}
-          style={{
-            marginTop: 'auto',
-            marginLeft: 'auto',
-            background: token.colorFillSecondary,
-          }}
-        >
+        <Button disabled onClick={handleClick}>
           {isUpdating ? 'Save' : 'Update'}
         </Button>
-      </Wrapper>
-    </>
+      </Flex>
+    </Card>
   );
 };
+
+const CardTitleText = styled(Typography.Text)`
+  margin: 0;
+  display: inline-flex;
+  gap: 5px;
+  font-weight: 400;
+`;

@@ -12,7 +12,6 @@ const nextConfig = {
       },
     ],
   },
-  reactStrictMode: true,
   transpilePackages: [
     'rc-util',
     '@babel/runtime',
@@ -23,8 +22,8 @@ const nextConfig = {
   env: {
     GNOSIS_RPC:
       process.env.NODE_ENV === 'production'
-        ? 'https://gnosis-rpc.publicnode.com'
-        : 'http://localhost:8545',
+        ? process.env.FORK_URL
+        : process.env.DEV_RPC,
   },
 };
 

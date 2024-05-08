@@ -19,6 +19,7 @@
 
 """Operate app CLI module."""
 
+import asyncio
 import logging
 import os
 import traceback
@@ -26,7 +27,15 @@ import typing as t
 from pathlib import Path
 
 from aea.helpers.logging import setup_logger
+from autonomy.constants import (
+    AUTONOMY_IMAGE_NAME,
+    AUTONOMY_IMAGE_VERSION,
+    TENDERMINT_IMAGE_NAME,
+    TENDERMINT_IMAGE_VERSION,
+)
+from autonomy.deploy.generators.docker_compose.base import get_docker_client
 from clea import group, params, run
+from compose.project import ProjectError
 from docker.errors import APIError
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
@@ -125,7 +134,53 @@ def create_app(  # pylint: disable=too-many-locals, unused-argument, too-many-st
 
     logger = setup_logger(name="operate")
     operate = OperateApp(home=home, logger=logger)
-    app = FastAPI()
+    funding_jobs: t.Dict[str, asyncio.Task] = {}
+
+    def pull_latest_images() -> None:
+        """Pull latest docker images."""
+        logger.info("Pulling latest images")
+        client = get_docker_client()
+
+        logger.info(f"Pulling {AUTONOMY_IMAGE_NAME}:{AUTONOMY_IMAGE_VERSION}")
+        client.images.pull(
+            repository=AUTONOMY_IMAGE_NAME,
+            tag=AUTONOMY_IMAGE_VERSION,
+        )
+
+        logger.info(f"Pulling {TENDERMINT_IMAGE_NAME}:{TENDERMINT_IMAGE_VERSION}")
+        client.images.pull(
+            repository=TENDERMINT_IMAGE_NAME,
+            tag=TENDERMINT_IMAGE_VERSION,
+        )
+
+    def schedule_funding_job(service: str) -> None:
+        """Schedule a funding job."""
+        logger.info(f"Starting funding job for {service}")
+        if service in funding_jobs:
+            logger.info(f"Cancelling existing funding job for {service}")
+            cancel_funding_job(service=service)
+
+        loop = asyncio.get_running_loop()
+        funding_jobs[service] = loop.create_task(
+            operate.service_manager().funding_job(
+                hash=service,
+                loop=loop,
+            )
+        )
+
+    def cancel_funding_job(service: str) -> None:
+        """Cancel funding job."""
+        if service not in funding_jobs:
+            return
+        status = funding_jobs[service].cancel()
+        if not status:
+            logger.info(f"Funding job cancellation for {service} failed")
+
+    app = FastAPI(
+        on_startup=[
+            pull_latest_images,
+        ],
+    )
 
     app.add_middleware(
         CORSMiddleware,
@@ -144,7 +199,7 @@ def create_app(  # pylint: disable=too-many-locals, unused-argument, too-many-st
             while retries < DEFAULT_MAX_RETRIES:
                 try:
                     return await f(request)
-                except APIError as e:
+                except (APIError, ProjectError) as e:
                     logger.error(f"Error {e}\n{traceback.format_exc()}")
                     error = {"traceback": traceback.format_exc()}
                     if "has active endpoints" in e.explanation:
@@ -152,14 +207,14 @@ def create_app(  # pylint: disable=too-many-locals, unused-argument, too-many-st
                     else:
                         error["error"] = str(e)
                     errors.append(error)
-                    return errors
+                    return JSONResponse(content={"errors": errors}, status_code=500)
                 except Exception as e:  # pylint: disable=broad-except
                     errors.append(
-                        {"error": str(e), "traceback": traceback.format_exc()}
+                        {"error": str(e.args[0]), "traceback": traceback.format_exc()}
                     )
-                    logger.error(f"Error {e}\n{traceback.format_exc()}")
+                    logger.error(f"Error {str(e.args[0])}\n{traceback.format_exc()}")
                 retries += 1
-            return {"errors": errors}
+            return JSONResponse(content={"errors": errors}, status_code=500)
 
         return _call
 
@@ -320,19 +375,47 @@ def create_app(  # pylint: disable=too-many-locals, unused-argument, too-many-st
         if operate.password is None:
             return USER_NOT_LOGGED_IN_ERROR
         template = await request.json()
-        service = operate.service_manager().create_or_load(
-            hash=template["hash"],
-            rpc=template["configuration"]["rpc"],
-            on_chain_user_params=services.manage.OnChainUserParams.from_json(
-                template["configuration"]
-            ),
-        )
+        manager = operate.service_manager()
+        update = False
+        if len(manager.json) > 0:
+            old_hash = manager.json[0]["hash"]
+            if old_hash == template["hash"]:
+                logger.info(f'Loading service {template["hash"]}')
+                service = manager.create_or_load(
+                    hash=template["hash"],
+                    rpc=template["configuration"]["rpc"],
+                    on_chain_user_params=services.manage.OnChainUserParams.from_json(
+                        template["configuration"]
+                    ),
+                )
+            else:
+                logger.info(f"Updating service from {old_hash} to " + template["hash"])
+                service = manager.update_service(
+                    old_hash=old_hash,
+                    new_hash=template["hash"],
+                    rpc=template["configuration"]["rpc"],
+                    on_chain_user_params=services.manage.OnChainUserParams.from_json(
+                        template["configuration"]
+                    ),
+                )
+                update = True
+        else:
+            logger.info(f'Creating service {template["hash"]}')
+            service = manager.create_or_load(
+                hash=template["hash"],
+                rpc=template["configuration"]["rpc"],
+                on_chain_user_params=services.manage.OnChainUserParams.from_json(
+                    template["configuration"]
+                ),
+            )
+
         if template.get("deploy", False):
-            manager = operate.service_manager()
-            manager.deploy_service_onchain(hash=service.hash)
+            manager.deploy_service_onchain(hash=service.hash, update=update)
             manager.stake_service_on_chain(hash=service.hash)
             manager.fund_service(hash=service.hash)
             manager.deploy_service_locally(hash=service.hash)
+            schedule_funding_job(service=service.hash)
+
         return JSONResponse(
             content=operate.service_manager().create_or_load(hash=service.hash).json
         )
@@ -350,10 +433,11 @@ def create_app(  # pylint: disable=too-many-locals, unused-argument, too-many-st
         )
         if template.get("deploy", False):
             manager = operate.service_manager()
-            manager.deploy_service_onchain(hash=service.hash)
+            manager.deploy_service_onchain(hash=service.hash, update=True)
             manager.stake_service_on_chain(hash=service.hash)
             manager.fund_service(hash=service.hash)
             manager.deploy_service_locally(hash=service.hash)
+            schedule_funding_job(service=service.hash)
         return JSONResponse(content=service.json)
 
     @app.get("/api/services/{service}")
@@ -436,37 +520,31 @@ def create_app(  # pylint: disable=too-many-locals, unused-argument, too-many-st
             )
             .deployment
         )
-        deployment.build()
+        deployment.build(force=True)
         return JSONResponse(content=deployment.json)
 
     @app.post("/api/services/{service}/deployment/start")
     @with_retries
     async def _start_service_locally(request: Request) -> JSONResponse:
         """Create a service."""
-        deployment = (
-            operate.service_manager()
-            .create_or_load(
-                request.path_params["service"],
-            )
-            .deployment
-        )
-        deployment.build()
-        operate.service_manager().fund_service(hash=request.path_params["service"])
-        deployment.start()
-        return JSONResponse(content=deployment.json)
+        service = request.path_params["service"]
+        manager = operate.service_manager()
+        manager.deploy_service_onchain(hash=service)
+        manager.stake_service_on_chain(hash=service)
+        manager.fund_service(hash=service)
+        manager.deploy_service_locally(hash=service, force=True)
+        schedule_funding_job(service=service)
+        return JSONResponse(content=manager.create_or_load(service).deployment)
 
     @app.post("/api/services/{service}/deployment/stop")
     @with_retries
     async def _stop_service_locally(request: Request) -> JSONResponse:
         """Create a service."""
-        deployment = (
-            operate.service_manager()
-            .create_or_load(
-                request.path_params["service"],
-            )
-            .deployment
-        )
+        service = request.path_params["service"]
+        deployment = operate.service_manager().create_or_load(service).deployment
         deployment.stop()
+        logger.info(f"Cancelling funding job for {service}")
+        cancel_funding_job(service=service)
         return JSONResponse(content=deployment.json)
 
     @app.post("/api/services/{service}/deployment/delete")

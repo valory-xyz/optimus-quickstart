@@ -247,7 +247,7 @@ Returns the list of services
 ```json
 [
   {
-    "hash": "bafybeieagxzdbmea3nttlve3yxjne5z7tt7mp26tfpgepm7p2ezovtdx4a",
+    "hash": "bafybeiha6dxygx2ntgjxhs6zzymgqk3s5biy3ozeqw6zuhr6yxgjlebfmq",
     "keys": [
       {
         "ledger": 0,
@@ -282,8 +282,8 @@ Returns the list of services
         }
       }
     },
-    "path": "/Users/virajpatel/valory/olas-operate-app/.operate/services/bafybeieagxzdbmea3nttlve3yxjne5z7tt7mp26tfpgepm7p2ezovtdx4a",
-    "service_path": "/Users/virajpatel/valory/olas-operate-app/.operate/services/bafybeieagxzdbmea3nttlve3yxjne5z7tt7mp26tfpgepm7p2ezovtdx4a/trader_omen_gnosis",
+    "path": "/Users/virajpatel/valory/olas-operate-app/.operate/services/bafybeiha6dxygx2ntgjxhs6zzymgqk3s5biy3ozeqw6zuhr6yxgjlebfmq",
+    "service_path": "/Users/virajpatel/valory/olas-operate-app/.operate/services/bafybeiha6dxygx2ntgjxhs6zzymgqk3s5biy3ozeqw6zuhr6yxgjlebfmq/trader_omen_gnosis",
     "name": "valory/trader_omen_gnosis"
   }
 ]
@@ -303,7 +303,7 @@ Create a service using the service template
 {
   "name": "Trader Agent",
   "description": "Trader agent for omen prediction markets",
-  "hash": "bafybeieagxzdbmea3nttlve3yxjne5z7tt7mp26tfpgepm7p2ezovtdx4a",
+  "hash": "bafybeiha6dxygx2ntgjxhs6zzymgqk3s5biy3ozeqw6zuhr6yxgjlebfmq",
   "image": "https://operate.olas.network/_next/image?url=%2Fimages%2Fprediction-agent.png&w=3840&q=75",
   "configuration": {
     "nft": "bafybeig64atqaladigoc3ds4arltdu63wkdrk3gesjfvnfdmz35amv7faq",
@@ -331,7 +331,7 @@ Optionally you can add `deploy` parameter and set it to `true` for a full deploy
 
 ```json
 {
-  "hash": "bafybeieagxzdbmea3nttlve3yxjne5z7tt7mp26tfpgepm7p2ezovtdx4a",
+  "hash": "bafybeiha6dxygx2ntgjxhs6zzymgqk3s5biy3ozeqw6zuhr6yxgjlebfmq",
   "keys": [
     {
       "ledger": 0,
@@ -366,8 +366,8 @@ Optionally you can add `deploy` parameter and set it to `true` for a full deploy
       }
     }
   },
-  "path": "~/.operate/services/bafybeieagxzdbmea3nttlve3yxjne5z7tt7mp26tfpgepm7p2ezovtdx4a",
-  "service_path": "~/.operate/services/bafybeieagxzdbmea3nttlve3yxjne5z7tt7mp26tfpgepm7p2ezovtdx4a/trader_omen_gnosis",
+  "path": "~/.operate/services/bafybeiha6dxygx2ntgjxhs6zzymgqk3s5biy3ozeqw6zuhr6yxgjlebfmq",
+  "service_path": "~/.operate/services/bafybeiha6dxygx2ntgjxhs6zzymgqk3s5biy3ozeqw6zuhr6yxgjlebfmq/trader_omen_gnosis",
   "name": "valory/trader_omen_gnosis"
 }
 ```
@@ -384,7 +384,7 @@ Update a service
 
 ```json
 {
-    "old_service_hash": "bafybeieagxzdbmea3nttlve3yxjne5z7tt7mp26tfpgepm7p2ezovtdx4a",
+    "old_service_hash": "bafybeiha6dxygx2ntgjxhs6zzymgqk3s5biy3ozeqw6zuhr6yxgjlebfmq",
     "new_service_hash": "bafybeicxdpkuk5z5zfbkso7v5pywf4v7chxvluyht7dtgalg6dnhl7ejoe",
 }
 ```

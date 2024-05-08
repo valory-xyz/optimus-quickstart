@@ -14,6 +14,7 @@ const fs = require('fs');
 const os = require('os');
 const next = require('next');
 const http = require('http');
+const { TRAY_ICONS, TRAY_ICONS_PATHS } = require('./icons');
 
 const {
   setupDarwin,
@@ -21,10 +22,11 @@ const {
   OperateCmd,
   OperateDirectory,
   startDocker,
+  Env,
 } = require('./install');
 const { killProcesses } = require('./processes');
 const { isPortAvailable, findAvailablePort } = require('./ports');
-const { PORT_RANGE } = require('./constants');
+const { PORT_RANGE, isWindows, isMac } = require('./constants');
 
 // Attempt to acquire the single instance lock
 const singleInstanceLock = app.requestSingleInstanceLock();
@@ -78,12 +80,20 @@ async function beforeQuit() {
  * Creates the tray
  */
 const createTray = () => {
-  tray = new Tray(path.join(__dirname, 'assets/icons/robot-head-tray.png'));
+  tray = new Tray(
+    isWindows || isMac ? TRAY_ICONS.LOGGED_OUT : TRAY_ICONS_PATHS.LOGGED_OUT,
+  );
   const contextMenu = Menu.buildFromTemplate([
     {
-      label: 'Show App',
+      label: 'Show app',
       click: function () {
         mainWindow.show();
+      },
+    },
+    {
+      label: 'Hide app',
+      click: function () {
+        mainWindow.hide();
       },
     },
     {
@@ -98,6 +108,26 @@ const createTray = () => {
   tray.setContextMenu(contextMenu);
   tray.on('click', () => {
     mainWindow.show();
+  });
+
+  ipcMain.on('tray', (event, status) => {
+    switch (status) {
+      case 'low-gas':
+        tray.setImage(
+          isWindows || isMac ? TRAY_ICONS.LOW_GAS : TRAY_ICONS_PATHS.LOW_GAS,
+        );
+        break;
+      case 'running':
+        tray.setImage(
+          isWindows || isMac ? TRAY_ICONS.RUNNING : TRAY_ICONS_PATHS.RUNNING,
+        );
+        break;
+      case 'paused':
+        tray.setImage(
+          isWindows || isMac ? TRAY_ICONS.PAUSED : TRAY_ICONS_PATHS.PAUSED,
+        );
+        break;
+    }
   });
 };
 
@@ -131,19 +161,21 @@ const createMainWindow = () => {
     title: 'Olas Operate',
     resizable: false,
     draggable: true,
-    frame: true,
+    frame: false,
     transparent: true,
     fullscreenable: false,
     maximizable: false,
-    width: 420,
-    minHeight: 210,
+    width: isDev ? 800 : 360,
+    height: 735,
     webPreferences: {
       nodeIntegration: false,
       contextIsolation: true,
+      preload: path.join(__dirname, 'preload.js'),
     },
   });
 
   mainWindow.setMenuBarVisibility(false);
+
   if (isDev) {
     mainWindow.loadURL(`http://localhost:${appConfig.ports.dev.next}`);
   } else {
@@ -156,6 +188,12 @@ const createMainWindow = () => {
 
   mainWindow.webContents.on('ready-to-show', () => {
     mainWindow.show();
+  });
+
+  mainWindow.webContents.setWindowOpenHandler(({ url }) => {
+    // open url in a browser and prevent default
+    require('electron').shell.openExternal(url);
+    return { action: 'deny' };
   });
 
   mainWindow.on('close', function (event) {
@@ -176,11 +214,15 @@ async function launchDaemon() {
     return data;
   }
   const check = new Promise(function (resolve, reject) {
-    operateDaemon = spawn(OperateCmd, [
-      'daemon',
-      `--port=${appConfig.ports.prod.operate}`,
-      `--home=${OperateDirectory}`,
-    ]);
+    operateDaemon = spawn(
+      OperateCmd,
+      [
+        'daemon',
+        `--port=${appConfig.ports.prod.operate}`,
+        `--home=${OperateDirectory}`,
+      ],
+      { env: Env },
+    );
     operateDaemonPid = operateDaemon.pid;
     operateDaemon.stderr.on('data', (data) => {
       if (data.toString().includes('Uvicorn running on')) {
@@ -233,6 +275,12 @@ async function launchNextApp() {
     dev: false,
     dir: path.join(__dirname),
     port: appConfig.ports.prod.next,
+    env: {
+      GNOSIS_RPC:
+        process.env.NODE_ENV === 'production'
+          ? process.env.FORK_URL
+          : process.env.DEV_RPC,
+    },
   });
   await nextApp.prepare();
 
@@ -259,9 +307,7 @@ async function launchNextAppDev() {
     nextAppProcessPid = nextAppProcess.pid;
     nextAppProcess.stdout.on('data', (data) => {
       console.log(data.toString().trim());
-      setTimeout(function () {
-        resolve(true);
-      }, 1000);
+      resolve();
     });
   });
 }
@@ -355,8 +401,7 @@ ipcMain.on('check', async function (event, argument) {
 // APP-SPECIFIC EVENTS
 app.on('ready', async () => {
   if (platform === 'darwin') {
-    app.dock?.setIcon(path.join(__dirname, 'assets/icons/robot-head.png'));
-    app.dock?.setBadge('Olas Operate');
+    app.dock?.setIcon(path.join(__dirname, 'assets/icons/tray-logged-out.png'));
   }
   createSplashWindow();
 });

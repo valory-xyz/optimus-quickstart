@@ -7,50 +7,58 @@ const process = require('process');
 const { spawnSync } = require('child_process');
 const Docker = require('dockerode');
 
-
+const Version = '0.1.0rc12';
 const OperateDirectory = `${os.homedir()}/.operate`;
+const VenvDir = `${OperateDirectory}/venv`;
+const VersionFile = `${OperateDirectory}/version.txt`;
+const LogFile = `${OperateDirectory}/logs.txt`;
 const OperateInstallationLog = `${os.homedir()}/operate.log`;
 const OperateCmd = `${os.homedir()}/.operate/venv/bin/operate`;
-const Env = { ...process.env, PATH: `${process.env.PATH}:/opt/homebrew/bin:/usr/local/bin` }
+const Env = {
+  ...process.env,
+  PATH: `${process.env.PATH}:/opt/homebrew/bin:/usr/local/bin`,
+};
 const SudoOptions = {
-  name: "Olas Operate",
+  name: 'Olas Operate',
   env: Env,
-}
+};
 
 function getBinPath(command) {
-  return spawnSync("/usr/bin/which", [command], { env: Env }).stdout?.toString().trim()
+  return spawnSync('/usr/bin/which', [command], { env: Env })
+    .stdout?.toString()
+    .trim();
 }
 
 function isPackageInstalledUbuntu(package) {
-  const result = spawnSync('/usr/bin/bash', ['-c', `/usr/bin/apt list --installed | grep -q "^${package}/"`], { env: Env });
+  const result = spawnSync(
+    '/usr/bin/bash',
+    ['-c', `/usr/bin/apt list --installed | grep -q "^${package}/"`],
+    { env: Env },
+  );
   return result.status === 0;
 }
 
 function appendLog(log) {
-  fs.appendFileSync(
-    OperateInstallationLog,
-    `${log}\n`,
-    { "encoding": "utf-8" }
-  )
-  return log
+  fs.appendFileSync(OperateInstallationLog, `${log}\n`, { encoding: 'utf-8' });
+  return log;
 }
 
 function runCmdUnix(command, options) {
   fs.appendFileSync(
     OperateInstallationLog,
     `Runninng ${command} with options ${JSON.stringify(options)}`,
-    { "encoding": "utf-8" }
-  )
-  let bin = getBinPath(command)
+    { encoding: 'utf-8' },
+  );
+  let bin = getBinPath(command);
   if (!bin) {
-    throw new Error(`Command ${command} not found; Path : ${Env.PATH}`)
+    throw new Error(`Command ${command} not found; Path : ${Env.PATH}`);
   }
   let output = spawnSync(bin, options);
   if (output.stdout) {
-    appendLog(output.stdout.toString())
+    appendLog(output.stdout.toString());
   }
   if (output.stderr) {
-    appendLog(output.stdout.toString())
+    appendLog(output.stdout.toString());
   }
   if (output.error) {
     throw new Error(
@@ -66,9 +74,9 @@ function runCmdUnix(command, options) {
 }
 
 function runSudoUnix(command, options) {
-  let bin = getBinPath(command)
+  let bin = getBinPath(command);
   if (!bin) {
-    throw new Error(`Command ${command} not found`)
+    throw new Error(`Command ${command} not found`);
   }
   return new Promise(function (resolve, reject) {
     sudo.exec(
@@ -79,38 +87,41 @@ function runSudoUnix(command, options) {
           error: error,
           stdout: stdout,
           stderr: stderr,
-        })
-      }
+        });
+      },
     );
-  })
+  });
 }
 
 function isBrewInstalled() {
-  return Boolean(getBinPath(getBinPath("brew")));
+  return Boolean(getBinPath(getBinPath('brew')));
 }
 
 function installBrew() {
-  return runCmdUnix('bash', ['-c', '$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)'])
+  return runCmdUnix('bash', [
+    '-c',
+    '$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)',
+  ]);
 }
 
 function isDockerInstalledDarwin() {
-  return Boolean(getBinPath("docker"));
+  return Boolean(getBinPath('docker'));
 }
 
 function installDockerDarwin() {
-  return runCmdUnix('brew', ['install', 'docker'])
+  return runCmdUnix('brew', ['install', 'docker']);
 }
 
 function isDockerInstalledUbuntu() {
-  return Boolean(getBinPath("docker"));
+  return Boolean(getBinPath('docker'));
 }
 
 function installDockerUbuntu() {
-  return runSudoUnix("bash", `${__dirname}/scripts/install_docker_ubuntu.sh`)
+  return runSudoUnix('bash', `${__dirname}/scripts/install_docker_ubuntu.sh`);
 }
 
 function isPythonInstalledDarwin() {
-  return Boolean(getBinPath("python3.10"))
+  return Boolean(getBinPath('python3.10'));
 }
 
 function installPythonDarwin() {
@@ -122,11 +133,11 @@ function createVirtualEnvUnix(path) {
 }
 
 function isPythonInstalledUbuntu() {
-  return Boolean(getBinPath("python3.10"));
+  return Boolean(getBinPath('python3.10'));
 }
 
 function isGitInstalledUbuntu() {
-  return Boolean(getBinPath("git"));
+  return Boolean(getBinPath('git'));
 }
 
 function installPythonUbuntu() {
@@ -142,27 +153,29 @@ function createVirtualEnvUbuntu(path) {
 }
 
 function installOperatePackageUnix(path) {
-  return runCmdUnix(
-    `${path}/venv/bin/python3.10`,
-    ['-m', 'pip', 'install', 'olas-operate-middleware==0.1.0rc1']
-  )
+  return runCmdUnix(`${path}/venv/bin/python3.10`, [
+    '-m',
+    'pip',
+    'install',
+    `olas-operate-middleware==${Version}`,
+  ]);
 }
 
 function reInstallOperatePackageUnix(path) {
-  if (fs.existsSync(`${path}/venv/bin/operate`)) {
-    return
-  }
-  console.log(appendLog("Reinstalling operate CLI"))
-  return runCmdUnix(
-    `${path}/venv/bin/python3.10`,
-    ['-m', 'pip', 'install', 'olas-operate-middleware==0.1.0rc0', '--force-reinstall']
-  )
+  console.log(appendLog('Reinstalling operate CLI'));
+  return runCmdUnix(`${path}/venv/bin/python3.10`, [
+    '-m',
+    'pip',
+    'install',
+    `olas-operate-middleware==${Version}`,
+    '--force-reinstall',
+  ]);
 }
 
 function installOperateCli(path) {
-  let installPath = `${path}/operate`
+  let installPath = `${path}/operate`;
   if (fs.existsSync(installPath)) {
-    fs.rmSync(installPath)
+    fs.rmSync(installPath);
   }
   return new Promise((resolve, reject) => {
     fs.copyFile(
@@ -177,125 +190,174 @@ function installOperateCli(path) {
 
 function createDirectory(path) {
   if (fs.existsSync(path)) {
-    return
+    return;
   }
   return new Promise((resolve, reject) => {
-    fs.mkdir(path, { recursive: true, }, (error) => {
+    fs.mkdir(path, { recursive: true }, (error) => {
       resolve(!error);
     });
   });
 }
 
+function writeVersion() {
+  fs.writeFileSync(VersionFile, Version);
+}
+
+function versionBumpRequired() {
+  if (!fs.existsSync(VersionFile)) {
+    return true;
+  }
+  const version = fs.readFileSync(VersionFile).toString();
+  return version != Version;
+}
+
+function removeLogFile() {
+  if (fs.existsSync()) {
+    fs.rmSync(LogFile);
+  }
+}
+
+function removeInstallationLogFile() {
+  if (fs.existsSync(OperateInstallationLog)) {
+    fs.rmSync(OperateInstallationLog);
+  }
+}
 
 async function setupDarwin(ipcChannel) {
-  console.log(appendLog("Checking brew installation"))
+  removeInstallationLogFile();
+  console.log(appendLog('Checking brew installation'));
   if (!isBrewInstalled()) {
-    ipcChannel.send('response', 'Installing Operate Daemon')
-    console.log(appendLog("Installing brew"))
-    installBrew()
+    ipcChannel.send('response', 'Installing Operate Daemon');
+    console.log(appendLog('Installing brew'));
+    installBrew();
   }
 
-  console.log(appendLog("Checking docker installation"))
+  console.log(appendLog('Checking docker installation'));
   if (!isDockerInstalledDarwin()) {
-    ipcChannel.send('response', 'Installing Operate Daemon')
-    console.log(appendLog("Installating docker"))
-    installDockerDarwin()
+    ipcChannel.send('response', 'Installing Operate Daemon');
+    console.log(appendLog('Installating docker'));
+    installDockerDarwin();
   }
 
-  console.log(appendLog("Checking python installation"))
+  console.log(appendLog('Checking python installation'));
   if (!isPythonInstalledDarwin()) {
-    ipcChannel.send('response', 'Installing Operate Daemon')
-    console.log(appendLog("Installing python"))
-    installPythonDarwin()
+    ipcChannel.send('response', 'Installing Operate Daemon');
+    console.log(appendLog('Installing python'));
+    installPythonDarwin();
   }
 
-  console.log(appendLog("Creating required directories"))
+  console.log(appendLog('Creating required directories'));
   await createDirectory(`${OperateDirectory}`);
   await createDirectory(`${OperateDirectory}/temp`);
 
-  if (!fs.existsSync(`${OperateDirectory}/venv`)) {
-    ipcChannel.send('response', 'Installing Operate Daemon')
-    console.log(appendLog("Creating virtual environment"))
-    createVirtualEnvUnix(`${OperateDirectory}/venv`);
+  if (!fs.existsSync(VenvDir)) {
+    ipcChannel.send('response', 'Installing Operate Daemon');
+    console.log(appendLog('Creating virtual environment'));
+    createVirtualEnvUnix(VenvDir);
+
+    console.log(appendLog('Installing operate backend'));
+    installOperatePackageUnix(OperateDirectory);
   }
 
-  console.log(appendLog("Installing operate backend"))
-  installOperatePackageUnix(OperateDirectory)
-  reInstallOperatePackageUnix(OperateDirectory)
+  console.log(appendLog('Checking if upgrade is required'));
+  if (versionBumpRequired()) {
+    console.log(appendLog(`Upgrading operate daemon to ${Version}`));
+    reInstallOperatePackageUnix(OperateDirectory);
+    writeVersion();
+    removeLogFile();
+  }
 
-  console.log(appendLog("Installing operate CLI"))
-  await installOperateCli('/opt/homebrew/bin/operate')
+  if (!fs.existsSync(`${OperateDirectory}/venv/bin/operate`)) {
+    reInstallOperatePackageUnix(OperateDirectory);
+  }
+
+  console.log(appendLog('Installing operate CLI'));
+  await installOperateCli('/opt/homebrew/bin/operate');
 }
 
 async function setupUbuntu(ipcChannel) {
-
-  console.log(appendLog("Checking docker installation"))
+  removeInstallationLogFile();
+  console.log(appendLog('Checking docker installation'));
   if (!isDockerInstalledUbuntu()) {
-    ipcChannel.send('response', 'Installing Operate Daemon')
-    console.log(appendLog("Installating docker"))
-    await installDockerUbuntu()
+    ipcChannel.send('response', 'Installing Operate Daemon');
+    console.log(appendLog('Installating docker'));
+    await installDockerUbuntu();
   }
 
-  console.log(appendLog("Checking python installation"))
+  console.log(appendLog('Checking python installation'));
   if (!isPythonInstalledUbuntu()) {
-    ipcChannel.send('response', 'Installing Operate Daemon')
-    console.log(appendLog("Installing Python"))
-    await installPythonUbuntu(OperateDirectory)
+    ipcChannel.send('response', 'Installing Operate Daemon');
+    console.log(appendLog('Installing Python'));
+    await installPythonUbuntu(OperateDirectory);
   }
 
-  console.log(appendLog("Checking git installation"))
+  console.log(appendLog('Checking git installation'));
   if (!isGitInstalledUbuntu()) {
-    ipcChannel.send('response', 'Installing Operate Daemon')
-    console.log(appendLog("Installing git"))
-    await installGitUbuntu(OperateDirectory)
+    ipcChannel.send('response', 'Installing Operate Daemon');
+    console.log(appendLog('Installing git'));
+    await installGitUbuntu(OperateDirectory);
   }
 
-  console.log(appendLog("Creating required directories"))
+  console.log(appendLog('Creating required directories'));
   await createDirectory(`${OperateDirectory}`);
   await createDirectory(`${OperateDirectory}/temp`);
 
-  if (!fs.existsSync(`${OperateDirectory}/venv`)) {
-    ipcChannel.send('response', 'Installing Operate Daemon')
-    console.log(appendLog("Creating virtual environment"))
-    createVirtualEnvUnix(`${OperateDirectory}/venv`);
+  if (versionBumpRequired()) {
+    // removePreviousInstallation();
+    writeVersion();
   }
 
-  console.log(appendLog("Installing operate backend"))
-  installOperatePackageUnix(OperateDirectory)
-  reInstallOperatePackageUnix(OperateDirectory)
+  if (!fs.existsSync(VenvDir)) {
+    ipcChannel.send('response', 'Installing Operate Daemon');
+    console.log(appendLog('Creating virtual environment'));
+    createVirtualEnvUnix(VenvDir);
 
-  console.log(appendLog("Installing operate CLI"))
-  await installOperateCli('/usr/local/bin')
+    console.log(appendLog('Installing operate backend'));
+    installOperatePackageUnix(OperateDirectory);
+  }
+
+  console.log(appendLog('Checking if upgrade is required'));
+  if (versionBumpRequired()) {
+    console.log(appendLog(`Upgrading operate daemon to ${Version}`));
+    reInstallOperatePackageUnix(OperateDirectory);
+    writeVersion();
+    removeLogFile();
+  }
+
+  if (!fs.existsSync(`${OperateDirectory}/venv/bin/operate`)) {
+    reInstallOperatePackageUnix(OperateDirectory);
+  }
+
+  console.log(appendLog('Installing operate CLI'));
+  await installOperateCli('/usr/local/bin');
 }
-
 
 async function startDocker(ipcChannel) {
   const docker = new Docker();
   let running = await new Promise((resolve, reject) => {
     docker.ping((err) => {
-      resolve(!err)
+      resolve(!err);
     });
   });
   if (!running) {
-    console.log(appendLog("Starting docker"))
-    ipcChannel.send("response", "Starting docker")
-    if (process.platform == "darwin") {
-      runCmdUnix("open", ["-a", "Docker"])
-    } else if (process.platform == "win32") {
+    console.log(appendLog('Starting docker'));
+    ipcChannel.send('response', 'Starting docker');
+    if (process.platform == 'darwin') {
+      runCmdUnix('open', ['-a', 'Docker']);
+    } else if (process.platform == 'win32') {
       // TODO
     } else {
-      runSudoUnix("sudo", ["service", "docker", "restart"])
+      runSudoUnix('sudo', ['service', 'docker', 'restart']);
     }
   }
   while (!running) {
     running = await new Promise((resolve, reject) => {
       docker.ping((err) => {
-        resolve(!err)
+        resolve(!err);
       });
     });
-  };
+  }
 }
-
 
 module.exports = {
   setupDarwin,
@@ -303,4 +365,5 @@ module.exports = {
   setupUbuntu,
   OperateDirectory,
   OperateCmd,
+  Env,
 };

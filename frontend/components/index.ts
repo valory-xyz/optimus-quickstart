@@ -1,2 +1,2 @@
 export * from './Settings';
-export * from './Setup';
+export * from './Setup/Setup';

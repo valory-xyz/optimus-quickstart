@@ -49,6 +49,7 @@ export type ConfigurationTemplate = {
   cost_of_bond: number;
   olas_cost_of_bond: number;
   olas_required_to_stake: number;
+  monthly_gas_estimate: number;
   fund_requirements: FundRequirementsTemplate;
 };
 
@@ -99,7 +100,7 @@ export type DeleteServicesResponse = {
 };
 
 export type AppInfo = {
-  account: {
+  account?: {
     key: Address;
   };
 };
