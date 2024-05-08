@@ -380,7 +380,7 @@ def create_app(  # pylint: disable=too-many-locals, unused-argument, too-many-st
         if len(manager.json) > 0:
             old_hash = manager.json[0]["hash"]
             if old_hash == template["hash"]:
-                logger.info("Loading service " + template["hash"])
+                logger.info(f'Loading service {template["hash"]}')
                 service = manager.create_or_load(
                     hash=template["hash"],
                     rpc=template["configuration"]["rpc"],
@@ -400,7 +400,7 @@ def create_app(  # pylint: disable=too-many-locals, unused-argument, too-many-st
                 )
                 update = True
         else:
-            logger.info("Creating service " + template["hash"])
+            logger.info(f'Creating service {template["hash"]}')
             service = manager.create_or_load(
                 hash=template["hash"],
                 rpc=template["configuration"]["rpc"],
