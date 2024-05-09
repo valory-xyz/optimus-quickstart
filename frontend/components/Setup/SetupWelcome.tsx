@@ -92,6 +92,7 @@ export const SetupWelcomeCreate = () => {
 };
 
 export const SetupWelcomeLogin = () => {
+  const { goto } = useSetup();
   const { goto: gotoPage } = usePageState();
 
   const [isLoggingIn, setIsLoggingIn] = useState(false);
@@ -131,11 +132,11 @@ export const SetupWelcomeLogin = () => {
         </Button>
         <Button
           type="link"
-          href={'https://discord.gg/RHY6eJ35ar'}
           target="_blank"
           size="small"
+          onClick={() => goto(SetupScreen.Restore)}
         >
-          Forgot password? Seek community help
+          Forgot password? Restore access
         </Button>
       </Flex>
     </FormFlex>
