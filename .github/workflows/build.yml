@@ -78,4 +78,4 @@ jobs:
                 with:
                     name: OperateApp-macOS
                     path: |
-                        dist/Olas Operate-0.1.0-rc13-darwin-arm64.dmg
+                        dist/mac-arm64/Olas Operate.app
