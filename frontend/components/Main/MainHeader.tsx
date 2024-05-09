@@ -58,15 +58,16 @@ export const MainHeader = () => {
       if (!wallets?.[0].safe) {
         await WalletService.createSafe(Chain.GNOSIS);
       }
+      // TODO: Replace with proper upload logic
+      // if (services.length > 0) {
+      //   return ServicesService.startDeployment(services[0].hash).then(() => {
+      //     setServiceStatus(DeploymentStatus.DEPLOYED);
+      //     setIsBalancePollingPaused(false);
+      //     setServiceButtonState({ isLoading: false });
+      //   });
+      // }
 
-      if (services.length > 0) {
-        return ServicesService.startDeployment(services[0].hash).then(() => {
-          setServiceStatus(DeploymentStatus.DEPLOYED);
-          setIsBalancePollingPaused(false);
-          setServiceButtonState({ isLoading: false });
-        });
-      }
-
+      // For now POST /api/services will take care of creating, starting and updating the service
       return ServicesService.createService({
         serviceTemplate,
         deploy: true,
