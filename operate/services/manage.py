@@ -96,6 +96,10 @@ class ServiceManager:
             data.append(service.json)
         return data
 
+    def exists(self, service: str) -> bool:
+        """Check if service exists."""
+        return (self.path / service).exists()
+
     def get_on_chain_manager(self, service: Service) -> OnChainManager:
         """Get OnChainManager instance."""
         return OnChainManager(
