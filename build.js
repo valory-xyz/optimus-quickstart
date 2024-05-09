@@ -33,13 +33,6 @@ const main = async () => {
         notarize: {
           teamId: process.env.APPLETEAMID
         },
-        publish: [
-          {
-            provider: 'github',
-            owner: 'valory-xyz',
-            repo: 'olas-operate-app',
-          },
-        ],
       },
     },
   });
