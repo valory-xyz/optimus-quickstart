@@ -1,5 +1,5 @@
 import { CloseOutlined } from '@ant-design/icons';
-import { Button, Flex, Typography } from 'antd';
+import { Button, Col, Flex, Input, Row, Typography } from 'antd';
 import { memo } from 'react';
 
 import { CardFlex } from '@/components/styled/CardFlex';
@@ -61,6 +61,7 @@ export const SetupRestoreMain = () => {
   );
 };
 
+const SEED_PHRASE_WORDS = 12;
 export const SetupRestoreViaSeed = () => {
   return (
     <CardFlex
@@ -71,7 +72,17 @@ export const SetupRestoreViaSeed = () => {
         </Flex>
       }
       gap={10}
-    ></CardFlex>
+    >
+      <Typography.Text>
+        To restore access to your Operate account, enter the seed phrase you
+        received when setting up your account.
+      </Typography.Text>
+      <Row>
+        <Col span={12}>
+          <Input className="w-full" />
+        </Col>
+      </Row>
+    </CardFlex>
   );
 };
 
