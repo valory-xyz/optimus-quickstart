@@ -14,4 +14,19 @@ const TRAY_ICONS = {
   RUNNING: nativeImage.createFromPath(TRAY_ICONS_PATHS.RUNNING),
 };
 
+try {
+  if (process.platform === 'darwin') {
+    // resize icons for macOS
+    TRAY_ICONS.LOGGED_OUT = TRAY_ICONS.LOGGED_OUT.resize({
+      width: 16,
+      height: 16,
+    });
+    TRAY_ICONS.LOW_GAS = TRAY_ICONS.LOW_GAS.resize({ width: 16, height: 16 });
+    TRAY_ICONS.PAUSED = TRAY_ICONS.PAUSED.resize({ width: 16, height: 16 });
+    TRAY_ICONS.RUNNING = TRAY_ICONS.RUNNING.resize({ width: 16, height: 16 });
+  }
+} catch (e) {
+  console.log('Error resizing tray icons', e);
+}
+
 module.exports = { TRAY_ICONS_PATHS, TRAY_ICONS };
