@@ -80,12 +80,12 @@ export const ServicesProvider = ({ children }: PropsWithChildren) => {
     setServiceStatus(serviceStatus.status);
   }, [services]);
 
-  // Update service status
-  useInterval(() => updateServiceStatus(), hasInitialLoaded ? 5000 : null);
-
   // Update service state
   useInterval(
-    () => updateServicesState().catch((e) => message.error(e.message)),
+    () =>
+      updateServicesState()
+        .then(() => updateServiceStatus())
+        .catch((e) => message.error(e.message)),
     5000,
   );
 

@@ -14,7 +14,7 @@ html, body {
 }
 
 body {
-    max-width: 360px;
+    max-width: 420px;
     border-radius: 8px;
     user-select: none;
 }
@@ -51,6 +51,14 @@ button, input, select, textarea, .ant-input-suffix {
   line-height: 24px;
 }
 
+.card-section-alert {
+  margin: 0;
+  border-radius: 0;
+  border-left: 0;
+  border-right: 0;
+  margin: -24px;
+}
+
 .can-select-text {
   user-select: text !important;
 }
@@ -62,6 +70,11 @@ button, input, select, textarea, .ant-input-suffix {
 .mb-auto {
   margin-bottom: auto !important;
 }
+
+.mx-auto {
+  margin-left: auto !important;
+  margin-right: auto !important;
+} 
 
 .text-base {
   font-size: 16px;
@@ -76,3 +89,6 @@ ul.alert-list {
   padding-left: 1.25em;
 }
 
+.w-3\/4 {
+  width: 75% !important;
+}

@@ -7,7 +7,7 @@ import { CardSection } from '../styled/CardSection';
 export const MainOlasBalance = () => {
   const { totalOlasBalance } = useBalance();
   return (
-    <CardSection align="end" gap={5}>
+    <CardSection align="end" gap={5} border>
       <span className="balance-symbol">{UNICODE_SYMBOLS.OLAS}</span>
       <span className="balance">
         {totalOlasBalance === undefined

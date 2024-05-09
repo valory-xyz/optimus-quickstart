@@ -37,11 +37,11 @@ export const Main = () => {
         </Button>
       }
     >
-      <Flex vertical gap={15}>
+      <Flex vertical>
         <MainNeedsFunds />
         <MainOlasBalance />
-        <MainGasBalance />
         <MainRewards />
+        <MainGasBalance />
         <MainAddFunds />
       </Flex>
     </Card>

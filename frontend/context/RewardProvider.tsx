@@ -1,6 +1,7 @@
 import {
   createContext,
   PropsWithChildren,
+  useCallback,
   useContext,
   useMemo,
   useState,
@@ -12,11 +13,15 @@ import { AutonolasService } from '@/service/Autonolas';
 import { ServicesContext } from './ServicesProvider';
 
 export const RewardContext = createContext<{
-  availableRewardsForEpoch: number | undefined;
-  isEligibleForRewards: boolean | undefined;
+  availableRewardsForEpoch?: number;
+  isEligibleForRewards?: boolean;
+  optimisticRewardsEarnedForEpoch?: number;
+  updateRewards: () => Promise<void>;
 }>({
   availableRewardsForEpoch: undefined,
   isEligibleForRewards: undefined,
+  optimisticRewardsEarnedForEpoch: undefined,
+  updateRewards: async () => {},
 });
 
 export const RewardProvider = ({ children }: PropsWithChildren) => {
@@ -27,7 +32,14 @@ export const RewardProvider = ({ children }: PropsWithChildren) => {
     useState<number>();
   const [isEligibleForRewards, setIsEligibleForRewards] = useState<boolean>();
 
-  useInterval(async () => {
+  const optimisticRewardsEarnedForEpoch = useMemo<number | undefined>(() => {
+    if (isEligibleForRewards && availableRewardsForEpoch) {
+      return availableRewardsForEpoch;
+    }
+    return;
+  }, [availableRewardsForEpoch, isEligibleForRewards]);
+
+  const updateRewards = useCallback(async (): Promise<void> => {
     // service is deployed, created, etc.
 
     let rewardsInfoPromise;
@@ -46,13 +58,17 @@ export const RewardProvider = ({ children }: PropsWithChildren) => {
 
     setIsEligibleForRewards(rewardsInfo?.isEligibleForRewards);
     setAvailableRewardsForEpoch(rewards);
-  }, 5000);
+  }, [service]);
+
+  useInterval(async () => updateRewards(), 5000);
 
   return (
     <RewardContext.Provider
       value={{
         availableRewardsForEpoch,
         isEligibleForRewards,
+        optimisticRewardsEarnedForEpoch,
+        updateRewards,
       }}
     >
       {children}

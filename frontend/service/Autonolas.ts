@@ -34,7 +34,7 @@ const getAgentStakingRewardsInfo = async ({
   if (!serviceId) return;
 
   const multicallResponse = await gnosisMulticallProvider.all([
-    agentMechContract.getRequestCount(agentMultisigAddress),
+    agentMechContract.getRequestsCount(agentMultisigAddress),
     serviceStakingTokenMechUsageContract.getServiceInfo(serviceId),
     serviceStakingTokenMechUsageContract.livenessPeriod(),
     serviceStakingTokenMechUsageContract.livenessRatio(),

@@ -1,4 +1,13 @@
-import { Button, Flex, Form, Input, message, Spin, Typography } from 'antd';
+import {
+  Button,
+  Card,
+  Flex,
+  Form,
+  Input,
+  message,
+  Spin,
+  Typography,
+} from 'antd';
 import Image from 'next/image';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
@@ -7,7 +16,6 @@ import { PageState, SetupScreen } from '@/enums';
 import { usePageState, useSetup } from '@/hooks';
 import { AccountService } from '@/service/Account';
 
-import { Wrapper } from '../Layout';
 import { FormFlex } from '../styled/FormFlex';
 
 export const SetupWelcome = () => {
@@ -48,7 +56,7 @@ export const SetupWelcome = () => {
   }, [isSetup]);
 
   return (
-    <Wrapper vertical>
+    <Card>
       <Flex vertical align="center">
         <Image
           src={'/onboarding-robot.svg'}
@@ -59,7 +67,7 @@ export const SetupWelcome = () => {
         <Typography.Title>Operate</Typography.Title>
       </Flex>
       {welcomeScreen}
-    </Wrapper>
+    </Card>
   );
 };
 
@@ -70,13 +78,14 @@ export const SetupWelcomeCreate = () => {
     <Flex vertical gap={10}>
       <Button
         color="primary"
+        type="primary"
         size="large"
-        onClick={() => goto(SetupScreen.Password)}
+        onClick={() => goto(SetupScreen.SetupPassword)}
       >
-        Create Account
+        Create account
       </Button>
       <Button size="large" disabled>
-        Import
+        Restore access
       </Button>
     </Flex>
   );

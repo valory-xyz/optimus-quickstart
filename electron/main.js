@@ -1,4 +1,4 @@
-require('dotenv').config();
+const dotenv = require('dotenv');
 
 const {
   app,
@@ -27,6 +27,9 @@ const {
 const { killProcesses } = require('./processes');
 const { isPortAvailable, findAvailablePort } = require('./ports');
 const { PORT_RANGE, isWindows, isMac } = require('./constants');
+
+// Configure environment variables
+dotenv.config();
 
 // Attempt to acquire the single instance lock
 const singleInstanceLock = app.requestSingleInstanceLock();
@@ -165,7 +168,7 @@ const createMainWindow = () => {
     transparent: true,
     fullscreenable: false,
     maximizable: false,
-    width: isDev ? 800 : 360,
+    width: isDev ? 800 : 420,
     height: 735,
     webPreferences: {
       nodeIntegration: false,
@@ -299,11 +302,13 @@ async function launchNextApp() {
 async function launchNextAppDev() {
   await new Promise(function (resolve, reject) {
     process.env.NEXT_PUBLIC_BACKEND_PORT = appConfig.ports.dev.operate; // must set next env var to connect to backend
-    nextAppProcess = spawn('yarn', [
-      'dev:frontend',
-      '--port',
-      appConfig.ports.dev.next,
-    ]);
+    nextAppProcess = spawn(
+      'yarn',
+      ['dev:frontend', '--port', appConfig.ports.dev.next],
+      {
+        env: { ...process.env },
+      },
+    );
     nextAppProcessPid = nextAppProcess.pid;
     nextAppProcess.stdout.on('data', (data) => {
       console.log(data.toString().trim());

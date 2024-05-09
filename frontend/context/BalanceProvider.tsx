@@ -1,7 +1,6 @@
 import { ethers } from 'ethers';
 import { isAddress } from 'ethers/lib/utils';
 import { Contract as MulticallContract } from 'ethers-multicall';
-import { isEmpty } from 'lodash';
 import {
   createContext,
   Dispatch,
@@ -30,6 +29,7 @@ import {
 } from '@/types';
 
 import { ServicesContext } from '.';
+import { RewardContext } from './RewardProvider';
 
 export const BalanceContext = createContext<{
   isLoaded: boolean;
@@ -57,6 +57,7 @@ export const BalanceContext = createContext<{
 
 export const BalanceProvider = ({ children }: PropsWithChildren) => {
   const { services, serviceAddresses } = useContext(ServicesContext);
+  const { optimisticRewardsEarnedForEpoch } = useContext(RewardContext);
 
   const [isLoaded, setIsLoaded] = useState<boolean>(false);
   const [isPaused, setIsPaused] = useState<boolean>(false);
@@ -82,14 +83,18 @@ export const BalanceProvider = ({ children }: PropsWithChildren) => {
     );
 
     return (
-      sumWalletBalances + (olasDepositBalance ?? 0) + (olasBondBalance ?? 0)
+      sumWalletBalances +
+      (olasDepositBalance ?? 0) +
+      (olasBondBalance ?? 0) +
+      (optimisticRewardsEarnedForEpoch ?? 0)
     );
-  }, [isLoaded, olasBondBalance, olasDepositBalance, walletBalances]);
-
-  const isPolling = useMemo(
-    () => !isEmpty(wallets) && !isEmpty(walletBalances),
-    [walletBalances, wallets],
-  );
+  }, [
+    isLoaded,
+    olasBondBalance,
+    olasDepositBalance,
+    optimisticRewardsEarnedForEpoch,
+    walletBalances,
+  ]);
 
   const updateBalances = useCallback(async (): Promise<void> => {
     try {
@@ -125,7 +130,7 @@ export const BalanceProvider = ({ children }: PropsWithChildren) => {
     () => {
       updateBalances();
     },
-    isPolling && !isPaused ? 5000 : null,
+    isPaused ? null : 5000,
   );
 
   return (
@@ -260,16 +265,3 @@ export const getServiceRegistryBalances = async (
     console.error(error);
   }
 };
-
-// const getRewardsBalance = async (
-//   serviceId: number,
-// ): Promise<number | undefined> => {
-//   if (serviceId === undefined || serviceId < 0) return;
-//   const balance = await EthersService.readContract({
-//     address: SERVICE_STAKING_TOKEN_MECH_USAGE_CONTRACT[Chain.GNOSIS],
-//     abi: SERVICE_STAKING_TOKEN_MECH_USAGE_ABI,
-//   }).getServiceInfo(serviceId).reward;
-
-//   if (balance === undefined) return;
-//   return parseFloat(ethers.utils.formatUnits(balance, 18));
-// };

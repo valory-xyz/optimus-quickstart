@@ -28,4 +28,12 @@ export const CardSection = styled(Flex)<CardSectionProps>`
   border-collapse: collapse;
   margin-left: -24px;
   margin-right: -24px;
+
+  &:nth-child(1) {
+    margin-top: -24px;
+  }
+
+  &:nth-last-child(1) {
+    margin-bottom: -24px;
+  }
 `;

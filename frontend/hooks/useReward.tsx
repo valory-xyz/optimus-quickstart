@@ -7,7 +7,7 @@ export const useReward = () => {
   const { availableRewardsForEpoch, isEligibleForRewards } =
     useContext(RewardContext);
 
-  const availableRewardsForEpochEth = useMemo<number | undefined>(() => {
+  const availableRewardsForEpochEther = useMemo<number | undefined>(() => {
     if (!availableRewardsForEpoch) return;
 
     const parsedRewardsEth = parseFloat(
@@ -19,7 +19,7 @@ export const useReward = () => {
 
   return {
     availableRewardsForEpoch,
-    availableRewardsForEpochEth,
+    availableRewardsForEpochEther,
     isEligibleForRewards,
   };
 };

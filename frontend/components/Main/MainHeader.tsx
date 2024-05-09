@@ -1,4 +1,4 @@
-import { Badge, Button, Flex } from 'antd';
+import { Badge, Button, Flex, Typography } from 'antd';
 import { formatUnits } from 'ethers/lib/utils';
 import Image from 'next/image';
 import { useCallback, useMemo, useState } from 'react';
@@ -101,9 +101,14 @@ export const MainHeader = () => {
     }
     if (serviceStatus === DeploymentStatus.DEPLOYED) {
       return (
-        <Button type="default" size="large" onClick={handleStop}>
-          Pause
-        </Button>
+        <Flex gap={5}>
+          <Button type="default" size="large" onClick={handleStop}>
+            Pause
+          </Button>
+          <Typography.Text type="secondary" className="text-base">
+            Agent is working...
+          </Typography.Text>
+        </Flex>
       );
     }
     if (totalOlasBalance === undefined || totalEthBalance === undefined) {
