@@ -96,6 +96,10 @@ class ServiceManager:
             data.append(service.json)
         return data
 
+    def exists(self, service: str) -> bool:
+        """Check if service exists."""
+        return (self.path / service).exists()
+
     def get_on_chain_manager(self, service: Service) -> OnChainManager:
         """Get OnChainManager instance."""
         return OnChainManager(
@@ -348,11 +352,14 @@ class ServiceManager:
             service_id=service.chain_data.token,
             staking_contract=STAKING[service.ledger_config.chain],
         )
+        self.logger.info(f"Checking staking status for: {service.chain_data.token}")
         if state == StakingState.STAKED:
+            self.logger.info(f"{service.chain_data.token} is already staked")
             service.chain_data.staked = True
             service.store()
             return
 
+        self.logger.info(f"Staking service: {service.chain_data.token}")
         ocm.stake(
             service_id=service.chain_data.token,
             service_registry=CONTRACTS[service.ledger_config.chain]["service_registry"],
@@ -528,7 +535,5 @@ class ServiceManager:
         new_service.ledger_config = old_service.ledger_config
         new_service.chain_data.on_chain_state = OnChainState.NOTMINTED
         new_service.store()
-
-        self.deploy_service_onchain(hash=new_service.hash)
         old_service.delete()
         return new_service
