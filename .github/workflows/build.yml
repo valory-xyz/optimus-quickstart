@@ -68,8 +68,8 @@ jobs:
             #         ditto -c -k --keepParent "Operate App.app" "Operate App.app.zip"
 
             - run: ls -lah
-            - run: ls -lah /dist
-            - run: ls -lah /dist/mac-arm64
+            - run: ls -lah dist
+            - run: ls -lah dist/mac-arm64
             
             # Upload artifact to GitHub repo
             -   name: Upload artifact
