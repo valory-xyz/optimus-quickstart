@@ -1,16 +1,16 @@
 import { SettingOutlined } from '@ant-design/icons';
-import { Button, Card, Divider, Flex } from 'antd';
+import { Button, Card, Flex } from 'antd';
 import { useEffect } from 'react';
 
 import { PageState } from '@/enums';
 import { useBalance, usePageState, useServices } from '@/hooks';
 
 import { MainAddFunds } from './MainAddFunds';
-import { MainEarningsToday } from './MainEarningsToday';
 import { MainGasBalance } from './MainGasBalance';
 import { MainHeader } from './MainHeader';
 import { MainNeedsFunds } from './MainNeedsFunds';
 import { MainOlasBalance } from './MainOlasBalance';
+import { MainRewards } from './MainRewards';
 
 export const Main = () => {
   const { goto } = usePageState();
@@ -41,9 +41,7 @@ export const Main = () => {
         <MainNeedsFunds />
         <MainOlasBalance />
         <MainGasBalance />
-        <Divider />
-        <MainEarningsToday />
-        <Divider />
+        <MainRewards />
         <MainAddFunds />
       </Flex>
     </Card>

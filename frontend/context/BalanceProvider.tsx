@@ -15,12 +15,8 @@ import {
 import { useInterval } from 'usehooks-ts';
 
 import { SERVICE_REGISTRY_TOKEN_UTILITY_ABI } from '@/abi/serviceRegistryTokenUtility';
-import { SERVICE_STAKING_TOKEN_MECH_USAGE_ABI } from '@/abi/serviceStakingTokenMechUsage';
 import { Chain, Wallet } from '@/client';
-import {
-  SERVICE_REGISTRY_TOKEN_UTILITY,
-  SERVICE_STAKING_TOKEN_MECH_USAGE,
-} from '@/constants';
+import { SERVICE_REGISTRY_TOKEN_UTILITY_CONTRACT } from '@/constants';
 import { gnosisMulticallProvider } from '@/constants/providers';
 import { TOKENS } from '@/constants/tokens';
 import { Token } from '@/enums/Token';
@@ -234,7 +230,7 @@ export const getServiceRegistryBalances = async (
   if (serviceId === undefined || serviceId < 0) return;
 
   const serviceRegistryL2Contract = new MulticallContract(
-    SERVICE_REGISTRY_TOKEN_UTILITY[Chain.GNOSIS],
+    SERVICE_REGISTRY_TOKEN_UTILITY_CONTRACT[Chain.GNOSIS],
     SERVICE_REGISTRY_TOKEN_UTILITY_ABI,
   );
 
@@ -265,15 +261,15 @@ export const getServiceRegistryBalances = async (
   }
 };
 
-const getRewardsBalance = async (
-  serviceId: number,
-): Promise<number | undefined> => {
-  if (serviceId === undefined || serviceId < 0) return;
-  const balance = await EthersService.readContract({
-    address: SERVICE_STAKING_TOKEN_MECH_USAGE[Chain.GNOSIS],
-    abi: SERVICE_STAKING_TOKEN_MECH_USAGE_ABI,
-  }).getServiceInfo(serviceId).reward;
+// const getRewardsBalance = async (
+//   serviceId: number,
+// ): Promise<number | undefined> => {
+//   if (serviceId === undefined || serviceId < 0) return;
+//   const balance = await EthersService.readContract({
+//     address: SERVICE_STAKING_TOKEN_MECH_USAGE_CONTRACT[Chain.GNOSIS],
+//     abi: SERVICE_STAKING_TOKEN_MECH_USAGE_ABI,
+//   }).getServiceInfo(serviceId).reward;
 
-  if (balance === undefined) return;
-  return parseFloat(ethers.utils.formatUnits(balance, 18));
-};
+//   if (balance === undefined) return;
+//   return parseFloat(ethers.utils.formatUnits(balance, 18));
+// };
