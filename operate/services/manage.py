@@ -348,11 +348,14 @@ class ServiceManager:
             service_id=service.chain_data.token,
             staking_contract=STAKING[service.ledger_config.chain],
         )
+        self.logger.info(f"Checking staking status for: {service.chain_data.token}")
         if state == StakingState.STAKED:
+            self.logger.info(f"{service.chain_data.token} is already staked")
             service.chain_data.staked = True
             service.store()
             return
 
+        self.logger.info(f"Staking service: {service.chain_data.token}")
         ocm.stake(
             service_id=service.chain_data.token,
             service_registry=CONTRACTS[service.ledger_config.chain]["service_registry"],
