@@ -43,8 +43,8 @@ jobs:
             #-   run: rm -rf /dist && GH_TOKEN=${{ secrets.github_token}} NODE_ENV=production npm exec --package=electron-builder -- electron-builder build --mac --arm64 --publish always
             
             - run: rm -rf /dist
-            # Prepare distribution release (build and notarize .etc)
-            -   name: "Build distribution"
+            
+            -   name: "Build, notarize, distribute"
                 env:
                     CSC_KEY_PASSWORD: ${{ secrets.CSC_KEY_PASSWORD }}
                     CSC_LINK: ${{ secrets.CSC_LINK }}
@@ -56,11 +56,3 @@ jobs:
                     NODE_ENV: production
                     DEBUG: electron-notarize
                 run: node build.js
-            
-            # Upload artifact to GitHub repo
-            -   name: Upload artifact
-                uses: actions/upload-artifact@v2
-                with:
-                    name: OperateApp-macOS
-                    path: |
-                        dist/mac-arm64/Olas Operate.app

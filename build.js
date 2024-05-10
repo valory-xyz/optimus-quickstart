@@ -12,13 +12,7 @@ const main = async () => {
       appId: 'xyz.valory.olas-operate-app',
       artifactName: '${productName}-${version}-${platform}-${arch}.${ext}',
       productName: 'Olas Operate',
-      publish: {
-        provider: 'github',
-        owner: 'valory-xyz',
-        repo: 'olas-operate-app',
-        releaseType: 'draft',
-        token: process.env.GH_TOKEN,
-      },
+      publish: 'always',
       directories: {
         output: 'dist',
       },
@@ -31,6 +25,13 @@ const main = async () => {
             arch: ['arm64'],
           },
         ],
+        publish: {
+          provider: 'github',
+          owner: 'valory-xyz',
+          repo: 'olas-operate-app',
+          releaseType: 'draft',
+          token: process.env.GH_TOKEN,
+        },
         category: 'public.app-category.utilities',
         icon: 'electron/assets/icons/splash-robot-head.png',
         hardenedRuntime: true,
