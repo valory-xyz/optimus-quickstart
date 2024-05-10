@@ -60,6 +60,13 @@ USER_NOT_LOGGED_IN_ERROR = JSONResponse(
 )
 
 
+def service_not_found_error(service: str) -> JSONResponse:
+    """Service not found error response"""
+    return JSONResponse(
+        content={"error": f"Service {service} not found"}, status_code=404
+    )
+
+
 class OperateApp:
     """Operate app."""
 
@@ -444,6 +451,8 @@ def create_app(  # pylint: disable=too-many-locals, unused-argument, too-many-st
     @with_retries
     async def _get_service(request: Request) -> JSONResponse:
         """Create a service."""
+        if not operate.service_manager().exists(service=request.path_params["service"]):
+            return service_not_found_error(service=request.path_params["service"])
         return JSONResponse(
             content=(
                 operate.service_manager()
@@ -458,6 +467,8 @@ def create_app(  # pylint: disable=too-many-locals, unused-argument, too-many-st
     @with_retries
     async def _deploy_service_onchain(request: Request) -> JSONResponse:
         """Create a service."""
+        if not operate.service_manager().exists(service=request.path_params["service"]):
+            return service_not_found_error(service=request.path_params["service"])
         if operate.password is None:
             return USER_NOT_LOGGED_IN_ERROR
         operate.service_manager().deploy_service_onchain(
@@ -478,6 +489,8 @@ def create_app(  # pylint: disable=too-many-locals, unused-argument, too-many-st
     @with_retries
     async def _stop_service_onchain(request: Request) -> JSONResponse:
         """Create a service."""
+        if not operate.service_manager().exists(service=request.path_params["service"]):
+            return service_not_found_error(service=request.path_params["service"])
         if operate.password is None:
             return USER_NOT_LOGGED_IN_ERROR
         operate.service_manager().terminate_service_on_chain(
@@ -501,6 +514,8 @@ def create_app(  # pylint: disable=too-many-locals, unused-argument, too-many-st
     @with_retries
     async def _get_service_deployment(request: Request) -> JSONResponse:
         """Create a service."""
+        if not operate.service_manager().exists(service=request.path_params["service"]):
+            return service_not_found_error(service=request.path_params["service"])
         return JSONResponse(
             content=operate.service_manager()
             .create_or_load(
@@ -513,6 +528,8 @@ def create_app(  # pylint: disable=too-many-locals, unused-argument, too-many-st
     @with_retries
     async def _build_service_locally(request: Request) -> JSONResponse:
         """Create a service."""
+        if not operate.service_manager().exists(service=request.path_params["service"]):
+            return service_not_found_error(service=request.path_params["service"])
         deployment = (
             operate.service_manager()
             .create_or_load(
@@ -527,6 +544,8 @@ def create_app(  # pylint: disable=too-many-locals, unused-argument, too-many-st
     @with_retries
     async def _start_service_locally(request: Request) -> JSONResponse:
         """Create a service."""
+        if not operate.service_manager().exists(service=request.path_params["service"]):
+            return service_not_found_error(service=request.path_params["service"])
         service = request.path_params["service"]
         manager = operate.service_manager()
         manager.deploy_service_onchain(hash=service)
@@ -540,6 +559,8 @@ def create_app(  # pylint: disable=too-many-locals, unused-argument, too-many-st
     @with_retries
     async def _stop_service_locally(request: Request) -> JSONResponse:
         """Create a service."""
+        if not operate.service_manager().exists(service=request.path_params["service"]):
+            return service_not_found_error(service=request.path_params["service"])
         service = request.path_params["service"]
         deployment = operate.service_manager().create_or_load(service).deployment
         deployment.stop()
@@ -551,6 +572,8 @@ def create_app(  # pylint: disable=too-many-locals, unused-argument, too-many-st
     @with_retries
     async def _delete_service_locally(request: Request) -> JSONResponse:
         """Create a service."""
+        if not operate.service_manager().exists(service=request.path_params["service"]):
+            return service_not_found_error(service=request.path_params["service"])
         # TODO: Drain safe before deleting service
         deployment = (
             operate.service_manager()

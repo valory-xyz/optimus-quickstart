@@ -80,13 +80,7 @@ export const MainHeader = () => {
       setIsBalancePollingPaused(false);
       setServiceButtonState({ isLoading: false });
     }
-  }, [
-    serviceTemplate,
-    services,
-    setIsBalancePollingPaused,
-    setServiceStatus,
-    wallets,
-  ]);
+  }, [serviceTemplate, setIsBalancePollingPaused, setServiceStatus, wallets]);
 
   const handleStop = useCallback(() => {
     if (services.length === 0) return;
@@ -109,13 +103,6 @@ export const MainHeader = () => {
       return (
         <Button type="default" size="large" onClick={handleStop}>
           Pause
-        </Button>
-      );
-    }
-    if (serviceStatus === DeploymentStatus.CREATED) {
-      return (
-        <Button type="default" size="large" disabled>
-          Agent error
         </Button>
       );
     }
