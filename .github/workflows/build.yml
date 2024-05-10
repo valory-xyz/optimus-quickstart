@@ -37,9 +37,14 @@ jobs:
                     virtualenvs-path: ~/my-custom-path
                     installer-parallel: true
 
-            # Install & Build
+            # Install all deps
             -   run: yarn install-deps
-            -   run: yarn build:frontend
+
+            -   name: "Build frontend with env vars"
+                run: yarn build:frontend
+                env: 
+                    NODE_ENV: production
+                    
             #-   run: rm -rf /dist && GH_TOKEN=${{ secrets.github_token}} NODE_ENV=production npm exec --package=electron-builder -- electron-builder build --mac --arm64 --publish always
             
             - run: rm -rf /dist
