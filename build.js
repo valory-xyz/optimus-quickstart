@@ -9,9 +9,16 @@ const main = async () => {
   /** @type import {CliOptions} from "electron-builder" */
   await build({
     config: {
-      productName: 'Olas Operate',
-      artifactName: '${productName}-${version}-${platform}-${arch}.${ext}',
       appId: 'xyz.valory.olas-operate-app',
+      artifactName: '${productName}-${version}-${platform}-${arch}.${ext}',
+      productName: 'Olas Operate',
+      publish: {
+        provider: 'github',
+        owner: 'valory-xyz',
+        repo: 'olas-operate-app',
+        releaseType: 'draft',
+        token: process.env.GH_TOKEN,
+      },
       directories: {
         output: 'dist',
       },

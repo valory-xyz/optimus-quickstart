@@ -60,6 +60,7 @@ jobs:
                     NODE_ENV: production
                     DEBUG: electron-notarize
                 run: node build.js #npm exec --package=electron-builder -- electron-builder build --mac --arm64 --publish never
+               
 
             # # Zip after notarization 
             # -   name: Zip distribution
@@ -67,10 +68,6 @@ jobs:
             #         cd dist/mac-arm64
             #         ls -lah
             #         ditto -c -k --keepParent "Operate App.app" "Operate App.app.zip"
-
-            - run: ls -lah
-            - run: ls -lah dist
-            - run: ls -lah dist/mac-arm64
             
             # Upload artifact to GitHub repo
             -   name: Upload artifact
