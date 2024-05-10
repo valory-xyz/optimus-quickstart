@@ -51,7 +51,7 @@ jobs:
             
             - run: rm -rf /dist
             
-            -   name: "Build, notarize, distribute"
+            -   name: "Build, notarize, publish"
                 env:
                     APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLEIDPASS }}
                     APPLE_ID: ${{ secrets.APPLEID }}
@@ -63,6 +63,7 @@ jobs:
                     FORK_URL: https://gnosis-pokt.nodies.app
                     GH_TOKEN: ${{ secrets.github_token}}
                     NODE_ENV: production
+                    PUBLISH_FOR_PULL_REQUEST: true #temporary during testing
                 run: node build.js
 
             -   name: "Upload artifacts"
