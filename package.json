@@ -50,5 +50,8 @@
     "start": "electron .",
     "build": "rm -rf dist/ && electron-builder build"
   },
+  "build": {
+    "publish": "always"
+  },
   "version": "0.1.0-rc15"
 }
