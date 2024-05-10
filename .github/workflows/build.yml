@@ -56,3 +56,8 @@ jobs:
                     NODE_ENV: production
                     DEBUG: electron-notarize
                 run: node build.js
+
+            -   name: "Upload artifacts"
+                uses: actions/upload-artifact@v4
+                with:
+                    path: dist/*.dmg
