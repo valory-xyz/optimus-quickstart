@@ -44,6 +44,8 @@ jobs:
                 run: yarn build:frontend
                 env: 
                     NODE_ENV: production
+                    DEV_RPC: http://localhost:8545
+                    FORK_URL: https://gnosis-pokt.nodies.app
                     
             #-   run: rm -rf /dist && GH_TOKEN=${{ secrets.github_token}} NODE_ENV=production npm exec --package=electron-builder -- electron-builder build --mac --arm64 --publish always
             
@@ -57,7 +59,6 @@ jobs:
                     CSC_FOR_PULL_REQUEST: true
                     CSC_KEY_PASSWORD: ${{ secrets.CSC_KEY_PASSWORD }}
                     CSC_LINK: ${{ secrets.CSC_LINK }}
-                    DEBUG: electron-notarize
                     DEV_RPC: http://localhost:8545
                     FORK_URL: https://gnosis-pokt.nodies.app
                     GH_TOKEN: ${{ secrets.github_token}}

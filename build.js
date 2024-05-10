@@ -8,12 +8,12 @@ const main = async () => {
 
   /** @type import {CliOptions} from "electron-builder" */
   await build({
+    publish: 'always',
     config: {
       appId: 'xyz.valory.olas-operate-app',
       artifactName: '${productName}-${version}-${platform}-${arch}.${ext}',
       productName: 'Olas Operate',
       files: ['electron/**/*', 'package.json'],
-      publish: "always",
       directories: {
         output: 'dist',
       },
