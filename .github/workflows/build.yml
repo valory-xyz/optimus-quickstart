@@ -16,10 +16,6 @@ jobs:
                 os: [macos-latest]
 
         steps:           
-            # Check for notarytool
-            -   name: Check for notarytool
-                run: xcrun --find notarytool
-
             # Checkout branch
             - uses: actions/checkout@v2
 
@@ -32,7 +28,6 @@ jobs:
             -   uses: actions/setup-python@v4
                 with:
                     python-version: "3.10"
-
             -   uses: snok/install-poetry@v1
                 with:
                     version: "1.7.1"
@@ -59,15 +54,7 @@ jobs:
                     GH_TOKEN: ${{ secrets.github_token}}
                     NODE_ENV: production
                     DEBUG: electron-notarize
-                run: node build.js #npm exec --package=electron-builder -- electron-builder build --mac --arm64 --publish never
-               
-
-            # # Zip after notarization 
-            # -   name: Zip distribution
-            #     run: |
-            #         cd dist/mac-arm64
-            #         ls -lah
-            #         ditto -c -k --keepParent "Operate App.app" "Operate App.app.zip"
+                run: node build.js
             
             # Upload artifact to GitHub repo
             -   name: Upload artifact
