@@ -145,28 +145,33 @@ class StakingManager(OnChainHelper):
             sleep=ON_CHAIN_INTERACT_SLEEP,
         )
 
-        # we make use of the ERC20 contract to build the approval transaction
-        # since it has the same interface as ERC721 we might want to create
-        # a ERC721 contract package
+        # Check if token usage is already approved
+        if service_id not in self.staking_ctr.get_service_ids(
+            ledger_api=self.ledger_api,
+            contract_address=staking_contract,
+        ):
+            # we make use of the ERC20 contract to build the approval transaction
+            # since it has the same interface as ERC721 we might want to create
+            # a ERC721 contract package
 
-        def _build_approval_tx(  # pylint: disable=unused-argument
-            *args: t.Any, **kargs: t.Any
-        ) -> t.Dict:
-            return registry_contracts.erc20.get_approve_tx(
-                ledger_api=self.ledger_api,
-                contract_address=service_registry,
-                spender=staking_contract,
-                sender=self.crypto.address,
-                amount=service_id,
+            def _build_approval_tx(  # pylint: disable=unused-argument
+                *args: t.Any, **kargs: t.Any
+            ) -> t.Dict:
+                return registry_contracts.erc20.get_approve_tx(
+                    ledger_api=self.ledger_api,
+                    contract_address=service_registry,
+                    spender=staking_contract,
+                    sender=self.crypto.address,
+                    amount=service_id,
+                )
+
+            setattr(tx_settler, "build", _build_approval_tx)  # noqa: B010
+            tx_settler.transact(
+                method=lambda: {},
+                contract="",
+                kwargs={},
+                dry_run=False,
             )
-
-        setattr(tx_settler, "build", _build_approval_tx)  # noqa: B010
-        tx_settler.transact(
-            method=lambda: {},
-            contract="",
-            kwargs={},
-            dry_run=False,
-        )
 
         def _build_staking_tx(  # pylint: disable=unused-argument
             *args: t.Any, **kargs: t.Any
