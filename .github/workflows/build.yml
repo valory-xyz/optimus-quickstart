@@ -51,15 +51,17 @@ jobs:
             
             -   name: "Build, notarize, distribute"
                 env:
+                    APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLEIDPASS }}
+                    APPLE_ID: ${{ secrets.APPLEID }}
+                    APPLETEAMID: ${{ secrets.APPLETEAMID }}
+                    CSC_FOR_PULL_REQUEST: true
                     CSC_KEY_PASSWORD: ${{ secrets.CSC_KEY_PASSWORD }}
                     CSC_LINK: ${{ secrets.CSC_LINK }}
-                    CSC_FOR_PULL_REQUEST: true
-                    APPLE_ID: ${{ secrets.APPLEID }}
-                    APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLEIDPASS }}
-                    APPLETEAMID: ${{ secrets.APPLETEAMID }}
+                    DEBUG: electron-notarize
+                    DEV_RPC: http://localhost:8545
+                    FORK_URL: https://gnosis-pokt.nodies.app
                     GH_TOKEN: ${{ secrets.github_token}}
                     NODE_ENV: production
-                    DEBUG: electron-notarize
                 run: node build.js
 
             -   name: "Upload artifacts"
