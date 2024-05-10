@@ -1,6 +1,10 @@
 export enum SetupScreen {
   Loading,
   Welcome,
-  Password,
-  Backup,
+  SetupPassword,
+  SetupBackup,
+  Restore,
+  RestoreViaSeed,
+  RestoreSetPassword,
+  RestoreViaBackup,
 }

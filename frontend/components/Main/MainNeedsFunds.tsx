@@ -7,6 +7,8 @@ import { SERVICE_TEMPLATES } from '@/constants';
 import { UNICODE_SYMBOLS } from '@/constants/unicode';
 import { useBalance } from '@/hooks';
 
+import { CardSection } from '../styled/CardSection';
+
 export const MainNeedsFunds = () => {
   const serviceTemplate = SERVICE_TEMPLATES[0];
   const { totalEthBalance, totalOlasBalance } = useBalance();
@@ -78,11 +80,14 @@ export const MainNeedsFunds = () => {
   );
 
   return isVisible ? (
-    <Alert
-      icon={<InfoCircleOutlined className="mb-auto" />}
-      showIcon
-      message={message}
-      type="info"
-    />
+    <CardSection>
+      <Alert
+        className="card-section-alert"
+        icon={<InfoCircleOutlined className="mb-auto" />}
+        showIcon
+        message={message}
+        type="info"
+      />
+    </CardSection>
   ) : null;
 };

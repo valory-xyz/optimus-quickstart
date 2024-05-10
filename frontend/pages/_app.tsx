@@ -11,6 +11,7 @@ import {
   SetupProvider,
 } from '@/context';
 import { BalanceProvider } from '@/context/BalanceProvider';
+import { RewardProvider } from '@/context/RewardProvider';
 import { mainTheme } from '@/theme';
 
 export default function App({ Component, pageProps }: AppProps) {
@@ -27,15 +28,17 @@ export default function App({ Component, pageProps }: AppProps) {
     <AppInfoProvider>
       <PageStateProvider>
         <ServicesProvider>
-          <BalanceProvider>
-            <SetupProvider>
-              {isMounted ? (
-                <ConfigProvider theme={mainTheme}>
-                  <Component {...pageProps} />
-                </ConfigProvider>
-              ) : null}
-            </SetupProvider>
-          </BalanceProvider>
+          <RewardProvider>
+            <BalanceProvider>
+              <SetupProvider>
+                {isMounted ? (
+                  <ConfigProvider theme={mainTheme}>
+                    <Component {...pageProps} />
+                  </ConfigProvider>
+                ) : null}
+              </SetupProvider>
+            </BalanceProvider>
+          </RewardProvider>
         </ServicesProvider>
       </PageStateProvider>
     </AppInfoProvider>
