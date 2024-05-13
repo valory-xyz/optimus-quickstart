@@ -1,6 +1,10 @@
 const electronUpdater = require('electron-updater');
 const macUpdater = new electronUpdater.MacUpdater();
 
+macUpdater.autoDownload = true;
+macUpdater.autoInstallOnAppQuit = true;
+macUpdater.logger = require('electron-log');
+
 macUpdater.on('update-available', () => {
   macUpdater.downloadUpdate();
 });

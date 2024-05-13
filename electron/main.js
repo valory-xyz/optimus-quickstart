@@ -39,9 +39,6 @@ if (!singleInstanceLock) app.quit();
 const platform = os.platform();
 const isDev = process.env.NODE_ENV === 'development';
 
-macUpdater.autoDownload = true;
-macUpdater.autoInstallOnAppQuit = true;
-
 let appConfig = {
   ports: {
     dev: {
@@ -326,7 +323,14 @@ ipcMain.on('check', async function (event, argument) {
   // Update
   try {
     event.sender.send('response', 'Checking for updates');
-    await macUpdater.checkForUpdates();
+    await macUpdater.checkForUpdates().then((res) => {
+      if (res.downloadPromise) {
+        res.downloadPromise.then(() => {
+          event.sender.send('response', 'Update downloaded');
+          macUpdater.quitAndInstall();
+        });
+      }
+    });
   } catch (e) {
     console.error(e);
     event.sender.send('response', e);
