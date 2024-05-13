@@ -74,7 +74,6 @@ export const MainGasBalance = () => {
       <Text>
         Gas and trading balance&nbsp;
         <Tooltip
-          open
           title={
             <TooltipContent>
               Your agent uses this balance to pay for transactions and other
