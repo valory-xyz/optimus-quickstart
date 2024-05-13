@@ -3,4 +3,5 @@ export const COLOR = {
   GREEN_2: '#00F422',
   PURPLE: '#722ed1',
   BLUE: '#1677FF',
+  ORANGE: '#FAAD14',
 };
