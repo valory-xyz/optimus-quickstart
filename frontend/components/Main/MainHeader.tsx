@@ -1,14 +1,20 @@
-import { Badge, Button, Flex, Typography } from 'antd';
+import { InfoCircleOutlined } from '@ant-design/icons';
+import { Badge, Button, Flex, Popover, Typography } from 'antd';
 import { formatUnits } from 'ethers/lib/utils';
 import Image from 'next/image';
 import { useCallback, useMemo, useState } from 'react';
 
 import { Chain, DeploymentStatus } from '@/client';
-import { SERVICE_TEMPLATES } from '@/constants';
+import { COLOR, SERVICE_TEMPLATES } from '@/constants';
 import { useBalance, useServiceTemplates } from '@/hooks';
 import { useServices } from '@/hooks/useServices';
 import { ServicesService } from '@/service';
 import { WalletService } from '@/service/Wallet';
+
+const { Text } = Typography;
+
+const LOADING_MESSAGE =
+  "It may take a while to start your agent, so feel free to close the app. We'll notify you once your agent is running.";
 
 export const MainHeader = () => {
   const { services, serviceStatus, setServiceStatus } = useServices();
@@ -94,11 +100,26 @@ export const MainHeader = () => {
   const serviceToggleButton = useMemo(() => {
     if (serviceButtonState.isLoading) {
       return (
-        <Button type="text" size="large" loading>
-          Starting...
-        </Button>
+        <Popover
+          trigger={['hover', 'click']}
+          placement="bottomLeft"
+          showArrow={false}
+          content={
+            <Flex vertical={false} gap={8} style={{ maxWidth: 260 }}>
+              <Text>
+                <InfoCircleOutlined style={{ color: COLOR.BLUE }} />
+              </Text>
+              <Text>{LOADING_MESSAGE}</Text>
+            </Flex>
+          }
+        >
+          <Button type="default" size="large" ghost disabled loading>
+            Starting...
+          </Button>
+        </Popover>
       );
     }
+
     if (serviceStatus === DeploymentStatus.DEPLOYED) {
       return (
         <Flex gap={5}>
@@ -111,6 +132,7 @@ export const MainHeader = () => {
         </Flex>
       );
     }
+
     if (totalOlasBalance === undefined || totalEthBalance === undefined) {
       return (
         <Button type="primary" size="large" disabled>
@@ -118,6 +140,7 @@ export const MainHeader = () => {
         </Button>
       );
     }
+
     const olasCostOfBond = Number(
       formatUnits(
         `${SERVICE_TEMPLATES[0].configuration.olas_cost_of_bond}`,
@@ -136,6 +159,7 @@ export const MainHeader = () => {
         18,
       ),
     );
+
     if (
       totalOlasBalance < olasCostOfBond + olasRequiredToStake ||
       totalEthBalance < monthlyGasEstimate
@@ -146,6 +170,7 @@ export const MainHeader = () => {
         </Button>
       );
     }
+
     return (
       <Button type="primary" size="large" onClick={handleStart}>
         Start agent
