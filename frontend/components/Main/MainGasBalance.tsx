@@ -1,4 +1,4 @@
-import { QuestionCircleTwoTone } from '@ant-design/icons';
+import { ArrowUpOutlined, QuestionCircleTwoTone } from '@ant-design/icons';
 import { Spin, Tooltip, Typography } from 'antd';
 import { useMemo } from 'react';
 import styled from 'styled-components';
@@ -60,12 +60,34 @@ const BalanceStatus = () => {
   );
 };
 
+const TooltipContent = styled.div`
+  font-size: 77.5%;
+  a {
+    margin-top: 6px;
+    display: inline-block;
+  }
+`;
+
 export const MainGasBalance = () => {
   return (
     <CardSection justify="space-between" border>
       <Text>
         Gas and trading balance&nbsp;
-        <Tooltip title="Gas balance is the amount of XDAI you have to pay for transactions.">
+        <Tooltip
+          open
+          title={
+            <TooltipContent>
+              Your agent uses this balance to pay for transactions and other
+              trading activity on-chain.
+              <br />
+              {/* TODO: ask link */}
+              <a href="https://docs.openlaw.io/olas/olas-eth" target="_blank">
+                Track activity on blockchain explorer{' '}
+                <ArrowUpOutlined style={{ rotate: '45deg' }} />
+              </a>
+            </TooltipContent>
+          }
+        >
           <QuestionCircleTwoTone />
         </Tooltip>
       </Text>

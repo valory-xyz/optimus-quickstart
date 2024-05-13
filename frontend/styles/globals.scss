@@ -23,8 +23,15 @@ button, input, select, textarea, .ant-input-suffix {
   -webkit-app-region: no-drag;
 }
 
+// antd overrides
 .ant-card-head {
   -webkit-app-region: drag;
+}
+
+.ant-alert {
+  .anticon {
+    margin-top: 3px;
+  }
 }
 
 .antd-card {
