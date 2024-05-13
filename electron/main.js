@@ -323,6 +323,16 @@ async function launchNextAppDev() {
 }
 
 ipcMain.on('check', async function (event, argument) {
+  // Update
+  try {
+    event.sender.send('response', 'Checking for updates');
+    await macUpdater.checkForUpdates();
+  } catch (e) {
+    console.error(e);
+    event.sender.send('response', e);
+  }
+
+  // Setup
   try {
     event.sender.send('response', 'Checking installation');
     if (!isDev) {
@@ -413,28 +423,7 @@ app.on('ready', async () => {
   if (platform === 'darwin') {
     app.dock?.setIcon(path.join(__dirname, 'assets/icons/tray-logged-out.png'));
   }
-
-  const downloadNotification = new Notification({
-    title: 'Downloading Update',
-    body: 'Downloading update in the background',
-  });
-
-  const updateResult = await macUpdater
-    .checkForUpdates()
-    .then((result) => {
-      if (result) {
-        downloadNotification.show();
-        // downloadNotification.on('close', () => {
-        //   createSplashWindow();
-        // });
-        console.log(result);
-        console.log(result);
-        console.log(result);
-      } else {
-        createSplashWindow();
-      }
-    })
-    .catch((e) => console.log(e));
+  createSplashWindow();
 });
 
 app.on('window-all-closed', () => {
@@ -448,7 +437,6 @@ app.on('before-quit', () => {
 });
 
 // PROCESS SPECIFIC EVENTS (HANDLES NON-GRACEFUL TERMINATION)
-
 process.on('uncaughtException', (error) => {
   console.error('Uncaught Exception:', error);
   // Clean up your child processes here
