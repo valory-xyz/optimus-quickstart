@@ -5,7 +5,7 @@ import Image from 'next/image';
 import { useCallback, useMemo, useState } from 'react';
 
 import { Chain, DeploymentStatus } from '@/client';
-import { SERVICE_TEMPLATES } from '@/constants';
+import { COLOR, SERVICE_TEMPLATES } from '@/constants';
 import { useBalance, useServiceTemplates } from '@/hooks';
 import { useServices } from '@/hooks/useServices';
 import { ServicesService } from '@/service';
@@ -106,14 +106,14 @@ export const MainHeader = () => {
           showArrow={false}
           content={
             <Flex vertical={false} gap={8} style={{ maxWidth: 260 }}>
-              <div>
-                <InfoCircleOutlined />
-              </div>
+              <Text>
+                <InfoCircleOutlined style={{ color: COLOR.BLUE }} />
+              </Text>
               <Text>{LOADING_MESSAGE}</Text>
             </Flex>
           }
         >
-          <Button type="default" ghost disabled loading>
+          <Button type="default" size="large" ghost disabled loading>
             Starting...
           </Button>
         </Popover>
