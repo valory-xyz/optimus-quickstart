@@ -64,7 +64,7 @@ jobs:
                     #PUBLISH_FOR_PULL_REQUEST: true #temporary during testing
                 run: node build.js
 
-            -   name: "Upload artifacts"
-                uses: actions/upload-artifact@v4
-                with:
-                    path: dist/*.dmg
+            # -   name: "Upload artifacts"
+            #     uses: actions/upload-artifact@v4
+            #     with:
+            #         path: dist/*.dmg

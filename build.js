@@ -32,6 +32,8 @@ const main = async () => {
           repo: 'olas-operate-app',
           releaseType: 'release',
           token: process.env.GH_TOKEN,
+          private: true,
+          publishAutoUpdate: true,          
         },
         category: 'public.app-category.utilities',
         icon: 'electron/assets/icons/splash-robot-head.png',
