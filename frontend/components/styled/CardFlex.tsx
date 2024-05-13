@@ -11,9 +11,7 @@ export const CardFlex = styled(Card)<CardFlexProps>`
 
       const gapStyle = gap ? `gap: ${gap}px;` : '';
 
-      return `
-      ${gapStyle}
-    `;
+      return `${gapStyle}`;
     }}
     display: flex;
     flex-direction: column;
