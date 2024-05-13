@@ -17,7 +17,7 @@ const TRAY_ICONS = {
 try {
   if (process.platform === 'darwin') {
     // resize icons for macOS
-    const size = { width: 16, height: 16 }
+    const size = { width: 16, height: 16 };
     TRAY_ICONS.LOGGED_OUT = TRAY_ICONS.LOGGED_OUT.resize(size);
     TRAY_ICONS.LOW_GAS = TRAY_ICONS.LOW_GAS.resize({ width: 16, height: 16 });
     TRAY_ICONS.PAUSED = TRAY_ICONS.PAUSED.resize({ width: 16, height: 16 });

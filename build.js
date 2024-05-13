@@ -1,6 +1,6 @@
 const dotenv = require('dotenv');
 const build = require('electron-builder').build;
-const publishOptions = require('./electron/constants/publishOptions');
+const {publishOptions} = require('./electron/constants/publishOptions');
 
 dotenv.config();
 
