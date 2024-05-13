@@ -1,5 +1,6 @@
-import { ethers, providers, utils } from 'ethers';
+import { ContractInterface, ethers, providers, utils } from 'ethers';
 
+import { gnosisProvider } from '@/constants/providers';
 import { Address } from '@/types';
 
 /**
@@ -88,8 +89,20 @@ const checkRpc = async (rpc: string): Promise<boolean> => {
   }
 };
 
+const readContract = ({
+  address,
+  abi,
+}: {
+  address: string;
+  abi: ContractInterface;
+}) => {
+  const contract = new ethers.Contract(address, abi, gnosisProvider);
+  return contract;
+};
+
 export const EthersService = {
   getEthBalance,
   getErc20Balance,
   checkRpc,
+  readContract,
 };

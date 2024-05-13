@@ -23,13 +23,13 @@ export const mainTheme: ThemeConfig = {
       colorText: '#36075F',
       colorIcon: '#36075F',
     },
-    Card: {
-      colorBgContainer: '#FFFFFF',
-      padding: 20,
-    },
     Button: {
       fontSize: 16,
       fontSizeLG: 16,
+    },
+    Card: {
+      colorBgContainer: '#FFFFFF',
+      padding: 20,
     },
     Input: {
       fontSize: 20,
