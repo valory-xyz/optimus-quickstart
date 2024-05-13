@@ -12,7 +12,7 @@ export const MainRewards = () => {
   const { availableRewardsForEpochEther, isEligibleForRewards } = useReward();
   return (
     <CardSection gap={5} vertical>
-      <Text>Staking Rewards today </Text>
+      <Text>Staking rewards today </Text>
       <Flex gap={10}>
         <Text strong>
           {balanceFormat(availableRewardsForEpochEther, 2)} OLAS
