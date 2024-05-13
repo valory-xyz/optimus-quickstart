@@ -20,6 +20,8 @@ import { Address } from '@/types';
 
 import { CardSection } from '../styled/CardSection';
 
+const { Text } = Typography;
+
 const CustomizedCardSection = styled(CardSection)<{ border?: boolean }>`
   > .ant-btn {
     width: 50%;
@@ -55,9 +57,17 @@ export const MainAddFunds = () => {
         >
           {isAddFundsVisible ? 'Close instructions' : 'Add funds'}
         </Button>
-        <Button type="default" size="large" disabled>
-          Withdraw
-        </Button>
+
+        <Popover
+          title={null}
+          placement="topRight"
+          trigger={['hover', 'click']}
+          content={<Text>Ability to withdraw is coming soon</Text>}
+        >
+          <Button type="default" size="large" disabled>
+            Withdraw
+          </Button>
+        </Popover>
       </CustomizedCardSection>
 
       {isAddFundsVisible && (
@@ -83,12 +93,12 @@ const AddFundsWarningAlertSection = () => (
       showIcon
       message={
         <Flex vertical gap={2.5}>
-          <Typography.Text className="text-base" strong>
+          <Text className="text-base" strong>
             Only send funds on Gnosis Chain!
-          </Typography.Text>
-          <Typography.Text className="text-base">
+          </Text>
+          <Text className="text-base">
             You will lose any assets you send on other chains.
-          </Typography.Text>
+          </Text>
         </Flex>
       }
     />
@@ -108,9 +118,7 @@ const AddFundsAddressSection = ({
     <Tooltip
       title={<span className="can-select-text flex">{walletAddress}</span>}
     >
-      <Typography.Text title={walletAddress}>
-        GNO: {truncatedWalletAddress}
-      </Typography.Text>
+      <Text title={walletAddress}>GNO: {truncatedWalletAddress}</Text>
     </Tooltip>
     <Button onClick={handleCopy}>
       <CopyOutlined />
