@@ -1,5 +1,6 @@
 const dotenv = require('dotenv');
 const build = require('electron-builder').build;
+const publishOptions = require('./electron/constants/publishOptions');
 
 dotenv.config();
 
@@ -26,15 +27,7 @@ const main = async () => {
             arch: ['arm64'],
           },
         ],
-        publish: {
-          provider: 'github',
-          owner: 'valory-xyz',
-          repo: 'olas-operate-app',
-          releaseType: 'release',
-          token: process.env.GH_TOKEN,
-          private: true,
-          publishAutoUpdate: true,          
-        },
+        publish: publishOptions,
         category: 'public.app-category.utilities',
         icon: 'electron/assets/icons/splash-robot-head.png',
         hardenedRuntime: true,
@@ -49,4 +42,4 @@ const main = async () => {
   });
 };
 
-main().then((response) => { console.log('Build & Notarize complete'); console.log(response) }).catch((e) => console.error(e));
+main().then((response) => { console.log('Build & Notarize complete'); }).catch((e) => console.error(e));

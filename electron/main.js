@@ -324,7 +324,8 @@ ipcMain.on('check', async function (event, argument) {
   try {
     event.sender.send('response', 'Checking for updates');
     await macUpdater.checkForUpdates().then((res) => {
-      if (res.downloadPromise) {
+      if (res) {
+        console.log(res);
         res.downloadPromise.then(() => {
           event.sender.send('response', 'Update downloaded');
           macUpdater.quitAndInstall();
