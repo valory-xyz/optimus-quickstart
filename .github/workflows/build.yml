@@ -1,11 +1,11 @@
 name: Build & Notarize
 
-# on: 
-#     push:
-#         tags:
-#             - 'v*.*.*'
+on: 
+    push:
+        tags:
+            - 'v*.*.*'
 
-on: "pull_request" # only active during testing
+#on: "pull_request" # only active during testing
 
 jobs:
     release:
