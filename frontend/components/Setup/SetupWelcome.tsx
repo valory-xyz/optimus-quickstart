@@ -57,6 +57,7 @@ export const SetupWelcome = () => {
 
   return (
     <Card>
+      <p>Updated version</p>
       <Flex vertical align="center">
         <Image
           src={'/onboarding-robot.svg'}
