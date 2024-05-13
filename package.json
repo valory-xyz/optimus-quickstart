@@ -9,8 +9,6 @@
     "cross-env": "^7.0.3",
     "dockerode": "^4.0.2",
     "dotenv": "^16.4.5",
-    "electron": "29.2.0",
-    "electron-sudo": "^4.0.12",
     "ethers": "5.7.2",
     "ethers-multicall": "^0.2.3",
     "lodash": "^4.17.21",
@@ -24,6 +22,7 @@
     "usehooks-ts": "^2.14.0"
   },
   "devDependencies": {
+    "@electron/notarize": "^2.3.0",
     "concurrently": "^8.2.2",
     "electron": "29.2.0",
     "electron-builder": "^24.12.0",
@@ -37,25 +36,6 @@
   "main": "electron/main.js",
   "name": "olas-operate-app",
   "private": true,
-  "build": {
-    "appId": "com.olas.operate",
-    "productName": "Olas Operate",
-    "directories": {
-      "output": "dist"
-    },
-    "win": {
-      "target": "nsis",
-      "icon": "electron/assets/icons/robot-head.png"
-    },
-    "mac": {
-      "target": "dmg",
-      "icon": "electron/assets/icons/robot-head.png"
-    },
-    "linux": {
-      "target": "AppImage",
-      "icon": "electron/assets/icons/robot-head.png"
-    }
-  },
   "scripts": {
     "build:frontend": "cd frontend && yarn build && rm -rf ../electron/.next && cp -r .next ../electron/.next && rm -rf ../electron/public && cp -r public ../electron/public",
     "dev:backend": "poetry run python operate/cli.py",
