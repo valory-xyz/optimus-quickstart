@@ -8,7 +8,7 @@ const main = async () => {
 
   /** @type import {CliOptions} from "electron-builder" */
   await build({
-    publish: 'always',
+    publish: 'onTag',
     config: {
       appId: 'xyz.valory.olas-operate-app',
       artifactName: '${productName}-${version}-${platform}-${arch}.${ext}',
@@ -30,7 +30,7 @@ const main = async () => {
           provider: 'github',
           owner: 'valory-xyz',
           repo: 'olas-operate-app',
-          releaseType: 'draft',
+          releaseType: 'release',
           token: process.env.GH_TOKEN,
         },
         category: 'public.app-category.utilities',

@@ -27,6 +27,7 @@ const {
 const { killProcesses } = require('./processes');
 const { isPortAvailable, findAvailablePort } = require('./ports');
 const { PORT_RANGE, isWindows, isMac } = require('./constants');
+const { macUpdater } = require('./update');
 
 // Configure environment variables
 dotenv.config();
@@ -37,6 +38,10 @@ if (!singleInstanceLock) app.quit();
 
 const platform = os.platform();
 const isDev = process.env.NODE_ENV === 'development';
+
+macUpdater.autoDownload = true;
+macUpdater.autoInstallOnAppQuit = true;
+
 let appConfig = {
   ports: {
     dev: {
@@ -405,6 +410,8 @@ ipcMain.on('check', async function (event, argument) {
 
 // APP-SPECIFIC EVENTS
 app.on('ready', async () => {
+  const updateResult = await macUpdater.checkForUpdatesAndNotify();
+  console.log(updateResult);
   if (platform === 'darwin') {
     app.dock?.setIcon(path.join(__dirname, 'assets/icons/tray-logged-out.png'));
   }

@@ -1,4 +1,4 @@
-name: Build & Notarize
+name: Build, Notarize, Release
 
 on: 
     push:
@@ -46,8 +46,6 @@ jobs:
                     NODE_ENV: production
                     DEV_RPC: http://localhost:8545
                     FORK_URL: https://gnosis-pokt.nodies.app
-                    
-            #-   run: rm -rf /dist && GH_TOKEN=${{ secrets.github_token}} NODE_ENV=production npm exec --package=electron-builder -- electron-builder build --mac --arm64 --publish always
             
             - run: rm -rf /dist
             
