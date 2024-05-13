@@ -317,7 +317,7 @@ async function launchNextAppDev() {
   });
 }
 
-ipcMain.on('check', async function (event, argument) {
+ipcMain.on('check', async function (event) {
   try {
     event.sender.send('response', 'Checking installation');
     if (!isDev) {
@@ -406,7 +406,9 @@ ipcMain.on('check', async function (event, argument) {
 // APP-SPECIFIC EVENTS
 app.on('ready', async () => {
   if (platform === 'darwin') {
-    app.dock?.setIcon(path.join(__dirname, 'assets/icons/tray-logged-out.png'));
+    app.dock?.setIcon(
+      path.join(__dirname, 'assets/icons/splash-robot-head.png'),
+    );
   }
   createSplashWindow();
 });
