@@ -43,7 +43,7 @@ export const RewardProvider = ({ children }: PropsWithChildren) => {
     // service is deployed, created, etc.
 
     let rewardsInfoPromise;
-    if (service && service.chain_data.multisig && service.chain_data.token) {
+    if (service?.chain_data?.multisig && service?.chain_data?.token) {
       rewardsInfoPromise = AutonolasService.getAgentStakingRewardsInfo({
         agentMultisigAddress: service.chain_data.multisig,
         serviceId: service.chain_data.token,
