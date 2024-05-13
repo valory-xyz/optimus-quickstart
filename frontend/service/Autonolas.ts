@@ -49,6 +49,22 @@ const getAgentStakingRewardsInfo = async ({
     rewardsPerSecond,
   ] = multicallResponse;
 
+  /**
+   * serviceInfo represents the ServiceInfo struct in the ServiceStakingTokenMechUsage contract
+   * struct ServiceInfo {
+    // Service multisig address
+    address multisig;
+    // Service owner
+    address owner;
+    // Service multisig nonces
+    uint256[] nonces; <-- (we use this in the rewards eligibility check)
+    // Staking start time
+    uint256 tsStart;
+    // Accumulated service staking reward
+    uint256 reward;
+    // Accumulated inactivity that might lead to the service eviction
+    uint256 inactivity;}
+   */
   const isEligibleForRewards =
     mechRequestCount - serviceInfo[2][1] >=
     (livenessPeriod * livenessRatio) / 10 ** 18 +
