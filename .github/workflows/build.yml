@@ -56,14 +56,14 @@ jobs:
                     APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLEIDPASS }}
                     APPLE_ID: ${{ secrets.APPLEID }}
                     APPLETEAMID: ${{ secrets.APPLETEAMID }}
-                    CSC_FOR_PULL_REQUEST: true
+                    #CSC_FOR_PULL_REQUEST: true #temporary during testing
                     CSC_KEY_PASSWORD: ${{ secrets.CSC_KEY_PASSWORD }}
                     CSC_LINK: ${{ secrets.CSC_LINK }}
                     DEV_RPC: http://localhost:8545
                     FORK_URL: https://gnosis-pokt.nodies.app
                     GH_TOKEN: ${{ secrets.github_token}}
                     NODE_ENV: production
-                    PUBLISH_FOR_PULL_REQUEST: true #temporary during testing
+                    #PUBLISH_FOR_PULL_REQUEST: true #temporary during testing
                 run: node build.js
 
             -   name: "Upload artifacts"
