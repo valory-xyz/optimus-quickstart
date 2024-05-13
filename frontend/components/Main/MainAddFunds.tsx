@@ -11,6 +11,7 @@ import {
 } from 'antd';
 import Link from 'next/link';
 import { useCallback, useMemo, useState } from 'react';
+import styled from 'styled-components';
 
 import { copyToClipboard, truncateAddress } from '@/common-util';
 import { UNICODE_SYMBOLS } from '@/constants/unicode';
@@ -18,6 +19,12 @@ import { useBalance } from '@/hooks';
 import { Address } from '@/types';
 
 import { CardSection } from '../styled/CardSection';
+
+const CustomizedCardSection = styled(CardSection)<{ border?: boolean }>`
+  > .ant-btn {
+    width: 50%;
+  }
+`;
 
 export const MainAddFunds = () => {
   const { wallets } = useBalance();
@@ -40,7 +47,7 @@ export const MainAddFunds = () => {
 
   return (
     <>
-      <CardSection vertical border>
+      <CustomizedCardSection vertical={false} border gap={12}>
         <Button
           type="default"
           size="large"
@@ -48,7 +55,11 @@ export const MainAddFunds = () => {
         >
           {isAddFundsVisible ? 'Close instructions' : 'Add funds'}
         </Button>
-      </CardSection>
+        <Button type="default" size="large" disabled>
+          Withdraw
+        </Button>
+      </CustomizedCardSection>
+
       {isAddFundsVisible && (
         <>
           <AddFundsWarningAlertSection />
