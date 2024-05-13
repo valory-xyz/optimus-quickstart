@@ -169,7 +169,7 @@ const createMainWindow = () => {
     title: 'Olas Operate',
     resizable: false,
     draggable: true,
-    frame: false,
+    frame: true,
     transparent: true,
     fullscreenable: false,
     maximizable: false,
@@ -182,7 +182,7 @@ const createMainWindow = () => {
     },
   });
 
-  mainWindow.setMenuBarVisibility(false);
+  mainWindow.setMenuBarVisibility(true);
 
   if (isDev) {
     mainWindow.loadURL(`http://localhost:${appConfig.ports.dev.next}`);
@@ -410,12 +410,31 @@ ipcMain.on('check', async function (event, argument) {
 
 // APP-SPECIFIC EVENTS
 app.on('ready', async () => {
-  const updateResult = await macUpdater.checkForUpdatesAndNotify();
-  console.log(updateResult);
   if (platform === 'darwin') {
     app.dock?.setIcon(path.join(__dirname, 'assets/icons/tray-logged-out.png'));
   }
-  createSplashWindow();
+
+  const downloadNotification = new Notification({
+    title: 'Downloading Update',
+    body: 'Downloading update in the background',
+  });
+
+  const updateResult = await macUpdater
+    .checkForUpdates()
+    .then((result) => {
+      if (result) {
+        downloadNotification.show();
+        // downloadNotification.on('close', () => {
+        //   createSplashWindow();
+        // });
+        console.log(result);
+        console.log(result);
+        console.log(result);
+      } else {
+        createSplashWindow();
+      }
+    })
+    .catch((e) => console.log(e));
 });
 
 app.on('window-all-closed', () => {
