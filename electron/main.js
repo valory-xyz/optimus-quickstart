@@ -84,9 +84,22 @@ async function beforeQuit() {
  * Creates the tray
  */
 const createTray = () => {
-  tray = new Tray(
-    isWindows || isMac ? TRAY_ICONS.LOGGED_OUT : TRAY_ICONS_PATHS.LOGGED_OUT,
+  // create a new native image from icon
+  const icon = nativeImage.createFromPath(
+    path.join(__dirname, 'assets/icons/tray-logged-out.png'),
   );
+  // if you want to resize it, be careful, it creates a copy
+  const trayIcon = icon.resize({ width: 16 });
+  // here is the important part (has to be set on the resized version)
+  trayIcon.setTemplateImage(true);
+  new Tray(trayIcon);
+
+  // tray = new Tray(
+  //   isWindows || isMac ? TRAY_ICONS.LOGGED_OUT : TRAY_ICONS_PATHS.LOGGED_OUT,
+  // );
+  // const trayIcon = tray.resize({ width: 16 });
+  // trayIcon.setTemplateImage(true);
+
   const contextMenu = Menu.buildFromTemplate([
     {
       label: 'Show app',
@@ -161,16 +174,6 @@ const createSplashWindow = () => {
  * Creates the main window
  */
 const createMainWindow = () => {
-  // create a new native image from icon
-  const icon = nativeImage.createFromPath(
-    path.join(__dirname, 'assets/icons/tray-logged-out.png'),
-  );
-  // if you want to resize it, be careful, it creates a copy
-  const trayIcon = icon.resize({ width: 16 });
-  // here is the important part (has to be set on the resized version)
-  trayIcon.setTemplateImage(true);
-  const tray = new Tray(trayIcon);
-
   mainWindow = new BrowserWindow({
     title: 'Olas Operate',
     draggable: true,
