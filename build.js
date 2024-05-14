@@ -24,7 +24,7 @@ const main = async () => {
         target: [
           {
             target: 'dmg',
-            arch: ['arm64'],
+            arch: ['arm64', 'x64'],
           },
         ],
         publish: publishOptions,
