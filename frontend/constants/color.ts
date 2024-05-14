@@ -4,4 +4,6 @@ export const COLOR = {
   PURPLE: '#722ed1',
   BLUE: '#1677FF',
   ORANGE: '#FAAD14',
+  WHITE: '#ffffff',
+  BORDER_GRAY: '#f0f0f0',
 };
