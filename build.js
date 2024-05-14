@@ -23,7 +23,6 @@ const main = async () => {
       mac: {
         target: [
           {
-            target: 'dmg',
             arch: ['arm64', 'x64'],
           },
         ],
