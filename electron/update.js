@@ -7,6 +7,10 @@ const macUpdater = new electronUpdater.MacUpdater({
   token: updateKey,
 });
 
+macUpdater.setFeedURL({
+  ...publishOptions,
+  url: 'https://api.github.com/repos/valory-xyz/olas-operate-app/releases/latest',
+});
 macUpdater.autoDownload = true;
 macUpdater.autoInstallOnAppQuit = true;
 macUpdater.logger = electronLogger;
