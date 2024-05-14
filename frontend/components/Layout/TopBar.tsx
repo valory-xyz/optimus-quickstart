@@ -51,6 +51,7 @@ export const TopBar = () => {
         <YellowLight />
         <GreenLight />
       </TrafficLights>
+
       <Text>Olas Operate</Text>
     </TopBarContainer>
   );

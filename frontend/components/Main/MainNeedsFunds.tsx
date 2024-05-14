@@ -3,7 +3,7 @@ import { Alert, Flex, Typography } from 'antd';
 import { formatUnits } from 'ethers/lib/utils';
 import { ReactNode, useMemo } from 'react';
 
-import { SERVICE_TEMPLATES } from '@/constants';
+import { COLOR, SERVICE_TEMPLATES } from '@/constants';
 import { UNICODE_SYMBOLS } from '@/constants/unicode';
 import { useBalance } from '@/hooks';
 
@@ -60,7 +60,9 @@ export const MainNeedsFunds = () => {
   const message: ReactNode = useMemo(
     () => (
       <Flex vertical>
-        <Typography.Text strong>Your agent needs funds</Typography.Text>
+        <Typography.Text strong style={{ color: 'inherit' }}>
+          Your agent needs funds
+        </Typography.Text>
         <small>
           To run your agent, you must have at least these amounts in your
           account:
@@ -83,7 +85,12 @@ export const MainNeedsFunds = () => {
     <CardSection>
       <Alert
         className="card-section-alert"
-        icon={<InfoCircleOutlined className="mb-auto" />}
+        icon={
+          <InfoCircleOutlined
+            className="mb-auto"
+            style={{ color: COLOR.PURPLE_DARK }}
+          />
+        }
         showIcon
         message={message}
         type="info"

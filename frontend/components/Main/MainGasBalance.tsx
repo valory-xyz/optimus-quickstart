@@ -1,4 +1,4 @@
-import { ArrowUpOutlined, QuestionCircleTwoTone } from '@ant-design/icons';
+import { ArrowUpOutlined, InfoCircleOutlined } from '@ant-design/icons';
 import { Spin, Tooltip, Typography } from 'antd';
 import { useMemo } from 'react';
 import styled from 'styled-components';
@@ -80,20 +80,34 @@ export const MainGasBalance = () => {
               trading activity on-chain.
               <br />
               {/* TODO: ask link */}
-              <a href="https://docs.openlaw.io/olas/olas-eth" target="_blank">
+              <a href="https://gnosisscan.io/address/0x" target="_blank">
                 Track activity on blockchain explorer{' '}
                 <ArrowUpOutlined style={{ rotate: '45deg' }} />
               </a>
             </TooltipContent>
           }
         >
-          <QuestionCircleTwoTone />
+          <InfoCircleOutlined />
         </Tooltip>
       </Text>
 
       <Text strong>
         <BalanceStatus />
       </Text>
+      {/* 
+      <Button
+        type="primary"
+        onClick={() => {
+          // const { ipcRenderer } = window.require('electron');
+          // ipcRenderer.send('hide-app');
+
+          const { BrowserWindow } = require('electron');
+          // const window = BrowserWindow.getFocusedWindow();
+          console.log(BrowserWindow);
+        }}
+      >
+        Hide app
+      </Button> */}
     </CardSection>
   );
 };
