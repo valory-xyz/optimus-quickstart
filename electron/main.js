@@ -87,9 +87,12 @@ async function beforeQuit() {
 const createTray = () => {
   const trayPath =
     isWindows || isMac ? TRAY_ICONS.LOGGED_OUT : TRAY_ICONS_PATHS.LOGGED_OUT;
-  const trayIcon = trayPath.resize({ width: 16 });
-  trayIcon.setTemplateImage(true);
-  const tray = new Tray(trayIcon);
+
+  if (trayPath.resize) {
+    trayPath.resize({ width: 16 });
+    trayPath.setTemplateImage(true);
+  }
+  const tray = new Tray(trayPath);
 
   const contextMenu = Menu.buildFromTemplate([
     {
@@ -169,7 +172,7 @@ const createMainWindow = () => {
     title: 'Olas Operate',
     resizable: false,
     draggable: true,
-    frame: true,
+    frame: false,
     transparent: true,
     fullscreenable: false,
     maximizable: false,
@@ -325,19 +328,23 @@ async function launchNextAppDev() {
 ipcMain.on('check', async function (event, _argument) {
   // Update
   try {
-    event.sender.send('response', 'Checking for updates');
-    // await macUpdater.checkForUpdates().then((res) => {
-    //   if (res) {
-    //     console.log(res);
-    //     res.downloadPromise.then(() => {
-    //       event.sender.send('response', 'Update downloaded');
-    //       macUpdater.quitAndInstall();
-    //     });
-    //   }
-    // });
+    macUpdater.checkForUpdates().then((res) => {
+      if (res) {
+        new Notification({
+          title: 'Update Available',
+          body: 'Downloading update...',
+        }).show();
+      }
+      res.downloadPromise.then(() => {
+        new Notification({
+          title: 'Update Downloaded',
+          body: 'Restarting application...',
+        }).show();
+        macUpdater.quitAndInstall();
+      });
+    });
   } catch (e) {
     console.error(e);
-    event.sender.send('response', e);
   }
 
   // Setup
