@@ -7,9 +7,9 @@ const publishOptions = {
   owner: 'valory-xyz',
   repo: 'olas-operate-app',
   releaseType: 'release',
-  token: updateKey,
+  token: process.env.GH_TOKEN,
   private: true,
   publishAutoUpdate: true,
 };
 
-module.exports = { publishOptions };
+module.exports = { publishOptions, updateKey };

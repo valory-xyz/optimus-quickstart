@@ -1,11 +1,15 @@
-const { publishOptions } = require('./constants/publishOptions');
+const { publishOptions, updateKey } = require('./constants/publishOptions');
 const electronUpdater = require('electron-updater');
+const electronLogger = require('electron-log');
 
-const macUpdater = new electronUpdater.MacUpdater(publishOptions);
+const macUpdater = new electronUpdater.MacUpdater({
+  ...publishOptions,
+  token: updateKey,
+});
 
 macUpdater.autoDownload = true;
 macUpdater.autoInstallOnAppQuit = true;
-macUpdater.logger = require('electron-log');
+macUpdater.logger = electronLogger;
 
 macUpdater.on('update-not-available', () => {
   console.log('No updates available');
