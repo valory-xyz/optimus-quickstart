@@ -1,11 +1,12 @@
 name: Build, Notarize, Release
 
+# This workflow is triggered on pushing a tag
+# git tag vX.Y.Z
+# git push origin tag vX.Y.Z
 on: 
     push:
         tags:
             - 'v*.*.*'
-
-#on: "pull_request" # only active during testing
 
 jobs:
     release:
@@ -16,15 +17,12 @@ jobs:
                 os: [macos-latest]
 
         steps:           
-            # Checkout branch
             - uses: actions/checkout@v2
 
-            # Node.js (for package scripts)
             -   uses: actions/setup-node@v1
                 with:
                     node-version: "20.11"
 
-            # Python
             -   uses: actions/setup-python@v4
                 with:
                     python-version: "3.10"
@@ -37,7 +35,6 @@ jobs:
                     virtualenvs-path: ~/my-custom-path
                     installer-parallel: true
 
-            # Install all deps
             -   run: yarn install-deps
 
             -   name: "Build frontend with env vars"
@@ -63,8 +60,3 @@ jobs:
                     NODE_ENV: production
                     #PUBLISH_FOR_PULL_REQUEST: true #temporary during testing
                 run: node build.js
-
-            # -   name: "Upload artifacts"
-            #     uses: actions/upload-artifact@v4
-            #     with:
-            #         path: dist/*.dmg
