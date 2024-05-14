@@ -162,10 +162,10 @@ const createSplashWindow = () => {
 const createMainWindow = () => {
   mainWindow = new BrowserWindow({
     title: 'Olas Operate',
-    resizable: false,
     draggable: true,
-    frame: false,
-    transparent: true,
+    // frame: false,
+    // transparent: true,
+    resizable: false,
     fullscreenable: false,
     maximizable: false,
     width: isDev ? 800 : 420,
