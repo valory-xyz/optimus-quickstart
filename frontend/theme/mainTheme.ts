@@ -30,6 +30,7 @@ export const mainTheme: ThemeConfig = {
     Card: {
       colorBgContainer: '#FFFFFF',
       padding: 20,
+      fontWeightStrong: 400,
     },
     Input: {
       fontSize: 20,

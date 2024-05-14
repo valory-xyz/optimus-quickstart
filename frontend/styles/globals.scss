@@ -3,9 +3,9 @@
 @import '@fontsource/inter/900.css';
 
 html, body {
-    margin: 0;
-    padding: 0;   
-    height: auto;
+  margin: 0;
+  padding: 0;   
+  height: auto;
 }
 
   /* Hide scrollbar for Chrome, Safari and Opera */
@@ -14,29 +14,36 @@ html, body {
 }
 
 body {
-    max-width: 420px;
-    border-radius: 8px;
-    user-select: none;
+  max-width: 420px;
+  border-radius: 8px;
+  user-select: none;
 }
 
 button, input, select, textarea, .ant-input-suffix {
-    -webkit-app-region: no-drag;
+  -webkit-app-region: no-drag;
 }
 
+// antd overrides
 .ant-card-head {
-    -webkit-app-region: drag;
+  -webkit-app-region: drag;
+}
+
+.ant-alert {
+  .anticon {
+    margin-top: 3px;
+  }
 }
 
 .antd-card {
   background-color: white;
-    overflow-y: scroll;
+  overflow-y: scroll;
 }
 
 .balance {
   font-family: 'Inter';
   font-weight: 900;
   font-size: 56px;
-  line-height: 56px;
+  line-height: 48px;
 }
 
 .balance-symbol {

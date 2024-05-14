@@ -85,9 +85,12 @@ async function beforeQuit() {
  * Creates the tray
  */
 const createTray = () => {
-  tray = new Tray(
-    isWindows || isMac ? TRAY_ICONS.LOGGED_OUT : TRAY_ICONS_PATHS.LOGGED_OUT,
-  );
+  const trayPath =
+    isWindows || isMac ? TRAY_ICONS.LOGGED_OUT : TRAY_ICONS_PATHS.LOGGED_OUT;
+  const trayIcon = trayPath.resize({ width: 16 });
+  trayIcon.setTemplateImage(true);
+  const tray = new Tray(trayIcon);
+
   const contextMenu = Menu.buildFromTemplate([
     {
       label: 'Show app',
@@ -115,7 +118,7 @@ const createTray = () => {
     mainWindow.show();
   });
 
-  ipcMain.on('tray', (event, status) => {
+  ipcMain.on('tray', (_event, status) => {
     switch (status) {
       case 'low-gas':
         tray.setImage(
@@ -218,7 +221,7 @@ async function launchDaemon() {
     });
     return data;
   }
-  const check = new Promise(function (resolve, reject) {
+  const check = new Promise(function (resolve, _reject) {
     operateDaemon = spawn(
       OperateCmd,
       [
@@ -248,7 +251,7 @@ async function launchDaemon() {
 }
 
 async function launchDaemonDev() {
-  const check = new Promise(function (resolve, reject) {
+  const check = new Promise(function (resolve, _reject) {
     operateDaemon = spawn('poetry', [
       'run',
       'operate',
@@ -296,13 +299,13 @@ async function launchNextApp() {
   server.listen(appConfig.ports.prod.next, (err) => {
     if (err) throw err;
     console.log(
-      `> Next server runinng on http://localhost:${appConfig.ports.prod.next}`,
+      `> Next server running on http://localhost:${appConfig.ports.prod.next}`,
     );
   });
 }
 
 async function launchNextAppDev() {
-  await new Promise(function (resolve, reject) {
+  await new Promise(function (resolve, _reject) {
     process.env.NEXT_PUBLIC_BACKEND_PORT = appConfig.ports.dev.operate; // must set next env var to connect to backend
     nextAppProcess = spawn(
       'yarn',
@@ -319,7 +322,7 @@ async function launchNextAppDev() {
   });
 }
 
-ipcMain.on('check', async function (event, argument) {
+ipcMain.on('check', async function (event, _argument) {
   // Update
   try {
     event.sender.send('response', 'Checking for updates');
@@ -426,7 +429,9 @@ ipcMain.on('check', async function (event, argument) {
 // APP-SPECIFIC EVENTS
 app.on('ready', async () => {
   if (platform === 'darwin') {
-    app.dock?.setIcon(path.join(__dirname, 'assets/icons/tray-logged-out.png'));
+    app.dock?.setIcon(
+      path.join(__dirname, 'assets/icons/splash-robot-head-dock.png'),
+    );
   }
   createSplashWindow();
 });
