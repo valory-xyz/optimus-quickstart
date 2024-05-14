@@ -21,7 +21,7 @@ const main = async () => {
       cscKeyPassword: process.env.CSC_KEY_PASSWORD,
       cscLink: process.env.CSC_LINK,
       mac: {
-        target: [,
+        target: [
           {
             target: 'default',
             arch: ['x64','arm64'],
