@@ -329,12 +329,14 @@ ipcMain.on('check', async function (event, _argument) {
   // Update
   try {
     macUpdater.checkForUpdates().then((res) => {
-      if (res) {
-        new Notification({
-          title: 'Update Available',
-          body: 'Downloading update...',
-        }).show();
-      }
+      if (!res) return;
+      if (!res.downloadPromise) return;
+
+      new Notification({
+        title: 'Update Available',
+        body: 'Downloading update...',
+      }).show();
+
       res.downloadPromise.then(() => {
         new Notification({
           title: 'Update Downloaded',
