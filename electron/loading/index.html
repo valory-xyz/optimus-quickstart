@@ -35,9 +35,6 @@
     //   document.getElementById("text").innerText = arg;
     // });
     ipcRenderer.send("check", "Starting check...");
-    ipcRenderer.on("response", (event, arg) => {
-      console.log(arg);
-    });
   </script>
 
 </html>
