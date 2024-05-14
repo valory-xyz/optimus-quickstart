@@ -6,15 +6,17 @@ import { useReward } from '@/hooks/useReward';
 
 import { CardSection } from '../styled/CardSection';
 
+const { Text } = Typography;
+
 export const MainRewards = () => {
   const { availableRewardsForEpochEther, isEligibleForRewards } = useReward();
   return (
     <CardSection gap={5} vertical>
-      <Typography.Text>Rewards today </Typography.Text>
+      <Text>Staking rewards today </Text>
       <Flex gap={10}>
-        <Typography.Text strong>
+        <Text strong>
           {balanceFormat(availableRewardsForEpochEther, 2)} OLAS
-        </Typography.Text>
+        </Text>
         <RewardsEarned isEligibleForRewards={isEligibleForRewards} />
       </Flex>
     </CardSection>
