@@ -165,9 +165,11 @@ const createMainWindow = () => {
     draggable: true,
     // frame: false,
     // transparent: true,
+    // titleBarStyle: 'hidden',
     resizable: false,
     fullscreenable: false,
     maximizable: false,
+    // width: 420,
     width: isDev ? 800 : 420,
     height: 735,
     webPreferences: {
@@ -407,7 +409,7 @@ ipcMain.on('check', async function (event) {
 app.on('ready', async () => {
   if (platform === 'darwin') {
     app.dock?.setIcon(
-      path.join(__dirname, 'assets/icons/splash-robot-head.png'),
+      path.join(__dirname, 'assets/icons/splash-robot-head-dock.png'),
     );
   }
   createSplashWindow();
