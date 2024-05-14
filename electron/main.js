@@ -7,7 +7,6 @@ const {
   Menu,
   Notification,
   ipcMain,
-  nativeImage,
 } = require('electron');
 const { spawn } = require('child_process');
 const path = require('path');
@@ -232,7 +231,7 @@ async function launchDaemon() {
     });
     return data;
   }
-  const check = new Promise(function (resolve, reject) {
+  const check = new Promise(function (resolve, _reject) {
     operateDaemon = spawn(
       OperateCmd,
       [
@@ -262,7 +261,7 @@ async function launchDaemon() {
 }
 
 async function launchDaemonDev() {
-  const check = new Promise(function (resolve, reject) {
+  const check = new Promise(function (resolve, _reject) {
     operateDaemon = spawn('poetry', [
       'run',
       'operate',
@@ -310,13 +309,13 @@ async function launchNextApp() {
   server.listen(appConfig.ports.prod.next, (err) => {
     if (err) throw err;
     console.log(
-      `> Next server runinng on http://localhost:${appConfig.ports.prod.next}`,
+      `> Next server running on http://localhost:${appConfig.ports.prod.next}`,
     );
   });
 }
 
 async function launchNextAppDev() {
-  await new Promise(function (resolve, reject) {
+  await new Promise(function (resolve, _reject) {
     process.env.NEXT_PUBLIC_BACKEND_PORT = appConfig.ports.dev.operate; // must set next env var to connect to backend
     nextAppProcess = spawn(
       'yarn',
