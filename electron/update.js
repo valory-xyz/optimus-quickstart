@@ -17,6 +17,9 @@ macUpdater.setFeedURL({
   //   authorization: `Bearer ${updateKey}`,
   // },
   token: updateKey,
+  requestHeaders: {
+    authorization: `Bearer ${updateKey}`,
+  },
 });
 macUpdater.autoDownload = true;
 macUpdater.autoInstallOnAppQuit = true;
