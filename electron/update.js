@@ -4,15 +4,19 @@ const electronLogger = require('electron-log');
 
 const macUpdater = new electronUpdater.MacUpdater({
   ...publishOptions,
+  private: true,
   token: updateKey,
 });
 
+macUpdater.logger = electronLogger;
+
 macUpdater.setFeedURL({
   ...publishOptions,
-  url: 'https://api.github.com/repos/valory-xyz/olas-operate-app/releases/latest',
-  requestHeaders: {
-    authorization: `Bearer ${updateKey}`,
-  },
+  // url: 'https://api.github.com/repos/valory-xyz/olas-operate-app/releases/latest',
+  // requestHeaders: {
+  //   authorization: `Bearer ${updateKey}`,
+  // },
+  token: updateKey,
 });
 macUpdater.autoDownload = true;
 macUpdater.autoInstallOnAppQuit = true;
