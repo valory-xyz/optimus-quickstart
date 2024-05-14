@@ -7,6 +7,7 @@ const {
   Menu,
   Notification,
   ipcMain,
+  nativeImage,
 } = require('electron');
 const { spawn } = require('child_process');
 const path = require('path');
@@ -160,6 +161,16 @@ const createSplashWindow = () => {
  * Creates the main window
  */
 const createMainWindow = () => {
+  // create a new native image from icon
+  const icon = nativeImage.createFromPath(
+    path.join(__dirname, 'assets/icons/tray-logged-out.png'),
+  );
+  // if you want to resize it, be careful, it creates a copy
+  const trayIcon = icon.resize({ width: 16 });
+  // here is the important part (has to be set on the resized version)
+  trayIcon.setTemplateImage(true);
+  const tray = new Tray(trayIcon);
+
   mainWindow = new BrowserWindow({
     title: 'Olas Operate',
     draggable: true,
