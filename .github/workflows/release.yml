@@ -1,6 +1,6 @@
 name: Build, Notarize, Release
 
-# This workflow is triggered on pushing a tag
+# This workflow is triggered on pushing a tag BE CAREFUL this application AUTO UPDATES !!! 
 # git tag vX.Y.Z
 # git push origin tag vX.Y.Z
 on: 
