@@ -49,7 +49,7 @@ export const MainAddFunds = () => {
 
   return (
     <>
-      <CustomizedCardSection vertical={false} border gap={12}>
+      <CustomizedCardSection border gap={12}>
         <Button
           type="default"
           size="large"
@@ -59,7 +59,6 @@ export const MainAddFunds = () => {
         </Button>
 
         <Popover
-          title={null}
           placement="topRight"
           trigger={['hover', 'click']}
           content={<Text>Ability to withdraw is coming soon</Text>}
