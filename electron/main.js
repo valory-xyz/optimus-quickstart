@@ -84,21 +84,21 @@ async function beforeQuit() {
  * Creates the tray
  */
 const createTray = () => {
-  // create a new native image from icon
-  const icon = nativeImage.createFromPath(
-    path.join(__dirname, 'assets/icons/tray-logged-out.png'),
-  );
-  // if you want to resize it, be careful, it creates a copy
-  const trayIcon = icon.resize({ width: 16 });
-  // here is the important part (has to be set on the resized version)
-  trayIcon.setTemplateImage(true);
-  new Tray(trayIcon);
-
-  // tray = new Tray(
-  //   isWindows || isMac ? TRAY_ICONS.LOGGED_OUT : TRAY_ICONS_PATHS.LOGGED_OUT,
+  // // create a new native image from icon
+  // const icon = nativeImage.createFromPath(
+  //   path.join(__dirname, 'assets/icons/tray-logged-out.png'),
   // );
-  // const trayIcon = tray.resize({ width: 16 });
+  // // if you want to resize it, be careful, it creates a copy
+  // const trayIcon = icon.resize({ width: 16 });
+  // // here is the important part (has to be set on the resized version)
   // trayIcon.setTemplateImage(true);
+  // new Tray(trayIcon);
+
+  const trayPath =
+    isWindows || isMac ? TRAY_ICONS.LOGGED_OUT : TRAY_ICONS_PATHS.LOGGED_OUT;
+  const trayIcon = trayPath.resize({ width: 16 });
+  trayIcon.setTemplateImage(true);
+  const tray = new Tray(trayIcon);
 
   const contextMenu = Menu.buildFromTemplate([
     {
