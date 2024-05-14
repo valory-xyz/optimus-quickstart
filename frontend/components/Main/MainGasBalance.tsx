@@ -29,7 +29,7 @@ const FineDot = styled(Dot)`
   background-color: ${COLOR.GREEN_2};
 `;
 const LowDot = styled(Dot)`
-  background-color: ${COLOR.PURPLE};
+  background-color: ${COLOR.ORANGE};
 `;
 
 const BalanceStatus = () => {
