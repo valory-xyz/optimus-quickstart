@@ -323,15 +323,15 @@ ipcMain.on('check', async function (event, argument) {
   // Update
   try {
     event.sender.send('response', 'Checking for updates');
-    await macUpdater.checkForUpdates().then((res) => {
-      if (res) {
-        console.log(res);
-        res.downloadPromise.then(() => {
-          event.sender.send('response', 'Update downloaded');
-          macUpdater.quitAndInstall();
-        });
-      }
-    });
+    // await macUpdater.checkForUpdates().then((res) => {
+    //   if (res) {
+    //     console.log(res);
+    //     res.downloadPromise.then(() => {
+    //       event.sender.send('response', 'Update downloaded');
+    //       macUpdater.quitAndInstall();
+    //     });
+    //   }
+    // });
   } catch (e) {
     console.error(e);
     event.sender.send('response', e);
@@ -439,6 +439,11 @@ app.on('window-all-closed', () => {
 
 app.on('before-quit', () => {
   beforeQuit();
+});
+
+// UPDATER EVENTS
+macUpdater.on('update-downloaded', () => {
+  macUpdater.quitAndInstall();
 });
 
 // PROCESS SPECIFIC EVENTS (HANDLES NON-GRACEFUL TERMINATION)
