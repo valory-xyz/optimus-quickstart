@@ -36,6 +36,8 @@ export const SetupRestoreMain = () => {
           phrase you received when setting up your account.
         </Typography.Text>
         <Button
+          disabled // seed phrase recovery is not yet implemented
+          title="Seed-phrase-based account recovery coming soon"
           size="large"
           type="primary"
           className="w-3/4"
