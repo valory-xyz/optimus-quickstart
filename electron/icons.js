@@ -28,3 +28,21 @@ try {
 }
 
 module.exports = { TRAY_ICONS_PATHS, TRAY_ICONS };
+
+/**
+ * frame = true & transparent = true & height = 750
+ * - Unable to see the frame (ie. close, minimize, maximize buttons)
+ *
+ * frame = true & transparent = true & height = null
+ * - Unable to see the frame (ie. close, minimize, maximize buttons)
+ *
+ * frame = false & transparent = true & height = 750
+ * - Same as above
+ *
+ * frame = false & transparent = false & height = 750
+ * - NA
+ *
+ * frame = true & transparent = false & height = 750
+ * - Able to see the frame (ie. close, minimize, maximize buttons)
+ * - BUT the background is white and takes up the whole window (ie. no transparency and full height)
+ */
