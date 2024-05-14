@@ -49,7 +49,7 @@ export const MainAddFunds = () => {
 
   return (
     <>
-      <CustomizedCardSection border gap={12}>
+      <CustomizedCardSection gap={12}>
         <Button
           type="default"
           size="large"
