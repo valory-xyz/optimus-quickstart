@@ -1,8 +1,7 @@
 const { nativeImage } = require('electron');
 
 const TRAY_ICONS_PATHS = {
-  LOGGED_OUT: `${__dirname}/assets/icons/trayLoggedOutTemplate.png`,
-  // LOGGED_OUT: `${__dirname}/assets/icons/trayLoggedOutTemplate.png`,
+  LOGGED_OUT: `${__dirname}/assets/icons/tray-logged-out.png`,
   LOW_GAS: `${__dirname}/assets/icons/tray-low-gas.png`,
   PAUSED: `${__dirname}/assets/icons/tray-paused.png`,
   RUNNING: `${__dirname}/assets/icons/tray-running.png`,

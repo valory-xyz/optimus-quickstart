@@ -83,16 +83,6 @@ async function beforeQuit() {
  * Creates the tray
  */
 const createTray = () => {
-  // // create a new native image from icon
-  // const icon = nativeImage.createFromPath(
-  //   path.join(__dirname, 'assets/icons/tray-logged-out.png'),
-  // );
-  // // if you want to resize it, be careful, it creates a copy
-  // const trayIcon = icon.resize({ width: 16 });
-  // // here is the important part (has to be set on the resized version)
-  // trayIcon.setTemplateImage(true);
-  // new Tray(trayIcon);
-
   const trayPath =
     isWindows || isMac ? TRAY_ICONS.LOGGED_OUT : TRAY_ICONS_PATHS.LOGGED_OUT;
   const trayIcon = trayPath.resize({ width: 16 });
@@ -126,7 +116,7 @@ const createTray = () => {
     mainWindow.show();
   });
 
-  ipcMain.on('tray', (event, status) => {
+  ipcMain.on('tray', (_event, status) => {
     switch (status) {
       case 'low-gas':
         tray.setImage(
@@ -332,7 +322,7 @@ async function launchNextAppDev() {
   });
 }
 
-ipcMain.on('check', async function (event) {
+ipcMain.on('check', async function (event, _argument) {
   try {
     event.sender.send('response', 'Checking installation');
     if (!isDev) {
