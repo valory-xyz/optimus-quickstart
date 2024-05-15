@@ -1,5 +1,6 @@
 import { Typography } from 'antd';
-import React from 'react';
+import { get } from 'lodash';
+import React, { useCallback } from 'react';
 import styled from 'styled-components';
 
 import { COLOR } from '@/constants';
@@ -41,14 +42,26 @@ const TopBarContainer = styled.div`
   border-radius: 8px 8px 0 0px;
   border-bottom: 1px solid ${COLOR.BORDER_GRAY};
   background: ${COLOR.WHITE};
+  -webkit-app-region: drag;
 `;
 
 export const TopBar = () => {
+  const onClose = useCallback(() => {
+    const closeAppFn = get(window, 'electronAPI.closeApp') ?? (() => null);
+    closeAppFn();
+  }, []);
+
+  const onMinimize = useCallback(() => {
+    const minimizeAppFn =
+      get(window, 'electronAPI.minimizeApp') ?? (() => null);
+    minimizeAppFn();
+  }, []);
+
   return (
     <TopBarContainer>
       <TrafficLights>
-        <RedLight />
-        <YellowLight />
+        <RedLight onClick={onClose} />
+        <YellowLight onClick={onMinimize} />
         <GreenLight />
       </TrafficLights>
 

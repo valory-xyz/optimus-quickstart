@@ -94,20 +94,6 @@ export const MainGasBalance = () => {
       <Text strong>
         <BalanceStatus />
       </Text>
-      {/* 
-      <Button
-        type="primary"
-        onClick={() => {
-          // const { ipcRenderer } = window.require('electron');
-          // ipcRenderer.send('hide-app');
-
-          const { BrowserWindow } = require('electron');
-          // const window = BrowserWindow.getFocusedWindow();
-          console.log(BrowserWindow);
-        }}
-      >
-        Hide app
-      </Button> */}
     </CardSection>
   );
 };

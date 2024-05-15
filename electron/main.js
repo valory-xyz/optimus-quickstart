@@ -135,6 +135,20 @@ const createTray = () => {
         break;
     }
   });
+
+  ipcMain.on('close-app', () => {
+    const currentWindow = BrowserWindow.getFocusedWindow();
+    if (currentWindow) {
+      currentWindow.close();
+    }
+  });
+
+  ipcMain.on('minimize-app', () => {
+    const currentWindow = BrowserWindow.getFocusedWindow();
+    if (currentWindow) {
+      currentWindow.minimize();
+    }
+  });
 };
 
 /**
@@ -154,9 +168,9 @@ const createSplashWindow = () => {
     },
   });
   splashWindow.loadURL('file://' + __dirname + '/loading/index.html');
-  if (isDev) {
-    splashWindow.webContents.openDevTools();
-  }
+  // if (isDev) {
+  //   splashWindow.webContents.openDevTools();
+  // }
 };
 
 /**
@@ -167,11 +181,12 @@ const createMainWindow = () => {
     title: 'Olas Operate',
     resizable: false,
     draggable: true,
-    frame: false,
+    frame: true,
     transparent: true,
     fullscreenable: false,
     maximizable: false,
-    width: isDev ? 800 : 420,
+    // width: 420,
+    width: isDev ? 840 : 420,
     height: 735,
     webPreferences: {
       nodeIntegration: false,
@@ -201,6 +216,15 @@ const createMainWindow = () => {
     require('electron').shell.openExternal(url);
     return { action: 'deny' };
   });
+
+  // console.log('mainWindow.webContents', mainWindow.webContents);
+
+  // mainWindow.webContents.on('did-navigate-in-page', () => {
+  //   const contentSize = mainWindow.getContentSize();
+  //   const [width, height] = contentSize;
+  //   console.log(width, height);
+  //   // mainWindow.setSize(width, height + 50); // Add some extra height for padding, if needed
+  // });
 
   mainWindow.on('close', function (event) {
     event.preventDefault();
