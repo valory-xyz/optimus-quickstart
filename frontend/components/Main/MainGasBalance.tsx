@@ -72,12 +72,12 @@ export const MainGasBalance = () => {
     <CardSection justify="space-between" borderTop borderBottom>
       <Text>
         Gas and trading balance&nbsp;
-        <Tooltip
-          title={
-            <TooltipContent>
-              Your agent uses this balance to pay for transactions and other
-              trading activity on-chain.
-              {walletAddress && (
+        {walletAddress && (
+          <Tooltip
+            title={
+              <TooltipContent>
+                Your agent uses this balance to pay for transactions and other
+                trading activity on-chain.
                 <>
                   <br />
                   <a
@@ -88,12 +88,12 @@ export const MainGasBalance = () => {
                     <ArrowUpOutlined style={{ rotate: '45deg' }} />
                   </a>
                 </>
-              )}
-            </TooltipContent>
-          }
-        >
-          <InfoCircleOutlined />
-        </Tooltip>
+              </TooltipContent>
+            }
+          >
+            <InfoCircleOutlined />
+          </Tooltip>
+        )}
       </Text>
 
       {isBalanceLoaded ? (
