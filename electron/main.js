@@ -135,20 +135,6 @@ const createTray = () => {
         break;
     }
   });
-
-  ipcMain.on('close-app', () => {
-    const currentWindow = BrowserWindow.getFocusedWindow();
-    if (currentWindow) {
-      currentWindow.close();
-    }
-  });
-
-  ipcMain.on('minimize-app', () => {
-    const currentWindow = BrowserWindow.getFocusedWindow();
-    if (currentWindow) {
-      currentWindow.minimize();
-    }
-  });
 };
 
 /**
@@ -181,12 +167,12 @@ const createMainWindow = () => {
     title: 'Olas Operate',
     resizable: false,
     draggable: true,
-    frame: true,
+    frame: false,
     transparent: true,
     fullscreenable: false,
     maximizable: false,
-    // width: 420,
-    width: isDev ? 840 : 420,
+    width: 420,
+    // width: isDev ? 840 : 420,
     height: 735,
     webPreferences: {
       nodeIntegration: false,
@@ -203,6 +189,14 @@ const createMainWindow = () => {
     mainWindow.loadURL(`http://localhost:${appConfig.ports.prod.next}`);
   }
 
+  ipcMain.on('close-app', () => {
+    mainWindow.close();
+  });
+
+  ipcMain.on('minimize-app', () => {
+    mainWindow.minimize();
+  });
+
   mainWindow.webContents.on('did-fail-load', () => {
     mainWindow.webContents.reloadIgnoringCache();
   });
@@ -217,23 +211,14 @@ const createMainWindow = () => {
     return { action: 'deny' };
   });
 
-  // console.log('mainWindow.webContents', mainWindow.webContents);
-
-  // mainWindow.webContents.on('did-navigate-in-page', () => {
-  //   const contentSize = mainWindow.getContentSize();
-  //   const [width, height] = contentSize;
-  //   console.log(width, height);
-  //   // mainWindow.setSize(width, height + 50); // Add some extra height for padding, if needed
-  // });
-
   mainWindow.on('close', function (event) {
     event.preventDefault();
     mainWindow.hide();
   });
 
-  if (isDev) {
-    mainWindow.webContents.openDevTools();
-  }
+  // if (isDev) {
+  //   mainWindow.webContents.openDevTools();
+  // }
 };
 
 async function launchDaemon() {

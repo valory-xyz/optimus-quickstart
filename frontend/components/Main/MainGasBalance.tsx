@@ -70,7 +70,7 @@ const TooltipContent = styled.div`
 
 export const MainGasBalance = () => {
   return (
-    <CardSection justify="space-between" border>
+    <CardSection justify="space-between" borderTop borderBottom>
       <Text>
         Gas and trading balance&nbsp;
         <Tooltip

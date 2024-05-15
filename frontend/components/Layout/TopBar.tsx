@@ -12,6 +12,7 @@ const TrafficLightIcon = styled.div`
   height: 12px;
   border-radius: 50%;
   margin-left: 8px;
+  -webkit-app-region: no-drag;
 `;
 
 const RedLight = styled(TrafficLightIcon)`
@@ -22,14 +23,15 @@ const YellowLight = styled(TrafficLightIcon)`
   background-color: #febc2e;
 `;
 
-const GreenLight = styled(TrafficLightIcon)`
-  background-color: #28c841;
+const DisabledLight = styled(TrafficLightIcon)`
+  background-color: #ddd;
 `;
 
 const TrafficLights = styled.div`
   display: flex;
   align-items: center;
   margin-right: 24px;
+  -webkit-app-region: no-drag;
 `;
 
 const TopBarContainer = styled.div`
@@ -62,7 +64,7 @@ export const TopBar = () => {
       <TrafficLights>
         <RedLight onClick={onClose} />
         <YellowLight onClick={onMinimize} />
-        <GreenLight />
+        <DisabledLight />
       </TrafficLights>
 
       <Text>Olas Operate</Text>
