@@ -94,14 +94,6 @@ export const BalanceProvider = ({ children }: PropsWithChildren) => {
       (olasBondBalance ?? 0) +
       (optimisticRewardsEarnedForEpoch ?? 0);
 
-    console.log({
-      sumWalletBalances,
-      olasDepositBalance,
-      olasBondBalance,
-      optimisticRewardsEarnedForEpoch,
-      TOTAL: total,
-    });
-
     return total;
   }, [
     isLoaded,
@@ -133,9 +125,6 @@ export const BalanceProvider = ({ children }: PropsWithChildren) => {
         setOlasBondBalance(serviceRegistryBalances.bondValue);
       }
 
-      console.log({ walletBalances, wallets });
-      console.log(' ======== HERE ========');
-
       setWallets(wallets);
       setWalletBalances(walletBalances);
       setIsLoaded(true);
@@ -153,8 +142,6 @@ export const BalanceProvider = ({ children }: PropsWithChildren) => {
     },
     isPaused ? null : 5000,
   );
-
-  console.log({ services, totalEthBalance, totalOlasBalance });
 
   return (
     <BalanceContext.Provider
@@ -268,28 +255,18 @@ const getServiceRegistryBalances = async (
     serviceRegistryL2Contract.mapServiceIdTokenDeposit(serviceId),
   ];
 
-  try {
-    await gnosisMulticallProvider.init();
+  await gnosisMulticallProvider.init();
 
-    const [operatorBalanceResponse, serviceIdTokenDepositResponse] =
-      await gnosisMulticallProvider.all(contractCalls);
+  const [operatorBalanceResponse, serviceIdTokenDepositResponse] =
+    await gnosisMulticallProvider.all(contractCalls);
 
-    console.log({ operatorBalanceResponse, serviceIdTokenDepositResponse });
+  const [operatorBalance, serviceIdTokenDeposit] = [
+    parseFloat(ethers.utils.formatUnits(operatorBalanceResponse, 18)),
+    parseFloat(ethers.utils.formatUnits(serviceIdTokenDepositResponse[1], 18)),
+  ];
 
-    const [operatorBalance, serviceIdTokenDeposit] = [
-      parseFloat(ethers.utils.formatUnits(operatorBalanceResponse, 18)),
-      parseFloat(
-        ethers.utils.formatUnits(serviceIdTokenDepositResponse[1], 18),
-      ),
-    ];
-
-    console.log({ operatorBalance, serviceIdTokenDeposit });
-
-    return {
-      bondValue: operatorBalance,
-      depositValue: serviceIdTokenDeposit,
-    };
-  } catch (error) {
-    console.error(error);
-  }
+  return {
+    bondValue: operatorBalance,
+    depositValue: serviceIdTokenDeposit,
+  };
 };
