@@ -10,6 +10,7 @@ import {
   Typography,
 } from 'antd';
 import { useEffect, useMemo, useState } from 'react';
+import styled from 'styled-components';
 
 import { Chain } from '@/client';
 import { copyToClipboard } from '@/common-util';
@@ -50,8 +51,8 @@ export const SetupEoaFunding = () => {
 
   const masterSafe = wallets?.[0]?.safe;
 
-  const isFundedMasterEoa = masterSafe;
-  masterEaoEthBalance && masterEaoEthBalance >= MASTER_EAO_FUNDING_AMOUNT_ETH;
+  const isFundedMasterEoa =
+    masterEaoEthBalance && masterEaoEthBalance >= MASTER_EAO_FUNDING_AMOUNT_ETH;
 
   const status = useMemo(() => {
     if (!isFundedMasterEoa) return SetupEaoFundingStatus.WaitingForEoaFunding;
@@ -143,14 +144,21 @@ const SetupEoaFundingWaiting = ({
           }
         />
       </CardSection>
-      <CardSection borderTop borderBottom>
-        <Flex vertical gap={10}>
+      <CardSection borderTop borderBottom vertical gap={10}>
+        <AccountCreationCardFlex gap={10}>
           <Flex justify="space-between">
-            <Typography.Text>Account creation address</Typography.Text>
-            <Flex gap={5}>
+            <Typography.Text className="text-sm" strong>
+              Account creation address
+            </Typography.Text>
+            <Flex gap={10} align="center">
               <Tooltip title="Copy to clipboard">
                 <CopyOutlined
-                  onClick={() => masterEoa && copyToClipboard(masterEoa)}
+                  onClick={() =>
+                    masterEoa &&
+                    copyToClipboard(masterEoa).then(() =>
+                      message.success('Address copied!'),
+                    )
+                  }
                 />
               </Tooltip>
               <Popover
@@ -169,16 +177,24 @@ const SetupEoaFundingWaiting = ({
             </Flex>
           </Flex>
 
-          <Typography.Text>GNO: {masterEoa}</Typography.Text>
-          <Button
-            type="link"
-            target="_blank"
-            href={COW_SWAP_GNOSIS_XDAI_OLAS_URL}
-          >
-            Get XDAI on Gnosis Chain{UNICODE_SYMBOLS.EXTERNAL_LINK}
-          </Button>
-        </Flex>
+          <span className="can-select-text break-word">
+            GNO:&nbsp;{masterEoa}
+          </span>
+        </AccountCreationCardFlex>
+        <Button
+          type="link"
+          target="_blank"
+          href={COW_SWAP_GNOSIS_XDAI_OLAS_URL}
+        >
+          Get XDAI on Gnosis Chain{UNICODE_SYMBOLS.EXTERNAL_LINK}
+        </Button>
       </CardSection>
     </>
   );
 };
+
+const AccountCreationCardFlex = styled(CardFlex)`
+  .ant-card-body {
+    background-color: #f2f4f9;
+  }
+`;

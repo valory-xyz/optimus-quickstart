@@ -95,6 +95,11 @@ button, input, select, textarea, .ant-input-suffix {
   font-size: 14px;
 }
 
+.break-word {
+  white-space: normal !important;
+  word-wrap: break-word !important;
+}
+
 ul.alert-list {
   margin: 0 0.5em;
   padding-left: 1.25em;
