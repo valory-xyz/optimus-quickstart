@@ -9,6 +9,8 @@ import { useBalance } from '@/hooks';
 
 import { CardSection } from '../styled/CardSection';
 
+const { Text } = Typography;
+
 export const MainNeedsFunds = () => {
   const serviceTemplate = SERVICE_TEMPLATES[0];
   const { totalEthBalance, totalOlasBalance } = useBalance();
@@ -60,9 +62,9 @@ export const MainNeedsFunds = () => {
   const message: ReactNode = useMemo(
     () => (
       <Flex vertical>
-        <Typography.Text strong style={{ color: 'inherit' }}>
+        <Text strong style={{ color: 'inherit' }}>
           Your agent needs funds
-        </Typography.Text>
+        </Text>
         <small>
           To run your agent, you must have at least these amounts in your
           account:
@@ -81,7 +83,8 @@ export const MainNeedsFunds = () => {
     [serviceFundRequirements, hasEnoughEth, hasEnoughOlas],
   );
 
-  return isVisible ? (
+  if (!isVisible) return null;
+  return (
     <CardSection>
       <Alert
         className="card-section-alert"
@@ -96,5 +99,5 @@ export const MainNeedsFunds = () => {
         type="info"
       />
     </CardSection>
-  ) : null;
+  );
 };

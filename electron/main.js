@@ -154,9 +154,9 @@ const createSplashWindow = () => {
     },
   });
   splashWindow.loadURL('file://' + __dirname + '/loading/index.html');
-  // if (isDev) {
-  //   splashWindow.webContents.openDevTools();
-  // }
+  if (isDev) {
+    splashWindow.webContents.openDevTools();
+  }
 };
 
 /**
@@ -171,8 +171,7 @@ const createMainWindow = () => {
     transparent: true,
     fullscreenable: false,
     maximizable: false,
-    width: 420,
-    // width: isDev ? 840 : 420,
+    width: isDev ? 840 : 420,
     height: 735,
     webPreferences: {
       nodeIntegration: false,
@@ -216,9 +215,9 @@ const createMainWindow = () => {
     mainWindow.hide();
   });
 
-  // if (isDev) {
-  //   mainWindow.webContents.openDevTools();
-  // }
+  if (isDev) {
+    mainWindow.webContents.openDevTools();
+  }
 };
 
 async function launchDaemon() {

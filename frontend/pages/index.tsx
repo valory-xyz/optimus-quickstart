@@ -1,15 +1,9 @@
 import { useMemo } from 'react';
 
-// import styled from 'styled-components';
 import { Settings, Setup } from '@/components';
 import { Main } from '@/components/Main/Main';
 import { PageState } from '@/enums';
 import { usePageState } from '@/hooks';
-
-// const MainContainer = styled.div`
-//   overflow: auto;
-//   max-height: 552px;
-// `;
 
 export default function Home() {
   const { pageState } = usePageState();
@@ -28,5 +22,4 @@ export default function Home() {
   }, [pageState]);
 
   return page;
-  // return <MainContainer>{page}</MainContainer>;
 }
