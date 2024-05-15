@@ -1,11 +1,12 @@
-name: Build & Notarize
+name: Build, Notarize, Release
 
+# This workflow is triggered on pushing a tag BE CAREFUL this application AUTO UPDATES !!! 
+# git tag vX.Y.Z
+# git push origin tag vX.Y.Z
 on: 
     push:
         tags:
             - 'v*.*.*'
-
-#on: "pull_request" # only active during testing
 
 jobs:
     release:
@@ -16,15 +17,12 @@ jobs:
                 os: [macos-latest]
 
         steps:           
-            # Checkout branch
             - uses: actions/checkout@v2
 
-            # Node.js (for package scripts)
             -   uses: actions/setup-node@v1
                 with:
                     node-version: "20.11"
 
-            # Python
             -   uses: actions/setup-python@v4
                 with:
                     python-version: "3.10"
@@ -37,7 +35,6 @@ jobs:
                     virtualenvs-path: ~/my-custom-path
                     installer-parallel: true
 
-            # Install all deps
             -   run: yarn install-deps
 
             -   name: "Build frontend with env vars"
@@ -46,8 +43,6 @@ jobs:
                     NODE_ENV: production
                     DEV_RPC: http://localhost:8545
                     FORK_URL: https://gnosis-pokt.nodies.app
-                    
-            #-   run: rm -rf /dist && GH_TOKEN=${{ secrets.github_token}} NODE_ENV=production npm exec --package=electron-builder -- electron-builder build --mac --arm64 --publish always
             
             - run: rm -rf /dist
             
@@ -56,17 +51,12 @@ jobs:
                     APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLEIDPASS }}
                     APPLE_ID: ${{ secrets.APPLEID }}
                     APPLETEAMID: ${{ secrets.APPLETEAMID }}
-                    #CSC_FOR_PULL_REQUEST: true #temporary during testing
+                    #CSC_FOR_PULL_REQUEST: true #required during testing
                     CSC_KEY_PASSWORD: ${{ secrets.CSC_KEY_PASSWORD }}
                     CSC_LINK: ${{ secrets.CSC_LINK }}
                     DEV_RPC: http://localhost:8545
                     FORK_URL: https://gnosis-pokt.nodies.app
                     GH_TOKEN: ${{ secrets.github_token}}
                     NODE_ENV: production
-                    #PUBLISH_FOR_PULL_REQUEST: true #temporary during testing
+                    #PUBLISH_FOR_PULL_REQUEST: true #required during testing
                 run: node build.js
-
-            -   name: "Upload artifacts"
-                uses: actions/upload-artifact@v4
-                with:
-                    path: dist/*.dmg
