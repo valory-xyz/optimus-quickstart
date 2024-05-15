@@ -17,14 +17,14 @@ export const MainOlasBalance = () => {
 
   return (
     <CardSection align="end" gap={5} borderTop borderBottom>
-      {!isBalanceLoaded ? (
+      {isBalanceLoaded ? (
         <>
           <span className="balance-symbol">{UNICODE_SYMBOLS.OLAS}</span>
           <span className="balance">{balance}</span>
           <span className="balance-currency">OLAS</span>
         </>
       ) : (
-        <Skeleton.Input active size="large" />
+        <Skeleton.Input active size="large" style={{ margin: '4px 0' }} />
       )}
     </CardSection>
   );

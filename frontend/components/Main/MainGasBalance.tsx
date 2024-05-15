@@ -1,5 +1,5 @@
 import { ArrowUpOutlined, InfoCircleOutlined } from '@ant-design/icons';
-import { Spin, Tooltip, Typography } from 'antd';
+import { Skeleton, Tooltip, Typography } from 'antd';
 import { useMemo } from 'react';
 import styled from 'styled-components';
 
@@ -33,7 +33,7 @@ const LowDot = styled(Dot)`
 `;
 
 const BalanceStatus = () => {
-  const { isBalanceLoaded, totalEthBalance } = useBalance();
+  const { totalEthBalance } = useBalance();
 
   const status = useMemo(() => {
     if (!totalEthBalance || totalEthBalance === 0) {
@@ -46,10 +46,6 @@ const BalanceStatus = () => {
 
     return { statusName: 'Fine', StatusComponent: FineDot };
   }, [totalEthBalance]);
-
-  if (!isBalanceLoaded) {
-    return <Spin />;
-  }
 
   const { statusName, StatusComponent } = status;
   return (
@@ -69,7 +65,7 @@ const TooltipContent = styled.div`
 `;
 
 export const MainGasBalance = () => {
-  const { wallets } = useBalance();
+  const { isBalanceLoaded, wallets } = useBalance();
   const walletAddress = wallets?.[0]?.safe;
 
   return (
@@ -100,9 +96,13 @@ export const MainGasBalance = () => {
         </Tooltip>
       </Text>
 
-      <Text strong>
-        <BalanceStatus />
-      </Text>
+      {isBalanceLoaded ? (
+        <Text strong>
+          <BalanceStatus />
+        </Text>
+      ) : (
+        <Skeleton.Button active size="small" style={{ width: 96 }} />
+      )}
     </CardSection>
   );
 };
