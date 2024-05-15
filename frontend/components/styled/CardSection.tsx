@@ -1,8 +1,11 @@
 import { Flex, FlexProps } from 'antd';
 import styled from 'styled-components';
 
+import { COLOR } from '@/constants';
+
 type CardSectionProps = FlexProps & {
-  border?: boolean;
+  borderTop?: boolean;
+  borderBottom?: boolean;
   padding?: number;
 };
 
@@ -12,17 +15,20 @@ type CardSectionProps = FlexProps & {
  */
 export const CardSection = styled(Flex)<CardSectionProps>`
   ${(props) => {
-    const { border, padding } = props;
-
-    const borderStyle = border
-      ? 'border-bottom: 1px solid #f0f0f0; border-top: 1px solid #f0f0f0;'
-      : '';
+    const { padding, borderBottom, borderTop } = props;
 
     const paddingStyle = `padding: ${Number(padding) ? `${padding}` : '24'}px;`;
+    const borderTopStyle = borderTop
+      ? `border-top: 1px solid ${COLOR.BORDER_GRAY};`
+      : '';
+    const borderBottomStyle = borderBottom
+      ? `border-bottom: 1px solid ${COLOR.BORDER_GRAY};`
+      : '';
 
     return `
-      ${borderStyle}
       ${paddingStyle}
+      ${borderTopStyle}
+      ${borderBottomStyle}
     `;
   }}
   border-collapse: collapse;

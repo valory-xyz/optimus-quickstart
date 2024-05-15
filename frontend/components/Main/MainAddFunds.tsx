@@ -1,4 +1,8 @@
-import { CopyOutlined, QrcodeOutlined } from '@ant-design/icons';
+import {
+  CopyOutlined,
+  QrcodeOutlined,
+  WarningOutlined,
+} from '@ant-design/icons';
 import {
   Alert,
   Button,
@@ -14,6 +18,7 @@ import { useCallback, useMemo, useState } from 'react';
 import styled from 'styled-components';
 
 import { copyToClipboard, truncateAddress } from '@/common-util';
+import { COLOR } from '@/constants';
 import { UNICODE_SYMBOLS } from '@/constants/unicode';
 import { useBalance } from '@/hooks';
 import { Address } from '@/types';
@@ -49,7 +54,7 @@ export const MainAddFunds = () => {
 
   return (
     <>
-      <CustomizedCardSection border gap={12}>
+      <CustomizedCardSection gap={12}>
         <Button
           type="default"
           size="large"
@@ -90,12 +95,13 @@ const AddFundsWarningAlertSection = () => (
       className="card-section-alert"
       type="warning"
       showIcon
+      icon={<WarningOutlined />}
       message={
         <Flex vertical gap={2.5}>
-          <Text className="text-base" strong>
+          <Text className="text-base" strong style={{ color: COLOR.BROWN }}>
             Only send funds on Gnosis Chain!
           </Text>
-          <Text className="text-base">
+          <Text className="text-base" style={{ color: COLOR.BROWN }}>
             You will lose any assets you send on other chains.
           </Text>
         </Flex>
@@ -139,7 +145,7 @@ const AddFundsAddressSection = ({
 );
 
 const AddFundsGetTokensSection = () => (
-  <CardSection border justify="center">
+  <CardSection justify="center" borderTop>
     <Link target="_blank" href={'https://swap.cow.fi/#/100/swap/WXDAI/OLAS'}>
       Get OLAS + XDAI on Gnosis Chain {UNICODE_SYMBOLS.EXTERNAL_LINK}
     </Link>

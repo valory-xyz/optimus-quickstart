@@ -36,6 +36,7 @@ export const Main = () => {
           <SettingOutlined />
         </Button>
       }
+      style={{ borderTopColor: 'transparent' }}
     >
       <Flex vertical>
         <MainNeedsFunds />
