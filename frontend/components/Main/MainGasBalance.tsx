@@ -69,6 +69,8 @@ const TooltipContent = styled.div`
 `;
 
 export const MainGasBalance = () => {
+  const { wallets } = useBalance();
+
   return (
     <CardSection justify="space-between" borderTop borderBottom>
       <Text>
@@ -80,7 +82,10 @@ export const MainGasBalance = () => {
               trading activity on-chain.
               <br />
               {/* TODO: ask link */}
-              <a href="https://gnosisscan.io/address/0x" target="_blank">
+              <a
+                href={'https://gnosisscan.io/address/0x' + wallets[0].safe}
+                target="_blank"
+              >
                 Track activity on blockchain explorer{' '}
                 <ArrowUpOutlined style={{ rotate: '45deg' }} />
               </a>
