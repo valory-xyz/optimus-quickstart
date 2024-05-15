@@ -13,7 +13,7 @@ const { Text } = Typography;
 
 export const MainNeedsFunds = () => {
   const serviceTemplate = SERVICE_TEMPLATES[0];
-  const { totalEthBalance, totalOlasBalance } = useBalance();
+  const { isBalanceLoaded, totalEthBalance, totalOlasBalance } = useBalance();
 
   const serviceFundRequirements = useMemo(() => {
     const monthlyGasEstimate = Number(
@@ -84,6 +84,8 @@ export const MainNeedsFunds = () => {
   );
 
   if (!isVisible) return null;
+  if (!isBalanceLoaded) return null;
+
   return (
     <CardSection>
       <Alert
