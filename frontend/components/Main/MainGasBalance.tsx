@@ -70,6 +70,7 @@ const TooltipContent = styled.div`
 
 export const MainGasBalance = () => {
   const { wallets } = useBalance();
+  const walletAddress = wallets?.[0]?.safe;
 
   return (
     <CardSection justify="space-between" borderTop borderBottom>
@@ -80,15 +81,18 @@ export const MainGasBalance = () => {
             <TooltipContent>
               Your agent uses this balance to pay for transactions and other
               trading activity on-chain.
-              <br />
-              {/* TODO: ask link */}
-              <a
-                href={'https://gnosisscan.io/address/0x' + wallets[0].safe}
-                target="_blank"
-              >
-                Track activity on blockchain explorer{' '}
-                <ArrowUpOutlined style={{ rotate: '45deg' }} />
-              </a>
+              {walletAddress && (
+                <>
+                  <br />
+                  <a
+                    href={'https://gnosisscan.io/address/0x' + walletAddress}
+                    target="_blank"
+                  >
+                    Track activity on blockchain explorer{' '}
+                    <ArrowUpOutlined style={{ rotate: '45deg' }} />
+                  </a>
+                </>
+              )}
             </TooltipContent>
           }
         >
