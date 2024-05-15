@@ -18,7 +18,7 @@ import { useCallback, useMemo, useState } from 'react';
 import styled from 'styled-components';
 
 import { copyToClipboard, truncateAddress } from '@/common-util';
-import { COLOR } from '@/constants';
+import { COLOR, COW_SWAP_GNOSIS_XDAI_OLAS_URL } from '@/constants';
 import { UNICODE_SYMBOLS } from '@/constants/unicode';
 import { useBalance } from '@/hooks';
 import { Address } from '@/types';
@@ -146,7 +146,7 @@ const AddFundsAddressSection = ({
 
 const AddFundsGetTokensSection = () => (
   <CardSection justify="center" borderTop>
-    <Link target="_blank" href={'https://swap.cow.fi/#/100/swap/WXDAI/OLAS'}>
+    <Link target="_blank" href={COW_SWAP_GNOSIS_XDAI_OLAS_URL}>
       Get OLAS + XDAI on Gnosis Chain {UNICODE_SYMBOLS.EXTERNAL_LINK}
     </Link>
   </CardSection>

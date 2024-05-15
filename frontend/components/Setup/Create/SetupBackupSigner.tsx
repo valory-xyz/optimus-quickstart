@@ -2,16 +2,22 @@ import { Button, Form, Input, Typography } from 'antd';
 import { isAddress } from 'ethers/lib/utils';
 
 import { CardFlex } from '@/components/styled/CardFlex';
+import { FormFlex } from '@/components/styled/FormFlex';
 import { SetupScreen } from '@/enums';
 import { useSetup } from '@/hooks';
+import { Address } from '@/types';
 
 import { SetupCreateHeader } from './SetupCreateHeader';
 
 export const SetupBackupSigner = () => {
-  const { backupSigner, setBackupSigner, goto } = useSetup();
+  const { goto } = useSetup();
+  const { setBackupSigner } = useSetup();
   const [form] = Form.useForm();
 
-  const handleNext = () => {};
+  const handleFinish = (values: { 'backup-signer': Address }) => {
+    setBackupSigner(values['backup-signer']);
+    goto(SetupScreen.SetupEoaFunding);
+  };
 
   return (
     <CardFlex>
@@ -22,7 +28,7 @@ export const SetupBackupSigner = () => {
         crypto wallets as a backup. This enables you to recover your funds if
         you lose both your password and seed phrase.
       </Typography.Text>
-      <Form form={form}>
+      <FormFlex form={form} onFinish={handleFinish}>
         <Form.Item
           label="Backup wallet address"
           rules={[
@@ -52,13 +58,13 @@ export const SetupBackupSigner = () => {
         <Button type="link" size="large">
           Skip for now
         </Button>
-        <Typography.Text>
+        <Typography.Text color="secondary">
           <small>
             Note that in the current version of the app, you will not be able to
             set up a backup wallet afterward. This functionality is coming soon.
           </small>
         </Typography.Text>
-      </Form>
+      </FormFlex>
     </CardFlex>
   );
 };
