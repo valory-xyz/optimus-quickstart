@@ -31,7 +31,7 @@ def fund(address: str) -> None:
     digest = ledger_api.send_signed_transaction(stx)
     ledger_api.get_transaction_receipt(tx_digest=digest, raise_on_try=True)
 
-    print(ledger_api.get_balance(address=address))
+    print(f"Transferred: {ledger_api.get_balance(address=address)}")
     if staking_keys_path:
         staking_crypto = EthereumCrypto(staking_keys_path)
         with open(
