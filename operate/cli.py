@@ -90,6 +90,14 @@ class OperateApp:
         )
         self.password: t.Optional[str] = os.environ.get("OPERATE_USER_PASSWORD")
 
+    def create_user_account(self, password: str) -> UserAccount:
+        """Create a user account."""
+        self.password = password
+        return UserAccount.new(
+            password=password,
+            path=self._path / "user.json",
+        )
+
     def service_manager(self) -> services.manage.ServiceManager:
         """Load service manager."""
         return services.manage.ServiceManager(
@@ -248,9 +256,8 @@ def create_app(  # pylint: disable=too-many-locals, unused-argument, too-many-st
             )
 
         data = await request.json()
-        UserAccount.new(
+        operate.create_user_account(
             password=data["password"],
-            path=operate._path / "user.json",  # pylint: disable=protected-access
         )
         return JSONResponse(content={"error": None})
 
@@ -404,6 +411,7 @@ def create_app(  # pylint: disable=too-many-locals, unused-argument, too-many-st
                     on_chain_user_params=services.manage.OnChainUserParams.from_json(
                         template["configuration"]
                     ),
+                    from_safe=True,
                 )
                 update = True
         else:
@@ -417,11 +425,9 @@ def create_app(  # pylint: disable=too-many-locals, unused-argument, too-many-st
             )
 
         if template.get("deploy", False):
-            manager.deploy_service_onchain(hash=service.hash, update=update)
-            manager.stake_service_on_chain(hash=service.hash)
-            manager.fund_service(hash=service.hash)
+            manager.deploy_service_onchain_from_safe(hash=service.hash, update=update)
+            manager.stake_service_on_chain_from_safe(hash=service.hash)
             manager.deploy_service_locally(hash=service.hash)
-            schedule_funding_job(service=service.hash)
 
         return JSONResponse(
             content=operate.service_manager().create_or_load(hash=service.hash).json
@@ -440,11 +446,9 @@ def create_app(  # pylint: disable=too-many-locals, unused-argument, too-many-st
         )
         if template.get("deploy", False):
             manager = operate.service_manager()
-            manager.deploy_service_onchain(hash=service.hash, update=True)
-            manager.stake_service_on_chain(hash=service.hash)
-            manager.fund_service(hash=service.hash)
+            manager.deploy_service_onchain_from_safe(hash=service.hash, update=True)
+            manager.stake_service_on_chain_from_safe(hash=service.hash)
             manager.deploy_service_locally(hash=service.hash)
-            schedule_funding_job(service=service.hash)
         return JSONResponse(content=service.json)
 
     @app.get("/api/services/{service}")

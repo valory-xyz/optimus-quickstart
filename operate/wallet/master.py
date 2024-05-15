@@ -181,6 +181,7 @@ class EthereumMasterWallet(MasterWallet):
         # Create wallet
         wallet = EthereumMasterWallet(path=path, address=crypto.address, safe_chains=[])
         wallet.store()
+        wallet.password = password
         return wallet, mnemonic.split()
 
     def create_safe(
