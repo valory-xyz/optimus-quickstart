@@ -5,3 +5,11 @@ export enum PageState {
   Receive,
   Send,
 }
+
+export const PageHeights: Record<PageState, string> = {
+  [PageState.Setup]: '500',
+  [PageState.Main]: '730',
+  [PageState.Settings]: '300',
+  [PageState.Receive]: 'auto',
+  [PageState.Send]: 'auto',
+};
