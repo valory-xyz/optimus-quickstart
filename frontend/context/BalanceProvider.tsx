@@ -105,8 +105,6 @@ export const BalanceProvider = ({ children }: PropsWithChildren) => {
 
   const updateBalances = useCallback(async (): Promise<void> => {
     try {
-      setIsBalanceLoaded(false);
-
       const wallets = await getWallets();
       if (!wallets) return;
 
@@ -122,13 +120,15 @@ export const BalanceProvider = ({ children }: PropsWithChildren) => {
         serviceId,
       );
 
-      if (serviceRegistryBalances) {
-        setOlasDepositBalance(serviceRegistryBalances.depositValue);
-        setOlasBondBalance(serviceRegistryBalances.bondValue);
-      }
+      // update olas balances
+      setOlasDepositBalance(serviceRegistryBalances.depositValue);
+      setOlasBondBalance(serviceRegistryBalances.bondValue);
 
+      // update wallet balances
       setWallets(wallets);
       setWalletBalances(walletBalances);
+
+      // update balance loaded state
       setIsLoaded(true);
       setIsBalanceLoaded(true);
     } catch (error) {
@@ -244,9 +244,7 @@ export const getWalletBalances = async (
 const getServiceRegistryBalances = async (
   masterEoa: Address,
   serviceId: number,
-): Promise<{ bondValue: number; depositValue: number } | undefined> => {
-  if (serviceId === undefined || serviceId < 0) return;
-
+): Promise<{ bondValue: number; depositValue: number }> => {
   const serviceRegistryL2Contract = new MulticallContract(
     SERVICE_REGISTRY_TOKEN_UTILITY_CONTRACT[Chain.GNOSIS],
     SERVICE_REGISTRY_TOKEN_UTILITY_ABI,
