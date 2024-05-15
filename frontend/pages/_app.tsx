@@ -13,6 +13,7 @@ import {
 } from '@/context';
 import { BalanceProvider } from '@/context/BalanceProvider';
 import { RewardProvider } from '@/context/RewardProvider';
+import { SettingsProvider } from '@/context/SettingsProvider';
 import { mainTheme } from '@/theme';
 
 export default function App({ Component, pageProps }: AppProps) {
@@ -32,13 +33,15 @@ export default function App({ Component, pageProps }: AppProps) {
           <RewardProvider>
             <BalanceProvider>
               <SetupProvider>
-                {isMounted ? (
-                  <ConfigProvider theme={mainTheme}>
-                    <Layout>
-                      <Component {...pageProps} />
-                    </Layout>
-                  </ConfigProvider>
-                ) : null}
+                <SettingsProvider>
+                  {isMounted ? (
+                    <ConfigProvider theme={mainTheme}>
+                      <Layout>
+                        <Component {...pageProps} />
+                      </Layout>
+                    </ConfigProvider>
+                  ) : null}
+                </SettingsProvider>
               </SetupProvider>
             </BalanceProvider>
           </RewardProvider>
