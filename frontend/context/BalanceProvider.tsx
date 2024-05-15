@@ -105,6 +105,8 @@ export const BalanceProvider = ({ children }: PropsWithChildren) => {
 
   const updateBalances = useCallback(async (): Promise<void> => {
     try {
+      setIsBalanceLoaded(false);
+
       const wallets = await getWallets();
       if (!wallets) return;
 
