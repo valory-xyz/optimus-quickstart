@@ -75,25 +75,27 @@ export const MainGasBalance = () => {
     <CardSection justify="space-between" borderTop borderBottom>
       <Text>
         Gas and trading balance&nbsp;
-        <Tooltip
-          title={
-            <TooltipContent>
-              Your agent uses this balance to pay for transactions and other
-              trading activity on-chain.
-              <br />
-              {/* TODO: ask link */}
-              <a
-                href={'https://gnosisscan.io/address/0x' + wallets[0].safe}
-                target="_blank"
-              >
-                Track activity on blockchain explorer{' '}
-                <ArrowUpOutlined style={{ rotate: '45deg' }} />
-              </a>
-            </TooltipContent>
-          }
-        >
-          <InfoCircleOutlined />
-        </Tooltip>
+        {wallets?.[0]?.safe && (
+          <Tooltip
+            title={
+              <TooltipContent>
+                Your agent uses this balance to pay for transactions and other
+                trading activity on-chain.
+                <br />
+                {/* TODO: ask link */}
+                <a
+                  href={'https://gnosisscan.io/address/0x' + wallets[0].safe}
+                  target="_blank"
+                >
+                  Track activity on blockchain explorer{' '}
+                  <ArrowUpOutlined style={{ rotate: '45deg' }} />
+                </a>
+              </TooltipContent>
+            }
+          >
+            <InfoCircleOutlined />
+          </Tooltip>
+        )}
       </Text>
 
       <Text strong>
