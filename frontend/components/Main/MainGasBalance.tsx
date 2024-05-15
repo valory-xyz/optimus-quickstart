@@ -33,7 +33,7 @@ const LowDot = styled(Dot)`
 `;
 
 const BalanceStatus = () => {
-  const { isLoaded, totalEthBalance } = useBalance();
+  const { isBalanceLoaded, totalEthBalance } = useBalance();
 
   const status = useMemo(() => {
     if (!totalEthBalance || totalEthBalance === 0) {
@@ -47,7 +47,7 @@ const BalanceStatus = () => {
     return { statusName: 'Fine', StatusComponent: FineDot };
   }, [totalEthBalance]);
 
-  if (!isLoaded) {
+  if (!isBalanceLoaded) {
     return <Spin />;
   }
 
