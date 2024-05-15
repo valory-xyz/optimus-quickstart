@@ -30,7 +30,7 @@ export const SetupRestoreMain = () => {
         </Flex>
       }
     >
-      <CardSection gap={10} vertical border>
+      <CardSection gap={10} vertical borderTop borderBottom>
         <Typography.Text>
           You can recover the Operate account access by providing the seed
           phrase you received when setting up your account.
@@ -46,7 +46,7 @@ export const SetupRestoreMain = () => {
           Restore account via seed phrase
         </Button>
       </CardSection>
-      <CardSection gap={10} vertical border>
+      <CardSection gap={10} vertical borderTop borderBottom>
         <Typography.Text>
           If you don’t have the seed phrase but added a backup wallet to your
           account, you can still restore your funds, but you won’t be able to

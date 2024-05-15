@@ -171,7 +171,7 @@ const createMainWindow = () => {
     transparent: true,
     fullscreenable: false,
     maximizable: false,
-    width: isDev ? 800 : 420,
+    width: isDev ? 840 : 420,
     height: 735,
     webPreferences: {
       nodeIntegration: false,
@@ -187,6 +187,14 @@ const createMainWindow = () => {
   } else {
     mainWindow.loadURL(`http://localhost:${appConfig.ports.prod.next}`);
   }
+
+  ipcMain.on('close-app', () => {
+    mainWindow.close();
+  });
+
+  ipcMain.on('minimize-app', () => {
+    mainWindow.minimize();
+  });
 
   mainWindow.webContents.on('did-fail-load', () => {
     mainWindow.webContents.reloadIgnoringCache();

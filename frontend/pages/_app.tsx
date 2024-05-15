@@ -4,6 +4,7 @@ import { ConfigProvider } from 'antd';
 import type { AppProps } from 'next/app';
 import { useEffect, useRef } from 'react';
 
+import { Layout } from '@/components/Layout';
 import {
   AppInfoProvider,
   PageStateProvider,
@@ -33,7 +34,9 @@ export default function App({ Component, pageProps }: AppProps) {
               <SetupProvider>
                 {isMounted ? (
                   <ConfigProvider theme={mainTheme}>
-                    <Component {...pageProps} />
+                    <Layout>
+                      <Component {...pageProps} />
+                    </Layout>
                   </ConfigProvider>
                 ) : null}
               </SetupProvider>

@@ -1,4 +1,4 @@
-import { ArrowUpOutlined, QuestionCircleTwoTone } from '@ant-design/icons';
+import { ArrowUpOutlined, InfoCircleOutlined } from '@ant-design/icons';
 import { Spin, Tooltip, Typography } from 'antd';
 import { useMemo } from 'react';
 import styled from 'styled-components';
@@ -69,8 +69,10 @@ const TooltipContent = styled.div`
 `;
 
 export const MainGasBalance = () => {
+  const { wallets } = useBalance();
+
   return (
-    <CardSection justify="space-between" border>
+    <CardSection justify="space-between" borderTop borderBottom>
       <Text>
         Gas and trading balance&nbsp;
         <Tooltip
@@ -80,14 +82,17 @@ export const MainGasBalance = () => {
               trading activity on-chain.
               <br />
               {/* TODO: ask link */}
-              <a href="https://docs.openlaw.io/olas/olas-eth" target="_blank">
+              <a
+                href={'https://gnosisscan.io/address/0x' + wallets[0].safe}
+                target="_blank"
+              >
                 Track activity on blockchain explorer{' '}
                 <ArrowUpOutlined style={{ rotate: '45deg' }} />
               </a>
             </TooltipContent>
           }
         >
-          <QuestionCircleTwoTone />
+          <InfoCircleOutlined />
         </Tooltip>
       </Text>
 
