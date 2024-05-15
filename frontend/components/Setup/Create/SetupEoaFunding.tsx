@@ -100,13 +100,14 @@ export const SetupEoaFunding = () => {
       <Typography.Title level={3}>
         Deposit {MASTER_EAO_FUNDING_AMOUNT_ETH} XDAI
       </Typography.Title>
-      <Typography.Text>
+      <Typography.Paragraph>
         The app needs these funds to create your account on-chain.
-      </Typography.Text>
-      <Typography.Text>
+      </Typography.Paragraph>
+      <Typography.Paragraph>
         Note that this address will not be used after account creation.
-      </Typography.Text>
-      <CardSection>
+      </Typography.Paragraph>
+
+      <CardSection borderTop borderBottom>
         <Typography.Text
           className={loadingStatuses.includes(status) ? 'loading-ellipses' : ''}
         >
@@ -129,20 +130,21 @@ const SetupEoaFundingWaiting = ({
         <Alert
           className="card-section-alert"
           type="warning"
+          showIcon
           message={
-            <>
+            <Flex vertical gap={5}>
               <Typography.Text strong>
                 Only send funds on Gnosis Chain!
               </Typography.Text>
               <Typography.Text>
                 You will lose any assets you send on other chains.
               </Typography.Text>
-            </>
+            </Flex>
           }
         />
       </CardSection>
-      <CardSection>
-        <CardFlex>
+      <CardSection borderTop borderBottom>
+        <Flex vertical gap={10}>
           <Flex justify="space-between">
             <Typography.Text>Account creation address</Typography.Text>
             <Flex gap={5}>
@@ -166,15 +168,16 @@ const SetupEoaFundingWaiting = ({
               </Popover>
             </Flex>
           </Flex>
+
           <Typography.Text>GNO: {masterEoa}</Typography.Text>
-        </CardFlex>
-        <Button
-          type="link"
-          target="_blank"
-          href={COW_SWAP_GNOSIS_XDAI_OLAS_URL}
-        >
-          Get XDAI on Gnosis Chain{UNICODE_SYMBOLS.EXTERNAL_LINK}
-        </Button>
+          <Button
+            type="link"
+            target="_blank"
+            href={COW_SWAP_GNOSIS_XDAI_OLAS_URL}
+          >
+            Get XDAI on Gnosis Chain{UNICODE_SYMBOLS.EXTERNAL_LINK}
+          </Button>
+        </Flex>
       </CardSection>
     </>
   );

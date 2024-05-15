@@ -7,6 +7,7 @@ import { usePageState } from '@/hooks';
 import { useSettings } from '@/hooks/useSettings';
 
 import { CardTitle } from '../common/CardTitle';
+import { CardSection } from '../styled/CardSection';
 import { SettingsAddBackupWallet } from './SettingsAddBackupWallet';
 
 export const Settings = () => {
@@ -25,6 +26,9 @@ export const Settings = () => {
 
 const SettingsMain = () => {
   const { goto } = usePageState();
+  const { goto: gotoSettings } = useSettings();
+
+  // TODO: implement safe owners count
 
   const [isUpdating, setIsUpdating] = useState(false);
 
@@ -42,10 +46,10 @@ const SettingsMain = () => {
       title={
         <CardTitle
           title={
-            <>
+            <Flex gap={10}>
               <SettingOutlined />
               Settings
-            </>
+            </Flex>
           }
         />
       }
@@ -55,9 +59,9 @@ const SettingsMain = () => {
         </Button>
       }
     >
-      <Flex justify="space-between" align="center">
-        <Flex gap={5} vertical>
-          <Typography.Text>Password</Typography.Text>
+      <CardSection borderBottom justify="space-between" align="center">
+        <Flex vertical>
+          <Typography.Paragraph strong>Password</Typography.Paragraph>
           {isUpdating ? (
             <Input.Password></Input.Password>
           ) : (
@@ -67,7 +71,19 @@ const SettingsMain = () => {
         <Button disabled onClick={handleClick}>
           {isUpdating ? 'Save' : 'Update'}
         </Button>
-      </Flex>
+      </CardSection>
+
+      <CardSection vertical gap={10}>
+        <Typography.Paragraph strong>Backup wallet</Typography.Paragraph>
+        <Button
+          type="primary"
+          size="large"
+          disabled={true} // not in this iteration?
+          onClick={() => gotoSettings(SettingsScreen.AddBackupWallet)}
+        >
+          Add backup wallet
+        </Button>
+      </CardSection>
     </Card>
   );
 };

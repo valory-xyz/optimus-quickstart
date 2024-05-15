@@ -1,24 +1,18 @@
 import { CopyOutlined } from '@ant-design/icons';
 import { Button, Flex, message, Tag, Typography } from 'antd';
-import { useState } from 'react';
 
 import { copyToClipboard } from '@/common-util';
-import { PageState, SetupScreen } from '@/enums';
-import { usePageState, useSetup } from '@/hooks';
+import { SetupScreen } from '@/enums';
+import { useSetup } from '@/hooks';
 
 import { CardFlex } from '../../styled/CardFlex';
 import { SetupCreateHeader } from './SetupCreateHeader';
 
 export const SetupSeedPhrase = () => {
-  const { mnemonic, setMnemonic } = useSetup();
-  const { goto } = usePageState();
-  const [isLoading, setIsLoading] = useState(false);
+  const { mnemonic, goto } = useSetup();
 
   const handleNext = () => {
-    setIsLoading(true);
-    setMnemonic([]);
-    goto(PageState.Main);
-    setIsLoading(false);
+    goto(SetupScreen.SetupBackupSigner);
   };
 
   return (
@@ -44,12 +38,7 @@ export const SetupSeedPhrase = () => {
       >
         <CopyOutlined /> Copy to clipboard
       </Button>
-      <Button
-        type="primary"
-        size="large"
-        onClick={handleNext}
-        loading={isLoading}
-      >
+      <Button type="primary" size="large" onClick={handleNext}>
         Confirm and create account
       </Button>
     </CardFlex>
