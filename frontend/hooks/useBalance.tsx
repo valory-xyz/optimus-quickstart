@@ -6,6 +6,7 @@ export const useBalance = () => {
   const {
     isLoaded,
     setIsLoaded,
+    isBalanceLoaded,
     totalEthBalance,
     totalOlasBalance,
     wallets,
@@ -17,6 +18,7 @@ export const useBalance = () => {
   return {
     isLoaded,
     setIsLoaded,
+    isBalanceLoaded,
     totalEthBalance,
     totalOlasBalance,
     wallets,
