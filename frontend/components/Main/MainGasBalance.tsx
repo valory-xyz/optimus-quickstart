@@ -78,16 +78,14 @@ export const MainGasBalance = () => {
               <TooltipContent>
                 Your agent uses this balance to pay for transactions and other
                 trading activity on-chain.
-                <>
-                  <br />
-                  <a
-                    href={'https://gnosisscan.io/address/0x' + walletAddress}
-                    target="_blank"
-                  >
-                    Track activity on blockchain explorer{' '}
-                    <ArrowUpOutlined style={{ rotate: '45deg' }} />
-                  </a>
-                </>
+                <br />
+                <a
+                  href={'https://gnosisscan.io/address/0x' + walletAddress}
+                  target="_blank"
+                >
+                  Track activity on blockchain explorer{' '}
+                  <ArrowUpOutlined style={{ rotate: '45deg' }} />
+                </a>
               </TooltipContent>
             }
           >
