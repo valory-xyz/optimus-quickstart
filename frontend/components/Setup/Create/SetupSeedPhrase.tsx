@@ -9,7 +9,7 @@ import { usePageState, useSetup } from '@/hooks';
 import { CardFlex } from '../../styled/CardFlex';
 import { SetupCreateHeader } from './SetupCreateHeader';
 
-export const SetupBackup = () => {
+export const SetupSeedPhrase = () => {
   const { mnemonic, setMnemonic } = useSetup();
   const { goto } = usePageState();
   const [isLoading, setIsLoading] = useState(false);

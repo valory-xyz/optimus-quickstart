@@ -23,7 +23,7 @@ export const SetupPassword = () => {
       .then(() => WalletService.createEoa(Chain.GNOSIS))
       .then(({ mnemonic }: { mnemonic: string[] }) => {
         setMnemonic(mnemonic);
-        goto(SetupScreen.SetupBackup);
+        goto(SetupScreen.SetupSeedPhrase);
       })
       .catch((e) => {
         console.error(e);
