@@ -160,14 +160,6 @@ def create_safe(
 ) -> t.Tuple[str, int]:
     """Create gnosis safe."""
     salt_nonce = salt_nonce or _get_nonce()
-    tx = registry_contracts.gnosis_safe.get_deploy_transaction(
-        ledger_api=ledger_api,
-        deployer_address=crypto.address,
-        owners=[crypto.address],
-        threshold=1,
-        salt_nonce=salt_nonce,
-    )
-    safe = tx.pop("contract_address")
 
     def _build(  # pylint: disable=unused-argument
         *args: t.Any, **kwargs: t.Any
@@ -195,10 +187,14 @@ def create_safe(
         "build",
         _build,
     )
-    tx_settler.transact(
+    receipt = tx_settler.transact(
         method=lambda: {},
         contract="",
         kwargs={},
     )
-
-    return safe, salt_nonce
+    instance = registry_contracts.gnosis_safe_proxy_factory.get_instance(
+        ledger_api=ledger_api,
+        contract_address="0xa6b71e26c5e0845f74c812102ca7114b6a896ab2",
+    )
+    (event,) = instance.events.ProxyCreation().process_receipt(receipt)
+    return event["args"]["proxy"], salt_nonce
