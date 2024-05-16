@@ -162,7 +162,7 @@ function installOperatePackageUnix(path) {
 }
 
 function reInstallOperatePackageUnix(path) {
-  console.log(appendLog('Reinstalling operate CLI'));
+  console.log(appendLog('Reinstalling pearl CLI'));
   return runCmdUnix(`${path}/venv/bin/python3.10`, [
     '-m',
     'pip',
@@ -255,13 +255,13 @@ async function setupDarwin(ipcChannel) {
     console.log(appendLog('Creating virtual environment'));
     createVirtualEnvUnix(VenvDir);
 
-    console.log(appendLog('Installing operate backend'));
+    console.log(appendLog('Installing pearl backend'));
     installOperatePackageUnix(OperateDirectory);
   }
 
   console.log(appendLog('Checking if upgrade is required'));
   if (versionBumpRequired()) {
-    console.log(appendLog(`Upgrading operate daemon to ${Version}`));
+    console.log(appendLog(`Upgrading pearl daemon to ${Version}`));
     reInstallOperatePackageUnix(OperateDirectory);
     writeVersion();
     removeLogFile();
@@ -271,7 +271,7 @@ async function setupDarwin(ipcChannel) {
     reInstallOperatePackageUnix(OperateDirectory);
   }
 
-  console.log(appendLog('Installing operate CLI'));
+  console.log(appendLog('Installing pearl CLI'));
   await installOperateCli('/opt/homebrew/bin/operate');
 }
 
@@ -312,13 +312,13 @@ async function setupUbuntu(ipcChannel) {
     console.log(appendLog('Creating virtual environment'));
     createVirtualEnvUnix(VenvDir);
 
-    console.log(appendLog('Installing operate backend'));
+    console.log(appendLog('Installing pearl backend'));
     installOperatePackageUnix(OperateDirectory);
   }
 
   console.log(appendLog('Checking if upgrade is required'));
   if (versionBumpRequired()) {
-    console.log(appendLog(`Upgrading operate daemon to ${Version}`));
+    console.log(appendLog(`Upgrading pearl daemon to ${Version}`));
     reInstallOperatePackageUnix(OperateDirectory);
     writeVersion();
     removeLogFile();
@@ -328,7 +328,7 @@ async function setupUbuntu(ipcChannel) {
     reInstallOperatePackageUnix(OperateDirectory);
   }
 
-  console.log(appendLog('Installing operate CLI'));
+  console.log(appendLog('Installing pearl CLI'));
   await installOperateCli('/usr/local/bin');
 }
 
