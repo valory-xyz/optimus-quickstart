@@ -12,6 +12,7 @@ import {
   SetupProvider,
 } from '@/context';
 import { BalanceProvider } from '@/context/BalanceProvider';
+import { ElectronApiProvider } from '@/context/ElectronApiProvider';
 import { RewardProvider } from '@/context/RewardProvider';
 import { mainTheme } from '@/theme';
 
@@ -34,9 +35,11 @@ export default function App({ Component, pageProps }: AppProps) {
               <SetupProvider>
                 {isMounted ? (
                   <ConfigProvider theme={mainTheme}>
-                    <Layout>
-                      <Component {...pageProps} />
-                    </Layout>
+                    <ElectronApiProvider>
+                      <Layout>
+                        <Component {...pageProps} />
+                      </Layout>
+                    </ElectronApiProvider>
                   </ConfigProvider>
                 ) : null}
               </SetupProvider>
