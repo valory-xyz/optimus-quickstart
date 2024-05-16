@@ -39,7 +39,9 @@ from operate.constants import (
 from operate.ledger import get_default_rpc
 from operate.resource import LocalResource
 from operate.types import ChainType, LedgerType
+from operate.utils.gnosis import add_owner
 from operate.utils.gnosis import create_safe as create_gnosis_safe
+from operate.utils.gnosis import get_owners, swap_owner
 
 
 class MasterWallet(LocalResource):
@@ -106,6 +108,34 @@ class MasterWallet(LocalResource):
         rpc: t.Optional[str] = None,
     ) -> None:
         """Create safe."""
+        raise NotImplementedError()
+
+    def add_backup_owner(
+        self,
+        chain_type: ChainType,
+        owner: str,
+        rpc: t.Optional[str] = None,
+    ) -> None:
+        """Create safe."""
+        raise NotImplementedError()
+
+    def swap_backup_owner(
+        self,
+        chain_type: ChainType,
+        old_owner: str,
+        new_owner: str,
+        rpc: t.Optional[str] = None,
+    ) -> None:
+        """Create safe."""
+        raise NotImplementedError()
+
+    def add_or_swap_owner(
+        self,
+        chain_type: ChainType,
+        owner: str,
+        rpc: t.Optional[str] = None,
+    ) -> None:
+        """Add or swap backup owner."""
         raise NotImplementedError()
 
 
@@ -181,6 +211,7 @@ class EthereumMasterWallet(MasterWallet):
         # Create wallet
         wallet = EthereumMasterWallet(path=path, address=crypto.address, safe_chains=[])
         wallet.store()
+        wallet.password = password
         return wallet, mnemonic.split()
 
     def create_safe(
@@ -200,6 +231,66 @@ class EthereumMasterWallet(MasterWallet):
         )
         self.safe_chains.append(chain_type)
         self.store()
+
+    def add_backup_owner(
+        self,
+        chain_type: ChainType,
+        owner: str,
+        rpc: t.Optional[str] = None,
+    ) -> None:
+        """Add a backup owner."""
+        ledger_api = self.ledger_api(chain_type=chain_type, rpc=rpc)
+        if len(get_owners(ledger_api=ledger_api, safe=t.cast(str, self.safe))) == 2:
+            raise ValueError("Backup owner already exist!")
+        add_owner(
+            ledger_api=ledger_api,
+            safe=t.cast(str, self.safe),
+            owner=owner,
+            crypto=self.crypto,
+        )
+
+    def swap_backup_owner(
+        self,
+        chain_type: ChainType,
+        old_owner: str,
+        new_owner: str,
+        rpc: t.Optional[str] = None,
+    ) -> None:
+        """Swap backup owner."""
+        ledger_api = self.ledger_api(chain_type=chain_type, rpc=rpc)
+        if len(get_owners(ledger_api=ledger_api, safe=t.cast(str, self.safe))) == 1:
+            raise ValueError("Backup owner does not exist, cannot swap!")
+        swap_owner(
+            ledger_api=ledger_api,
+            safe=t.cast(str, self.safe),
+            old_owner=old_owner,
+            new_owner=new_owner,
+            crypto=self.crypto,
+        )
+
+    def add_or_swap_owner(
+        self,
+        chain_type: ChainType,
+        owner: str,
+        rpc: t.Optional[str] = None,
+    ) -> None:
+        """Add or swap backup owner."""
+        ledger_api = self.ledger_api(chain_type=chain_type, rpc=rpc)
+        owners = get_owners(ledger_api=ledger_api, safe=t.cast(str, self.safe))
+        if len(owners) == 1:
+            return self.add_backup_owner(chain_type=chain_type, owner=owner, rpc=rpc)
+
+        owners.remove(self.address)
+        (old_owner,) = owners
+        if old_owner == owner:
+            return None
+
+        return self.swap_backup_owner(
+            chain_type=chain_type,
+            old_owner=old_owner,
+            new_owner=owner,
+            rpc=rpc,
+        )
 
     @classmethod
     def load(cls, path: Path) -> "EthereumMasterWallet":
