@@ -165,13 +165,11 @@ const createSplashWindow = () => {
   }
 };
 
-const WIDTH = 420;
-
 /**
  * Creates the main window
  */
 const createMainWindow = () => {
-  const width = isDev ? 840 : WIDTH;
+  const width = isDev ? 840 : 420;
   mainWindow = new BrowserWindow({
     title: 'Olas Operate',
     resizable: false,
@@ -206,7 +204,6 @@ const createMainWindow = () => {
   });
 
   ipcMain.on('set-height', (_event, height) => {
-    console.log('set-height from main: ', height);
     mainWindow.setSize(width, height);
   });
 
