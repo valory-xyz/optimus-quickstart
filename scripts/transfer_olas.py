@@ -9,12 +9,14 @@ Example:
 """
 
 import json
+import os
 import sys
 from pathlib import Path
 
 from aea_ledger_ethereum.ethereum import EthereumApi, EthereumCrypto
 
 
+RPC = os.environ.get("DEV_RPC", "http://localhost:8545")
 OLAS_CONTRACT_ADDRESS_GNOSIS = "0xcE11e14225575945b8E6Dc0D4F2dD4C570f79d9f"
 WEI_MULTIPLIER = 1e18
 
@@ -22,7 +24,7 @@ WEI_MULTIPLIER = 1e18
 def fund(wallet: str, address: str, amount: float = 20.0) -> None:
     """Fund wallet with OLAS token"""
     staking_wallet = EthereumCrypto(wallet)
-    ledger_api = EthereumApi(address="http://localhost:8545")
+    ledger_api = EthereumApi(address=RPC)
     olas_contract = ledger_api.api.eth.contract(
         address=ledger_api.api.to_checksum_address(OLAS_CONTRACT_ADDRESS_GNOSIS),
         abi=json.loads(
