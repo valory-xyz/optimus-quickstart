@@ -134,10 +134,10 @@ const SetupEoaFundingWaiting = ({
           showIcon
           message={
             <Flex vertical gap={5}>
-              <Typography.Text strong>
+              <Typography.Text strong style={{ color: COLOR.BROWN }}>
                 Only send funds on Gnosis Chain!
               </Typography.Text>
-              <Typography.Text>
+              <Typography.Text style={{ color: COLOR.BROWN }}>
                 You will lose any assets you send on other chains.
               </Typography.Text>
             </Flex>
