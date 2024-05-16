@@ -1,6 +1,6 @@
 import { CloseOutlined, SettingOutlined } from '@ant-design/icons';
-import { Button, Card, Flex, Input, message, Typography } from 'antd';
-import { useMemo, useState } from 'react';
+import { Button, Card, Flex, Typography } from 'antd';
+import { useMemo } from 'react';
 
 import { PageState, SettingsScreen } from '@/enums';
 import { usePageState } from '@/hooks';
@@ -32,17 +32,11 @@ const SettingsMain = () => {
 
   // TODO: implement safe owners count
 
-  const [isUpdating, setIsUpdating] = useState(false);
-
-  const handleClick = () => {
-    if (isUpdating) handleSave();
-    setIsUpdating((prev) => !prev);
-  };
-
-  const handleSave = () => {
-    // TODO: implement password update
-    message.success('Password updated!');
-  };
+  // const [isUpdating, setIsUpdating] = useState(false);
+  // const handleClick = () => {
+  //   if (isUpdating) message.success('Password updated!');
+  //   setIsUpdating((prev) => !prev);
+  // };
 
   return (
     <Card
@@ -65,16 +59,19 @@ const SettingsMain = () => {
       <CardSection borderBottom justify="space-between" align="center">
         <Flex vertical>
           <Typography.Paragraph strong>Password</Typography.Paragraph>
-          {isUpdating ? (
+          {/* {isUpdating ? (
             <Input.Password />
           ) : (
             <Typography.Text>********</Typography.Text>
-          )}
+          )} */}
+
+          <Typography.Text>********</Typography.Text>
         </Flex>
-        {/* Currently disabled as the later `handleSave` is not implemented yet */}
-        <Button disabled onClick={handleClick}>
-          {isUpdating ? 'Save' : 'Update'}
-        </Button>
+
+        {/* commented until further notice */}
+        {/* <Button disabled onClick={handleClick}> */}
+        {/* {isUpdating ? 'Save' : 'Update'} */}
+        {/* </Button> */}
       </CardSection>
 
       <CardSection vertical gap={10}>
