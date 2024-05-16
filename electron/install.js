@@ -235,7 +235,7 @@ async function setupDarwin(ipcChannel) {
   console.log(appendLog('Checking docker installation'));
   if (!isDockerInstalledDarwin()) {
     ipcChannel.send('response', 'Installing Operate Daemon');
-    console.log(appendLog('Installating docker'));
+    console.log(appendLog('Installing docker'));
     installDockerDarwin();
   }
 
@@ -280,7 +280,7 @@ async function setupUbuntu(ipcChannel) {
   console.log(appendLog('Checking docker installation'));
   if (!isDockerInstalledUbuntu()) {
     ipcChannel.send('response', 'Installing Operate Daemon');
-    console.log(appendLog('Installating docker'));
+    console.log(appendLog('Installing docker'));
     await installDockerUbuntu();
   }
 
