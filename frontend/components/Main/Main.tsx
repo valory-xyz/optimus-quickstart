@@ -10,14 +10,12 @@ import { MainGasBalance } from './MainGasBalance';
 import { MainHeader } from './MainHeader';
 import { MainNeedsFunds } from './MainNeedsFunds';
 import { MainOlasBalance } from './MainOlasBalance';
-import { MainTotalEarnings } from './MainTotalEarnings';
+import { MainRewards } from './MainRewards';
 
 export const Main = () => {
   const { goto } = usePageState();
   const { updateServicesState } = useServices();
   const { updateBalances, isLoaded, setIsLoaded } = useBalance();
-
-  console.log(isLoaded);
 
   useEffect(() => {
     if (!isLoaded) {
@@ -38,11 +36,12 @@ export const Main = () => {
           <SettingOutlined />
         </Button>
       }
+      style={{ borderTopColor: 'transparent' }}
     >
-      <Flex vertical gap={15}>
+      <Flex vertical>
         <MainNeedsFunds />
         <MainOlasBalance />
-        <MainTotalEarnings />
+        <MainRewards />
         <MainGasBalance />
         <MainAddFunds />
       </Flex>

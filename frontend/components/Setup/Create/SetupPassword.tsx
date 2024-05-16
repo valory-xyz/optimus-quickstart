@@ -7,7 +7,8 @@ import { useSetup } from '@/hooks';
 import { AccountService } from '@/service/Account';
 import { WalletService } from '@/service/Wallet';
 
-import { Wrapper } from '../Layout';
+import { CardFlex } from '../../styled/CardFlex';
+import { SetupCreateHeader } from './SetupCreateHeader';
 
 export const SetupPassword = () => {
   const { goto, setMnemonic } = useSetup();
@@ -22,7 +23,7 @@ export const SetupPassword = () => {
       .then(() => WalletService.createEoa(Chain.GNOSIS))
       .then(({ mnemonic }: { mnemonic: string[] }) => {
         setMnemonic(mnemonic);
-        goto(SetupScreen.Backup);
+        goto(SetupScreen.SetupSeedPhrase);
       })
       .catch((e) => {
         console.error(e);
@@ -32,9 +33,10 @@ export const SetupPassword = () => {
   };
 
   return (
-    <Wrapper vertical>
-      <Typography.Title>Password</Typography.Title>
-      <Typography.Text>Enter a password</Typography.Text>
+    <CardFlex gap={10}>
+      <SetupCreateHeader prev={SetupScreen.Welcome} />
+      <Typography.Title level={3}>Create password</Typography.Title>
+      <Typography.Text>Come up with a strong password.</Typography.Text>
       <Form form={form} onFinish={handleCreateEoa}>
         <Form.Item
           name="password"
@@ -42,10 +44,17 @@ export const SetupPassword = () => {
         >
           <Input.Password size="large" placeholder="Password" />
         </Form.Item>
-        <Button size="large" htmlType="submit" loading={isLoading}>
-          Next
-        </Button>
+        <Form.Item>
+          <Button
+            size="large"
+            type="primary"
+            htmlType="submit"
+            loading={isLoading}
+          >
+            Continue
+          </Button>
+        </Form.Item>
       </Form>
-    </Wrapper>
+    </CardFlex>
   );
 };

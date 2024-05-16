@@ -1,7 +1,8 @@
+import { message } from 'antd';
 import { ethers } from 'ethers';
 import { isAddress } from 'ethers/lib/utils';
 import { Contract as MulticallContract } from 'ethers-multicall';
-import { isEmpty } from 'lodash';
+import { isNumber } from 'lodash';
 import {
   createContext,
   Dispatch,
@@ -16,7 +17,7 @@ import { useInterval } from 'usehooks-ts';
 
 import { SERVICE_REGISTRY_TOKEN_UTILITY_ABI } from '@/abi/serviceRegistryTokenUtility';
 import { Chain, Wallet } from '@/client';
-import { SERVICE_REGISTRY_TOKEN_UTILITY } from '@/constants';
+import { SERVICE_REGISTRY_TOKEN_UTILITY_CONTRACT } from '@/constants';
 import { gnosisMulticallProvider } from '@/constants/providers';
 import { TOKENS } from '@/constants/tokens';
 import { Token } from '@/enums/Token';
@@ -30,10 +31,12 @@ import {
 } from '@/types';
 
 import { ServicesContext } from '.';
+import { RewardContext } from './RewardProvider';
 
 export const BalanceContext = createContext<{
   isLoaded: boolean;
   setIsLoaded: Dispatch<SetStateAction<boolean>>;
+  isBalanceLoaded: boolean;
   olasBondBalance?: number;
   olasDepositBalance?: number;
   totalEthBalance?: number;
@@ -45,6 +48,7 @@ export const BalanceContext = createContext<{
 }>({
   isLoaded: false,
   setIsLoaded: () => {},
+  isBalanceLoaded: false,
   olasBondBalance: undefined,
   olasDepositBalance: undefined,
   totalEthBalance: undefined,
@@ -57,11 +61,13 @@ export const BalanceContext = createContext<{
 
 export const BalanceProvider = ({ children }: PropsWithChildren) => {
   const { services, serviceAddresses } = useContext(ServicesContext);
+  const { optimisticRewardsEarnedForEpoch } = useContext(RewardContext);
 
   const [isLoaded, setIsLoaded] = useState<boolean>(false);
   const [isPaused, setIsPaused] = useState<boolean>(false);
   const [olasDepositBalance, setOlasDepositBalance] = useState<number>();
   const [olasBondBalance, setOlasBondBalance] = useState<number>();
+  const [isBalanceLoaded, setIsBalanceLoaded] = useState<boolean>(false);
   const [wallets, setWallets] = useState<Wallet[]>([]);
   const [walletBalances, setWalletBalances] =
     useState<WalletAddressNumberRecord>({});
@@ -76,48 +82,63 @@ export const BalanceProvider = ({ children }: PropsWithChildren) => {
 
   const totalOlasBalance: number | undefined = useMemo(() => {
     if (!isLoaded) return;
+
     const sumWalletBalances = Object.values(walletBalances).reduce(
       (acc: number, walletBalance) => acc + walletBalance.OLAS,
       0,
     );
 
-    return (
-      sumWalletBalances + (olasDepositBalance ?? 0) + (olasBondBalance ?? 0)
-    );
-  }, [isLoaded, olasBondBalance, olasDepositBalance, walletBalances]);
+    const total =
+      sumWalletBalances +
+      (olasDepositBalance ?? 0) +
+      (olasBondBalance ?? 0) +
+      (optimisticRewardsEarnedForEpoch ?? 0);
 
-  const isPolling = useMemo(
-    () => !isEmpty(wallets) && !isEmpty(walletBalances),
-    [walletBalances, wallets],
-  );
+    return total;
+  }, [
+    isLoaded,
+    olasBondBalance,
+    olasDepositBalance,
+    optimisticRewardsEarnedForEpoch,
+    walletBalances,
+  ]);
 
   const updateBalances = useCallback(async (): Promise<void> => {
     try {
       const wallets = await getWallets();
-
       if (!wallets) return;
+
+      setWallets(wallets);
 
       const walletAddresses = getWalletAddresses(wallets, serviceAddresses);
       const walletBalances = await getWalletBalances(walletAddresses);
-
       if (!walletBalances) return;
 
-      if (services?.[0]?.chain_data.token) {
-        const serviceRegistryBalances = await getServiceRegistryBalances(
-          wallets[0].address,
-          services[0].chain_data.token,
-        );
-        if (serviceRegistryBalances) {
-          setOlasDepositBalance(serviceRegistryBalances.depositValue);
-          setOlasBondBalance(serviceRegistryBalances.bondValue);
-        }
+      setWalletBalances(walletBalances);
+
+      const serviceId = services?.[0]?.chain_data.token;
+      if (!isNumber(serviceId)) {
+        setIsLoaded(true);
+        setIsBalanceLoaded(true);
+        return;
       }
 
-      setWallets(wallets);
-      setWalletBalances(walletBalances);
+      const serviceRegistryBalances = await getServiceRegistryBalances(
+        wallets[0].address,
+        serviceId,
+      );
+
+      // update olas balances
+      setOlasDepositBalance(serviceRegistryBalances.depositValue);
+      setOlasBondBalance(serviceRegistryBalances.bondValue);
+
+      // update balance loaded state
       setIsLoaded(true);
+      setIsBalanceLoaded(true);
     } catch (error) {
       console.error(error);
+      message.error('Unable to retrieve wallet balances');
+      setIsBalanceLoaded(true);
     }
   }, [serviceAddresses, services]);
 
@@ -125,7 +146,7 @@ export const BalanceProvider = ({ children }: PropsWithChildren) => {
     () => {
       updateBalances();
     },
-    isPolling && !isPaused ? 5000 : null,
+    isPaused ? null : 5000,
   );
 
   return (
@@ -133,6 +154,7 @@ export const BalanceProvider = ({ children }: PropsWithChildren) => {
       value={{
         isLoaded,
         setIsLoaded,
+        isBalanceLoaded,
         olasBondBalance,
         olasDepositBalance,
         totalEthBalance,
@@ -223,14 +245,12 @@ export const getWalletBalances = async (
   return tempWalletBalances;
 };
 
-export const getServiceRegistryBalances = async (
+const getServiceRegistryBalances = async (
   masterEoa: Address,
   serviceId: number,
-): Promise<{ bondValue: number; depositValue: number } | undefined> => {
-  if (serviceId === undefined || serviceId < 0) return;
-
+): Promise<{ bondValue: number; depositValue: number }> => {
   const serviceRegistryL2Contract = new MulticallContract(
-    SERVICE_REGISTRY_TOKEN_UTILITY[Chain.GNOSIS],
+    SERVICE_REGISTRY_TOKEN_UTILITY_CONTRACT[Chain.GNOSIS],
     SERVICE_REGISTRY_TOKEN_UTILITY_ABI,
   );
 
@@ -239,24 +259,18 @@ export const getServiceRegistryBalances = async (
     serviceRegistryL2Contract.mapServiceIdTokenDeposit(serviceId),
   ];
 
-  try {
-    await gnosisMulticallProvider.init();
+  await gnosisMulticallProvider.init();
 
-    const [operatorBalanceResponse, serviceIdTokenDepositResponse] =
-      await gnosisMulticallProvider.all(contractCalls);
+  const [operatorBalanceResponse, serviceIdTokenDepositResponse] =
+    await gnosisMulticallProvider.all(contractCalls);
 
-    const [operatorBalance, serviceIdTokenDeposit] = [
-      parseFloat(ethers.utils.formatUnits(operatorBalanceResponse, 18)),
-      parseFloat(
-        ethers.utils.formatUnits(serviceIdTokenDepositResponse[1], 18),
-      ),
-    ];
+  const [operatorBalance, serviceIdTokenDeposit] = [
+    parseFloat(ethers.utils.formatUnits(operatorBalanceResponse, 18)),
+    parseFloat(ethers.utils.formatUnits(serviceIdTokenDepositResponse[1], 18)),
+  ];
 
-    return {
-      bondValue: operatorBalance,
-      depositValue: serviceIdTokenDeposit,
-    };
-  } catch (error) {
-    console.error(error);
-  }
+  return {
+    bondValue: operatorBalance,
+    depositValue: serviceIdTokenDeposit,
+  };
 };

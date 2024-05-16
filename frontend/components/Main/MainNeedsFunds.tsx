@@ -3,13 +3,17 @@ import { Alert, Flex, Typography } from 'antd';
 import { formatUnits } from 'ethers/lib/utils';
 import { ReactNode, useMemo } from 'react';
 
-import { SERVICE_TEMPLATES } from '@/constants';
+import { COLOR, SERVICE_TEMPLATES } from '@/constants';
 import { UNICODE_SYMBOLS } from '@/constants/unicode';
 import { useBalance } from '@/hooks';
 
+import { CardSection } from '../styled/CardSection';
+
+const { Text } = Typography;
+
 export const MainNeedsFunds = () => {
   const serviceTemplate = SERVICE_TEMPLATES[0];
-  const { totalEthBalance, totalOlasBalance } = useBalance();
+  const { isBalanceLoaded, totalEthBalance, totalOlasBalance } = useBalance();
 
   const serviceFundRequirements = useMemo(() => {
     const monthlyGasEstimate = Number(
@@ -58,7 +62,9 @@ export const MainNeedsFunds = () => {
   const message: ReactNode = useMemo(
     () => (
       <Flex vertical>
-        <Typography.Text strong>Your agent needs funds</Typography.Text>
+        <Text strong style={{ color: 'inherit' }}>
+          Your agent needs funds
+        </Text>
         <small>
           To run your agent, you must have at least these amounts in your
           account:
@@ -77,12 +83,23 @@ export const MainNeedsFunds = () => {
     [serviceFundRequirements, hasEnoughEth, hasEnoughOlas],
   );
 
-  return isVisible ? (
-    <Alert
-      icon={<InfoCircleOutlined className="mb-auto" />}
-      showIcon
-      message={message}
-      type="info"
-    />
-  ) : null;
+  if (!isVisible) return null;
+  if (!isBalanceLoaded) return null;
+
+  return (
+    <CardSection>
+      <Alert
+        className="card-section-alert"
+        icon={
+          <InfoCircleOutlined
+            className="mb-auto"
+            style={{ color: COLOR.PURPLE_DARK }}
+          />
+        }
+        showIcon
+        message={message}
+        type="info"
+      />
+    </CardSection>
+  );
 };

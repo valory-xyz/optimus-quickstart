@@ -1,11 +1,16 @@
-import { CopyOutlined } from '@ant-design/icons';
+import {
+  CopyOutlined,
+  QrcodeOutlined,
+  WarningOutlined,
+} from '@ant-design/icons';
 import {
   Alert,
-  AlertProps,
   Button,
   Flex,
   message,
+  Popover,
   QRCode,
+  Tooltip,
   Typography,
 } from 'antd';
 import Link from 'next/link';
@@ -13,8 +18,20 @@ import { useCallback, useMemo, useState } from 'react';
 import styled from 'styled-components';
 
 import { copyToClipboard, truncateAddress } from '@/common-util';
+import { COLOR, COW_SWAP_GNOSIS_XDAI_OLAS_URL } from '@/constants';
 import { UNICODE_SYMBOLS } from '@/constants/unicode';
 import { useBalance } from '@/hooks';
+import { Address } from '@/types';
+
+import { CardSection } from '../styled/CardSection';
+
+const { Text } = Typography;
+
+const CustomizedCardSection = styled(CardSection)<{ border?: boolean }>`
+  > .ant-btn {
+    width: 50%;
+  }
+`;
 
 export const MainAddFunds = () => {
   const { wallets } = useBalance();
@@ -27,7 +44,7 @@ export const MainAddFunds = () => {
     [walletAddress],
   );
 
-  const handleCopy = useCallback(
+  const handleCopyWalletAddress = useCallback(
     () =>
       copyToClipboard(walletAddress).then(() =>
         message.success('Copied successfully!'),
@@ -37,73 +54,100 @@ export const MainAddFunds = () => {
 
   return (
     <>
-      <Button
-        type="default"
-        size="large"
-        onClick={() => setIsAddFundsVisible((prev) => !prev)}
-      >
-        {isAddFundsVisible ? 'Close' : 'Add Funds'}
-      </Button>
-      {isAddFundsVisible && (
-        <Flex vertical align="center" gap={20}>
-          <Alert
-            type="warning"
-            showIcon
-            message={
-              <Flex vertical gap={5}>
-                <Typography.Text className="text-base" strong>
-                  Only send assets on Gnosis
-                </Typography.Text>
-                <Typography.Text className="text-base">
-                  You will lose any assets you send on other chains.
-                </Typography.Text>
-              </Flex>
-            }
-          />
-          <QRCode
-            size={250}
-            value={`https://metamask.app.link/send/${walletAddress}@${100}`}
-          />
-          <Flex gap={10}>
-            <Typography.Text
-              className="can-select-text"
-              code
-              title={walletAddress}
-            >
-              {truncatedWalletAddress}
-            </Typography.Text>
-            <Button onClick={handleCopy}>
-              <CopyOutlined />
-            </Button>
-          </Flex>
+      <CustomizedCardSection gap={12}>
+        <Button
+          type="default"
+          size="large"
+          onClick={() => setIsAddFundsVisible((prev) => !prev)}
+        >
+          {isAddFundsVisible ? 'Close instructions' : 'Add funds'}
+        </Button>
 
-          <NoFundsAlert
-            message={
-              <Flex vertical>
-                <Typography.Text className="text-base" strong>
-                  No OLAS or XDAI on Gnosis Chain?
-                </Typography.Text>
-                <Link
-                  target="_blank"
-                  href={'https://swap.cow.fi/#/100/swap/WXDAI/OLAS'}
-                >
-                  Get some on CowSwap {UNICODE_SYMBOLS.EXTERNAL_LINK}
-                </Link>
-              </Flex>
-            }
+        <Popover
+          placement="topRight"
+          trigger={['hover', 'click']}
+          content={<Text>Ability to withdraw is coming soon</Text>}
+        >
+          <Button type="default" size="large" disabled>
+            Withdraw
+          </Button>
+        </Popover>
+      </CustomizedCardSection>
+
+      {isAddFundsVisible && (
+        <>
+          <AddFundsWarningAlertSection />
+          <AddFundsAddressSection
+            truncatedWalletAddress={truncatedWalletAddress}
+            walletAddress={walletAddress}
+            handleCopy={handleCopyWalletAddress}
           />
-        </Flex>
+          <AddFundsGetTokensSection />
+        </>
       )}
     </>
   );
 };
 
-const NoFundsAlert = styled(Alert)<AlertProps>`
-  background-color: #f5f5f5;
-  border: 1px solid #d9d9d9;
+const AddFundsWarningAlertSection = () => (
+  <CardSection>
+    <Alert
+      className="card-section-alert"
+      type="warning"
+      showIcon
+      icon={<WarningOutlined />}
+      message={
+        <Flex vertical gap={2.5}>
+          <Text className="text-base" strong style={{ color: COLOR.BROWN }}>
+            Only send funds on Gnosis Chain!
+          </Text>
+          <Text className="text-base" style={{ color: COLOR.BROWN }}>
+            You will lose any assets you send on other chains.
+          </Text>
+        </Flex>
+      }
+    />
+  </CardSection>
+);
 
-  a {
-    text-decoration: underline;
-    color: black;
-  }
-`;
+const AddFundsAddressSection = ({
+  walletAddress,
+  truncatedWalletAddress,
+  handleCopy,
+}: {
+  walletAddress: Address;
+  truncatedWalletAddress: string;
+  handleCopy: () => void;
+}) => (
+  <CardSection gap={10} justify="center" align="center">
+    <Tooltip
+      title={<span className="can-select-text flex">{walletAddress}</span>}
+    >
+      <Text title={walletAddress}>GNO: {truncatedWalletAddress}</Text>
+    </Tooltip>
+    <Button onClick={handleCopy}>
+      <CopyOutlined />
+    </Button>
+    <Popover
+      title="Scan QR code"
+      content={
+        <QRCode
+          size={250}
+          value={`https://metamask.app.link/send/${walletAddress}@${100}`}
+        />
+      }
+    >
+      <Button>
+        <QrcodeOutlined />
+      </Button>
+    </Popover>
+  </CardSection>
+);
+
+const AddFundsGetTokensSection = () => (
+  <CardSection justify="center" borderTop>
+    <Link target="_blank" href={COW_SWAP_GNOSIS_XDAI_OLAS_URL}>
+      Get OLAS + XDAI on Gnosis Chain {UNICODE_SYMBOLS.EXTERNAL_LINK}
+    </Link>
+  </CardSection>
+);

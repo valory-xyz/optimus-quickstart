@@ -24,8 +24,8 @@
     "simple-import-sort/imports": "error",
     "simple-import-sort/exports": "error",
     "unused-imports/no-unused-imports": "error",
-    "no-console": "warn",
-    "no-unused-vars": "warn",
+    "no-unused-vars": ["warn", { "argsIgnorePattern": "^_" }],
+    "no-console": ["error", { "allow": ["error"] }],
     "prettier/prettier": ["error", {
       "endOfLine": "auto",
       "semi": true,

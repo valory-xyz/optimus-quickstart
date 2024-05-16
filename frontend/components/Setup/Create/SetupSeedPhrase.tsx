@@ -1,30 +1,26 @@
 import { CopyOutlined } from '@ant-design/icons';
 import { Button, Flex, message, Tag, Typography } from 'antd';
-import { useState } from 'react';
 
 import { copyToClipboard } from '@/common-util';
-import { PageState } from '@/enums';
-import { usePageState, useSetup } from '@/hooks';
+import { SetupScreen } from '@/enums';
+import { useSetup } from '@/hooks';
 
-import { Wrapper } from '../Layout';
+import { CardFlex } from '../../styled/CardFlex';
+import { SetupCreateHeader } from './SetupCreateHeader';
 
-export const SetupBackup = () => {
-  const { mnemonic, setMnemonic } = useSetup();
-  const { goto } = usePageState();
-  const [isLoading, setIsLoading] = useState(false);
+export const SetupSeedPhrase = () => {
+  const { mnemonic, goto } = useSetup();
 
   const handleNext = () => {
-    setIsLoading(true);
-    setMnemonic([]);
-    goto(PageState.Main);
-    setIsLoading(false);
+    goto(SetupScreen.SetupBackupSigner);
   };
 
   return (
-    <Wrapper vertical>
+    <CardFlex gap={10}>
+      <SetupCreateHeader prev={SetupScreen.SetupPassword} />
       <Typography.Title level={3}>Back up seed phrase</Typography.Title>
       <Typography.Text>
-        Seed phrase is needed to regain access to your account if you forgot the
+        Seed phrase is needed to regain access to your account if you forget the
         password.
       </Typography.Text>
       <Flex gap={10} wrap="wrap">
@@ -33,17 +29,18 @@ export const SetupBackup = () => {
         ))}
       </Flex>
       <Button
+        size="large"
         onClick={() =>
           copyToClipboard(mnemonic.join(' ')).then(() =>
-            message.success('Copied successfully!'),
+            message.success('Seed phrase is copied!'),
           )
         }
       >
         <CopyOutlined /> Copy to clipboard
       </Button>
-      <Button onClick={handleNext} loading={isLoading}>
-        Next
+      <Button type="primary" size="large" onClick={handleNext}>
+        Confirm and create account
       </Button>
-    </Wrapper>
+    </CardFlex>
   );
 };

@@ -58,10 +58,11 @@ print("Funding wallet: ", end="")
 fund(wallet["wallet"]["address"], amount=20)
 
 print(
-    requests.put(
-        "http://localhost:8000/api/wallet",
+    requests.post(
+        "http://localhost:8000/api/wallet/safe",
         json={
             "chain_type": ChainType.GNOSIS,
+            "owner": "0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC",  # Backup owner
         },
     ).json()
 )

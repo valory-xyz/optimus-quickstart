@@ -4,6 +4,7 @@ import { ConfigProvider } from 'antd';
 import type { AppProps } from 'next/app';
 import { useEffect, useRef } from 'react';
 
+import { Layout } from '@/components/Layout';
 import {
   AppInfoProvider,
   PageStateProvider,
@@ -11,6 +12,8 @@ import {
   SetupProvider,
 } from '@/context';
 import { BalanceProvider } from '@/context/BalanceProvider';
+import { RewardProvider } from '@/context/RewardProvider';
+import { SettingsProvider } from '@/context/SettingsProvider';
 import { mainTheme } from '@/theme';
 
 export default function App({ Component, pageProps }: AppProps) {
@@ -27,15 +30,21 @@ export default function App({ Component, pageProps }: AppProps) {
     <AppInfoProvider>
       <PageStateProvider>
         <ServicesProvider>
-          <BalanceProvider>
-            <SetupProvider>
-              {isMounted ? (
-                <ConfigProvider theme={mainTheme}>
-                  <Component {...pageProps} />
-                </ConfigProvider>
-              ) : null}
-            </SetupProvider>
-          </BalanceProvider>
+          <RewardProvider>
+            <BalanceProvider>
+              <SetupProvider>
+                <SettingsProvider>
+                  {isMounted ? (
+                    <ConfigProvider theme={mainTheme}>
+                      <Layout>
+                        <Component {...pageProps} />
+                      </Layout>
+                    </ConfigProvider>
+                  ) : null}
+                </SettingsProvider>
+              </SetupProvider>
+            </BalanceProvider>
+          </RewardProvider>
         </ServicesProvider>
       </PageStateProvider>
     </AppInfoProvider>

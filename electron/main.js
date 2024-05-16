@@ -1,4 +1,4 @@
-require('dotenv').config();
+const dotenv = require('dotenv');
 
 const {
   app,
@@ -27,6 +27,10 @@ const {
 const { killProcesses } = require('./processes');
 const { isPortAvailable, findAvailablePort } = require('./ports');
 const { PORT_RANGE, isWindows, isMac } = require('./constants');
+const { macUpdater } = require('./update');
+
+// Configure environment variables
+dotenv.config();
 
 // Attempt to acquire the single instance lock
 const singleInstanceLock = app.requestSingleInstanceLock();
@@ -34,6 +38,7 @@ if (!singleInstanceLock) app.quit();
 
 const platform = os.platform();
 const isDev = process.env.NODE_ENV === 'development';
+
 let appConfig = {
   ports: {
     dev: {
@@ -80,9 +85,15 @@ async function beforeQuit() {
  * Creates the tray
  */
 const createTray = () => {
-  tray = new Tray(
-    isWindows || isMac ? TRAY_ICONS.LOGGED_OUT : TRAY_ICONS_PATHS.LOGGED_OUT,
-  );
+  const trayPath =
+    isWindows || isMac ? TRAY_ICONS.LOGGED_OUT : TRAY_ICONS_PATHS.LOGGED_OUT;
+
+  if (trayPath.resize) {
+    trayPath.resize({ width: 16 });
+    trayPath.setTemplateImage(true);
+  }
+  const tray = new Tray(trayPath);
+
   const contextMenu = Menu.buildFromTemplate([
     {
       label: 'Show app',
@@ -110,7 +121,7 @@ const createTray = () => {
     mainWindow.show();
   });
 
-  ipcMain.on('tray', (event, status) => {
+  ipcMain.on('tray', (_event, status) => {
     switch (status) {
       case 'low-gas':
         tray.setImage(
@@ -165,7 +176,7 @@ const createMainWindow = () => {
     transparent: true,
     fullscreenable: false,
     maximizable: false,
-    width: isDev ? 800 : 360,
+    width: isDev ? 840 : 420,
     height: 735,
     webPreferences: {
       nodeIntegration: false,
@@ -174,13 +185,21 @@ const createMainWindow = () => {
     },
   });
 
-  mainWindow.setMenuBarVisibility(false);
+  mainWindow.setMenuBarVisibility(true);
 
   if (isDev) {
     mainWindow.loadURL(`http://localhost:${appConfig.ports.dev.next}`);
   } else {
     mainWindow.loadURL(`http://localhost:${appConfig.ports.prod.next}`);
   }
+
+  ipcMain.on('close-app', () => {
+    mainWindow.close();
+  });
+
+  ipcMain.on('minimize-app', () => {
+    mainWindow.minimize();
+  });
 
   mainWindow.webContents.on('did-fail-load', () => {
     mainWindow.webContents.reloadIgnoringCache();
@@ -213,7 +232,7 @@ async function launchDaemon() {
     });
     return data;
   }
-  const check = new Promise(function (resolve, reject) {
+  const check = new Promise(function (resolve, _reject) {
     operateDaemon = spawn(
       OperateCmd,
       [
@@ -243,7 +262,7 @@ async function launchDaemon() {
 }
 
 async function launchDaemonDev() {
-  const check = new Promise(function (resolve, reject) {
+  const check = new Promise(function (resolve, _reject) {
     operateDaemon = spawn('poetry', [
       'run',
       'operate',
@@ -291,19 +310,21 @@ async function launchNextApp() {
   server.listen(appConfig.ports.prod.next, (err) => {
     if (err) throw err;
     console.log(
-      `> Next server runinng on http://localhost:${appConfig.ports.prod.next}`,
+      `> Next server running on http://localhost:${appConfig.ports.prod.next}`,
     );
   });
 }
 
 async function launchNextAppDev() {
-  await new Promise(function (resolve, reject) {
+  await new Promise(function (resolve, _reject) {
     process.env.NEXT_PUBLIC_BACKEND_PORT = appConfig.ports.dev.operate; // must set next env var to connect to backend
-    nextAppProcess = spawn('yarn', [
-      'dev:frontend',
-      '--port',
-      appConfig.ports.dev.next,
-    ]);
+    nextAppProcess = spawn(
+      'yarn',
+      ['dev:frontend', '--port', appConfig.ports.dev.next],
+      {
+        env: { ...process.env },
+      },
+    );
     nextAppProcessPid = nextAppProcess.pid;
     nextAppProcess.stdout.on('data', (data) => {
       console.log(data.toString().trim());
@@ -312,7 +333,31 @@ async function launchNextAppDev() {
   });
 }
 
-ipcMain.on('check', async function (event, argument) {
+ipcMain.on('check', async function (event, _argument) {
+  // Update
+  try {
+    macUpdater.checkForUpdates().then((res) => {
+      if (!res) return;
+      if (!res.downloadPromise) return;
+
+      new Notification({
+        title: 'Update Available',
+        body: 'Downloading update...',
+      }).show();
+
+      res.downloadPromise.then(() => {
+        new Notification({
+          title: 'Update Downloaded',
+          body: 'Restarting application...',
+        }).show();
+        macUpdater.quitAndInstall();
+      });
+    });
+  } catch (e) {
+    console.error(e);
+  }
+
+  // Setup
   try {
     event.sender.send('response', 'Checking installation');
     if (!isDev) {
@@ -401,7 +446,9 @@ ipcMain.on('check', async function (event, argument) {
 // APP-SPECIFIC EVENTS
 app.on('ready', async () => {
   if (platform === 'darwin') {
-    app.dock?.setIcon(path.join(__dirname, 'assets/icons/tray-logged-out.png'));
+    app.dock?.setIcon(
+      path.join(__dirname, 'assets/icons/splash-robot-head-dock.png'),
+    );
   }
   createSplashWindow();
 });
@@ -416,8 +463,12 @@ app.on('before-quit', () => {
   beforeQuit();
 });
 
-// PROCESS SPECIFIC EVENTS (HANDLES NON-GRACEFUL TERMINATION)
+// UPDATER EVENTS
+macUpdater.on('update-downloaded', () => {
+  macUpdater.quitAndInstall();
+});
 
+// PROCESS SPECIFIC EVENTS (HANDLES NON-GRACEFUL TERMINATION)
 process.on('uncaughtException', (error) => {
   console.error('Uncaught Exception:', error);
   // Clean up your child processes here

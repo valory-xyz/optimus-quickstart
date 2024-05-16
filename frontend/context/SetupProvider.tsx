@@ -7,10 +7,12 @@ import {
 } from 'react';
 
 import { SetupScreen } from '@/enums/SetupScreen';
+import { Address } from '@/types';
 
 type SetupObjectType = {
   state: SetupScreen;
   mnemonic: string[];
+  backupSigner?: Address;
 };
 
 type SetupContextType = {
@@ -22,6 +24,7 @@ export const SetupContext = createContext<SetupContextType>({
   setupObject: {
     state: SetupScreen.Welcome,
     mnemonic: [],
+    backupSigner: undefined,
   },
   setSetupObject: () => {},
 });
@@ -30,6 +33,7 @@ export const SetupProvider = ({ children }: PropsWithChildren) => {
   const [setupObject, setSetupObject] = useState<SetupObjectType>({
     state: SetupScreen.Welcome,
     mnemonic: [],
+    backupSigner: undefined,
   });
 
   return (
