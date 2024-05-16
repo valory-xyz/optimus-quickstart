@@ -424,6 +424,11 @@ def create_app(  # pylint: disable=too-many-locals, unused-argument, too-many-st
             chain_type=chain_type,
             owner=data.get("owner"),
         )
+        wallet.transfer(
+            to=t.cast(str, wallet.safe),
+            amount=int(1e18),
+            chain_type=chain_type,
+        )
         return JSONResponse(content={"safe": wallet.safe, "message": "Safe created!"})
 
     @app.put("/api/wallet/safe")
