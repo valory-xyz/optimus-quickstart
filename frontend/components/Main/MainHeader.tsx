@@ -129,7 +129,7 @@ export const MainHeader = () => {
 
     if (serviceStatus === DeploymentStatus.DEPLOYED) {
       return (
-        <Flex gap={5} align="center">
+        <Flex gap={10} align="center">
           <Button type="default" size="large" onClick={handleStop}>
             Pause
           </Button>

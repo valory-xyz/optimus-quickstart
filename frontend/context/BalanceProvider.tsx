@@ -123,9 +123,9 @@ export const BalanceProvider = ({ children }: PropsWithChildren) => {
         return;
       }
 
-      if (masterEoaAddress && serviceId) {
+      if (masterSafeAddress && serviceId) {
         const serviceRegistryBalances = await getServiceRegistryBalances(
-          masterEoaAddress,
+          masterSafeAddress,
           serviceId,
         );
 

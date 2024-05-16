@@ -1,8 +1,11 @@
 import { CloseOutlined, SettingOutlined } from '@ant-design/icons';
 import { Alert, Button, Card, Flex, Input, message, Typography } from 'antd';
+import Link from 'next/link';
 import { useMemo, useState } from 'react';
 
+import { truncateAddress } from '@/common-util';
 import { COLOR } from '@/constants';
+import { UNICODE_SYMBOLS } from '@/constants/unicode';
 import { PageState, SettingsScreen } from '@/enums';
 import { usePageState } from '@/hooks';
 import { useMasterSafe } from '@/hooks/useMasterSafe';
@@ -33,9 +36,13 @@ const SettingsMain = () => {
   const { goto } = usePageState();
   const { goto: gotoSettings } = useSettings();
 
-  // TODO: implement safe owners count
-
   const [isUpdating, setIsUpdating] = useState(false);
+
+  const truncatedBackupSafeAddress: string | undefined = useMemo(() => {
+    if (backupSafeAddress) {
+      return truncateAddress(backupSafeAddress);
+    }
+  }, [backupSafeAddress]);
 
   const handleClick = () => {
     if (isUpdating) handleSave();
@@ -82,41 +89,56 @@ const SettingsMain = () => {
 
       <CardSection vertical gap={24}>
         <Typography.Text strong>Backup wallet</Typography.Text>
-        {!backupSafeAddress && <NoBackupWallet />}
-        <Button
-          type="primary"
-          size="large"
-          disabled={true} // not in this iteration?
-          onClick={() => gotoSettings(SettingsScreen.AddBackupWallet)}
-        >
-          Add backup wallet
-        </Button>
+        {backupSafeAddress ? (
+          <Link
+            type="link"
+            target="_blank"
+            href={`https://gnosisscan.io/address/${backupSafeAddress}`}
+          >
+            {truncatedBackupSafeAddress} {UNICODE_SYMBOLS.EXTERNAL_LINK}
+          </Link>
+        ) : (
+          <NoBackupWallet />
+        )}
       </CardSection>
     </Card>
   );
 };
 
-const NoBackupWallet = () => (
-  <>
-    <Typography.Text type="secondary">No backup wallet added.</Typography.Text>
-    <CardSection>
-      <Alert
-        type="warning"
-        className="card-section-alert"
-        showIcon
-        message={
-          <>
-            <Flex vertical gap={5}>
-              <Typography.Text strong style={{ color: COLOR.BROWN }}>
-                Your funds are at risk!
-              </Typography.Text>
-              <Typography.Text style={{ color: COLOR.BROWN }}>
-                You will lose any assets you send on other chains.
-              </Typography.Text>
-            </Flex>
-          </>
-        }
-      />
-    </CardSection>
-  </>
-);
+const NoBackupWallet = () => {
+  const { goto: gotoSettings } = useSettings();
+  return (
+    <>
+      <Typography.Text type="secondary">
+        No backup wallet added.
+      </Typography.Text>
+      <CardSection>
+        <Alert
+          type="warning"
+          className="card-section-alert"
+          showIcon
+          message={
+            <>
+              <Flex vertical gap={5}>
+                <Typography.Text strong style={{ color: COLOR.BROWN }}>
+                  Your funds are at risk!
+                </Typography.Text>
+                <Typography.Text style={{ color: COLOR.BROWN }}>
+                  You will lose any assets you send on other chains.
+                </Typography.Text>
+              </Flex>
+            </>
+          }
+        />
+      </CardSection>
+      <Button
+        type="primary"
+        size="large"
+        disabled={true} // not in this iteration?
+        onClick={() => gotoSettings(SettingsScreen.AddBackupWallet)}
+      >
+        Add backup wallet
+      </Button>
+    </>
+  );
+};
