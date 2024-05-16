@@ -40,6 +40,7 @@ const SettingsMain = () => {
   };
 
   const handleSave = () => {
+    // TODO: implement password update
     message.success('Password updated!');
   };
 
@@ -65,7 +66,7 @@ const SettingsMain = () => {
         <Flex vertical>
           <Typography.Paragraph strong>Password</Typography.Paragraph>
           {isUpdating ? (
-            <Input.Password></Input.Password>
+            <Input.Password />
           ) : (
             <Typography.Text>********</Typography.Text>
           )}
