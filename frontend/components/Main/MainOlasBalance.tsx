@@ -1,11 +1,16 @@
 import { Skeleton } from 'antd';
 import { useMemo } from 'react';
+import styled from 'styled-components';
 
 import { balanceFormat } from '@/common-util/numberFormatters';
 import { UNICODE_SYMBOLS } from '@/constants/unicode';
 import { useBalance } from '@/hooks';
 
 import { CardSection } from '../styled/CardSection';
+
+const Balance = styled.span`
+  letter-spacing: -2px;
+`;
 
 export const MainOlasBalance = () => {
   const { isBalanceLoaded, totalOlasBalance } = useBalance();
@@ -20,7 +25,7 @@ export const MainOlasBalance = () => {
       {isBalanceLoaded ? (
         <>
           <span className="balance-symbol">{UNICODE_SYMBOLS.OLAS}</span>
-          <span className="balance">{balance}</span>
+          <Balance className="balance">{balance}</Balance>
           <span className="balance-currency">OLAS</span>
         </>
       ) : (
