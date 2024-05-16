@@ -71,6 +71,7 @@ const SettingsMain = () => {
             <Typography.Text>********</Typography.Text>
           )}
         </Flex>
+        {/* Currently disabled as the later `handleSave` is not implemented yet */}
         <Button disabled onClick={handleClick}>
           {isUpdating ? 'Save' : 'Update'}
         </Button>
