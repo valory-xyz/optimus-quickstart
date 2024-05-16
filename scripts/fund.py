@@ -11,13 +11,15 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+RPC = os.environ.get("DEV_RPC", "http://localhost:8545")
+
 OLAS_CONTRACT_ADDRESS_GNOSIS = "0xcE11e14225575945b8E6Dc0D4F2dD4C570f79d9f"
 
 
 def fund(address: str, amount: float = 10.0) -> None:
     """Fund an address."""
     staking_keys_path = os.environ.get("STAKING_TEST_KEYS_PATH", None)
-    ledger_api = EthereumApi(address="http://localhost:8545")
+    ledger_api = EthereumApi(address=RPC)
     crypto = EthereumCrypto("scripts/keys/gnosis.txt")
     tx = ledger_api.get_transfer_transaction(
         sender_address=crypto.address,

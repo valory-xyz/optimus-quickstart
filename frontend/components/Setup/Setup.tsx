@@ -1,6 +1,5 @@
-import { useContext, useMemo } from 'react';
+import { useMemo } from 'react';
 
-import { SetupContext } from '@/context';
 import { SetupScreen } from '@/enums';
 
 import { SetupBackupSigner } from './Create/SetupBackupSigner';
@@ -16,7 +15,10 @@ import {
 import { SetupWelcome } from './SetupWelcome';
 
 export const Setup = () => {
-  const { setupObject } = useContext(SetupContext);
+  const setupObject = {
+    state: SetupScreen.SetupEoaFunding,
+  };
+  // const { setupObject } = useContext(SetupContext);
   const setupScreen = useMemo(() => {
     switch (setupObject.state) {
       case SetupScreen.Welcome:
