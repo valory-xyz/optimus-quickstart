@@ -108,12 +108,20 @@ export const BalanceProvider = ({ children }: PropsWithChildren) => {
       const wallets = await getWallets();
       if (!wallets) return;
 
+      setWallets(wallets);
+
       const walletAddresses = getWalletAddresses(wallets, serviceAddresses);
       const walletBalances = await getWalletBalances(walletAddresses);
       if (!walletBalances) return;
 
+      setWalletBalances(walletBalances);
+
       const serviceId = services?.[0]?.chain_data.token;
-      if (!isNumber(serviceId)) return;
+      if (!isNumber(serviceId)) {
+        setIsLoaded(true);
+        setIsBalanceLoaded(true);
+        return;
+      }
 
       const serviceRegistryBalances = await getServiceRegistryBalances(
         wallets[0].address,
@@ -123,10 +131,6 @@ export const BalanceProvider = ({ children }: PropsWithChildren) => {
       // update olas balances
       setOlasDepositBalance(serviceRegistryBalances.depositValue);
       setOlasBondBalance(serviceRegistryBalances.bondValue);
-
-      // update wallet balances
-      setWallets(wallets);
-      setWalletBalances(walletBalances);
 
       // update balance loaded state
       setIsLoaded(true);

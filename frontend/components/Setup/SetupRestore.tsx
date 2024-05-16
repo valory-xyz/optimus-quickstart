@@ -1,5 +1,5 @@
 import { CloseOutlined } from '@ant-design/icons';
-import { Button, Col, Flex, Form, Input, Row, Typography } from 'antd';
+import { Button, Col, Flex, Form, Input, Row, Tooltip, Typography } from 'antd';
 import isEmpty from 'lodash/isEmpty';
 import { memo, useMemo, useState } from 'react';
 
@@ -35,14 +35,17 @@ export const SetupRestoreMain = () => {
           You can recover the Operate account access by providing the seed
           phrase you received when setting up your account.
         </Typography.Text>
-        <Button
-          size="large"
-          type="primary"
-          className="w-3/4"
-          onClick={() => goto(SetupScreen.RestoreViaSeed)}
-        >
-          Restore account via seed phrase
-        </Button>
+        <Tooltip title="Seed phrase account recovery coming soon.">
+          <Button
+            disabled // seed phrase recovery is not yet implemented
+            size="large"
+            type="primary"
+            className="w-3/4"
+            onClick={() => goto(SetupScreen.RestoreViaSeed)}
+          >
+            Restore account via seed phrase
+          </Button>
+        </Tooltip>
       </CardSection>
       <CardSection gap={10} vertical borderTop borderBottom>
         <Typography.Text>

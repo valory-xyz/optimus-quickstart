@@ -122,12 +122,15 @@ export const MainHeader = () => {
 
     if (serviceStatus === DeploymentStatus.DEPLOYED) {
       return (
-        <Flex gap={5}>
+        <Flex gap={5} align="center">
           <Button type="default" size="large" onClick={handleStop}>
             Pause
           </Button>
-          <Typography.Text type="secondary" className="text-base">
-            Agent is working...
+          <Typography.Text
+            type="secondary"
+            className="text-sm loading-ellipses"
+          >
+            Agent is working
           </Typography.Text>
         </Flex>
       );
