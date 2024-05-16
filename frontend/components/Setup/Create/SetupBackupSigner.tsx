@@ -2,14 +2,15 @@ import { Button, Flex, Form, Input, Typography } from 'antd';
 
 import { CardFlex } from '@/components/styled/CardFlex';
 import { FormFlex } from '@/components/styled/FormFlex';
-import { SetupScreen } from '@/enums';
-import { useSetup } from '@/hooks';
+import { PageState, SetupScreen } from '@/enums';
+import { usePageState, useSetup } from '@/hooks';
 import { Address } from '@/types';
 
 import { SetupCreateHeader } from './SetupCreateHeader';
 
 export const SetupBackupSigner = () => {
   const { goto } = useSetup();
+  const { goto: gotoPage } = usePageState();
   const { setBackupSigner } = useSetup();
   const [form] = Form.useForm();
 
@@ -48,7 +49,11 @@ export const SetupBackupSigner = () => {
           <Button type="primary" size="large" htmlType="submit">
             Add backup wallet and continue
           </Button>
-          <Button type="link" size="large">
+          <Button
+            type="link"
+            size="large"
+            onClick={() => gotoPage(PageState.Main)}
+          >
             Skip for now
           </Button>
           <Typography.Text color="secondary">
