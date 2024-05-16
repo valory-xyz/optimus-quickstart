@@ -24,6 +24,7 @@ import {
 import { UNICODE_SYMBOLS } from '@/constants/unicode';
 import { PageState, SetupScreen } from '@/enums';
 import { useBalance, usePageState, useSetup } from '@/hooks';
+import { useWallet } from '@/hooks/useWallet';
 import { WalletService } from '@/service/Wallet';
 import { Address } from '@/types';
 
@@ -42,16 +43,15 @@ const loadingStatuses = [
 ];
 
 export const SetupEoaFunding = () => {
-  const { wallets, walletBalances } = useBalance();
+  const { masterEaoAddress, masterSafeAddress } = useWallet();
+  const { walletBalances } = useBalance();
   const { backupSigner } = useSetup();
   const { goto } = usePageState();
 
   const [isCreatingSafe, setIsCreatingSafe] = useState(false);
 
-  const masterEoa = wallets?.[0]?.address;
-  const masterEaoEthBalance = walletBalances?.[masterEoa]?.ETH;
-
-  const masterSafe = wallets?.[0]?.safe;
+  const masterEaoEthBalance =
+    masterEaoAddress && walletBalances?.[masterEaoAddress]?.ETH;
 
   const isFundedMasterEoa =
     masterEaoEthBalance &&
@@ -61,9 +61,9 @@ export const SetupEoaFunding = () => {
   const status = useMemo(() => {
     if (!isFundedMasterEoa) return SetupEaoFundingStatus.WaitingForEoaFunding;
     if (isCreatingSafe) return SetupEaoFundingStatus.CreatingSafe;
-    if (masterSafe) return SetupEaoFundingStatus.Done;
+    if (masterSafeAddress) return SetupEaoFundingStatus.Done;
     return SetupEaoFundingStatus.Error;
-  }, [isCreatingSafe, isFundedMasterEoa, masterSafe]);
+  }, [isCreatingSafe, isFundedMasterEoa, masterSafeAddress]);
 
   const statusMessage = useMemo(() => {
     switch (status) {
@@ -93,8 +93,8 @@ export const SetupEoaFunding = () => {
 
   useEffect(() => {
     // Only progress is the safe is created and accessible via context (updates on interval)
-    if (masterSafe) goto(PageState.Main);
-  }, [goto, masterSafe]);
+    if (masterSafeAddress) goto(PageState.Main);
+  }, [goto, masterSafeAddress]);
 
   return (
     <CardFlex>
@@ -119,7 +119,9 @@ export const SetupEoaFunding = () => {
           Status: {statusMessage}
         </Typography.Text>
       </CardSection>
-      {!isFundedMasterEoa && <SetupEoaFundingWaiting masterEoa={masterEoa} />}
+      {!isFundedMasterEoa && (
+        <SetupEoaFundingWaiting masterEoa={masterEaoAddress} />
+      )}
     </CardFlex>
   );
 };

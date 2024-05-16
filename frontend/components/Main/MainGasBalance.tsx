@@ -5,6 +5,7 @@ import styled from 'styled-components';
 
 import { COLOR } from '@/constants';
 import { useBalance } from '@/hooks';
+import { useWallet } from '@/hooks/useWallet';
 
 import { CardSection } from '../styled/CardSection';
 
@@ -65,14 +66,14 @@ const TooltipContent = styled.div`
 `;
 
 export const MainGasBalance = () => {
-  const { isBalanceLoaded, wallets } = useBalance();
-  const walletAddress = wallets?.[0]?.safe;
+  const { masterSafeAddress } = useWallet();
+  const { isBalanceLoaded } = useBalance();
 
   return (
     <CardSection justify="space-between" borderTop borderBottom>
       <Text>
         Gas and trading balance&nbsp;
-        {walletAddress && (
+        {masterSafeAddress && (
           <Tooltip
             title={
               <TooltipContent>
@@ -80,7 +81,7 @@ export const MainGasBalance = () => {
                 trading activity on-chain.
                 <br />
                 <a
-                  href={'https://gnosisscan.io/address/0x' + walletAddress}
+                  href={'https://gnosisscan.io/address/0x' + masterSafeAddress}
                   target="_blank"
                 >
                   Track activity on blockchain explorer{' '}

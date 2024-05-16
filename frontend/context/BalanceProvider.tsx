@@ -23,7 +23,6 @@ import { TOKENS } from '@/constants/tokens';
 import { Token } from '@/enums/Token';
 import { EthersService } from '@/service';
 import MulticallService from '@/service/Multicall';
-import { WalletService } from '@/service/Wallet';
 import {
   Address,
   AddressNumberRecord,
@@ -32,6 +31,7 @@ import {
 
 import { ServicesContext } from '.';
 import { RewardContext } from './RewardProvider';
+import { WalletContext } from './WalletProvider';
 
 export const BalanceContext = createContext<{
   isLoaded: boolean;
@@ -41,7 +41,7 @@ export const BalanceContext = createContext<{
   olasDepositBalance?: number;
   totalEthBalance?: number;
   totalOlasBalance?: number;
-  wallets: Wallet[];
+  wallets?: Wallet[];
   walletBalances: WalletAddressNumberRecord;
   updateBalances: () => Promise<void>;
   setIsPaused: Dispatch<SetStateAction<boolean>>;
@@ -53,13 +53,14 @@ export const BalanceContext = createContext<{
   olasDepositBalance: undefined,
   totalEthBalance: undefined,
   totalOlasBalance: undefined,
-  wallets: [],
+  wallets: undefined,
   walletBalances: {},
   updateBalances: async () => {},
   setIsPaused: () => {},
 });
 
 export const BalanceProvider = ({ children }: PropsWithChildren) => {
+  const { wallets } = useContext(WalletContext);
   const { services, serviceAddresses } = useContext(ServicesContext);
   const { optimisticRewardsEarnedForEpoch } = useContext(RewardContext);
 
@@ -68,7 +69,6 @@ export const BalanceProvider = ({ children }: PropsWithChildren) => {
   const [olasDepositBalance, setOlasDepositBalance] = useState<number>();
   const [olasBondBalance, setOlasBondBalance] = useState<number>();
   const [isBalanceLoaded, setIsBalanceLoaded] = useState<boolean>(false);
-  const [wallets, setWallets] = useState<Wallet[]>([]);
   const [walletBalances, setWalletBalances] =
     useState<WalletAddressNumberRecord>({});
 
@@ -104,12 +104,9 @@ export const BalanceProvider = ({ children }: PropsWithChildren) => {
   ]);
 
   const updateBalances = useCallback(async (): Promise<void> => {
+    if (!wallets) return;
+    if (!serviceAddresses) return;
     try {
-      const wallets = await getWallets();
-      if (!wallets) return;
-
-      setWallets(wallets);
-
       const walletAddresses = getWalletAddresses(wallets, serviceAddresses);
       const walletBalances = await getWalletBalances(walletAddresses);
       if (!walletBalances) return;
@@ -140,7 +137,7 @@ export const BalanceProvider = ({ children }: PropsWithChildren) => {
       message.error('Unable to retrieve wallet balances');
       setIsBalanceLoaded(true);
     }
-  }, [serviceAddresses, services]);
+  }, [serviceAddresses, services, wallets]);
 
   useInterval(
     () => {
@@ -194,9 +191,6 @@ export const getOlasBalances = async (
 
   return olasBalances;
 };
-
-export const getWallets = async (): Promise<Wallet[]> =>
-  WalletService.getWallets();
 
 export const getWalletAddresses = (
   wallets: Wallet[],
