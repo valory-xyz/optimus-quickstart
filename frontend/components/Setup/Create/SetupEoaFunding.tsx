@@ -16,7 +16,11 @@ import { Chain } from '@/client';
 import { copyToClipboard } from '@/common-util';
 import { CardFlex } from '@/components/styled/CardFlex';
 import { CardSection } from '@/components/styled/CardSection';
-import { COLOR, COW_SWAP_GNOSIS_XDAI_OLAS_URL } from '@/constants';
+import {
+  COLOR,
+  COW_SWAP_GNOSIS_XDAI_OLAS_URL,
+  MIN_ETH_BALANCE_THRESHOLDS,
+} from '@/constants';
 import { UNICODE_SYMBOLS } from '@/constants/unicode';
 import { PageState, SetupScreen } from '@/enums';
 import { useBalance, usePageState, useSetup } from '@/hooks';
@@ -24,8 +28,6 @@ import { WalletService } from '@/service/Wallet';
 import { Address } from '@/types';
 
 import { SetupCreateHeader } from './SetupCreateHeader';
-
-const MASTER_EAO_FUNDING_AMOUNT_ETH = 0.1;
 
 enum SetupEaoFundingStatus {
   WaitingForEoaFunding,
@@ -52,7 +54,9 @@ export const SetupEoaFunding = () => {
   const masterSafe = wallets?.[0]?.safe;
 
   const isFundedMasterEoa =
-    masterEaoEthBalance && masterEaoEthBalance >= MASTER_EAO_FUNDING_AMOUNT_ETH;
+    masterEaoEthBalance &&
+    masterEaoEthBalance >=
+      MIN_ETH_BALANCE_THRESHOLDS[Chain.GNOSIS].safeCreation;
 
   const status = useMemo(() => {
     if (!isFundedMasterEoa) return SetupEaoFundingStatus.WaitingForEoaFunding;
@@ -81,7 +85,7 @@ export const SetupEoaFunding = () => {
     setIsCreatingSafe(true);
     message.success('Funds have been received!');
     // TODO: add backup signer
-    WalletService.createSafe(Chain.GNOSIS).catch((e) => {
+    WalletService.createSafe(Chain.GNOSIS, backupSigner).catch((e) => {
       console.error(e);
       message.error('Failed to create an account. Please try again later.');
     });
@@ -99,7 +103,7 @@ export const SetupEoaFunding = () => {
         disabled={isCreatingSafe}
       />
       <Typography.Title level={3}>
-        Deposit {MASTER_EAO_FUNDING_AMOUNT_ETH} XDAI
+        Deposit {MIN_ETH_BALANCE_THRESHOLDS[Chain.GNOSIS].safeCreation} XDAI
       </Typography.Title>
       <Typography.Paragraph>
         The app needs these funds to create your account on-chain.
