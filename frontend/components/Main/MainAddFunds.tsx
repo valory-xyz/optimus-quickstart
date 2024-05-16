@@ -20,7 +20,7 @@ import styled from 'styled-components';
 import { copyToClipboard, truncateAddress } from '@/common-util';
 import { COLOR, COW_SWAP_GNOSIS_XDAI_OLAS_URL } from '@/constants';
 import { UNICODE_SYMBOLS } from '@/constants/unicode';
-import { useBalance } from '@/hooks';
+import { useWallet } from '@/hooks/useWallet';
 import { Address } from '@/types';
 
 import { CardSection } from '../styled/CardSection';
@@ -34,22 +34,24 @@ const CustomizedCardSection = styled(CardSection)<{ border?: boolean }>`
 `;
 
 export const MainAddFunds = () => {
-  const { wallets } = useBalance();
+  const { masterSafeAddress, masterEoaAddress } = useWallet();
   const [isAddFundsVisible, setIsAddFundsVisible] = useState(false);
 
-  const walletAddress = useMemo(() => wallets[0]?.address, [wallets]);
+  const fundingAddress: Address | undefined =
+    masterSafeAddress ?? masterEoaAddress;
 
-  const truncatedWalletAddress = useMemo(
-    () => truncateAddress(walletAddress),
-    [walletAddress],
+  const truncatedFundingAddress: string | undefined = useMemo(
+    () => fundingAddress && truncateAddress(fundingAddress),
+    [fundingAddress],
   );
 
-  const handleCopyWalletAddress = useCallback(
+  const handleCopyAddress = useCallback(
     () =>
-      copyToClipboard(walletAddress).then(() =>
+      fundingAddress &&
+      copyToClipboard(fundingAddress).then(() =>
         message.success('Copied successfully!'),
       ),
-    [walletAddress],
+    [fundingAddress],
   );
 
   return (
@@ -78,9 +80,9 @@ export const MainAddFunds = () => {
         <>
           <AddFundsWarningAlertSection />
           <AddFundsAddressSection
-            truncatedWalletAddress={truncatedWalletAddress}
-            walletAddress={walletAddress}
-            handleCopy={handleCopyWalletAddress}
+            truncatedFundingAddress={truncatedFundingAddress}
+            fundingAddress={masterSafeAddress}
+            handleCopy={handleCopyAddress}
           />
           <AddFundsGetTokensSection />
         </>
@@ -111,19 +113,23 @@ const AddFundsWarningAlertSection = () => (
 );
 
 const AddFundsAddressSection = ({
-  walletAddress,
-  truncatedWalletAddress,
+  fundingAddress,
+  truncatedFundingAddress,
   handleCopy,
 }: {
-  walletAddress: Address;
-  truncatedWalletAddress: string;
+  fundingAddress?: string;
+  truncatedFundingAddress?: string;
   handleCopy: () => void;
 }) => (
   <CardSection gap={10} justify="center" align="center">
     <Tooltip
-      title={<span className="can-select-text flex">{walletAddress}</span>}
+      title={
+        <span className="can-select-text flex">
+          {fundingAddress ?? 'Error loading address'}
+        </span>
+      }
     >
-      <Text title={walletAddress}>GNO: {truncatedWalletAddress}</Text>
+      <Text title={fundingAddress}>GNO: {truncatedFundingAddress ?? '--'}</Text>
     </Tooltip>
     <Button onClick={handleCopy}>
       <CopyOutlined />
@@ -133,7 +139,7 @@ const AddFundsAddressSection = ({
       content={
         <QRCode
           size={250}
-          value={`https://metamask.app.link/send/${walletAddress}@${100}`}
+          value={`https://metamask.app.link/send/${fundingAddress}@${100}`}
         />
       }
     >
