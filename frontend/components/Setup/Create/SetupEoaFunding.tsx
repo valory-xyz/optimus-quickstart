@@ -134,7 +134,7 @@ const SetupEoaFundingWaiting = ({
           showIcon
           message={
             <Flex vertical gap={5}>
-              <Typography.Text strong>
+              <Typography.Text strong style={{ color: COLOR.BROWN }}>
                 Only send funds on Gnosis Chain!
               </Typography.Text>
               <Typography.Text>
