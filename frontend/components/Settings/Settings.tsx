@@ -30,14 +30,6 @@ const SettingsMain = () => {
   const { goto } = usePageState();
   const { goto: gotoSettings } = useSettings();
 
-  // TODO: implement safe owners count
-
-  // const [isUpdating, setIsUpdating] = useState(false);
-  // const handleClick = () => {
-  //   if (isUpdating) message.success('Password updated!');
-  //   setIsUpdating((prev) => !prev);
-  // };
-
   return (
     <Card
       title={
@@ -59,19 +51,8 @@ const SettingsMain = () => {
       <CardSection borderBottom justify="space-between" align="center">
         <Flex vertical>
           <Typography.Paragraph strong>Password</Typography.Paragraph>
-          {/* {isUpdating ? (
-            <Input.Password />
-          ) : (
-            <Typography.Text>********</Typography.Text>
-          )} */}
-
           <Typography.Text>********</Typography.Text>
         </Flex>
-
-        {/* commented until further notice */}
-        {/* <Button disabled onClick={handleClick}> */}
-        {/* {isUpdating ? 'Save' : 'Update'} */}
-        {/* </Button> */}
       </CardSection>
 
       <CardSection vertical gap={10}>
