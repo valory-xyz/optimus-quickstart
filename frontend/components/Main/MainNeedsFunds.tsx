@@ -6,14 +6,15 @@ import { ReactNode, useMemo } from 'react';
 import { COLOR, SERVICE_TEMPLATES } from '@/constants';
 import { UNICODE_SYMBOLS } from '@/constants/unicode';
 import { useBalance } from '@/hooks';
+import { useElectronApi } from '@/hooks/useElectronApi';
 
 import { CardSection } from '../styled/CardSection';
 
 const { Text } = Typography;
 
-export const MainNeedsFunds = () => {
+export const useNeedsFunds = () => {
   const serviceTemplate = SERVICE_TEMPLATES[0];
-  const { isBalanceLoaded, totalEthBalance, totalOlasBalance } = useBalance();
+  const { totalEthBalance, totalOlasBalance } = useBalance();
 
   const serviceFundRequirements = useMemo(() => {
     const monthlyGasEstimate = Number(
@@ -38,26 +39,47 @@ export const MainNeedsFunds = () => {
     serviceTemplate.configuration.olas_required_to_stake,
   ]);
 
-  const hasEnoughEth = useMemo(
-    () => (totalEthBalance || 0) >= (serviceFundRequirements?.eth || 0),
-    [serviceFundRequirements?.eth, totalEthBalance],
-  );
+  const hasEnoughEth =
+    useMemo(
+      () => (totalEthBalance || 0) >= (serviceFundRequirements?.eth || 0),
+      [serviceFundRequirements?.eth, totalEthBalance],
+    ) && false;
 
   const hasEnoughOlas = useMemo(
     () => (totalOlasBalance || 0) >= (serviceFundRequirements?.olas || 0),
     [serviceFundRequirements?.olas, totalOlasBalance],
   );
 
+  return { hasEnoughEth, hasEnoughOlas, serviceFundRequirements };
+};
+
+export const MainNeedsFunds = () => {
+  const { isBalanceLoaded, totalEthBalance, totalOlasBalance } = useBalance();
+  const { setHeight } = useElectronApi();
+  const { hasEnoughEth, hasEnoughOlas, serviceFundRequirements } =
+    useNeedsFunds();
+
   const isVisible: boolean = useMemo(() => {
     if (
       [totalEthBalance, totalOlasBalance].some(
         (balance) => balance === undefined,
       )
-    )
+    ) {
       return false;
+    }
+
     if (hasEnoughEth && hasEnoughOlas) return false;
+
+    // Set the height of the app to accommodate the alert
+    setHeight?.(!hasEnoughEth && !hasEnoughOlas ? 580 : 575);
     return true;
-  }, [hasEnoughEth, hasEnoughOlas, totalEthBalance, totalOlasBalance]);
+  }, [
+    hasEnoughEth,
+    hasEnoughOlas,
+    totalEthBalance,
+    totalOlasBalance,
+    setHeight,
+  ]);
 
   const message: ReactNode = useMemo(
     () => (

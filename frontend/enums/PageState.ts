@@ -9,7 +9,7 @@ export enum PageState {
 export const PageHeights: Record<PageState, number> = {
   [PageState.Setup]: 415,
   [PageState.Main]: 475,
-  [PageState.Settings]: 215,
+  [PageState.Settings]: 210,
   [PageState.Receive]: 415,
   [PageState.Send]: 415,
 };

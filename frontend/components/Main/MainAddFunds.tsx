@@ -25,6 +25,7 @@ import { useElectronApi } from '@/hooks/useElectronApi';
 import { Address } from '@/types';
 
 import { CardSection } from '../styled/CardSection';
+import { useNeedsFunds } from './MainNeedsFunds';
 
 const { Text } = Typography;
 
@@ -34,11 +35,41 @@ const CustomizedCardSection = styled(CardSection)<{ border?: boolean }>`
   }
 `;
 
-export const MainAddFunds = () => {
-  const { wallets } = useBalance();
+const useAddFunds = () => {
   const { setHeight, setFullHeight } = useElectronApi();
+  const { hasEnoughEth, hasEnoughOlas } = useNeedsFunds();
+
   const [isAddFundsVisible, setIsAddFundsVisible] = useState(false);
 
+  const toggleAddFunds = useCallback(() => {
+    setIsAddFundsVisible((prev) => !prev);
+
+    if (!isAddFundsVisible) {
+      setFullHeight?.();
+    } else if (!hasEnoughEth && !hasEnoughOlas) {
+      setHeight?.(580);
+    } else if (!hasEnoughEth || !hasEnoughOlas) {
+      setHeight?.(580);
+    } else {
+      setHeight?.(475);
+    }
+  }, [
+    isAddFundsVisible,
+    hasEnoughEth,
+    hasEnoughOlas,
+    setFullHeight,
+    setHeight,
+  ]);
+
+  return {
+    isAddFundsVisible,
+    toggleAddFunds,
+  };
+};
+
+export const MainAddFunds = () => {
+  const { wallets } = useBalance();
+  const { isAddFundsVisible, toggleAddFunds } = useAddFunds();
   const walletAddress = useMemo(() => wallets[0]?.address, [wallets]);
 
   const truncatedWalletAddress = useMemo(
@@ -54,22 +85,10 @@ export const MainAddFunds = () => {
     [walletAddress],
   );
 
-  const addFundsToggler = useCallback(() => {
-    setIsAddFundsVisible((prev) => {
-      if (prev) setHeight?.(415);
-      else setFullHeight?.();
-      return !prev;
-    });
-    window.scrollTo({
-      top: document.documentElement.scrollHeight,
-      behavior: 'smooth',
-    });
-  }, [setFullHeight, setHeight]);
-
   return (
     <>
       <CustomizedCardSection gap={12}>
-        <Button type="default" size="large" onClick={addFundsToggler}>
+        <Button type="default" size="large" onClick={toggleAddFunds}>
           {isAddFundsVisible ? 'Close instructions' : 'Add funds'}
         </Button>
 
