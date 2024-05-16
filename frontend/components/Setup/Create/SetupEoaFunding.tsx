@@ -1,11 +1,14 @@
-import { CopyOutlined, QrcodeOutlined } from '@ant-design/icons';
+import {
+  CopyOutlined,
+  // QrcodeOutlined
+} from '@ant-design/icons';
 import {
   Alert,
   Button,
   Flex,
   message,
-  Popover,
-  QRCode,
+  // Popover,
+  // QRCode,
   Tooltip,
   Typography,
 } from 'antd';
@@ -167,7 +170,8 @@ const SetupEoaFundingWaiting = ({
                   }
                 />
               </Tooltip>
-              {masterEoa && (
+
+              {/* {masterEoa && (
                 <Popover
                   title="Scan QR code"
                   content={
@@ -179,7 +183,7 @@ const SetupEoaFundingWaiting = ({
                 >
                   <QrcodeOutlined />
                 </Popover>
-              )}
+              )} */}
             </Flex>
           </Flex>
 

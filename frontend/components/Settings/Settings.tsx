@@ -1,7 +1,7 @@
 import { CloseOutlined, SettingOutlined } from '@ant-design/icons';
-import { Alert, Button, Card, Flex, Input, message, Typography } from 'antd';
+import { Alert, Button, Card, Flex, Typography } from 'antd';
 import Link from 'next/link';
-import { useMemo, useState } from 'react';
+import { useMemo } from 'react';
 
 import { truncateAddress } from '@/common-util';
 import { COLOR } from '@/constants';
@@ -14,6 +14,8 @@ import { useSettings } from '@/hooks/useSettings';
 import { CardTitle } from '../common/CardTitle';
 import { CardSection } from '../styled/CardSection';
 import { SettingsAddBackupWallet } from './SettingsAddBackupWallet';
+
+const { Text, Paragraph } = Typography;
 
 export const Settings = () => {
   const { screen } = useSettings();
@@ -35,23 +37,11 @@ const SettingsMain = () => {
   const { backupSafeAddress } = useMasterSafe();
   const { goto } = usePageState();
 
-  const [isUpdating, setIsUpdating] = useState(false);
-
   const truncatedBackupSafeAddress: string | undefined = useMemo(() => {
     if (backupSafeAddress) {
       return truncateAddress(backupSafeAddress);
     }
   }, [backupSafeAddress]);
-
-  const handleClick = () => {
-    if (isUpdating) handleSave();
-    setIsUpdating((prev) => !prev);
-  };
-
-  const handleSave = () => {
-    // TODO: implement password update
-    message.success('Password updated!');
-  };
 
   return (
     <Card
@@ -73,21 +63,13 @@ const SettingsMain = () => {
     >
       <CardSection borderBottom justify="space-between" align="center">
         <Flex vertical>
-          <Typography.Paragraph strong>Password</Typography.Paragraph>
-          {isUpdating ? (
-            <Input.Password />
-          ) : (
-            <Typography.Text>********</Typography.Text>
-          )}
+          <Paragraph strong>Password</Paragraph>
+          <Text>********</Text>
         </Flex>
-        {/* Currently disabled as the later `handleSave` is not implemented yet */}
-        <Button disabled onClick={handleClick}>
-          {isUpdating ? 'Save' : 'Update'}
-        </Button>
       </CardSection>
 
       <CardSection vertical gap={24}>
-        <Typography.Text strong>Backup wallet</Typography.Text>
+        <Text strong>Backup wallet</Text>
         {backupSafeAddress ? (
           <Link
             type="link"
@@ -108,9 +90,7 @@ const NoBackupWallet = () => {
   const { goto: gotoSettings } = useSettings();
   return (
     <>
-      <Typography.Text type="secondary">
-        No backup wallet added.
-      </Typography.Text>
+      <Text type="secondary">No backup wallet added.</Text>
       <CardSection>
         <Alert
           type="warning"
@@ -119,12 +99,12 @@ const NoBackupWallet = () => {
           message={
             <>
               <Flex vertical gap={5}>
-                <Typography.Text strong style={{ color: COLOR.BROWN }}>
+                <Text strong style={{ color: COLOR.BROWN }}>
                   Your funds are at risk!
-                </Typography.Text>
-                <Typography.Text style={{ color: COLOR.BROWN }}>
+                </Text>
+                <Text style={{ color: COLOR.BROWN }}>
                   You will lose any assets you send on other chains.
-                </Typography.Text>
+                </Text>
               </Flex>
             </>
           }

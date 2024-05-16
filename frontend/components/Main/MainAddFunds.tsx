@@ -1,6 +1,6 @@
 import {
   CopyOutlined,
-  QrcodeOutlined,
+  // QrcodeOutlined,
   WarningOutlined,
 } from '@ant-design/icons';
 import {
@@ -9,7 +9,7 @@ import {
   Flex,
   message,
   Popover,
-  QRCode,
+  // QRCode,
   Tooltip,
   Typography,
 } from 'antd';
@@ -131,10 +131,12 @@ const AddFundsAddressSection = ({
     >
       <Text title={fundingAddress}>GNO: {truncatedFundingAddress ?? '--'}</Text>
     </Tooltip>
+
     <Button onClick={handleCopy}>
       <CopyOutlined />
     </Button>
-    <Popover
+
+    {/* <Popover
       title="Scan QR code"
       content={
         <QRCode
@@ -146,7 +148,7 @@ const AddFundsAddressSection = ({
       <Button>
         <QrcodeOutlined />
       </Button>
-    </Popover>
+    </Popover> */}
   </CardSection>
 );
 
