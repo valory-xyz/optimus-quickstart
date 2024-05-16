@@ -115,7 +115,7 @@ const createTray = () => {
       },
     },
   ]);
-  tray.setToolTip('Olas Operate');
+  tray.setToolTip('Pearl');
   tray.setContextMenu(contextMenu);
   tray.on('click', () => {
     mainWindow.show();
@@ -151,7 +151,7 @@ const createSplashWindow = () => {
     height: 420,
     resizable: false,
     show: true,
-    title: 'Olas Operate',
+    title: 'Pearl',
     frame: false,
     webPreferences: {
       nodeIntegration: true,
@@ -169,7 +169,7 @@ const createSplashWindow = () => {
  */
 const createMainWindow = () => {
   mainWindow = new BrowserWindow({
-    title: 'Olas Operate',
+    title: 'Pearl',
     resizable: false,
     draggable: true,
     frame: false,
@@ -375,7 +375,7 @@ ipcMain.on('check', async function (event, _argument) {
     if (isDev) {
       event.sender.send(
         'response',
-        'Starting Operate Daemon In Development Mode',
+        'Starting Pearl Daemon In Development Mode',
       );
 
       const daemonDevPortAvailable = await isPortAvailable(
@@ -405,7 +405,7 @@ ipcMain.on('check', async function (event, _argument) {
       }
       await launchNextAppDev();
     } else {
-      event.sender.send('response', 'Starting Operate Daemon');
+      event.sender.send('response', 'Starting Pearl Daemon');
       const daemonPortAvailable = await isPortAvailable(
         appConfig.ports.prod.operate,
       );

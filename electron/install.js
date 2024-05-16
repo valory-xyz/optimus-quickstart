@@ -19,7 +19,7 @@ const Env = {
   PATH: `${process.env.PATH}:/opt/homebrew/bin:/usr/local/bin`,
 };
 const SudoOptions = {
-  name: 'Olas Operate',
+  name: 'Pearl',
   env: Env,
 };
 
@@ -227,21 +227,21 @@ async function setupDarwin(ipcChannel) {
   removeInstallationLogFile();
   console.log(appendLog('Checking brew installation'));
   if (!isBrewInstalled()) {
-    ipcChannel.send('response', 'Installing Operate Daemon');
+    ipcChannel.send('response', 'Installing Pearl Daemon');
     console.log(appendLog('Installing brew'));
     installBrew();
   }
 
   console.log(appendLog('Checking docker installation'));
   if (!isDockerInstalledDarwin()) {
-    ipcChannel.send('response', 'Installing Operate Daemon');
+    ipcChannel.send('response', 'Installing Pearl Daemon');
     console.log(appendLog('Installating docker'));
     installDockerDarwin();
   }
 
   console.log(appendLog('Checking python installation'));
   if (!isPythonInstalledDarwin()) {
-    ipcChannel.send('response', 'Installing Operate Daemon');
+    ipcChannel.send('response', 'Installing Pearl Daemon');
     console.log(appendLog('Installing python'));
     installPythonDarwin();
   }
@@ -251,7 +251,7 @@ async function setupDarwin(ipcChannel) {
   await createDirectory(`${OperateDirectory}/temp`);
 
   if (!fs.existsSync(VenvDir)) {
-    ipcChannel.send('response', 'Installing Operate Daemon');
+    ipcChannel.send('response', 'Installing Pearl Daemon');
     console.log(appendLog('Creating virtual environment'));
     createVirtualEnvUnix(VenvDir);
 
@@ -279,21 +279,21 @@ async function setupUbuntu(ipcChannel) {
   removeInstallationLogFile();
   console.log(appendLog('Checking docker installation'));
   if (!isDockerInstalledUbuntu()) {
-    ipcChannel.send('response', 'Installing Operate Daemon');
+    ipcChannel.send('response', 'Installing Pearl Daemon');
     console.log(appendLog('Installating docker'));
     await installDockerUbuntu();
   }
 
   console.log(appendLog('Checking python installation'));
   if (!isPythonInstalledUbuntu()) {
-    ipcChannel.send('response', 'Installing Operate Daemon');
+    ipcChannel.send('response', 'Installing Pearl Daemon');
     console.log(appendLog('Installing Python'));
     await installPythonUbuntu(OperateDirectory);
   }
 
   console.log(appendLog('Checking git installation'));
   if (!isGitInstalledUbuntu()) {
-    ipcChannel.send('response', 'Installing Operate Daemon');
+    ipcChannel.send('response', 'Installing Pearl Daemon');
     console.log(appendLog('Installing git'));
     await installGitUbuntu(OperateDirectory);
   }
@@ -308,7 +308,7 @@ async function setupUbuntu(ipcChannel) {
   }
 
   if (!fs.existsSync(VenvDir)) {
-    ipcChannel.send('response', 'Installing Operate Daemon');
+    ipcChannel.send('response', 'Installing Pearl Daemon');
     console.log(appendLog('Creating virtual environment'));
     createVirtualEnvUnix(VenvDir);
 
