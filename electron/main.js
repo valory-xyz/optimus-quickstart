@@ -160,9 +160,9 @@ const createSplashWindow = () => {
   });
   splashWindow.loadURL('file://' + __dirname + '/loading/index.html');
 
-  // if (isDev) {
-  //   splashWindow.webContents.openDevTools();
-  // }
+  if (isDev) {
+    splashWindow.webContents.openDevTools();
+  }
 };
 
 const WIDTH = 420;
@@ -171,6 +171,7 @@ const WIDTH = 420;
  * Creates the main window
  */
 const createMainWindow = () => {
+  const width = isDev ? 840 : WIDTH;
   mainWindow = new BrowserWindow({
     title: 'Olas Operate',
     resizable: false,
@@ -179,9 +180,8 @@ const createMainWindow = () => {
     transparent: true,
     fullscreenable: false,
     maximizable: false,
-    width: WIDTH,
-    // width: isDev ? 840 : WIDTH,
-    // maxHeight: 735,
+    width,
+    maxHeight: 735,
     webPreferences: {
       nodeIntegration: false,
       contextIsolation: true,
@@ -207,7 +207,7 @@ const createMainWindow = () => {
 
   ipcMain.on('set-height', (_event, height) => {
     console.log('set-height from main: ', height);
-    mainWindow.setSize(WIDTH, height);
+    mainWindow.setSize(width, height);
   });
 
   mainWindow.webContents.on('did-fail-load', () => {
@@ -229,9 +229,9 @@ const createMainWindow = () => {
     mainWindow.hide();
   });
 
-  // if (isDev) {
-  //   mainWindow.webContents.openDevTools();
-  // }
+  if (isDev) {
+    mainWindow.webContents.openDevTools();
+  }
 };
 
 async function launchDaemon() {
