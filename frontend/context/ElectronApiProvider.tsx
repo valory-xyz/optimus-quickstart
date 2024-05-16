@@ -13,7 +13,11 @@ const setHeight = (functionNameInWindow: string) => {
   if (typeof window === 'undefined') return;
 
   const fn = get(window, `electronAPI.${functionNameInWindow}`);
-  if (!fn || typeof fn !== 'function') return;
+  if (!fn || typeof fn !== 'function') {
+    throw new Error(
+      `Function ${functionNameInWindow} not found in window.electronAPI`,
+    );
+  }
 
   return fn;
 };

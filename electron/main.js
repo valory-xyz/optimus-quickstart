@@ -159,10 +159,13 @@ const createSplashWindow = () => {
     },
   });
   splashWindow.loadURL('file://' + __dirname + '/loading/index.html');
-  if (isDev) {
-    splashWindow.webContents.openDevTools();
-  }
+
+  // if (isDev) {
+  //   splashWindow.webContents.openDevTools();
+  // }
 };
+
+const WIDTH = 420;
 
 /**
  * Creates the main window
@@ -176,8 +179,9 @@ const createMainWindow = () => {
     transparent: true,
     fullscreenable: false,
     maximizable: false,
-    width: isDev ? 840 : 420,
-    height: 735,
+    width: WIDTH,
+    // width: isDev ? 840 : WIDTH,
+    // maxHeight: 735,
     webPreferences: {
       nodeIntegration: false,
       contextIsolation: true,
@@ -201,6 +205,11 @@ const createMainWindow = () => {
     mainWindow.minimize();
   });
 
+  ipcMain.on('set-height', (_event, height) => {
+    console.log('set-height from main: ', height);
+    mainWindow.setSize(WIDTH, height);
+  });
+
   mainWindow.webContents.on('did-fail-load', () => {
     mainWindow.webContents.reloadIgnoringCache();
   });
@@ -220,9 +229,9 @@ const createMainWindow = () => {
     mainWindow.hide();
   });
 
-  if (isDev) {
-    mainWindow.webContents.openDevTools();
-  }
+  // if (isDev) {
+  //   mainWindow.webContents.openDevTools();
+  // }
 };
 
 async function launchDaemon() {
