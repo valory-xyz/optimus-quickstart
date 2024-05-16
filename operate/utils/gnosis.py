@@ -19,6 +19,7 @@
 
 """Safe helpers."""
 
+import binascii
 import secrets
 import typing as t
 from enum import Enum
@@ -160,14 +161,6 @@ def create_safe(
 ) -> t.Tuple[str, int]:
     """Create gnosis safe."""
     salt_nonce = salt_nonce or _get_nonce()
-    tx = registry_contracts.gnosis_safe.get_deploy_transaction(
-        ledger_api=ledger_api,
-        deployer_address=crypto.address,
-        owners=[crypto.address],
-        threshold=1,
-        salt_nonce=salt_nonce,
-    )
-    safe = tx.pop("contract_address")
 
     def _build(  # pylint: disable=unused-argument
         *args: t.Any, **kwargs: t.Any
@@ -195,10 +188,108 @@ def create_safe(
         "build",
         _build,
     )
-    tx_settler.transact(
+    receipt = tx_settler.transact(
         method=lambda: {},
         contract="",
         kwargs={},
     )
+    instance = registry_contracts.gnosis_safe_proxy_factory.get_instance(
+        ledger_api=ledger_api,
+        contract_address="0xa6b71e26c5e0845f74c812102ca7114b6a896ab2",
+    )
+    (event,) = instance.events.ProxyCreation().process_receipt(receipt)
+    return event["args"]["proxy"], salt_nonce
 
-    return safe, salt_nonce
+
+def get_owners(ledger_api: LedgerApi, safe: str) -> t.List[str]:
+    """Get list of owners."""
+    return registry_contracts.gnosis_safe.get_owners(
+        ledger_api=ledger_api,
+        contract_address=safe,
+    ).get("owners", [])
+
+
+def send_safe_txs(
+    txd: bytes,
+    safe: str,
+    ledger_api: LedgerApi,
+    crypto: Crypto,
+) -> None:
+    """Send internal safe transaction."""
+    owner = ledger_api.api.to_checksum_address(
+        crypto.address,
+    )
+    safe_tx_hash = registry_contracts.gnosis_safe.get_raw_safe_transaction_hash(
+        ledger_api=ledger_api,
+        contract_address=safe,
+        value=0,
+        safe_tx_gas=0,
+        to_address=safe,
+        data=txd,
+        operation=SafeOperation.CALL.value,
+    ).get("tx_hash")
+    safe_tx_bytes = binascii.unhexlify(
+        safe_tx_hash[2:],
+    )
+    signatures = {
+        owner: crypto.sign_message(
+            message=safe_tx_bytes,
+            is_deprecated_mode=True,
+        )[2:]
+    }
+    transaction = registry_contracts.gnosis_safe.get_raw_safe_transaction(
+        ledger_api=ledger_api,
+        contract_address=safe,
+        sender_address=owner,
+        owners=(owner,),  # type: ignore
+        to_address=safe,
+        value=0,
+        data=txd,
+        safe_tx_gas=0,
+        signatures_by_owner=signatures,
+        operation=SafeOperation.CALL.value,
+        nonce=ledger_api.api.eth.get_transaction_count(owner),
+    )
+    ledger_api.get_transaction_receipt(
+        ledger_api.send_signed_transaction(
+            crypto.sign_transaction(
+                transaction,
+            ),
+        )
+    )
+
+
+def add_owner(
+    ledger_api: LedgerApi,
+    crypto: Crypto,
+    safe: str,
+    owner: str,
+) -> None:
+    """Add owner to a safe."""
+    instance = registry_contracts.gnosis_safe.get_instance(
+        ledger_api=ledger_api,
+        contract_address=safe,
+    )
+    txd = instance.encodeABI(
+        fn_name="addOwnerWithThreshold",
+        args=[
+            owner,
+            1,
+        ],
+    )
+    send_safe_txs(
+        txd=bytes.fromhex(txd[2:]),
+        safe=safe,
+        ledger_api=ledger_api,
+        crypto=crypto,
+    )
+
+
+def swap_owner(  # pylint: disable=unused-argument
+    ledger_api: LedgerApi,
+    crypto: Crypto,
+    safe: str,
+    old_owner: str,
+    new_owner: str,
+) -> None:
+    """Swap owner on a safe."""

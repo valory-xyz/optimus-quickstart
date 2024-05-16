@@ -166,6 +166,11 @@ class ServiceManager:
         ):
             raise ValueError("No staking slots available")
 
+        if user_params.use_staking and not ocm.staking_rewards_available(
+            staking_contract=STAKING[service.ledger_config.chain]
+        ):
+            raise ValueError("No staking rewards available")
+
         if service.chain_data.token > -1:
             self.logger.info("Syncing service state")
             info = ocm.info(token_id=service.chain_data.token)

@@ -14,7 +14,7 @@ load_dotenv()
 OLAS_CONTRACT_ADDRESS_GNOSIS = "0xcE11e14225575945b8E6Dc0D4F2dD4C570f79d9f"
 
 
-def fund(address: str) -> None:
+def fund(address: str, amount: float = 10.0) -> None:
     """Fund an address."""
     staking_keys_path = os.environ.get("STAKING_TEST_KEYS_PATH", None)
     ledger_api = EthereumApi(address="http://localhost:8545")
@@ -22,7 +22,7 @@ def fund(address: str) -> None:
     tx = ledger_api.get_transfer_transaction(
         sender_address=crypto.address,
         destination_address=address,
-        amount=10000000000000000000,
+        amount=int(amount * 1e18),
         tx_fee=50000,
         tx_nonce="0x",
         chain_id=100,
@@ -31,7 +31,7 @@ def fund(address: str) -> None:
     digest = ledger_api.send_signed_transaction(stx)
     ledger_api.get_transaction_receipt(tx_digest=digest, raise_on_try=True)
 
-    print(ledger_api.get_balance(address=address))
+    print(f"Transferred: {ledger_api.get_balance(address=address)}")
     if staking_keys_path:
         staking_crypto = EthereumCrypto(staking_keys_path)
         with open(

@@ -111,6 +111,15 @@ class StakingManager(OnChainHelper):
         )
         return available > 0
 
+    def available_rewards(self, staking_contract: str) -> int:
+        """Get the available staking rewards on the staking contract"""
+        instance = self.staking_ctr.get_instance(
+            ledger_api=self.ledger_api,
+            contract_address=staking_contract,
+        )
+        available_rewards = instance.functions.availableRewards().call()
+        return available_rewards
+
     def service_info(self, staking_contract: str, service_id: int) -> dict:
         """Get the service onchain info"""
         return self.staking_ctr.get_service_info(
@@ -613,7 +622,7 @@ class OnChainManager:
             ).unbond_service()
 
     def staking_slots_available(self, staking_contract: str) -> bool:
-        """Stake service."""
+        """Check if there are available slots on the staking contract"""
         self._patch()
         return StakingManager(
             key=self.wallet.key_path,
@@ -622,6 +631,18 @@ class OnChainManager:
         ).slots_available(
             staking_contract=staking_contract,
         )
+
+    def staking_rewards_available(self, staking_contract: str) -> bool:
+        """Check if there are available staking rewards on the staking contract"""
+        self._patch()
+        available_rewards = StakingManager(
+            key=self.wallet.key_path,
+            password=self.wallet.password,
+            chain_type=self.chain_type,
+        ).available_rewards(
+            staking_contract=staking_contract,
+        )
+        return available_rewards > 0
 
     def stake(
         self,

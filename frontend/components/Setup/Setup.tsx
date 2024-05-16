@@ -3,8 +3,10 @@ import { useContext, useMemo } from 'react';
 import { SetupContext } from '@/context';
 import { SetupScreen } from '@/enums';
 
-import { SetupBackup } from './Create/SetupBackup';
+import { SetupBackupSigner } from './Create/SetupBackupSigner';
+import { SetupEoaFunding } from './Create/SetupEoaFunding';
 import { SetupPassword } from './Create/SetupPassword';
+import { SetupSeedPhrase } from './Create/SetupSeedPhrase';
 import {
   SetupRestoreMain,
   SetupRestoreSetPassword,
@@ -22,8 +24,12 @@ export const Setup = () => {
       // Create account
       case SetupScreen.SetupPassword:
         return <SetupPassword />;
-      case SetupScreen.SetupBackup:
-        return <SetupBackup />;
+      case SetupScreen.SetupSeedPhrase:
+        return <SetupSeedPhrase />;
+      case SetupScreen.SetupBackupSigner:
+        return <SetupBackupSigner />;
+      case SetupScreen.SetupEoaFunding:
+        return <SetupEoaFunding />;
       // Restore account
       case SetupScreen.Restore:
         return <SetupRestoreMain />;

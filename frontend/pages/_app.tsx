@@ -14,6 +14,7 @@ import {
 import { BalanceProvider } from '@/context/BalanceProvider';
 import { ElectronApiProvider } from '@/context/ElectronApiProvider';
 import { RewardProvider } from '@/context/RewardProvider';
+import { SettingsProvider } from '@/context/SettingsProvider';
 import { mainTheme } from '@/theme';
 
 export default function App({ Component, pageProps }: AppProps) {
@@ -33,15 +34,17 @@ export default function App({ Component, pageProps }: AppProps) {
           <RewardProvider>
             <BalanceProvider>
               <SetupProvider>
-                {isMounted ? (
-                  <ConfigProvider theme={mainTheme}>
-                    <ElectronApiProvider>
-                      <Layout>
-                        <Component {...pageProps} />
-                      </Layout>
-                    </ElectronApiProvider>
-                  </ConfigProvider>
-                ) : null}
+                <SettingsProvider>
+                  {isMounted ? (
+                    <ConfigProvider theme={mainTheme}>
+                      <ElectronApiProvider>
+                        <Layout>
+                          <Component {...pageProps} />
+                        </Layout>
+                      </ElectronApiProvider>
+                    </ConfigProvider>
+                  ) : null}
+                </SettingsProvider>
               </SetupProvider>
             </BalanceProvider>
           </RewardProvider>

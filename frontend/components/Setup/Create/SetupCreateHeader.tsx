@@ -8,15 +8,17 @@ import { useSetup } from '@/hooks';
 
 export const SetupCreateHeader = memo(function SetupCreateHeader({
   prev,
+  disabled = false,
 }: {
   prev: SetupScreen;
+  disabled?: boolean;
 }) {
   const { goto } = useSetup();
   const handleBack = () => goto(prev);
   return (
     <Row>
       <Col span={8}>
-        <Button onClick={handleBack}>
+        <Button onClick={handleBack} disabled={disabled}>
           <ArrowLeftOutlined />
         </Button>
       </Col>
