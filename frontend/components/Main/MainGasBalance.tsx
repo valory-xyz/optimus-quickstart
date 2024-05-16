@@ -81,7 +81,7 @@ export const MainGasBalance = () => {
                 trading activity on-chain.
                 <br />
                 <a
-                  href={'https://gnosisscan.io/address/0x' + masterSafeAddress}
+                  href={'https://gnosisscan.io/address/' + masterSafeAddress}
                   target="_blank"
                 >
                   Track activity on blockchain explorer{' '}

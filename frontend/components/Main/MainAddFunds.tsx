@@ -33,21 +33,21 @@ const CustomizedCardSection = styled(CardSection)<{ border?: boolean }>`
 `;
 
 export const MainAddFunds = () => {
-  const { masterEoaAddress } = useWallet();
+  const { masterSafeAddress } = useWallet();
   const [isAddFundsVisible, setIsAddFundsVisible] = useState(false);
 
-  const truncatedWalletAddress = useMemo(
-    () => masterEoaAddress && truncateAddress(masterEoaAddress),
-    [masterEoaAddress],
+  const truncatedMasterSafeAddress = useMemo(
+    () => masterSafeAddress && truncateAddress(masterSafeAddress),
+    [masterSafeAddress],
   );
 
   const handleCopyWalletAddress = useCallback(
     () =>
-      masterEoaAddress &&
-      copyToClipboard(masterEoaAddress).then(() =>
+      masterSafeAddress &&
+      copyToClipboard(masterSafeAddress).then(() =>
         message.success('Copied successfully!'),
       ),
-    [masterEoaAddress],
+    [masterSafeAddress],
   );
 
   return (
@@ -76,8 +76,8 @@ export const MainAddFunds = () => {
         <>
           <AddFundsWarningAlertSection />
           <AddFundsAddressSection
-            truncatedWalletAddress={truncatedWalletAddress ?? '--'}
-            walletAddress={masterEoaAddress ?? '--'}
+            truncatedMasterSafeAddress={truncatedMasterSafeAddress ?? '--'}
+            masterSafeAddress={masterSafeAddress ?? '--'}
             handleCopy={handleCopyWalletAddress}
           />
           <AddFundsGetTokensSection />
@@ -109,19 +109,19 @@ const AddFundsWarningAlertSection = () => (
 );
 
 const AddFundsAddressSection = ({
-  walletAddress,
-  truncatedWalletAddress,
+  masterSafeAddress,
+  truncatedMasterSafeAddress,
   handleCopy,
 }: {
-  walletAddress: string;
-  truncatedWalletAddress: string;
+  masterSafeAddress: string;
+  truncatedMasterSafeAddress: string;
   handleCopy: () => void;
 }) => (
   <CardSection gap={10} justify="center" align="center">
     <Tooltip
-      title={<span className="can-select-text flex">{walletAddress}</span>}
+      title={<span className="can-select-text flex">{masterSafeAddress}</span>}
     >
-      <Text title={walletAddress}>GNO: {truncatedWalletAddress}</Text>
+      <Text title={masterSafeAddress}>GNO: {truncatedMasterSafeAddress}</Text>
     </Tooltip>
     <Button onClick={handleCopy}>
       <CopyOutlined />
@@ -131,7 +131,7 @@ const AddFundsAddressSection = ({
       content={
         <QRCode
           size={250}
-          value={`https://metamask.app.link/send/${walletAddress}@${100}`}
+          value={`https://metamask.app.link/send/${masterSafeAddress}@${100}`}
         />
       }
     >
