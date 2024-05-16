@@ -309,6 +309,23 @@ def create_app(  # pylint: disable=too-many-locals, unused-argument, too-many-st
             wallets.append(wallet.json)
         return JSONResponse(content=wallets)
 
+    @app.get("/api/wallet/{chain}")
+    @with_retries
+    async def _get_wallet_by_chain(request: Request) -> t.List[t.Dict]:
+        """Create wallet safe"""
+        ledger_type = get_ledger_type_from_chain_type(
+            chain=ChainType.from_string(request.path_params["chain"])
+        )
+        manager = operate.wallet_manager
+        if not manager.exists(ledger_type=ledger_type):
+            return JSONResponse(
+                content={"error": "Wallet does not exist"},
+                status_code=404,
+            )
+        return JSONResponse(
+            content=manager.load(ledger_type=ledger_type).json,
+        )
+
     @app.post("/api/wallet")
     @with_retries
     async def _create_wallet(request: Request) -> t.List[t.Dict]:
@@ -339,7 +356,35 @@ def create_app(  # pylint: disable=too-many-locals, unused-argument, too-many-st
         wallet, mnemonic = manager.create(ledger_type=ledger_type)
         return JSONResponse(content={"wallet": wallet.json, "mnemonic": mnemonic})
 
-    @app.put("/api/wallet")
+    @app.get("/api/wallet/safe")
+    @with_retries
+    async def _get_safes(request: Request) -> t.List[t.Dict]:
+        """Create wallet safe"""
+        safes = []
+        for wallet in operate.wallet_manager:
+            safes.append({wallet.ledger_type: wallet.safe})
+        return JSONResponse(content=safes)
+
+    @app.get("/api/wallet/safe/{chain}")
+    @with_retries
+    async def _get_safe(request: Request) -> t.List[t.Dict]:
+        """Create wallet safe"""
+        ledger_type = get_ledger_type_from_chain_type(
+            chain=ChainType.from_string(request.path_params["chain"])
+        )
+        manager = operate.wallet_manager
+        if not manager.exists(ledger_type=ledger_type):
+            return JSONResponse(
+                content={"error": "Wallet does not exist"},
+                status_code=404,
+            )
+        return JSONResponse(
+            content={
+                "safe": manager.load(ledger_type=ledger_type).safe,
+            },
+        )
+
+    @app.post("/api/wallet/safe")
     @with_retries
     async def _create_safe(request: Request) -> t.List[t.Dict]:
         """Create wallet safe"""
@@ -363,7 +408,43 @@ def create_app(  # pylint: disable=too-many-locals, unused-argument, too-many-st
             return JSONResponse(content={"error": "Wallet does not exist"})
 
         wallet = manager.load(ledger_type=ledger_type)
+        if wallet.safe is not None:
+            return JSONResponse(
+                content={"safe": wallet.safe, "message": "Safe already exists!"}
+            )
+
         wallet.create_safe(  # pylint: disable=no-member
+            chain_type=chain_type,
+            owner=data.get("owner"),
+        )
+        return JSONResponse(content={"safe": wallet.safe, "message": "Safe created!"})
+
+    @app.put("/api/wallet/safe")
+    @with_retries
+    async def _update_safe(request: Request) -> t.List[t.Dict]:
+        """Create wallet safe"""
+        # TODO: Extract login check as decorator
+        if operate.user_account is None:
+            return JSONResponse(
+                content={"error": "Cannot create safe; User account does not exist!"},
+                status_code=400,
+            )
+
+        if operate.password is None:
+            return JSONResponse(
+                content={"error": "You need to login before creating a safe"},
+                status_code=401,
+            )
+
+        data = await request.json()
+        chain_type = ChainType(data["chain_type"])
+        ledger_type = get_ledger_type_from_chain_type(chain=chain_type)
+        manager = operate.wallet_manager
+        if not manager.exists(ledger_type=ledger_type):
+            return JSONResponse(content={"error": "Wallet does not exist"})
+
+        wallet = manager.load(ledger_type=ledger_type)
+        wallet.add_or_swap_owner(
             chain_type=chain_type,
             owner=data.get("owner"),
         )
