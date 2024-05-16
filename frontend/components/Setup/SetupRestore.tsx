@@ -32,8 +32,8 @@ export const SetupRestoreMain = () => {
     >
       <CardSection gap={10} vertical borderTop borderBottom>
         <Typography.Text>
-          You can recover the Operate account access by providing the seed
-          phrase you received when setting up your account.
+          You can recover the Pearl account access by providing the seed phrase
+          you received when setting up your account.
         </Typography.Text>
         <Tooltip title="Seed phrase account recovery coming soon.">
           <Button
@@ -51,7 +51,7 @@ export const SetupRestoreMain = () => {
         <Typography.Text>
           If you don’t have the seed phrase but added a backup wallet to your
           account, you can still restore your funds, but you won’t be able to
-          recover access to your Operate account.
+          recover access to your Pearl account.
         </Typography.Text>
         <Button
           size="large"
@@ -97,7 +97,7 @@ export const SetupRestoreViaSeed = () => {
     >
       <Flex gap={24} vertical>
         <Typography.Text>
-          To restore access to your Operate account, enter the seed phrase you
+          To restore access to your Pearl account, enter the seed phrase you
           received when setting up your account.
         </Typography.Text>
         <Form form={form} onValuesChange={onValuesChange}>
@@ -147,7 +147,7 @@ export const SetupRestoreSetPassword = () => {
     >
       <Flex gap={24} vertical>
         <Typography.Text>
-          Come up with a strong password to get access to the Operate account in
+          Come up with a strong password to get access to the Pearl account in
           the future.
         </Typography.Text>
         <Flex vertical gap={16}>
@@ -184,11 +184,11 @@ export const SetupRestoreViaBackup = () => {
     >
       <Flex vertical gap={10}>
         <Typography.Text>
-          To restore access to the funds in your Operate account, please follow
+          To restore access to the funds in your Pearl account, please follow
           the instructions below.
         </Typography.Text>
         <Typography.Text>
-          Note that the backup wallet won’t give you access to your Operate
+          Note that the backup wallet won’t give you access to your Pearl
           account but only to the funds stored on it.
         </Typography.Text>
       </Flex>
