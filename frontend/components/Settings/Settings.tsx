@@ -65,7 +65,7 @@ const SettingsMain = () => {
         <Flex vertical>
           <Typography.Paragraph strong>Password</Typography.Paragraph>
           {isUpdating ? (
-            <Input.Password></Input.Password>
+            <Input.Password />
           ) : (
             <Typography.Text>********</Typography.Text>
           )}
