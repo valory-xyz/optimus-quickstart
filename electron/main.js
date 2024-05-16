@@ -165,6 +165,7 @@ const createSplashWindow = () => {
   }
 };
 
+const HEIGHT = 735;
 /**
  * Creates the main window
  */
@@ -179,7 +180,7 @@ const createMainWindow = () => {
     fullscreenable: false,
     maximizable: false,
     width,
-    maxHeight: 735,
+    maxHeight: HEIGHT,
     webPreferences: {
       nodeIntegration: false,
       contextIsolation: true,
@@ -205,6 +206,15 @@ const createMainWindow = () => {
 
   ipcMain.on('set-height', (_event, height) => {
     mainWindow.setSize(width, height);
+  });
+
+  ipcMain.on('set-full-height', (_event) => {
+    mainWindow.setSize(width, HEIGHT);
+  });
+
+  ipcMain.on('get-height', (event) => {
+    const height = mainWindow.getSize()[1];
+    event.returnValue = height;
   });
 
   mainWindow.webContents.on('did-fail-load', () => {
