@@ -1,9 +1,11 @@
 import { CloseOutlined, SettingOutlined } from '@ant-design/icons';
-import { Button, Card, Flex, Input, message, Typography } from 'antd';
+import { Alert, Button, Card, Flex, Input, message, Typography } from 'antd';
 import { useMemo, useState } from 'react';
 
+import { COLOR } from '@/constants';
 import { PageState, SettingsScreen } from '@/enums';
 import { usePageState } from '@/hooks';
+import { useMasterSafe } from '@/hooks/useMasterSafe';
 import { useSettings } from '@/hooks/useSettings';
 
 import { CardTitle } from '../common/CardTitle';
@@ -27,6 +29,7 @@ export const Settings = () => {
 };
 
 const SettingsMain = () => {
+  const { backupSafeAddress } = useMasterSafe();
   const { goto } = usePageState();
   const { goto: gotoSettings } = useSettings();
 
@@ -77,8 +80,9 @@ const SettingsMain = () => {
         </Button>
       </CardSection>
 
-      <CardSection vertical gap={10}>
-        <Typography.Paragraph strong>Backup wallet</Typography.Paragraph>
+      <CardSection vertical gap={24}>
+        <Typography.Text strong>Backup wallet</Typography.Text>
+        {!backupSafeAddress && <NoBackupWallet />}
         <Button
           type="primary"
           size="large"
@@ -91,3 +95,28 @@ const SettingsMain = () => {
     </Card>
   );
 };
+
+const NoBackupWallet = () => (
+  <>
+    <Typography.Text type="secondary">No backup wallet added.</Typography.Text>
+    <CardSection>
+      <Alert
+        type="warning"
+        className="card-section-alert"
+        showIcon
+        message={
+          <>
+            <Flex vertical gap={5}>
+              <Typography.Text strong style={{ color: COLOR.BROWN }}>
+                Your funds are at risk!
+              </Typography.Text>
+              <Typography.Text style={{ color: COLOR.BROWN }}>
+                You will lose any assets you send on other chains.
+              </Typography.Text>
+            </Flex>
+          </>
+        }
+      />
+    </CardSection>
+  </>
+);
