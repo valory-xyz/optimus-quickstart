@@ -10,6 +10,8 @@ import { WalletService } from '@/service/Wallet';
 import { CardFlex } from '../../styled/CardFlex';
 import { SetupCreateHeader } from './SetupCreateHeader';
 
+const { Title, Text } = Typography;
+
 export const SetupPassword = () => {
   const { goto, setMnemonic } = useSetup();
   const [form] = Form.useForm();
@@ -35,8 +37,8 @@ export const SetupPassword = () => {
   return (
     <CardFlex gap={10}>
       <SetupCreateHeader prev={SetupScreen.Welcome} />
-      <Typography.Title level={3}>Create password</Typography.Title>
-      <Typography.Text>Come up with a strong password.</Typography.Text>
+      <Title level={3}>Create password</Title>
+      <Text>Come up with a strong password.</Text>
       <Form form={form} onFinish={handleCreateEoa}>
         <Form.Item
           name="password"
