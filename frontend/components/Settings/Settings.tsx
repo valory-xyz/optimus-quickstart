@@ -34,7 +34,6 @@ export const Settings = () => {
 const SettingsMain = () => {
   const { backupSafeAddress } = useMasterSafe();
   const { goto } = usePageState();
-  const { goto: gotoSettings } = useSettings();
 
   const [isUpdating, setIsUpdating] = useState(false);
 
