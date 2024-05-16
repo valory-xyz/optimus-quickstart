@@ -83,7 +83,7 @@ export const SetupEoaFunding = () => {
     // TODO: add backup signer
     WalletService.createSafe(Chain.GNOSIS).catch((e) => {
       console.error(e);
-      message.error('Error creating account');
+      message.error('Failed to create an account. Please try again later.');
     });
   }, [backupSigner, goto, isCreatingSafe, isFundedMasterEoa]);
 

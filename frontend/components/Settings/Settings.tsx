@@ -18,6 +18,8 @@ export const Settings = () => {
         return <SettingsMain />;
       case SettingsScreen.AddBackupWallet:
         return <SettingsAddBackupWallet />;
+      default:
+        return null;
     }
   }, [screen]);
 
