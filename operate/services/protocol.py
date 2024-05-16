@@ -166,18 +166,20 @@ class GnosisSafeTransaction:
             retries < ON_CHAIN_INTERACT_RETRIES
             and datetime.now().timestamp() < deadline
         ):
-            if self.tx is None:
-                self.build()
             try:
+                self.build()
                 tx_digest = self.ledger_api.send_signed_transaction(self.tx)
             except Exception as e:  # pylint: disable=broad-except
                 print(f"Error sending the safe tx: {e}")
                 tx_digest = None
 
             if tx_digest is not None:
-                return self.ledger_api.api.eth.wait_for_transaction_receipt(tx_digest)
+                receipt = self.ledger_api.api.eth.wait_for_transaction_receipt(
+                    tx_digest
+                )
+                if receipt["status"] != 0:
+                    return receipt
             time.sleep(ON_CHAIN_INTERACT_SLEEP)
-
         raise RuntimeError("Timeout while waiting for safe transaction to go through")
 
 
@@ -900,6 +902,28 @@ class EthSafeTxBuilder(_ChainUtil):
             "value": 0,
         }
 
+    def get_olas_approval_data(
+        self,
+        spender: str,
+        amount: int,
+        olas_contract: str,
+    ) -> t.Dict:
+        """Get activate tx data."""
+        instance = registry_contracts.erc20.get_instance(
+            ledger_api=self.ledger_api,
+            contract_address=olas_contract,
+        )
+        txd = instance.encodeABI(
+            fn_name="approve",
+            args=[spender, amount],
+        )
+        return {
+            "to": olas_contract,
+            "data": txd[2:],
+            "operation": MultiSendOperation.CALL,
+            "value": 0,
+        }
+
     def get_activate_data(self, service_id: int, cost_of_bond: int) -> t.Dict:
         """Get activate tx data."""
         instance = registry_contracts.service_manager.get_instance(
@@ -911,6 +935,7 @@ class EthSafeTxBuilder(_ChainUtil):
             args=[service_id],
         )
         return {
+            "from": self.wallet.safe,
             "to": self.contracts["service_manager"],
             "data": txd[2:],
             "operation": MultiSendOperation.CALL,
@@ -938,6 +963,7 @@ class EthSafeTxBuilder(_ChainUtil):
             ],
         )
         return {
+            "from": self.wallet.safe,
             "to": self.contracts["service_manager"],
             "data": txd[2:],
             "operation": MultiSendOperation.CALL,
@@ -1040,7 +1066,8 @@ class EthSafeTxBuilder(_ChainUtil):
             staking_contract=staking_contract,
         )
         return {
-            "to": self.contracts["service_manager"],
+            "from": self.wallet.safe,
+            "to": self.contracts["service_registry"],
             "data": txd[2:],
             "operation": MultiSendOperation.CALL,
             "value": 0,
@@ -1062,7 +1089,7 @@ class EthSafeTxBuilder(_ChainUtil):
             staking_contract=staking_contract,
         )
         return {
-            "to": self.contracts["service_manager"],
+            "to": staking_contract,
             "data": txd[2:],
             "operation": MultiSendOperation.CALL,
             "value": 0,
@@ -1084,7 +1111,7 @@ class EthSafeTxBuilder(_ChainUtil):
             staking_contract=staking_contract,
         )
         return {
-            "to": self.contracts["service_manager"],
+            "to": staking_contract,
             "data": txd[2:],
             "operation": MultiSendOperation.CALL,
             "value": 0,
@@ -1116,9 +1143,4 @@ class EthSafeTxBuilder(_ChainUtil):
     def get_swap_data(self, service_id: int, multisig: str, owner_key: str) -> t.Dict:
         """Swap safe owner."""
         # TODO: Discuss implementation
-        return {
-            "to": self.contracts["service_manager"],
-            "data": b"",
-            "operation": MultiSendOperation.CALL,
-            "value": 0,
-        }
+        raise NotImplementedError()

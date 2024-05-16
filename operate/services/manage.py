@@ -292,7 +292,7 @@ class ServiceManager:
         )
         service.store()
 
-    def deploy_service_onchain_from_safe(  # pylint: disable=too-many-statements
+    def deploy_service_onchain_from_safe(  # pylint: disable=too-many-statements,too-many-locals
         self,
         hash: str,
         update: bool = False,
@@ -311,6 +311,7 @@ class ServiceManager:
             for _ in range(service.helper.config.number_of_agents)
         ]
         instances = [key.address for key in keys]
+        wallet = self.wallet_manager.load(service.ledger_config.type)
         sftxb = self.get_eth_safe_tx_builder(service=service)
         if user_params.use_staking and not sftxb.staking_slots_available(
             staking_contract=STAKING[service.ledger_config.chain]
@@ -345,13 +346,13 @@ class ServiceManager:
                     ledger_api=sftxb.ledger_api,
                     contract_address=OLAS[service.ledger_config.chain],
                 )
-                .functions.balanceOf(sftxb.crypto.address)
+                .functions.balanceOf(wallet.safe)
                 .call()
             )
             if balance < required_olas:
                 raise ValueError(
                     "You don't have enough olas to stake, "
-                    f"required olas: {required_olas}; your balance {balance}"
+                    f"address: {wallet.safe}; required olas: {required_olas}; your balance {balance}"
                 )
 
         if service.chain_data.on_chain_state == OnChainState.NOTMINTED:
@@ -394,32 +395,101 @@ class ServiceManager:
             service.store()
 
         if service.chain_data.on_chain_state == OnChainState.MINTED:
+            cost_of_bond = user_params.cost_of_bond
+            if user_params.use_staking:
+                token_utility = "0xa45E64d13A30a51b91ae0eb182e88a40e9b18eD8"
+                olas_token = "0xcE11e14225575945b8E6Dc0D4F2dD4C570f79d9f"
+                self.logger.info(
+                    f"Approving OLAS as bonding token from {wallet.safe} to {token_utility}"
+                )
+                cost_of_bond = (
+                    registry_contracts.service_registry_token_utility.get_agent_bond(
+                        ledger_api=sftxb.ledger_api,
+                        contract_address=token_utility,
+                        service_id=service.chain_data.token,
+                        agent_id=user_params.agent_id,
+                    ).get("bond")
+                )
+                sftxb.new_tx().add(
+                    sftxb.get_olas_approval_data(
+                        spender=token_utility,
+                        amount=cost_of_bond,
+                        olas_contract=olas_token,
+                    )
+                ).settle()
+                token_utility_allowance = (
+                    registry_contracts.erc20.get_instance(
+                        ledger_api=sftxb.ledger_api,
+                        contract_address=olas_token,
+                    )
+                    .functions.allowance(
+                        wallet.safe,
+                        token_utility,
+                    )
+                    .call()
+                )
+                self.logger.info(
+                    f"Approved {token_utility_allowance} OLAS from {wallet.safe} to {token_utility}"
+                )
+
             self.logger.info("Activating service")
             sftxb.new_tx().add(
                 sftxb.get_activate_data(
                     service_id=service.chain_data.token,
-                    cost_of_bond=(
-                        user_params.olas_cost_of_bond
-                        if user_params.use_staking
-                        else user_params.cost_of_bond
-                    ),
+                    cost_of_bond=cost_of_bond,
                 )
             ).settle()
             service.chain_data.on_chain_state = OnChainState.ACTIVATED
             service.store()
 
         if service.chain_data.on_chain_state == OnChainState.ACTIVATED:
-            self.logger.info("Registering service")
+            cost_of_bond = user_params.cost_of_bond
+            if user_params.use_staking:
+                token_utility = "0xa45E64d13A30a51b91ae0eb182e88a40e9b18eD8"
+                olas_token = "0xcE11e14225575945b8E6Dc0D4F2dD4C570f79d9f"
+                self.logger.info(
+                    f"Approving OLAS as bonding token from {wallet.safe} to {token_utility}"
+                )
+                cost_of_bond = (
+                    registry_contracts.service_registry_token_utility.get_agent_bond(
+                        ledger_api=sftxb.ledger_api,
+                        contract_address=token_utility,
+                        service_id=service.chain_data.token,
+                        agent_id=user_params.agent_id,
+                    ).get("bond")
+                )
+                sftxb.new_tx().add(
+                    sftxb.get_olas_approval_data(
+                        spender=token_utility,
+                        amount=cost_of_bond,
+                        olas_contract=olas_token,
+                    )
+                ).settle()
+                token_utility_allowance = (
+                    registry_contracts.erc20.get_instance(
+                        ledger_api=sftxb.ledger_api,
+                        contract_address=olas_token,
+                    )
+                    .functions.allowance(
+                        wallet.safe,
+                        token_utility,
+                    )
+                    .call()
+                )
+                self.logger.info(
+                    f"Approved {token_utility_allowance} OLAS from {wallet.safe} to {token_utility}"
+                )
+                cost_of_bond = 0
+
+            self.logger.info(
+                f"Registering service: {service.chain_data.token} -> {instances}"
+            )
             sftxb.new_tx().add(
                 sftxb.get_register_instances_data(
                     service_id=service.chain_data.token,
                     instances=instances,
                     agents=[user_params.agent_id for _ in instances],
-                    cost_of_bond=(
-                        user_params.olas_cost_of_bond
-                        if user_params.use_staking
-                        else user_params.cost_of_bond
-                    ),
+                    cost_of_bond=cost_of_bond,
                 )
             ).settle()
             service.chain_data.on_chain_state = OnChainState.REGISTERED
@@ -602,7 +672,7 @@ class ServiceManager:
             service.store()
             return
 
-        self.logger.info(f"Staking service: {service.chain_data.token}")
+        self.logger.info(f"Approving staking: {service.chain_data.token}")
         sftxb.new_tx().add(
             sftxb.get_staking_approval_data(
                 service_id=service.chain_data.token,
@@ -611,7 +681,10 @@ class ServiceManager:
                 ],
                 staking_contract=STAKING[service.ledger_config.chain],
             )
-        ).add(
+        ).settle()
+
+        self.logger.info(f"Staking service: {service.chain_data.token}")
+        sftxb.new_tx().add(
             sftxb.get_staking_data(
                 service_id=service.chain_data.token,
                 staking_contract=STAKING[service.ledger_config.chain],
