@@ -60,7 +60,8 @@ export const BalanceContext = createContext<{
 });
 
 export const BalanceProvider = ({ children }: PropsWithChildren) => {
-  const { wallets } = useContext(WalletContext);
+  const { wallets, masterEoaAddress, masterSafeAddress } =
+    useContext(WalletContext);
   const { services, serviceAddresses } = useContext(ServicesContext);
   const { optimisticRewardsEarnedForEpoch } = useContext(RewardContext);
 
@@ -104,30 +105,33 @@ export const BalanceProvider = ({ children }: PropsWithChildren) => {
   ]);
 
   const updateBalances = useCallback(async (): Promise<void> => {
-    if (!wallets) return;
-    if (!serviceAddresses) return;
     try {
-      const walletAddresses = getWalletAddresses(wallets, serviceAddresses);
+      const walletAddresses: Address[] = [];
+      if (masterEoaAddress) walletAddresses.push(masterEoaAddress);
+      if (masterSafeAddress) walletAddresses.push(masterSafeAddress);
+      if (serviceAddresses) walletAddresses.push(...serviceAddresses);
       const walletBalances = await getWalletBalances(walletAddresses);
       if (!walletBalances) return;
 
       setWalletBalances(walletBalances);
 
       const serviceId = services?.[0]?.chain_data.token;
+
       if (!isNumber(serviceId)) {
         setIsLoaded(true);
         setIsBalanceLoaded(true);
         return;
       }
 
-      const serviceRegistryBalances = await getServiceRegistryBalances(
-        wallets[0].address,
-        serviceId,
-      );
+      if (masterEoaAddress && serviceId) {
+        const serviceRegistryBalances = await getServiceRegistryBalances(
+          masterEoaAddress,
+          serviceId,
+        );
 
-      // update olas balances
-      setOlasDepositBalance(serviceRegistryBalances.depositValue);
-      setOlasBondBalance(serviceRegistryBalances.bondValue);
+        setOlasDepositBalance(serviceRegistryBalances.depositValue);
+        setOlasBondBalance(serviceRegistryBalances.bondValue);
+      }
 
       // update balance loaded state
       setIsLoaded(true);
@@ -137,7 +141,7 @@ export const BalanceProvider = ({ children }: PropsWithChildren) => {
       message.error('Unable to retrieve wallet balances');
       setIsBalanceLoaded(true);
     }
-  }, [serviceAddresses, services, wallets]);
+  }, [masterEoaAddress, masterSafeAddress, serviceAddresses, services]);
 
   useInterval(
     () => {

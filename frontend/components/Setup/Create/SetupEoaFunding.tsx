@@ -43,7 +43,7 @@ const loadingStatuses = [
 ];
 
 export const SetupEoaFunding = () => {
-  const { masterEaoAddress, masterSafeAddress } = useWallet();
+  const { masterEoaAddress: masterEaoAddress, masterSafeAddress } = useWallet();
   const { walletBalances } = useBalance();
   const { backupSigner } = useSetup();
   const { goto } = usePageState();

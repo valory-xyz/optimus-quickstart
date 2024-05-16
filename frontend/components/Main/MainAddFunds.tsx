@@ -20,8 +20,7 @@ import styled from 'styled-components';
 import { copyToClipboard, truncateAddress } from '@/common-util';
 import { COLOR, COW_SWAP_GNOSIS_XDAI_OLAS_URL } from '@/constants';
 import { UNICODE_SYMBOLS } from '@/constants/unicode';
-import { useBalance } from '@/hooks';
-import { Address } from '@/types';
+import { useWallet } from '@/hooks/useWallet';
 
 import { CardSection } from '../styled/CardSection';
 
@@ -34,22 +33,21 @@ const CustomizedCardSection = styled(CardSection)<{ border?: boolean }>`
 `;
 
 export const MainAddFunds = () => {
-  const { wallets } = useBalance();
+  const { masterEoaAddress } = useWallet();
   const [isAddFundsVisible, setIsAddFundsVisible] = useState(false);
 
-  const walletAddress = useMemo(() => wallets[0]?.address, [wallets]);
-
   const truncatedWalletAddress = useMemo(
-    () => truncateAddress(walletAddress),
-    [walletAddress],
+    () => masterEoaAddress && truncateAddress(masterEoaAddress),
+    [masterEoaAddress],
   );
 
   const handleCopyWalletAddress = useCallback(
     () =>
-      copyToClipboard(walletAddress).then(() =>
+      masterEoaAddress &&
+      copyToClipboard(masterEoaAddress).then(() =>
         message.success('Copied successfully!'),
       ),
-    [walletAddress],
+    [masterEoaAddress],
   );
 
   return (
@@ -78,8 +76,8 @@ export const MainAddFunds = () => {
         <>
           <AddFundsWarningAlertSection />
           <AddFundsAddressSection
-            truncatedWalletAddress={truncatedWalletAddress}
-            walletAddress={walletAddress}
+            truncatedWalletAddress={truncatedWalletAddress ?? '--'}
+            walletAddress={masterEoaAddress ?? '--'}
             handleCopy={handleCopyWalletAddress}
           />
           <AddFundsGetTokensSection />
@@ -115,7 +113,7 @@ const AddFundsAddressSection = ({
   truncatedWalletAddress,
   handleCopy,
 }: {
-  walletAddress: Address;
+  walletAddress: string;
   truncatedWalletAddress: string;
   handleCopy: () => void;
 }) => (

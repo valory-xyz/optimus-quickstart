@@ -3,12 +3,13 @@ import { useContext } from 'react';
 import { WalletContext } from '@/context/WalletProvider';
 
 export const useWallet = () => {
-  const {
+  const { wallets, masterEoaAddress, masterSafeAddress, updateWallets } =
+    useContext(WalletContext);
+
+  return {
     wallets,
-    masterEoaAddress: masterEaoAddress,
+    masterEoaAddress,
     masterSafeAddress,
     updateWallets,
-  } = useContext(WalletContext);
-
-  return { wallets, masterEaoAddress, masterSafeAddress, updateWallets };
+  };
 };
