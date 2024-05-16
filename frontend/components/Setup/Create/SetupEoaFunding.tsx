@@ -16,16 +16,19 @@ import { Chain } from '@/client';
 import { copyToClipboard } from '@/common-util';
 import { CardFlex } from '@/components/styled/CardFlex';
 import { CardSection } from '@/components/styled/CardSection';
-import { COLOR, COW_SWAP_GNOSIS_XDAI_OLAS_URL } from '@/constants';
+import {
+  COLOR,
+  COW_SWAP_GNOSIS_XDAI_OLAS_URL,
+  MIN_ETH_BALANCE_THRESHOLDS,
+} from '@/constants';
 import { UNICODE_SYMBOLS } from '@/constants/unicode';
 import { PageState, SetupScreen } from '@/enums';
 import { useBalance, usePageState, useSetup } from '@/hooks';
+import { useWallet } from '@/hooks/useWallet';
 import { WalletService } from '@/service/Wallet';
 import { Address } from '@/types';
 
 import { SetupCreateHeader } from './SetupCreateHeader';
-
-const MASTER_EAO_FUNDING_AMOUNT_ETH = 0.1;
 
 enum SetupEaoFundingStatus {
   WaitingForEoaFunding,
@@ -40,26 +43,27 @@ const loadingStatuses = [
 ];
 
 export const SetupEoaFunding = () => {
-  const { wallets, walletBalances } = useBalance();
+  const { masterEoaAddress: masterEaoAddress, masterSafeAddress } = useWallet();
+  const { walletBalances } = useBalance();
   const { backupSigner } = useSetup();
   const { goto } = usePageState();
 
   const [isCreatingSafe, setIsCreatingSafe] = useState(false);
 
-  const masterEoa = wallets?.[0]?.address;
-  const masterEaoEthBalance = walletBalances?.[masterEoa]?.ETH;
-
-  const masterSafe = wallets?.[0]?.safe;
+  const masterEaoEthBalance =
+    masterEaoAddress && walletBalances?.[masterEaoAddress]?.ETH;
 
   const isFundedMasterEoa =
-    masterEaoEthBalance && masterEaoEthBalance >= MASTER_EAO_FUNDING_AMOUNT_ETH;
+    masterEaoEthBalance &&
+    masterEaoEthBalance >=
+      MIN_ETH_BALANCE_THRESHOLDS[Chain.GNOSIS].safeCreation;
 
   const status = useMemo(() => {
     if (!isFundedMasterEoa) return SetupEaoFundingStatus.WaitingForEoaFunding;
     if (isCreatingSafe) return SetupEaoFundingStatus.CreatingSafe;
-    if (masterSafe) return SetupEaoFundingStatus.Done;
+    if (masterSafeAddress) return SetupEaoFundingStatus.Done;
     return SetupEaoFundingStatus.Error;
-  }, [isCreatingSafe, isFundedMasterEoa, masterSafe]);
+  }, [isCreatingSafe, isFundedMasterEoa, masterSafeAddress]);
 
   const statusMessage = useMemo(() => {
     switch (status) {
@@ -81,7 +85,7 @@ export const SetupEoaFunding = () => {
     setIsCreatingSafe(true);
     message.success('Funds have been received!');
     // TODO: add backup signer
-    WalletService.createSafe(Chain.GNOSIS).catch((e) => {
+    WalletService.createSafe(Chain.GNOSIS, backupSigner).catch((e) => {
       console.error(e);
       message.error('Failed to create an account. Please try again later.');
     });
@@ -89,8 +93,8 @@ export const SetupEoaFunding = () => {
 
   useEffect(() => {
     // Only progress is the safe is created and accessible via context (updates on interval)
-    if (masterSafe) goto(PageState.Main);
-  }, [goto, masterSafe]);
+    if (masterSafeAddress) goto(PageState.Main);
+  }, [goto, masterSafeAddress]);
 
   return (
     <CardFlex>
@@ -99,7 +103,7 @@ export const SetupEoaFunding = () => {
         disabled={isCreatingSafe}
       />
       <Typography.Title level={3}>
-        Deposit {MASTER_EAO_FUNDING_AMOUNT_ETH} XDAI
+        Deposit {MIN_ETH_BALANCE_THRESHOLDS[Chain.GNOSIS].safeCreation} XDAI
       </Typography.Title>
       <Typography.Paragraph>
         The app needs these funds to create your account on-chain.
@@ -115,7 +119,9 @@ export const SetupEoaFunding = () => {
           Status: {statusMessage}
         </Typography.Text>
       </CardSection>
-      {!isFundedMasterEoa && <SetupEoaFundingWaiting masterEoa={masterEoa} />}
+      {!isFundedMasterEoa && (
+        <SetupEoaFundingWaiting masterEoa={masterEaoAddress} />
+      )}
     </CardFlex>
   );
 };

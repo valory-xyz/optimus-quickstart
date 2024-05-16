@@ -8,6 +8,7 @@ import { Chain, DeploymentStatus } from '@/client';
 import { COLOR, SERVICE_TEMPLATES } from '@/constants';
 import { useBalance, useServiceTemplates } from '@/hooks';
 import { useServices } from '@/hooks/useServices';
+import { useWallet } from '@/hooks/useWallet';
 import { ServicesService } from '@/service';
 import { WalletService } from '@/service/Wallet';
 
@@ -19,10 +20,10 @@ const LOADING_MESSAGE =
 export const MainHeader = () => {
   const { services, serviceStatus, setServiceStatus } = useServices();
   const { getServiceTemplates } = useServiceTemplates();
+  const { wallets, masterSafeAddress } = useWallet();
   const {
     totalOlasBalance,
     totalEthBalance,
-    wallets,
     setIsPaused: setIsBalancePollingPaused,
   } = useBalance();
 
@@ -61,7 +62,7 @@ export const MainHeader = () => {
     setIsBalancePollingPaused(true);
 
     try {
-      if (!wallets?.[0].safe) {
+      if (!masterSafeAddress) {
         await WalletService.createSafe(Chain.GNOSIS);
       }
       // TODO: Replace with proper upload logic
@@ -86,7 +87,13 @@ export const MainHeader = () => {
       setIsBalancePollingPaused(false);
       setServiceButtonState({ isLoading: false });
     }
-  }, [serviceTemplate, setIsBalancePollingPaused, setServiceStatus, wallets]);
+  }, [
+    masterSafeAddress,
+    serviceTemplate,
+    setIsBalancePollingPaused,
+    setServiceStatus,
+    wallets,
+  ]);
 
   const handleStop = useCallback(() => {
     if (services.length === 0) return;
@@ -122,7 +129,7 @@ export const MainHeader = () => {
 
     if (serviceStatus === DeploymentStatus.DEPLOYED) {
       return (
-        <Flex gap={5} align="center">
+        <Flex gap={10} align="center">
           <Button type="default" size="large" onClick={handleStop}>
             Pause
           </Button>
