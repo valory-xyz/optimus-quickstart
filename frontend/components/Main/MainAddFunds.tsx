@@ -21,6 +21,7 @@ import { copyToClipboard, truncateAddress } from '@/common-util';
 import { COLOR } from '@/constants';
 import { UNICODE_SYMBOLS } from '@/constants/unicode';
 import { useBalance } from '@/hooks';
+import { useElectronApi } from '@/hooks/useElectronApi';
 import { Address } from '@/types';
 
 import { CardSection } from '../styled/CardSection';
@@ -35,6 +36,7 @@ const CustomizedCardSection = styled(CardSection)<{ border?: boolean }>`
 
 export const MainAddFunds = () => {
   const { wallets } = useBalance();
+  const { setHeight, setFullHeight } = useElectronApi();
   const [isAddFundsVisible, setIsAddFundsVisible] = useState(false);
 
   const walletAddress = useMemo(() => wallets[0]?.address, [wallets]);
@@ -52,14 +54,22 @@ export const MainAddFunds = () => {
     [walletAddress],
   );
 
+  const addFundsToggler = useCallback(() => {
+    setIsAddFundsVisible((prev) => {
+      if (prev) setHeight?.(415);
+      else setFullHeight?.();
+      return !prev;
+    });
+    window.scrollTo({
+      top: document.documentElement.scrollHeight,
+      behavior: 'smooth',
+    });
+  }, [setFullHeight, setHeight]);
+
   return (
     <>
       <CustomizedCardSection gap={12}>
-        <Button
-          type="default"
-          size="large"
-          onClick={() => setIsAddFundsVisible((prev) => !prev)}
-        >
+        <Button type="default" size="large" onClick={addFundsToggler}>
           {isAddFundsVisible ? 'Close instructions' : 'Add funds'}
         </Button>
 
