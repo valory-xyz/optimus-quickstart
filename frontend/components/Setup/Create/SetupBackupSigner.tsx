@@ -45,11 +45,9 @@ export const SetupBackupSigner = () => {
           >
             <Input size="large" placeholder={'e.g. 0x12345...54321'} />
           </Form.Item>
-          {/* <Form.Item> */}
           <Button type="primary" size="large" htmlType="submit">
             Add backup wallet and continue
           </Button>
-          {/* </Form.Item> */}
           <Button type="link" size="large">
             Skip for now
           </Button>
