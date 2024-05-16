@@ -16,7 +16,7 @@ import { Chain } from '@/client';
 import { copyToClipboard } from '@/common-util';
 import { CardFlex } from '@/components/styled/CardFlex';
 import { CardSection } from '@/components/styled/CardSection';
-import { COW_SWAP_GNOSIS_XDAI_OLAS_URL } from '@/constants';
+import { COLOR, COW_SWAP_GNOSIS_XDAI_OLAS_URL } from '@/constants';
 import { UNICODE_SYMBOLS } from '@/constants/unicode';
 import { PageState, SetupScreen } from '@/enums';
 import { useBalance, usePageState, useSetup } from '@/hooks';
@@ -195,6 +195,6 @@ const SetupEoaFundingWaiting = ({
 
 const AccountCreationCardFlex = styled(CardFlex)`
   .ant-card-body {
-    background-color: #f2f4f9;
+    background-color: ${COLOR.ACCOUNT_CREATION_CARD_GRAY};
   }
 `;
