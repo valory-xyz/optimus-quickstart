@@ -27,6 +27,7 @@ const {
 const { killProcesses } = require('./processes');
 const { isPortAvailable, findAvailablePort } = require('./ports');
 const { PORT_RANGE, isWindows, isMac } = require('./constants');
+const { macUpdater } = require('./update');
 
 // Configure environment variables
 dotenv.config();
@@ -37,6 +38,7 @@ if (!singleInstanceLock) app.quit();
 
 const platform = os.platform();
 const isDev = process.env.NODE_ENV === 'development';
+
 let appConfig = {
   ports: {
     dev: {
@@ -85,9 +87,12 @@ async function beforeQuit() {
 const createTray = () => {
   const trayPath =
     isWindows || isMac ? TRAY_ICONS.LOGGED_OUT : TRAY_ICONS_PATHS.LOGGED_OUT;
-  const trayIcon = trayPath.resize({ width: 16 });
-  trayIcon.setTemplateImage(true);
-  const tray = new Tray(trayIcon);
+
+  if (trayPath.resize) {
+    trayPath.resize({ width: 16 });
+    trayPath.setTemplateImage(true);
+  }
+  const tray = new Tray(trayPath);
 
   const contextMenu = Menu.buildFromTemplate([
     {
@@ -180,7 +185,7 @@ const createMainWindow = () => {
     },
   });
 
-  mainWindow.setMenuBarVisibility(false);
+  mainWindow.setMenuBarVisibility(true);
 
   if (isDev) {
     mainWindow.loadURL(`http://localhost:${appConfig.ports.dev.next}`);
@@ -329,6 +334,30 @@ async function launchNextAppDev() {
 }
 
 ipcMain.on('check', async function (event, _argument) {
+  // Update
+  try {
+    macUpdater.checkForUpdates().then((res) => {
+      if (!res) return;
+      if (!res.downloadPromise) return;
+
+      new Notification({
+        title: 'Update Available',
+        body: 'Downloading update...',
+      }).show();
+
+      res.downloadPromise.then(() => {
+        new Notification({
+          title: 'Update Downloaded',
+          body: 'Restarting application...',
+        }).show();
+        macUpdater.quitAndInstall();
+      });
+    });
+  } catch (e) {
+    console.error(e);
+  }
+
+  // Setup
   try {
     event.sender.send('response', 'Checking installation');
     if (!isDev) {
@@ -434,8 +463,12 @@ app.on('before-quit', () => {
   beforeQuit();
 });
 
-// PROCESS SPECIFIC EVENTS (HANDLES NON-GRACEFUL TERMINATION)
+// UPDATER EVENTS
+macUpdater.on('update-downloaded', () => {
+  macUpdater.quitAndInstall();
+});
 
+// PROCESS SPECIFIC EVENTS (HANDLES NON-GRACEFUL TERMINATION)
 process.on('uncaughtException', (error) => {
   console.error('Uncaught Exception:', error);
   // Clean up your child processes here

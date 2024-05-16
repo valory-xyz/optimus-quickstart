@@ -1,5 +1,6 @@
 const dotenv = require('dotenv');
 const build = require('electron-builder').build;
+const {publishOptions} = require('./electron/constants/publishOptions');
 
 dotenv.config();
 
@@ -8,7 +9,7 @@ const main = async () => {
 
   /** @type import {CliOptions} from "electron-builder" */
   await build({
-    publish: 'always',
+    publish: 'onTag',
     config: {
       appId: 'xyz.valory.olas-operate-app',
       artifactName: '${productName}-${version}-${platform}-${arch}.${ext}',
@@ -22,17 +23,11 @@ const main = async () => {
       mac: {
         target: [
           {
-            target: 'dmg',
-            arch: ['arm64'],
+            target: 'default',
+            arch: ['x64','arm64'],
           },
         ],
-        publish: {
-          provider: 'github',
-          owner: 'valory-xyz',
-          repo: 'olas-operate-app',
-          releaseType: 'draft',
-          token: process.env.GH_TOKEN,
-        },
+        publish: publishOptions,
         category: 'public.app-category.utilities',
         icon: 'electron/assets/icons/splash-robot-head-dock.png',
         hardenedRuntime: true,
@@ -47,4 +42,4 @@ const main = async () => {
   });
 };
 
-main().then((response) => { console.log('Build & Notarize complete'); console.log(response) }).catch((e) => console.error(e));
+main().then((response) => { console.log('Build & Notarize complete'); }).catch((e) => console.error(e));
