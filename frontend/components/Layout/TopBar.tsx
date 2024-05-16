@@ -1,9 +1,9 @@
 import { Typography } from 'antd';
-import { get } from 'lodash';
-import React, { useCallback } from 'react';
+import React from 'react';
 import styled from 'styled-components';
 
 import { COLOR } from '@/constants';
+import { useElectronApi } from '@/hooks/useElectronApi';
 
 const { Text } = Typography;
 
@@ -48,22 +48,13 @@ const TopBarContainer = styled.div`
 `;
 
 export const TopBar = () => {
-  const onClose = useCallback(() => {
-    const closeAppFn = get(window, 'electronAPI.closeApp') ?? (() => null);
-    closeAppFn();
-  }, []);
-
-  const onMinimize = useCallback(() => {
-    const minimizeAppFn =
-      get(window, 'electronAPI.minimizeApp') ?? (() => null);
-    minimizeAppFn();
-  }, []);
+  const { minimizeApp, closeApp } = useElectronApi();
 
   return (
     <TopBarContainer>
       <TrafficLights>
-        <RedLight onClick={onClose} />
-        <YellowLight onClick={onMinimize} />
+        <RedLight onClick={() => closeApp?.()} />
+        <YellowLight onClick={() => minimizeApp?.()} />
         <DisabledLight />
       </TrafficLights>
 

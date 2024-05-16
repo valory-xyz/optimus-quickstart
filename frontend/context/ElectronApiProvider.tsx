@@ -3,13 +3,17 @@ import { createContext, PropsWithChildren } from 'react';
 
 type ElectronApiContextProps = {
   setHeight?: (height: number) => void;
+  closeApp?: () => void;
+  minimizeApp?: () => void;
 };
 
 export const ElectronApiContext = createContext<ElectronApiContextProps>({
   setHeight: undefined,
+  closeApp: undefined,
+  minimizeApp: undefined,
 });
 
-const setHeight = (functionNameInWindow: string) => {
+const getElectronApiFunction = (functionNameInWindow: string) => {
   if (typeof window === 'undefined') return;
 
   const fn = get(window, `electronAPI.${functionNameInWindow}`);
@@ -26,7 +30,9 @@ export const ElectronApiProvider = ({ children }: PropsWithChildren) => {
   return (
     <ElectronApiContext.Provider
       value={{
-        setHeight: setHeight('setAppHeight'),
+        setHeight: getElectronApiFunction('setAppHeight'),
+        closeApp: getElectronApiFunction('closeApp'),
+        minimizeApp: getElectronApiFunction('minimizeApp'),
       }}
     >
       {children}
