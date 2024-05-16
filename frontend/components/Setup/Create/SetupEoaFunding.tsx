@@ -161,19 +161,19 @@ const SetupEoaFundingWaiting = ({
                   }
                 />
               </Tooltip>
-              <Popover
-                title="Scan QR code"
-                content={
-                  masterEoa && (
+              {masterEoa && (
+                <Popover
+                  title="Scan QR code"
+                  content={
                     <QRCode
                       size={250}
                       value={`https://metamask.app.link/send/${masterEoa}@${100}`}
                     />
-                  )
-                }
-              >
-                <QrcodeOutlined />
-              </Popover>
+                  }
+                >
+                  <QrcodeOutlined />
+                </Popover>
+              )}
             </Flex>
           </Flex>
 
