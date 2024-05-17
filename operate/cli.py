@@ -168,7 +168,10 @@ def create_app(  # pylint: disable=too-many-locals, unused-argument, too-many-st
             tag=TENDERMINT_IMAGE_VERSION,
         )
 
-    def schedule_funding_job(service: str) -> None:
+    def schedule_funding_job(
+        service: str,
+        from_safe: bool = True,
+    ) -> None:
         """Schedule a funding job."""
         logger.info(f"Starting funding job for {service}")
         if service in funding_jobs:
@@ -180,6 +183,7 @@ def create_app(  # pylint: disable=too-many-locals, unused-argument, too-many-st
             operate.service_manager().funding_job(
                 hash=service,
                 loop=loop,
+                from_safe=from_safe,
             )
         )
 
@@ -513,7 +517,9 @@ def create_app(  # pylint: disable=too-many-locals, unused-argument, too-many-st
         if template.get("deploy", False):
             manager.deploy_service_onchain_from_safe(hash=service.hash, update=update)
             manager.stake_service_on_chain_from_safe(hash=service.hash)
+            manager.fund_service(hash=service.hash)
             manager.deploy_service_locally(hash=service.hash)
+            schedule_funding_job(service=service.hash)
 
         return JSONResponse(
             content=operate.service_manager().create_or_load(hash=service.hash).json
@@ -534,7 +540,10 @@ def create_app(  # pylint: disable=too-many-locals, unused-argument, too-many-st
             manager = operate.service_manager()
             manager.deploy_service_onchain_from_safe(hash=service.hash, update=True)
             manager.stake_service_on_chain_from_safe(hash=service.hash)
+            manager.fund_service(hash=service.hash)
             manager.deploy_service_locally(hash=service.hash)
+            schedule_funding_job(service=service.hash)
+
         return JSONResponse(content=service.json)
 
     @app.get("/api/services/{service}")
