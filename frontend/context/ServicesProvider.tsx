@@ -15,9 +15,9 @@ import { ServicesService } from '@/service';
 import { Address } from '@/types';
 
 type ServicesContextProps = {
-  services: Service[];
-  serviceAddresses: Address[];
-  setServices: Dispatch<SetStateAction<Service[]>>;
+  services?: Service[];
+  serviceAddresses?: Address[];
+  setServices: Dispatch<SetStateAction<Service[] | undefined>>;
   serviceStatus: DeploymentStatus | undefined;
   setServiceStatus: Dispatch<SetStateAction<DeploymentStatus | undefined>>;
   updateServicesState: () => Promise<void>;
@@ -27,8 +27,8 @@ type ServicesContextProps = {
 };
 
 export const ServicesContext = createContext<ServicesContextProps>({
-  services: [],
-  serviceAddresses: [],
+  services: undefined,
+  serviceAddresses: undefined,
   setServices: () => {},
   serviceStatus: undefined,
   setServiceStatus: () => {},
@@ -39,7 +39,7 @@ export const ServicesContext = createContext<ServicesContextProps>({
 });
 
 export const ServicesProvider = ({ children }: PropsWithChildren) => {
-  const [services, setServices] = useState<Service[]>([]);
+  const [services, setServices] = useState<Service[]>();
 
   const [serviceStatus, setServiceStatus] = useState<
     DeploymentStatus | undefined
