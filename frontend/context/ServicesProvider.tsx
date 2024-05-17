@@ -64,7 +64,7 @@ export const ServicesProvider = ({ children }: PropsWithChildren) => {
     async (): Promise<void> =>
       ServicesService.getServices()
         .then((data: Service[]) => {
-          if (!Array.isArray(data) || !data?.length) return;
+          if (!Array.isArray(data)) return;
           setServices(data);
           setHasInitialLoaded(true);
         })

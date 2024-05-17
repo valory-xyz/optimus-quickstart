@@ -102,6 +102,8 @@ export const BalanceProvider = ({ children }: PropsWithChildren) => {
   ]);
 
   const updateBalances = useCallback(async (): Promise<void> => {
+    console.log(masterEoaAddress);
+    console.log(serviceAddresses);
     if (!masterEoaAddress) return;
     if (!serviceAddresses) return;
 
