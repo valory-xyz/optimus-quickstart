@@ -2,7 +2,7 @@ import { BigNumber, ethers } from 'ethers';
 import { Contract as MulticallContract, ContractCall } from 'ethers-multicall';
 
 import { MULTICALL3_ABI } from '@/abi';
-import { ERC20_BALANCEOF_FRAGMENT } from '@/abi/erc20Abi';
+import { ERC20_BALANCEOF_FRAGMENT } from '@/abi/erc20';
 import { MULTICALL_CONTRACT } from '@/constants';
 import { gnosisMulticallProvider } from '@/constants/providers';
 import { Address, AddressNumberRecord } from '@/types';

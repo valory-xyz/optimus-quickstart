@@ -53,18 +53,21 @@ export const useServices = () => {
     serviceHash: ServiceHash,
   ): Service | undefined => {
     if (!hasInitialLoaded) return;
-
+    if (!services) return;
     return services.find((service) => service.hash === serviceHash);
   };
 
-  const getServicesFromState = (): Service[] =>
+  const getServicesFromState = (): Service[] | undefined =>
     hasInitialLoaded ? services : [];
 
   const updateServiceState = (serviceHash: ServiceHash) => {
     ServicesService.getService(serviceHash).then((service: Service) => {
       setServices((prev) => {
+        if (!prev) return [service];
+
         const index = prev.findIndex((s) => s.hash === serviceHash); // findIndex returns -1 if not found
         if (index === -1) return [...prev, service];
+
         const newServices = [...prev];
         newServices[index] = service;
         return newServices;
@@ -73,7 +76,7 @@ export const useServices = () => {
   };
 
   const deleteServiceState = (serviceHash: ServiceHash) =>
-    setServices((prev) => prev.filter((s) => s.hash !== serviceHash));
+    setServices((prev) => prev?.filter((s) => s.hash !== serviceHash));
 
   return {
     services,

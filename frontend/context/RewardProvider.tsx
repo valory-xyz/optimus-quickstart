@@ -26,7 +26,7 @@ export const RewardContext = createContext<{
 
 export const RewardProvider = ({ children }: PropsWithChildren) => {
   const { services } = useContext(ServicesContext);
-  const service = useMemo(() => services[0], [services]);
+  const service = useMemo(() => services?.[0], [services]);
 
   const [availableRewardsForEpoch, setAvailableRewardsForEpoch] =
     useState<number>();
