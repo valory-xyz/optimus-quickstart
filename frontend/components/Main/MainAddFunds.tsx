@@ -81,7 +81,7 @@ export const MainAddFunds = () => {
           <AddFundsWarningAlertSection />
           <AddFundsAddressSection
             truncatedFundingAddress={truncatedFundingAddress}
-            fundingAddress={masterSafeAddress}
+            fundingAddress={fundingAddress}
             handleCopy={handleCopyAddress}
           />
           <AddFundsGetTokensSection />
