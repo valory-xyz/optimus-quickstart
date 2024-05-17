@@ -223,6 +223,10 @@ function removeInstallationLogFile() {
   }
 }
 
+/*******************************/
+// NOTE: "Installing" is string matched in loading.html to detect installation
+/*******************************/
+
 async function setupDarwin(ipcChannel) {
   removeInstallationLogFile();
   console.log(appendLog('Checking brew installation'));
