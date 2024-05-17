@@ -7,56 +7,67 @@ on:
     push:
         tags:
             - 'v*.*.*'
-
 jobs:
     release:
         runs-on: ${{ matrix.os }}
-
         strategy:
             matrix:
                 os: [macos-latest]
-
         steps:           
             - uses: actions/checkout@v2
-
-            -   uses: actions/setup-node@v1
-                with:
-                    node-version: "20.11"
-
-            -   uses: actions/setup-python@v4
-                with:
-                    python-version: "3.10"
-
-            -   uses: snok/install-poetry@v1
-                with:
-                    version: "1.7.1"
-                    virtualenvs-create: true
-                    virtualenvs-in-project: false
-                    virtualenvs-path: ~/my-custom-path
-                    installer-parallel: true
-
+            - uses: actions/setup-python@v4
+              with:
+                python-version: "3.10"
+            - uses: actions/checkout@master
+            - uses: actions/setup-python@v3
+              with:
+                python-version: "3.10"
+            - name: Install dependencies
+              run: |
+                sudo apt-get update
+                sudo apt-get autoremove
+                sudo apt-get autoclean
+                python -m pip install --upgrade pip
+                pip install peotry twine
+            - name: Build wheels and source tarball
+              run: |
+                poetry build
+            - name: Publish Olas Operate Middleware
+              uses: pypa/gh-action-pypi-publish@release/v1
+              with:
+                user: __token__
+                password: ${{ secrets.PYPI_TOKEN }}
+                skip-existing: true
+                packages-dir: dist/
+            - uses: actions/setup-node@v1
+              with:
+                node-version: "20.11"
+            - uses: snok/install-poetry@v1
+              with:
+                version: "1.7.1"
+                virtualenvs-create: true
+                virtualenvs-in-project: false
+                virtualenvs-path: ~/my-custom-path
+                installer-parallel: true
             -   run: yarn install-deps
-
             -   name: "Build frontend with env vars"
                 run: yarn build:frontend
                 env: 
                     NODE_ENV: production
-                    DEV_RPC: http://localhost:8545
+                    DEV_RPC: https://rpc-gate.autonolas.tech/gnosis-rpc/
                     FORK_URL: https://rpc-gate.autonolas.tech/gnosis-rpc/
-            
             - run: rm -rf /dist
-            
-            -   name: "Build, notarize, publish"
-                env:
-                    APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLEIDPASS }}
-                    APPLE_ID: ${{ secrets.APPLEID }}
-                    APPLETEAMID: ${{ secrets.APPLETEAMID }}
-                    #CSC_FOR_PULL_REQUEST: true #required during testing
-                    CSC_KEY_PASSWORD: ${{ secrets.CSC_KEY_PASSWORD }}
-                    CSC_LINK: ${{ secrets.CSC_LINK }}
-                    DEV_RPC: http://localhost:8545
-                    FORK_URL: https://rpc-gate.autonolas.tech/gnosis-rpc/
-                    GH_TOKEN: ${{ secrets.github_token}}
-                    NODE_ENV: production
-                    #PUBLISH_FOR_PULL_REQUEST: true #required during testing
-                run: node build.js
+            - name: "Build, notarize, publish"
+              env:
+                APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLEIDPASS }}
+                APPLE_ID: ${{ secrets.APPLEID }}
+                APPLETEAMID: ${{ secrets.APPLETEAMID }}
+                #CSC_FOR_PULL_REQUEST: true #required during testing
+                CSC_KEY_PASSWORD: ${{ secrets.CSC_KEY_PASSWORD }}
+                CSC_LINK: ${{ secrets.CSC_LINK }}
+                GH_TOKEN: ${{ secrets.github_token}}
+                NODE_ENV: production
+                DEV_RPC: https://rpc-gate.autonolas.tech/gnosis-rpc/
+                FORK_URL: https://rpc-gate.autonolas.tech/gnosis-rpc/
+                #PUBLISH_FOR_PULL_REQUEST: true #required during testing
+              run: node build.js
