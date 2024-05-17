@@ -293,3 +293,55 @@ def swap_owner(  # pylint: disable=unused-argument
     new_owner: str,
 ) -> None:
     """Swap owner on a safe."""
+
+
+def transfer(
+    ledger_api: LedgerApi,
+    crypto: Crypto,
+    safe: str,
+    to: str,
+    amount: t.Union[float, int],
+) -> None:
+    """Transfer assets from safe to given address."""
+    amount = int(amount)
+    owner = ledger_api.api.to_checksum_address(
+        crypto.address,
+    )
+    safe_tx_hash = registry_contracts.gnosis_safe.get_raw_safe_transaction_hash(
+        ledger_api=ledger_api,
+        contract_address=safe,
+        value=amount,
+        safe_tx_gas=0,
+        to_address=to,
+        data=b"",
+        operation=SafeOperation.CALL.value,
+    ).get("tx_hash")
+    safe_tx_bytes = binascii.unhexlify(
+        safe_tx_hash[2:],
+    )
+    signatures = {
+        owner: crypto.sign_message(
+            message=safe_tx_bytes,
+            is_deprecated_mode=True,
+        )[2:]
+    }
+    transaction = registry_contracts.gnosis_safe.get_raw_safe_transaction(
+        ledger_api=ledger_api,
+        contract_address=safe,
+        sender_address=owner,
+        owners=(owner,),  # type: ignore
+        to_address=to,
+        value=amount,
+        data=b"",
+        safe_tx_gas=0,
+        signatures_by_owner=signatures,
+        operation=SafeOperation.CALL.value,
+        nonce=ledger_api.api.eth.get_transaction_count(owner),
+    )
+    ledger_api.get_transaction_receipt(
+        ledger_api.send_signed_transaction(
+            crypto.sign_transaction(
+                transaction,
+            ),
+        )
+    )

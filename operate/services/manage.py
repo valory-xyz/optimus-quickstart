@@ -772,6 +772,7 @@ class ServiceManager:
         rpc: t.Optional[str] = None,
         agent_fund_requirement: t.Optional[float] = None,
         safe_fund_requirement: t.Optional[float] = None,
+        from_safe: bool = True,
     ) -> None:
         """Fund service if required."""
         service = self.create_or_load(hash=hash)
@@ -794,6 +795,7 @@ class ServiceManager:
                     to=key.address,
                     amount=to_transfer,
                     chain_type=service.ledger_config.chain,
+                    from_safe=from_safe,
                 )
 
         safe_balanace = ledger_api.get_balance(service.chain_data.multisig)
@@ -819,6 +821,7 @@ class ServiceManager:
         self,
         hash: str,
         loop: t.Optional[asyncio.AbstractEventLoop] = None,
+        from_safe: bool = True,
     ) -> None:
         """Start a background funding job."""
         loop = loop or asyncio.get_event_loop()
@@ -833,6 +836,7 @@ class ServiceManager:
                         PUBLIC_RPCS[service.ledger_config.chain],
                         10000000000000000,
                         50000000000000000,
+                        from_safe,
                     )
                 except Exception:  # pylint: disable=broad-except
                     logging.info(

@@ -42,6 +42,7 @@ from operate.types import ChainType, LedgerType
 from operate.utils.gnosis import add_owner
 from operate.utils.gnosis import create_safe as create_gnosis_safe
 from operate.utils.gnosis import get_owners, swap_owner
+from operate.utils.gnosis import transfer as transfer_from_safe
 
 
 class MasterWallet(LocalResource):
@@ -92,7 +93,13 @@ class MasterWallet(LocalResource):
             chain_id=chain_type.id,
         )
 
-    def transfer(self, to: str, amount: int, chain_type: ChainType) -> None:
+    def transfer(
+        self,
+        to: str,
+        amount: int,
+        chain_type: ChainType,
+        from_safe: bool = True,
+    ) -> None:
         """Transfer funds to the given account."""
         raise NotImplementedError()
 
@@ -155,8 +162,8 @@ class EthereumMasterWallet(MasterWallet):
     _key = ledger_type.key_file
     _crypto_cls = EthereumCrypto
 
-    def transfer(self, to: str, amount: int, chain_type: ChainType) -> None:
-        """Transfer funds to the given account."""
+    def _transfer_from_eoa(self, to: str, amount: int, chain_type: ChainType) -> None:
+        """Transfer funds from EOA wallet."""
         ledger_api = t.cast(EthereumApi, self.ledger_api(chain_type=chain_type))
         tx_helper = TxSettler(
             ledger_api=ledger_api,
@@ -187,6 +194,36 @@ class EthereumMasterWallet(MasterWallet):
 
         setattr(tx_helper, "build", _build_tx)  # noqa: B010
         tx_helper.transact(lambda x: x, "", kwargs={})
+
+    def _transfer_from_safe(self, to: str, amount: int, chain_type: ChainType) -> None:
+        """Transfer funds from safe wallet."""
+        transfer_from_safe(
+            ledger_api=self.ledger_api(chain_type=chain_type),
+            crypto=self.crypto,
+            safe=t.cast(str, self.safe),
+            to=to,
+            amount=amount,
+        )
+
+    def transfer(
+        self,
+        to: str,
+        amount: int,
+        chain_type: ChainType,
+        from_safe: bool = True,
+    ) -> None:
+        """Transfer funds to the given account."""
+        if from_safe:
+            return self._transfer_from_safe(
+                to=to,
+                amount=amount,
+                chain_type=chain_type,
+            )
+        return self._transfer_from_eoa(
+            to=to,
+            amount=amount,
+            chain_type=chain_type,
+        )
 
     @classmethod
     def new(
