@@ -37,6 +37,7 @@
   },
   "main": "electron/main.js",
   "name": "olas-operate-app",
+  "productName": "Pearl",
   "private": true,
   "scripts": {
     "build:frontend": "cd frontend && yarn build && rm -rf ../electron/.next && cp -r .next ../electron/.next && rm -rf ../electron/public && cp -r public ../electron/public",
@@ -52,5 +53,5 @@
     "start": "electron .",
     "build": "rm -rf dist/ && electron-builder build"
   },
-  "version": "0.1.0-rc16"
+  "version": "0.1.0-rc17"
 }

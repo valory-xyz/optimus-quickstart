@@ -1,4 +1,4 @@
-# Olas Operate
+# Pearl
 Electron + NextJS + Python Backend application to one-click run Agents.
 
 ## Technologies Used

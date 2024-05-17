@@ -1,4 +1,4 @@
-// update key: READ-ONLY access to Olas Operate App, delete once public
+// update key: READ-ONLY access to Pearl App, delete once public
 const updateKey =
   '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';
 
