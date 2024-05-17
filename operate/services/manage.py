@@ -357,7 +357,7 @@ class ServiceManager:
             if balance < required_olas:
                 raise ValueError(
                     "You don't have enough olas to stake, "
-                    f"address: {wallet.safe}; required olas: {required_olas}; your balance {balance}"
+                    f"address: {wallet.safe}; required olas: {required_olas}; your balance: {balance}"
                 )
 
         if service.chain_data.on_chain_state == OnChainState.NOTMINTED:
@@ -436,6 +436,7 @@ class ServiceManager:
                 self.logger.info(
                     f"Approved {token_utility_allowance} OLAS from {wallet.safe} to {token_utility}"
                 )
+                cost_of_bond = 0
 
             self.logger.info("Activating service")
             sftxb.new_tx().add(
