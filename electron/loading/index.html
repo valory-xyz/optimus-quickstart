@@ -22,18 +22,24 @@
           </svg>
         </span>
       </div>
-      <div id="text" class="text">
-        Installing app dependencies...
-        <br />
-        This might take a while
-      </div>
+      <div id="text" class="text"></div>
       </div>
   </body>
   <script>
     const { ipcRenderer } = require("electron");
-    // ipcRenderer.on("response", (event, arg) => {
-    //   document.getElementById("text").innerText = arg;
-    // });
+    ipcRenderer.on("response", (event, arg) => {
+      if (typeof arg === "string") {
+        if (arg.includes(/Installing/)) {
+          document.getElementById("text").innerHTML =
+            `Installing app dependencies...
+            <br />
+            This might take a while`;
+        } else if (arg.includes(/Development mode/)) {
+          document.getElementById("text").innerHTML = arg;
+        }
+      }
+    });
+
     ipcRenderer.send("check", "Starting check...");
   </script>
 

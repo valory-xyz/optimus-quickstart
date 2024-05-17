@@ -7,7 +7,7 @@ const process = require('process');
 const { spawnSync } = require('child_process');
 const Docker = require('dockerode');
 
-const Version = '0.1.0rc15';
+const Version = '0.1.0rc17';
 const OperateDirectory = `${os.homedir()}/.operate`;
 const VenvDir = `${OperateDirectory}/venv`;
 const VersionFile = `${OperateDirectory}/version.txt`;
@@ -19,7 +19,7 @@ const Env = {
   PATH: `${process.env.PATH}:/opt/homebrew/bin:/usr/local/bin`,
 };
 const SudoOptions = {
-  name: 'Olas Operate',
+  name: 'Pearl',
   env: Env,
 };
 
@@ -162,7 +162,7 @@ function installOperatePackageUnix(path) {
 }
 
 function reInstallOperatePackageUnix(path) {
-  console.log(appendLog('Reinstalling operate CLI'));
+  console.log(appendLog('Reinstalling pearl CLI'));
   return runCmdUnix(`${path}/venv/bin/python3.10`, [
     '-m',
     'pip',
@@ -223,25 +223,29 @@ function removeInstallationLogFile() {
   }
 }
 
+/*******************************/
+// NOTE: "Installing" is string matched in loading.html to detect installation
+/*******************************/
+
 async function setupDarwin(ipcChannel) {
   removeInstallationLogFile();
   console.log(appendLog('Checking brew installation'));
   if (!isBrewInstalled()) {
-    ipcChannel.send('response', 'Installing Operate Daemon');
+    ipcChannel.send('response', 'Installing Pearl Daemon');
     console.log(appendLog('Installing brew'));
     installBrew();
   }
 
   console.log(appendLog('Checking docker installation'));
   if (!isDockerInstalledDarwin()) {
-    ipcChannel.send('response', 'Installing Operate Daemon');
-    console.log(appendLog('Installating docker'));
+    ipcChannel.send('response', 'Installing Pearl Daemon');
+    console.log(appendLog('Installing docker'));
     installDockerDarwin();
   }
 
   console.log(appendLog('Checking python installation'));
   if (!isPythonInstalledDarwin()) {
-    ipcChannel.send('response', 'Installing Operate Daemon');
+    ipcChannel.send('response', 'Installing Pearl Daemon');
     console.log(appendLog('Installing python'));
     installPythonDarwin();
   }
@@ -251,17 +255,17 @@ async function setupDarwin(ipcChannel) {
   await createDirectory(`${OperateDirectory}/temp`);
 
   if (!fs.existsSync(VenvDir)) {
-    ipcChannel.send('response', 'Installing Operate Daemon');
+    ipcChannel.send('response', 'Installing Pearl Daemon');
     console.log(appendLog('Creating virtual environment'));
     createVirtualEnvUnix(VenvDir);
 
-    console.log(appendLog('Installing operate backend'));
+    console.log(appendLog('Installing pearl backend'));
     installOperatePackageUnix(OperateDirectory);
   }
 
   console.log(appendLog('Checking if upgrade is required'));
   if (versionBumpRequired()) {
-    console.log(appendLog(`Upgrading operate daemon to ${Version}`));
+    console.log(appendLog(`Upgrading pearl daemon to ${Version}`));
     reInstallOperatePackageUnix(OperateDirectory);
     writeVersion();
     removeLogFile();
@@ -271,7 +275,7 @@ async function setupDarwin(ipcChannel) {
     reInstallOperatePackageUnix(OperateDirectory);
   }
 
-  console.log(appendLog('Installing operate CLI'));
+  console.log(appendLog('Installing pearl CLI'));
   await installOperateCli('/opt/homebrew/bin/operate');
 }
 
@@ -279,21 +283,21 @@ async function setupUbuntu(ipcChannel) {
   removeInstallationLogFile();
   console.log(appendLog('Checking docker installation'));
   if (!isDockerInstalledUbuntu()) {
-    ipcChannel.send('response', 'Installing Operate Daemon');
-    console.log(appendLog('Installating docker'));
+    ipcChannel.send('response', 'Installing Pearl Daemon');
+    console.log(appendLog('Installing docker'));
     await installDockerUbuntu();
   }
 
   console.log(appendLog('Checking python installation'));
   if (!isPythonInstalledUbuntu()) {
-    ipcChannel.send('response', 'Installing Operate Daemon');
+    ipcChannel.send('response', 'Installing Pearl Daemon');
     console.log(appendLog('Installing Python'));
     await installPythonUbuntu(OperateDirectory);
   }
 
   console.log(appendLog('Checking git installation'));
   if (!isGitInstalledUbuntu()) {
-    ipcChannel.send('response', 'Installing Operate Daemon');
+    ipcChannel.send('response', 'Installing Pearl Daemon');
     console.log(appendLog('Installing git'));
     await installGitUbuntu(OperateDirectory);
   }
@@ -308,17 +312,17 @@ async function setupUbuntu(ipcChannel) {
   }
 
   if (!fs.existsSync(VenvDir)) {
-    ipcChannel.send('response', 'Installing Operate Daemon');
+    ipcChannel.send('response', 'Installing Pearl Daemon');
     console.log(appendLog('Creating virtual environment'));
     createVirtualEnvUnix(VenvDir);
 
-    console.log(appendLog('Installing operate backend'));
+    console.log(appendLog('Installing pearl backend'));
     installOperatePackageUnix(OperateDirectory);
   }
 
   console.log(appendLog('Checking if upgrade is required'));
   if (versionBumpRequired()) {
-    console.log(appendLog(`Upgrading operate daemon to ${Version}`));
+    console.log(appendLog(`Upgrading pearl daemon to ${Version}`));
     reInstallOperatePackageUnix(OperateDirectory);
     writeVersion();
     removeLogFile();
@@ -328,7 +332,7 @@ async function setupUbuntu(ipcChannel) {
     reInstallOperatePackageUnix(OperateDirectory);
   }
 
-  console.log(appendLog('Installing operate CLI'));
+  console.log(appendLog('Installing pearl CLI'));
   await installOperateCli('/usr/local/bin');
 }
 

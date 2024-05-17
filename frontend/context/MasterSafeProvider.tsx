@@ -9,42 +9,31 @@ import {
   useMemo,
   useState,
 } from 'react';
+import { useInterval } from 'usehooks-ts';
 
 import { GnosisSafeService } from '@/service/GnosisSafe';
 import { Address } from '@/types';
 
-import { BalanceContext } from '.';
+import { WalletContext } from './WalletProvider';
 
 export const MasterSafeContext = createContext<{
   backupSafeAddress?: Address;
   masterSafeAddress?: Address;
   masterEoaAddress?: Address;
   masterSafeOwners?: Address[];
-  updateOwners?: () => Promise<void>;
+  updateMasterSafeOwners?: () => Promise<void>;
 }>({
   backupSafeAddress: undefined,
   masterSafeAddress: undefined,
   masterEoaAddress: undefined,
   masterSafeOwners: undefined,
-  updateOwners: async () => {},
+  updateMasterSafeOwners: async () => {},
 });
 
 export const MasterSafeProvider = ({ children }: PropsWithChildren) => {
-  const { wallets } = useContext(BalanceContext);
+  const { masterSafeAddress, masterEoaAddress } = useContext(WalletContext);
 
   const [masterSafeOwners, setMasterSafeOwners] = useState<Address[]>();
-
-  const masterSafeAddress = useMemo<Address | undefined>(() => {
-    if (!wallets) return;
-    if (!wallets.length) return;
-    return wallets[0].safe;
-  }, [wallets]);
-
-  const masterEoaAddress = useMemo<Address | undefined>(() => {
-    if (!wallets) return;
-    if (!wallets.length) return;
-    return wallets[0].address;
-  }, [wallets]);
 
   const backupSafeAddress = useMemo<Address | undefined>(() => {
     if (!masterEoaAddress) return;
@@ -62,13 +51,23 @@ export const MasterSafeProvider = ({ children }: PropsWithChildren) => {
     return currentBackupAddress;
   }, [masterEoaAddress, masterSafeOwners]);
 
-  const updateOwners = async () => {
+  const updateMasterSafeOwners = async () => {
     if (!masterSafeAddress) return;
-    const safeSigners = await GnosisSafeService.getOwners({
-      address: masterSafeAddress,
-    });
-    setMasterSafeOwners(safeSigners);
+    try {
+      const safeSigners = await GnosisSafeService.getOwners({
+        address: masterSafeAddress,
+      });
+      if (!safeSigners) return;
+      setMasterSafeOwners(safeSigners);
+    } catch (error) {
+      console.error('Error fetching safe owners', error);
+    }
   };
+
+  useInterval(
+    updateMasterSafeOwners,
+    masterSafeOwners && masterSafeOwners.length >= 2 ? null : 5000,
+  );
 
   return (
     <MasterSafeContext.Provider
@@ -76,8 +75,7 @@ export const MasterSafeProvider = ({ children }: PropsWithChildren) => {
         backupSafeAddress,
         masterSafeOwners,
         masterSafeAddress,
-        masterEoaAddress,
-        updateOwners,
+        updateMasterSafeOwners,
       }}
     >
       {children}

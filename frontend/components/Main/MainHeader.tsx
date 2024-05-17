@@ -8,6 +8,7 @@ import { Chain, DeploymentStatus } from '@/client';
 import { COLOR, SERVICE_TEMPLATES } from '@/constants';
 import { useBalance, useServiceTemplates } from '@/hooks';
 import { useServices } from '@/hooks/useServices';
+import { useWallet } from '@/hooks/useWallet';
 import { ServicesService } from '@/service';
 import { WalletService } from '@/service/Wallet';
 
@@ -16,19 +17,24 @@ const { Text } = Typography;
 const LOADING_MESSAGE =
   "It may take a while to start your agent, so feel free to close the app. We'll notify you once your agent is running.";
 
+enum ServiceButtonLoadingState {
+  Starting,
+  Pausing,
+  NotLoading,
+}
+
 export const MainHeader = () => {
   const { services, serviceStatus, setServiceStatus } = useServices();
   const { getServiceTemplates } = useServiceTemplates();
+  const { wallets, masterSafeAddress } = useWallet();
   const {
     totalOlasBalance,
     totalEthBalance,
-    wallets,
     setIsPaused: setIsBalancePollingPaused,
   } = useBalance();
 
-  const [serviceButtonState, setServiceButtonState] = useState({
-    isLoading: false,
-  });
+  const [serviceButtonState, setServiceButtonState] =
+    useState<ServiceButtonLoadingState>(ServiceButtonLoadingState.NotLoading);
 
   const serviceTemplate = useMemo(
     () => getServiceTemplates()[0],
@@ -36,6 +42,20 @@ export const MainHeader = () => {
   );
 
   const agentHead = useMemo(() => {
+    if (
+      serviceButtonState === ServiceButtonLoadingState.Starting ||
+      serviceButtonState === ServiceButtonLoadingState.Pausing
+    )
+      return (
+        <Badge status="processing" color="orange" dot offset={[-5, 32.5]}>
+          <Image
+            src="/happy-robot.svg"
+            alt="Happy Robot"
+            width={40}
+            height={40}
+          />
+        </Badge>
+      );
     if (serviceStatus === DeploymentStatus.DEPLOYED)
       return (
         <Badge status="processing" color="green" dot offset={[-5, 32.5]}>
@@ -52,16 +72,16 @@ export const MainHeader = () => {
         <Image src="/sad-robot.svg" alt="Sad Robot" width={40} height={40} />
       </Badge>
     );
-  }, [serviceStatus]);
+  }, [serviceButtonState, serviceStatus]);
 
   const handleStart = useCallback(async () => {
     if (!wallets?.[0]) return;
 
-    setServiceButtonState({ isLoading: true });
+    setServiceButtonState(ServiceButtonLoadingState.Starting);
     setIsBalancePollingPaused(true);
 
     try {
-      if (!wallets?.[0].safe) {
+      if (!masterSafeAddress) {
         await WalletService.createSafe(Chain.GNOSIS);
       }
       // TODO: Replace with proper upload logic
@@ -80,25 +100,35 @@ export const MainHeader = () => {
       }).then(() => {
         setServiceStatus(DeploymentStatus.DEPLOYED);
         setIsBalancePollingPaused(false);
-        setServiceButtonState({ isLoading: false });
+        setServiceButtonState(ServiceButtonLoadingState.NotLoading);
       });
     } catch (error) {
       setIsBalancePollingPaused(false);
-      setServiceButtonState({ isLoading: false });
+      setServiceButtonState(ServiceButtonLoadingState.NotLoading);
     }
-  }, [serviceTemplate, setIsBalancePollingPaused, setServiceStatus, wallets]);
+  }, [
+    masterSafeAddress,
+    serviceTemplate,
+    setIsBalancePollingPaused,
+    setServiceStatus,
+    wallets,
+  ]);
 
-  const handleStop = useCallback(() => {
+  const handlePause = useCallback(() => {
+    if (!services) return;
     if (services.length === 0) return;
-    setServiceButtonState({ isLoading: true });
+    setServiceButtonState(ServiceButtonLoadingState.Pausing);
     ServicesService.stopDeployment(services[0].hash).then(() => {
       setServiceStatus(DeploymentStatus.STOPPED);
-      setServiceButtonState({ isLoading: false });
+      setServiceButtonState(ServiceButtonLoadingState.NotLoading);
     });
   }, [services, setServiceStatus]);
 
   const serviceToggleButton = useMemo(() => {
-    if (serviceButtonState.isLoading) {
+    if (
+      serviceButtonState === ServiceButtonLoadingState.Starting ||
+      serviceButtonState === ServiceButtonLoadingState.Pausing
+    ) {
       return (
         <Popover
           trigger={['hover', 'click']}
@@ -114,7 +144,10 @@ export const MainHeader = () => {
           }
         >
           <Button type="default" size="large" ghost disabled loading>
-            Starting...
+            {serviceButtonState === ServiceButtonLoadingState.Starting &&
+              'Starting...'}
+            {serviceButtonState === ServiceButtonLoadingState.Pausing &&
+              'Stopping...'}
           </Button>
         </Popover>
       );
@@ -122,8 +155,8 @@ export const MainHeader = () => {
 
     if (serviceStatus === DeploymentStatus.DEPLOYED) {
       return (
-        <Flex gap={5} align="center">
-          <Button type="default" size="large" onClick={handleStop}>
+        <Flex gap={10} align="center">
+          <Button type="default" size="large" onClick={handlePause}>
             Pause
           </Button>
           <Typography.Text
@@ -180,12 +213,12 @@ export const MainHeader = () => {
       </Button>
     );
   }, [
-    serviceButtonState.isLoading,
+    serviceButtonState,
     serviceStatus,
-    handleStop,
     totalOlasBalance,
     totalEthBalance,
     handleStart,
+    handlePause,
   ]);
 
   return (

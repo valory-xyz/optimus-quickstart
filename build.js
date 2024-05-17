@@ -13,7 +13,7 @@ const main = async () => {
     config: {
       appId: 'xyz.valory.olas-operate-app',
       artifactName: '${productName}-${version}-${platform}-${arch}.${ext}',
-      productName: 'Olas Operate',
+      productName: 'Pearl',
       files: ['electron/**/*', 'package.json'],
       directories: {
         output: 'dist',

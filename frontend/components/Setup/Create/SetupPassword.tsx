@@ -1,4 +1,4 @@
-import { Button, Form, Input, message, Typography } from 'antd';
+import { Button, Checkbox, Form, Input, message, Typography } from 'antd';
 import { useState } from 'react';
 
 import { Chain } from '@/client';
@@ -10,13 +10,19 @@ import { WalletService } from '@/service/Wallet';
 import { CardFlex } from '../../styled/CardFlex';
 import { SetupCreateHeader } from './SetupCreateHeader';
 
+const { Title, Text } = Typography;
+
 export const SetupPassword = () => {
   const { goto, setMnemonic } = useSetup();
-  const [form] = Form.useForm();
+  const [form] = Form.useForm<{ password: string; terms: boolean }>();
 
   const [isLoading, setIsLoading] = useState(false);
 
+  const isTermsAccepted = Form.useWatch('terms', form);
+
   const handleCreateEoa = async ({ password }: { password: string }) => {
+    if (!isTermsAccepted) return;
+
     setIsLoading(true);
     AccountService.createAccount(password)
       .then(() => AccountService.loginAccount(password))
@@ -27,7 +33,7 @@ export const SetupPassword = () => {
       })
       .catch((e) => {
         console.error(e);
-        message.error('Error creating account');
+        message.error('Unable to create account, please try again.');
       })
       .finally(() => setIsLoading(false));
   };
@@ -35,21 +41,43 @@ export const SetupPassword = () => {
   return (
     <CardFlex gap={10}>
       <SetupCreateHeader prev={SetupScreen.Welcome} />
-      <Typography.Title level={3}>Create password</Typography.Title>
-      <Typography.Text>Come up with a strong password.</Typography.Text>
-      <Form form={form} onFinish={handleCreateEoa}>
+      <Title level={3}>Create password</Title>
+      <Text>Come up with a strong password.</Text>
+
+      <Form
+        name="createEoa"
+        form={form}
+        onFinish={handleCreateEoa}
+        onValuesChange={() => form.validateFields(['terms'])}
+      >
         <Form.Item
           name="password"
           rules={[{ required: true, message: 'Please input a Password!' }]}
         >
           <Input.Password size="large" placeholder="Password" />
         </Form.Item>
+
+        <Form.Item name="terms" valuePropName="checked">
+          <Checkbox>
+            I agree to the Pearl’s{' '}
+            <a
+              href="https://olas.network/disclaimer"
+              target="_blank"
+              rel="noreferrer"
+            >
+              Terms & Conditions
+            </a>
+          </Checkbox>
+        </Form.Item>
+
         <Form.Item>
           <Button
             size="large"
             type="primary"
             htmlType="submit"
+            disabled={!isTermsAccepted}
             loading={isLoading}
+            style={{ width: '100%' }}
           >
             Continue
           </Button>

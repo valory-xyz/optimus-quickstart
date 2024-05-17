@@ -38,5 +38,5 @@ export const WalletService = {
   getWallets,
   createEoa,
   createSafe,
-  addBackupOwner
+  addBackupOwner,
 };

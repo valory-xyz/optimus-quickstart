@@ -58,7 +58,7 @@ export const TopBar = () => {
         <DisabledLight />
       </TrafficLights>
 
-      <Text>Olas Operate</Text>
+      <Text>Pearl</Text>
     </TopBarContainer>
   );
 };

@@ -33,7 +33,7 @@ from autonomy.chain.base import registry_contracts
 from operate.keys import Key, KeysManager
 from operate.ledger import PUBLIC_RPCS
 from operate.ledger.profiles import CONTRACTS, OLAS, STAKING
-from operate.services.protocol import OnChainManager, StakingState
+from operate.services.protocol import EthSafeTxBuilder, OnChainManager, StakingState
 from operate.services.service import (
     Deployment,
     OnChainData,
@@ -103,6 +103,14 @@ class ServiceManager:
     def get_on_chain_manager(self, service: Service) -> OnChainManager:
         """Get OnChainManager instance."""
         return OnChainManager(
+            rpc=service.ledger_config.rpc,
+            wallet=self.wallet_manager.load(service.ledger_config.type),
+            contracts=CONTRACTS[service.ledger_config.chain],
+        )
+
+    def get_eth_safe_tx_builder(self, service: Service) -> EthSafeTxBuilder:
+        """Get EthSafeTxBuilder instance."""
+        return EthSafeTxBuilder(
             rpc=service.ledger_config.rpc,
             wallet=self.wallet_manager.load(service.ledger_config.type),
             contracts=CONTRACTS[service.ledger_config.chain],
@@ -289,6 +297,234 @@ class ServiceManager:
         )
         service.store()
 
+    def deploy_service_onchain_from_safe(  # pylint: disable=too-many-statements,too-many-locals
+        self,
+        hash: str,
+        update: bool = False,
+    ) -> None:
+        """
+        Deploy as service on-chain
+
+        :param hash: Service hash
+        :param update: Update the existing deployment
+        """
+        self.logger.info("Loading service")
+        service = self.create_or_load(hash=hash)
+        user_params = service.chain_data.user_params
+        keys = service.keys or [
+            self.keys_manager.get(self.keys_manager.create())
+            for _ in range(service.helper.config.number_of_agents)
+        ]
+        instances = [key.address for key in keys]
+        wallet = self.wallet_manager.load(service.ledger_config.type)
+        sftxb = self.get_eth_safe_tx_builder(service=service)
+        if user_params.use_staking and not sftxb.staking_slots_available(
+            staking_contract=STAKING[service.ledger_config.chain]
+        ):
+            raise ValueError("No staking slots available")
+
+        if service.chain_data.token > -1:
+            self.logger.info("Syncing service state")
+            info = sftxb.info(token_id=service.chain_data.token)
+            service.chain_data.on_chain_state = OnChainState(info["service_state"])
+            service.chain_data.instances = info["instances"]
+            service.chain_data.multisig = info["multisig"]
+            service.store()
+        self.logger.info(f"Service state: {service.chain_data.on_chain_state.name}")
+
+        if user_params.use_staking:
+            self.logger.info("Checking staking compatibility")
+            if service.chain_data.on_chain_state in (
+                OnChainState.NOTMINTED,
+                OnChainState.MINTED,
+            ):
+                required_olas = (
+                    user_params.olas_cost_of_bond + user_params.olas_required_to_stake
+                )
+            elif service.chain_data.on_chain_state == OnChainState.ACTIVATED:
+                required_olas = user_params.olas_required_to_stake
+            else:
+                required_olas = 0
+
+            balance = (
+                registry_contracts.erc20.get_instance(
+                    ledger_api=sftxb.ledger_api,
+                    contract_address=OLAS[service.ledger_config.chain],
+                )
+                .functions.balanceOf(wallet.safe)
+                .call()
+            )
+            if balance < required_olas:
+                raise ValueError(
+                    "You don't have enough olas to stake, "
+                    f"address: {wallet.safe}; required olas: {required_olas}; your balance: {balance}"
+                )
+
+        if service.chain_data.on_chain_state == OnChainState.NOTMINTED:
+            self.logger.info("Minting service")
+            receipt = (
+                sftxb.new_tx()
+                .add(
+                    sftxb.get_mint_tx_data(
+                        package_path=service.service_path,
+                        agent_id=user_params.agent_id,
+                        number_of_slots=service.helper.config.number_of_agents,
+                        cost_of_bond=(
+                            user_params.olas_cost_of_bond
+                            if user_params.use_staking
+                            else user_params.cost_of_bond
+                        ),
+                        threshold=user_params.threshold,
+                        nft=IPFSHash(user_params.nft),
+                        update_token=service.chain_data.token if update else None,
+                        token=(
+                            OLAS[service.ledger_config.chain]
+                            if user_params.use_staking
+                            else None
+                        ),
+                    )
+                )
+                .settle()
+            )
+            event_data, *_ = t.cast(
+                t.Tuple,
+                registry_contracts.service_registry.process_receipt(
+                    ledger_api=sftxb.ledger_api,
+                    contract_address="0x9338b5153AE39BB89f50468E608eD9d764B755fD",
+                    event="CreateService",
+                    receipt=receipt,
+                ).get("events"),
+            )
+            service.chain_data.token = event_data["args"]["serviceId"]
+            service.chain_data.on_chain_state = OnChainState.MINTED
+            service.store()
+
+        if service.chain_data.on_chain_state == OnChainState.MINTED:
+            cost_of_bond = user_params.cost_of_bond
+            if user_params.use_staking:
+                token_utility = "0xa45E64d13A30a51b91ae0eb182e88a40e9b18eD8"
+                olas_token = "0xcE11e14225575945b8E6Dc0D4F2dD4C570f79d9f"
+                self.logger.info(
+                    f"Approving OLAS as bonding token from {wallet.safe} to {token_utility}"
+                )
+                cost_of_bond = (
+                    registry_contracts.service_registry_token_utility.get_agent_bond(
+                        ledger_api=sftxb.ledger_api,
+                        contract_address=token_utility,
+                        service_id=service.chain_data.token,
+                        agent_id=user_params.agent_id,
+                    ).get("bond")
+                )
+                sftxb.new_tx().add(
+                    sftxb.get_olas_approval_data(
+                        spender=token_utility,
+                        amount=cost_of_bond,
+                        olas_contract=olas_token,
+                    )
+                ).settle()
+                token_utility_allowance = (
+                    registry_contracts.erc20.get_instance(
+                        ledger_api=sftxb.ledger_api,
+                        contract_address=olas_token,
+                    )
+                    .functions.allowance(
+                        wallet.safe,
+                        token_utility,
+                    )
+                    .call()
+                )
+                self.logger.info(
+                    f"Approved {token_utility_allowance} OLAS from {wallet.safe} to {token_utility}"
+                )
+                cost_of_bond = 0
+
+            self.logger.info("Activating service")
+            sftxb.new_tx().add(
+                sftxb.get_activate_data(
+                    service_id=service.chain_data.token,
+                    cost_of_bond=cost_of_bond,
+                )
+            ).settle()
+            service.chain_data.on_chain_state = OnChainState.ACTIVATED
+            service.store()
+
+        if service.chain_data.on_chain_state == OnChainState.ACTIVATED:
+            cost_of_bond = user_params.cost_of_bond
+            if user_params.use_staking:
+                token_utility = "0xa45E64d13A30a51b91ae0eb182e88a40e9b18eD8"
+                olas_token = "0xcE11e14225575945b8E6Dc0D4F2dD4C570f79d9f"
+                self.logger.info(
+                    f"Approving OLAS as bonding token from {wallet.safe} to {token_utility}"
+                )
+                cost_of_bond = (
+                    registry_contracts.service_registry_token_utility.get_agent_bond(
+                        ledger_api=sftxb.ledger_api,
+                        contract_address=token_utility,
+                        service_id=service.chain_data.token,
+                        agent_id=user_params.agent_id,
+                    ).get("bond")
+                )
+                sftxb.new_tx().add(
+                    sftxb.get_olas_approval_data(
+                        spender=token_utility,
+                        amount=cost_of_bond,
+                        olas_contract=olas_token,
+                    )
+                ).settle()
+                token_utility_allowance = (
+                    registry_contracts.erc20.get_instance(
+                        ledger_api=sftxb.ledger_api,
+                        contract_address=olas_token,
+                    )
+                    .functions.allowance(
+                        wallet.safe,
+                        token_utility,
+                    )
+                    .call()
+                )
+                self.logger.info(
+                    f"Approved {token_utility_allowance} OLAS from {wallet.safe} to {token_utility}"
+                )
+                cost_of_bond = 0
+
+            self.logger.info(
+                f"Registering service: {service.chain_data.token} -> {instances}"
+            )
+            sftxb.new_tx().add(
+                sftxb.get_register_instances_data(
+                    service_id=service.chain_data.token,
+                    instances=instances,
+                    agents=[user_params.agent_id for _ in instances],
+                    cost_of_bond=cost_of_bond,
+                )
+            ).settle()
+            service.chain_data.on_chain_state = OnChainState.REGISTERED
+            service.keys = keys
+            service.store()
+
+        if service.chain_data.on_chain_state == OnChainState.REGISTERED:
+            self.logger.info("Deploying service")
+            sftxb.new_tx().add(
+                sftxb.get_deploy_data(
+                    service_id=service.chain_data.token,
+                    reuse_multisig=update,
+                )
+            ).settle()
+            service.chain_data.on_chain_state = OnChainState.DEPLOYED
+            service.store()
+
+        info = sftxb.info(token_id=service.chain_data.token)
+        service.keys = keys
+        service.chain_data = OnChainData(
+            token=service.chain_data.token,
+            instances=info["instances"],
+            multisig=info["multisig"],
+            staked=False,
+            on_chain_state=service.chain_data.on_chain_state,
+            user_params=service.chain_data.user_params,
+        )
+        service.store()
+
     def terminate_service_on_chain(self, hash: str) -> None:
         """
         Terminate service on-chain
@@ -310,6 +546,27 @@ class ServiceManager:
                 else None
             ),
         )
+        service.chain_data.on_chain_state = OnChainState.TERMINATED
+        service.store()
+
+    def terminate_service_on_chain_from_safe(self, hash: str) -> None:
+        """
+        Terminate service on-chain
+
+        :param hash: Service hash
+        """
+        service = self.create_or_load(hash=hash)
+        if service.chain_data.on_chain_state != OnChainState.DEPLOYED:
+            self.logger.info("Cannot terminate service")
+            return
+
+        self.logger.info("Terminating service")
+        sftxb = self.get_eth_safe_tx_builder(service=service)
+        sftxb.new_tx().add(
+            sftxb.get_terminate_data(
+                service_id=service.chain_data.token,
+            )
+        ).settle()
         service.chain_data.on_chain_state = OnChainState.TERMINATED
         service.store()
 
@@ -335,6 +592,27 @@ class ServiceManager:
             ),
         )
         service.chain_data.on_chain_state = OnChainState.UNBONDED
+        service.store()
+
+    def unbond_service_on_chain_from_safe(self, hash: str) -> None:
+        """
+        Terminate service on-chain
+
+        :param hash: Service hash
+        """
+        service = self.create_or_load(hash=hash)
+        if service.chain_data.on_chain_state != OnChainState.TERMINATED:
+            self.logger.info("Cannot unbond service")
+            return
+
+        self.logger.info("Unbonding service")
+        sftxb = self.get_eth_safe_tx_builder(service=service)
+        sftxb.new_tx().add(
+            sftxb.get_unbond_data(
+                service_id=service.chain_data.token,
+            )
+        ).settle()
+        service.chain_data.on_chain_state = OnChainState.TERMINATED
         service.store()
 
     def stake_service_on_chain(self, hash: str) -> None:
@@ -373,6 +651,54 @@ class ServiceManager:
         service.chain_data.staked = True
         service.store()
 
+    def stake_service_on_chain_from_safe(self, hash: str) -> None:
+        """
+        Stake service on-chain
+
+        :param hash: Service hash
+        """
+        service = self.create_or_load(hash=hash)
+        if not service.chain_data.user_params.use_staking:
+            self.logger.info("Cannot stake service, `use_staking` is set to false")
+            return
+
+        if service.chain_data.on_chain_state != OnChainState.DEPLOYED:
+            self.logger.info("Cannot stake service, it's not in deployed state")
+            return
+
+        sftxb = self.get_eth_safe_tx_builder(service=service)
+        state = sftxb.staking_status(
+            service_id=service.chain_data.token,
+            staking_contract=STAKING[service.ledger_config.chain],
+        )
+        self.logger.info(f"Checking staking status for: {service.chain_data.token}")
+        if state == StakingState.STAKED:
+            self.logger.info(f"{service.chain_data.token} is already staked")
+            service.chain_data.staked = True
+            service.store()
+            return
+
+        self.logger.info(f"Approving staking: {service.chain_data.token}")
+        sftxb.new_tx().add(
+            sftxb.get_staking_approval_data(
+                service_id=service.chain_data.token,
+                service_registry=CONTRACTS[service.ledger_config.chain][
+                    "service_registry"
+                ],
+                staking_contract=STAKING[service.ledger_config.chain],
+            )
+        ).settle()
+
+        self.logger.info(f"Staking service: {service.chain_data.token}")
+        sftxb.new_tx().add(
+            sftxb.get_staking_data(
+                service_id=service.chain_data.token,
+                staking_contract=STAKING[service.ledger_config.chain],
+            )
+        ).settle()
+        service.chain_data.staked = True
+        service.store()
+
     def unstake_service_on_chain(self, hash: str) -> None:
         """
         Unbond service on-chain
@@ -395,11 +721,50 @@ class ServiceManager:
             service.store()
             return
 
+        self.logger.info(f"Unstaking service: {service.chain_data.token}")
         ocm.unstake(
             service_id=service.chain_data.token,
             staking_contract=STAKING[service.ledger_config.chain],
         )
         service.chain_data.staked = False
+        service.store()
+
+    def unstake_service_on_chain_from_safe(self, hash: str) -> None:
+        """
+        Unbond service on-chain
+
+        :param hash: Service hash
+        """
+        service = self.create_or_load(hash=hash)
+        if not service.chain_data.user_params.use_staking:
+            self.logger.info("Cannot unstake service, `use_staking` is set to false")
+            return
+
+        sftxb = self.get_eth_safe_tx_builder(service=service)
+        state = sftxb.staking_status(
+            service_id=service.chain_data.token,
+            staking_contract=STAKING[service.ledger_config.chain],
+        )
+        self.logger.info(f"Checking staking status for: {service.chain_data.token}")
+        if state != StakingState.STAKED:
+            self.logger.info("Cannot unstake service, it's not staked")
+            service.chain_data.staked = False
+            service.store()
+            return
+
+        self.logger.info(f"Unstaking service: {service.chain_data.token}")
+        sftxb.new_tx().add(
+            sftxb.get_unstaking_data(
+                service_id=service.chain_data.token,
+                staking_contract=STAKING[service.ledger_config.chain],
+            )
+        ).add(
+            sftxb.get_staking_data(
+                service_id=service.chain_data.token,
+                staking_contract=STAKING[service.ledger_config.chain],
+            )
+        ).settle()
+        service.chain_data.staked = True
         service.store()
 
     def fund_service(
@@ -408,6 +773,7 @@ class ServiceManager:
         rpc: t.Optional[str] = None,
         agent_fund_requirement: t.Optional[float] = None,
         safe_fund_requirement: t.Optional[float] = None,
+        from_safe: bool = True,
     ) -> None:
         """Fund service if required."""
         service = self.create_or_load(hash=hash)
@@ -430,6 +796,7 @@ class ServiceManager:
                     to=key.address,
                     amount=to_transfer,
                     chain_type=service.ledger_config.chain,
+                    from_safe=from_safe,
                 )
 
         safe_balanace = ledger_api.get_balance(service.chain_data.multisig)
@@ -455,6 +822,7 @@ class ServiceManager:
         self,
         hash: str,
         loop: t.Optional[asyncio.AbstractEventLoop] = None,
+        from_safe: bool = True,
     ) -> None:
         """Start a background funding job."""
         loop = loop or asyncio.get_event_loop()
@@ -469,6 +837,7 @@ class ServiceManager:
                         PUBLIC_RPCS[service.ledger_config.chain],
                         10000000000000000,
                         50000000000000000,
+                        from_safe,
                     )
                 except Exception:  # pylint: disable=broad-except
                     logging.info(
@@ -507,27 +876,51 @@ class ServiceManager:
         new_hash: str,
         rpc: t.Optional[str] = None,
         on_chain_user_params: t.Optional[OnChainUserParams] = None,
+        from_safe: bool = True,
     ) -> Service:
         """Update a service."""
         old_service = self.create_or_load(
             hash=old_hash,
         )
-        self.unstake_service_on_chain(
+        (
+            self.unstake_service_on_chain_from_safe
+            if from_safe
+            else self.unstake_service_on_chain
+        )(
             hash=old_hash,
         )
-        self.terminate_service_on_chain(
+        (
+            self.terminate_service_on_chain_from_safe
+            if from_safe
+            else self.terminate_service_on_chain
+        )(
             hash=old_hash,
         )
-        self.unbond_service_on_chain(
+        (
+            self.unbond_service_on_chain_from_safe
+            if from_safe
+            else self.unbond_service_on_chain
+        )(
             hash=old_hash,
         )
-        ocm = self.get_on_chain_manager(service=old_service)
+
         owner, *_ = old_service.chain_data.instances
-        ocm.swap(
-            service_id=old_service.chain_data.token,
-            multisig=old_service.chain_data.multisig,
-            owner_key=str(self.keys_manager.get(key=owner).private_key),
-        )
+        if from_safe:
+            sftx = self.get_eth_safe_tx_builder(service=old_service)
+            sftx.new_tx().add(
+                sftx.get_swap_data(
+                    service_id=old_service.chain_data.token,
+                    multisig=old_service.chain_data.multisig,
+                    owner_key=str(self.keys_manager.get(key=owner).private_key),
+                )
+            ).settle()
+        else:
+            ocm = self.get_on_chain_manager(service=old_service)
+            ocm.swap(
+                service_id=old_service.chain_data.token,
+                multisig=old_service.chain_data.multisig,
+                owner_key=str(self.keys_manager.get(key=owner).private_key),
+            )
 
         new_service = self.create_or_load(
             hash=new_hash,

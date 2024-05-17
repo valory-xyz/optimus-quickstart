@@ -55,7 +55,7 @@ print("Setting up wallet")
 print(wallet)
 
 print("Funding wallet: ", end="")
-fund(wallet["wallet"]["address"])
+fund(wallet["wallet"]["address"], amount=20)
 
 print(
     requests.post(
