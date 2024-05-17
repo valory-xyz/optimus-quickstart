@@ -64,11 +64,11 @@ const SettingsMain = () => {
       <CardSection borderBottom justify="space-between" align="center">
         <Flex vertical>
           <Paragraph strong>Password</Paragraph>
-          <Text>********</Text>
+          <Text style={{ lineHeight: 1 }}>********</Text>
         </Flex>
       </CardSection>
 
-      <CardSection vertical gap={24}>
+      <CardSection vertical gap={8}>
         <Text strong>Backup wallet</Text>
         {backupSafeAddress ? (
           <Link
@@ -91,7 +91,8 @@ const NoBackupWallet = () => {
   return (
     <>
       <Text type="secondary">No backup wallet added.</Text>
-      <CardSection>
+
+      <CardSection style={{ marginTop: 12, marginBottom: 18 }}>
         <Alert
           type="warning"
           className="card-section-alert"
@@ -110,6 +111,7 @@ const NoBackupWallet = () => {
           }
         />
       </CardSection>
+
       <Button
         type="primary"
         size="large"

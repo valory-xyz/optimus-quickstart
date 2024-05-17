@@ -64,7 +64,7 @@ export const SetupWelcome = () => {
           width={80}
           height={80}
         />
-        <Typography.Title>Operate</Typography.Title>
+        <Typography.Title>Pearl</Typography.Title>
       </Flex>
       {welcomeScreen}
     </Card>
