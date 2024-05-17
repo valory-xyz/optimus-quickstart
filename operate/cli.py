@@ -432,6 +432,7 @@ def create_app(  # pylint: disable=too-many-locals, unused-argument, too-many-st
             to=t.cast(str, wallet.safe),
             amount=int(1e18),
             chain_type=chain_type,
+            from_safe=False,
         )
         return JSONResponse(content={"safe": wallet.safe, "message": "Safe created!"})
 
