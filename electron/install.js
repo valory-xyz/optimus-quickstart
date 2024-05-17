@@ -7,7 +7,7 @@ const process = require('process');
 const { spawnSync } = require('child_process');
 const Docker = require('dockerode');
 
-const Version = '0.1.0rc15';
+const Version = '0.1.0rc17';
 const OperateDirectory = `${os.homedir()}/.operate`;
 const VenvDir = `${OperateDirectory}/venv`;
 const VersionFile = `${OperateDirectory}/version.txt`;
@@ -223,6 +223,10 @@ function removeInstallationLogFile() {
   }
 }
 
+/*******************************/
+// NOTE: "Installing" is string matched in loading.html to detect installation
+/*******************************/
+
 async function setupDarwin(ipcChannel) {
   removeInstallationLogFile();
   console.log(appendLog('Checking brew installation'));
@@ -235,7 +239,7 @@ async function setupDarwin(ipcChannel) {
   console.log(appendLog('Checking docker installation'));
   if (!isDockerInstalledDarwin()) {
     ipcChannel.send('response', 'Installing Pearl Daemon');
-    console.log(appendLog('Installating docker'));
+    console.log(appendLog('Installing docker'));
     installDockerDarwin();
   }
 
@@ -280,7 +284,7 @@ async function setupUbuntu(ipcChannel) {
   console.log(appendLog('Checking docker installation'));
   if (!isDockerInstalledUbuntu()) {
     ipcChannel.send('response', 'Installing Pearl Daemon');
-    console.log(appendLog('Installating docker'));
+    console.log(appendLog('Installing docker'));
     await installDockerUbuntu();
   }
 
