@@ -96,6 +96,7 @@ export const MainHeader = () => {
   ]);
 
   const handleStop = useCallback(() => {
+    if (!services) return;
     if (services.length === 0) return;
     setServiceButtonState({ isLoading: true });
     ServicesService.stopDeployment(services[0].hash).then(() => {
