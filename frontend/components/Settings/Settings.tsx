@@ -17,6 +17,17 @@ import { SettingsAddBackupWallet } from './SettingsAddBackupWallet';
 
 const { Text, Paragraph } = Typography;
 
+const SettingsTitle = () => (
+  <CardTitle
+    title={
+      <Flex gap={10}>
+        <SettingOutlined />
+        Settings
+      </Flex>
+    }
+  />
+);
+
 export const Settings = () => {
   const { screen } = useSettings();
   const settingsScreen = useMemo(() => {
@@ -45,16 +56,8 @@ const SettingsMain = () => {
 
   return (
     <Card
-      title={
-        <CardTitle
-          title={
-            <Flex gap={10}>
-              <SettingOutlined />
-              Settings
-            </Flex>
-          }
-        />
-      }
+      title={<SettingsTitle />}
+      bordered={false}
       extra={
         <Button type="text" size="large" onClick={() => goto(PageState.Main)}>
           <CloseOutlined />
