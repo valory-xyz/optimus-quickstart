@@ -41,34 +41,6 @@
     });
 
     ipcRenderer.send("check", "Starting check...");
-
-    // const appContainer = document.querySelector("body");
-    // const observer = new ResizeObserver(entries => {
-    //   for (let entry of entries) {
-    //     const { height } = entry.contentRect;
-    //     // Update the app height
-    //     appContainer.style.height = `${height}px`;
-    //   }
-    // });
-    // observer.observe(appContainer);
-
-    // function updateHeight() {
-    //   const element = document.querySelector('body');
-    //   if (element) {
-    //     const scrollHeight = element.scrollHeight;
-    //     console.log('scrollHeight from index.html', scrollHeight);
-    //     ipcRenderer.send('element-height-changed', scrollHeight);
-    //   }
-    // }
-
-
-    // // Observe changes to the element's height
-    // const observer = new MutationObserver(updateHeight);
-    // // Observe changes in child elements and subtree
-    // observer.observe(document.querySelector('body'), { childList: true, subtree: true });
-    // // Initial height update
-    // updateHeight();
-
   </script>
 
 </html>

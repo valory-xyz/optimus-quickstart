@@ -4,6 +4,5 @@ contextBridge.exposeInMainWorld('electronAPI', {
   setTrayIcon: (status) => ipcRenderer.send('tray', status),
   closeApp: () => ipcRenderer.send('close-app'),
   minimizeApp: () => ipcRenderer.send('minimize-app'),
-  setAppFullHeight: () => ipcRenderer.send('set-full-height'),
   setAppHeight: (height) => ipcRenderer.send('set-height', height),
 });

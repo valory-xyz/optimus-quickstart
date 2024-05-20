@@ -3,14 +3,12 @@ import { createContext, PropsWithChildren } from 'react';
 
 type ElectronApiContextProps = {
   setHeight?: (height: number) => void;
-  setFullHeight?: () => void;
   closeApp?: () => void;
   minimizeApp?: () => void;
 };
 
 export const ElectronApiContext = createContext<ElectronApiContextProps>({
   setHeight: undefined,
-  setFullHeight: undefined,
   closeApp: undefined,
   minimizeApp: undefined,
 });
@@ -33,7 +31,6 @@ export const ElectronApiProvider = ({ children }: PropsWithChildren) => {
     <ElectronApiContext.Provider
       value={{
         setHeight: getElectronApiFunction('setAppHeight'),
-        setFullHeight: getElectronApiFunction('setAppFullHeight'),
         closeApp: getElectronApiFunction('closeApp'),
         minimizeApp: getElectronApiFunction('minimizeApp'),
       }}

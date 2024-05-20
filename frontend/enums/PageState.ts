@@ -6,4 +6,4 @@ export enum PageState {
   Send,
 }
 
-export const DEFAULT_HEIGHT = 735;
+export const DEFAULT_HEIGHT = 700;
