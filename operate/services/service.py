@@ -265,7 +265,9 @@ class Deployment(LocalResource):
                 chain=LedgerType(service.ledger_config.type).name.lower(),
                 address=service.ledger_config.rpc,
             )
-
+            volumes = builder.service.deployment_config.get("agent", {}).pop(
+                "volumes", {}
+            )
             # build deployment
             (
                 DockerComposeGenerator(
@@ -295,9 +297,7 @@ class Deployment(LocalResource):
         )
 
         _volumes = []
-        for volume, mount in (
-            service.helper.deployment_config().get("volumes", {}).items()
-        ):
+        for volume, mount in volumes.items():
             (build / volume).mkdir(exist_ok=True)
             _volumes.append(f"./{volume}:{mount}:Z")
 
