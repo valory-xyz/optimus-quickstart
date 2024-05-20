@@ -8,24 +8,24 @@ import { useElectronApi } from '@/hooks/useElectronApi';
 
 export default function Home() {
   const { pageState } = usePageState();
-  const { setHeight } = useElectronApi();
+  const { setAppHeight } = useElectronApi();
 
   useEffect(() => {
-    function updateHeight() {
+    function updateAppHeight() {
       const bodyElement = document.querySelector('body');
-      if (bodyElement && setHeight) {
+      if (bodyElement && setAppHeight) {
         const scrollHeight = bodyElement.scrollHeight;
-        setHeight(Math.min(DEFAULT_HEIGHT, scrollHeight));
+        setAppHeight(Math.min(DEFAULT_HEIGHT, scrollHeight));
       }
     }
 
     const bodyElement = document.querySelector('body');
     if (!bodyElement) return;
 
-    const observer = new MutationObserver(updateHeight);
+    const observer = new MutationObserver(updateAppHeight);
     observer.observe(bodyElement, { childList: true, subtree: true });
-    updateHeight();
-  }, [setHeight]);
+    updateAppHeight();
+  }, [setAppHeight]);
 
   const page = useMemo(() => {
     switch (pageState) {

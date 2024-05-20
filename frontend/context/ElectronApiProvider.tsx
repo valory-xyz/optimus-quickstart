@@ -2,13 +2,13 @@ import { get } from 'lodash';
 import { createContext, PropsWithChildren } from 'react';
 
 type ElectronApiContextProps = {
-  setHeight?: (height: number) => void;
+  setAppHeight?: (height: number) => void;
   closeApp?: () => void;
   minimizeApp?: () => void;
 };
 
 export const ElectronApiContext = createContext<ElectronApiContextProps>({
-  setHeight: undefined,
+  setAppHeight: undefined,
   closeApp: undefined,
   minimizeApp: undefined,
 });
@@ -30,7 +30,7 @@ export const ElectronApiProvider = ({ children }: PropsWithChildren) => {
   return (
     <ElectronApiContext.Provider
       value={{
-        setHeight: getElectronApiFunction('setAppHeight'),
+        setAppHeight: getElectronApiFunction('setAppHeight'),
         closeApp: getElectronApiFunction('closeApp'),
         minimizeApp: getElectronApiFunction('minimizeApp'),
       }}

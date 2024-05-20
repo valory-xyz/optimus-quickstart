@@ -3,10 +3,11 @@ import { useContext } from 'react';
 import { ElectronApiContext } from '@/context/ElectronApiProvider';
 
 export const useElectronApi = () => {
-  const { setHeight, closeApp, minimizeApp } = useContext(ElectronApiContext);
+  const { setAppHeight, closeApp, minimizeApp } =
+    useContext(ElectronApiContext);
 
   return {
-    setHeight,
+    setAppHeight,
     closeApp,
     minimizeApp,
   };
