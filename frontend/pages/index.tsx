@@ -12,18 +12,18 @@ export default function Home() {
 
   useEffect(() => {
     function updateHeight() {
-      const element = document.querySelector('body');
-      if (element && setHeight) {
-        const scrollHeight = element.scrollHeight;
+      const bodyElement = document.querySelector('body');
+      if (bodyElement && setHeight) {
+        const scrollHeight = bodyElement.scrollHeight;
         setHeight(Math.min(DEFAULT_HEIGHT, scrollHeight));
       }
     }
 
-    const body = document.querySelector('body');
-    if (!body) return;
+    const bodyElement = document.querySelector('body');
+    if (!bodyElement) return;
 
     const observer = new MutationObserver(updateHeight);
-    observer.observe(body, { childList: true, subtree: true });
+    observer.observe(bodyElement, { childList: true, subtree: true });
     updateHeight();
   }, [setHeight]);
 

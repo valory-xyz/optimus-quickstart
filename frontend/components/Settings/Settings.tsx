@@ -55,7 +55,6 @@ const SettingsMain = () => {
           }
         />
       }
-      // bordered={false}
       extra={
         <Button type="text" size="large" onClick={() => goto(PageState.Main)}>
           <CloseOutlined />
