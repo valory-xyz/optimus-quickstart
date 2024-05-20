@@ -20,12 +20,10 @@ import styled from 'styled-components';
 import { copyToClipboard, truncateAddress } from '@/common-util';
 import { COLOR, COW_SWAP_GNOSIS_XDAI_OLAS_URL } from '@/constants';
 import { UNICODE_SYMBOLS } from '@/constants/unicode';
-import { useElectronApi } from '@/hooks/useElectronApi';
 import { useWallet } from '@/hooks/useWallet';
 import { Address } from '@/types';
 
 import { CardSection } from '../styled/CardSection';
-import { useNeedsFunds } from './MainNeedsFunds';
 
 const { Text } = Typography;
 
@@ -35,40 +33,8 @@ const CustomizedCardSection = styled(CardSection)<{ border?: boolean }>`
   }
 `;
 
-const useAddFunds = () => {
-  const { setHeight, setFullHeight } = useElectronApi();
-  const { hasEnoughEth, hasEnoughOlas } = useNeedsFunds();
-
-  const [isAddFundsVisible, setIsAddFundsVisible] = useState(false);
-
-  const toggleAddFunds = useCallback(() => {
-    setIsAddFundsVisible((prev) => !prev);
-
-    if (!isAddFundsVisible) {
-      setFullHeight?.();
-    } else if (!hasEnoughEth && !hasEnoughOlas) {
-      setHeight?.(580);
-    } else if (!hasEnoughEth || !hasEnoughOlas) {
-      setHeight?.(580);
-    } else {
-      setHeight?.(475);
-    }
-  }, [
-    isAddFundsVisible,
-    hasEnoughEth,
-    hasEnoughOlas,
-    setFullHeight,
-    setHeight,
-  ]);
-
-  return {
-    isAddFundsVisible,
-    toggleAddFunds,
-  };
-};
-
 export const MainAddFunds = () => {
-  const { isAddFundsVisible, toggleAddFunds } = useAddFunds();
+  const [isAddFundsVisible, setIsAddFundsVisible] = useState(false);
   const { masterSafeAddress, masterEoaAddress } = useWallet();
 
   const fundingAddress: Address | undefined =
@@ -91,7 +57,11 @@ export const MainAddFunds = () => {
   return (
     <>
       <CustomizedCardSection gap={12}>
-        <Button type="default" size="large" onClick={toggleAddFunds}>
+        <Button
+          type="default"
+          size="large"
+          onClick={() => setIsAddFundsVisible((prev) => !prev)}
+        >
           {isAddFundsVisible ? 'Close instructions' : 'Add funds'}
         </Button>
 
@@ -183,7 +153,7 @@ const AddFundsAddressSection = ({
 );
 
 const AddFundsGetTokensSection = () => (
-  <CardSection justify="center" borderTop>
+  <CardSection justify="center" bordertop>
     <Link target="_blank" href={COW_SWAP_GNOSIS_XDAI_OLAS_URL}>
       Get OLAS + XDAI on Gnosis Chain {UNICODE_SYMBOLS.EXTERNAL_LINK}
     </Link>

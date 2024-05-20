@@ -6,7 +6,6 @@ import { ReactNode, useMemo } from 'react';
 import { COLOR, SERVICE_TEMPLATES } from '@/constants';
 import { UNICODE_SYMBOLS } from '@/constants/unicode';
 import { useBalance } from '@/hooks';
-import { useElectronApi } from '@/hooks/useElectronApi';
 
 import { CardSection } from '../styled/CardSection';
 
@@ -55,7 +54,6 @@ export const useNeedsFunds = () => {
 
 export const MainNeedsFunds = () => {
   const { isBalanceLoaded, totalEthBalance, totalOlasBalance } = useBalance();
-  const { setHeight } = useElectronApi();
   const { hasEnoughEth, hasEnoughOlas, serviceFundRequirements } =
     useNeedsFunds();
 
@@ -69,17 +67,8 @@ export const MainNeedsFunds = () => {
     }
 
     if (hasEnoughEth && hasEnoughOlas) return false;
-
-    // Set the height of the app to accommodate the alert
-    setHeight?.(!hasEnoughEth && !hasEnoughOlas ? 580 : 575);
     return true;
-  }, [
-    hasEnoughEth,
-    hasEnoughOlas,
-    totalEthBalance,
-    totalOlasBalance,
-    setHeight,
-  ]);
+  }, [hasEnoughEth, hasEnoughOlas, totalEthBalance, totalOlasBalance]);
 
   const message: ReactNode = useMemo(
     () => (

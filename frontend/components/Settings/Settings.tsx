@@ -55,13 +55,14 @@ const SettingsMain = () => {
           }
         />
       }
+      // bordered={false}
       extra={
         <Button type="text" size="large" onClick={() => goto(PageState.Main)}>
           <CloseOutlined />
         </Button>
       }
     >
-      <CardSection borderBottom justify="space-between" align="center">
+      <CardSection borderbottom justify="space-between" align="center">
         <Flex vertical>
           <Paragraph strong>Password</Paragraph>
           <Text style={{ lineHeight: 1 }}>********</Text>

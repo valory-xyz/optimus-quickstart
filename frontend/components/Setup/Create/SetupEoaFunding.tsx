@@ -115,7 +115,7 @@ export const SetupEoaFunding = () => {
         Note that this address will not be used after account creation.
       </Typography.Paragraph>
 
-      <CardSection borderTop borderBottom>
+      <CardSection bordertop borderbottom>
         <Typography.Text
           className={loadingStatuses.includes(status) ? 'loading-ellipses' : ''}
         >
@@ -153,7 +153,7 @@ const SetupEoaFundingWaiting = ({
           }
         />
       </CardSection>
-      <CardSection borderTop borderBottom vertical gap={10}>
+      <CardSection bordertop borderbottom vertical gap={10}>
         <AccountCreationCardFlex gap={10}>
           <Flex justify="space-between">
             <Typography.Text className="text-sm" strong>

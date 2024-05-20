@@ -14,7 +14,7 @@ export const Layout = ({
   children,
 }: PropsWithChildren & { vertical?: boolean }) => {
   return (
-    <Container>
+    <Container id="pearl-parent-container">
       <TopBar />
       {children}
     </Container>
