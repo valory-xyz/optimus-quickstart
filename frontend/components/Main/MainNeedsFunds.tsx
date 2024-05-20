@@ -38,11 +38,10 @@ export const useNeedsFunds = () => {
     serviceTemplate.configuration.olas_required_to_stake,
   ]);
 
-  const hasEnoughEth =
-    useMemo(
-      () => (totalEthBalance || 0) >= (serviceFundRequirements?.eth || 0),
-      [serviceFundRequirements?.eth, totalEthBalance],
-    ) && false;
+  const hasEnoughEth = useMemo(
+    () => (totalEthBalance || 0) >= (serviceFundRequirements?.eth || 0),
+    [serviceFundRequirements?.eth, totalEthBalance],
+  );
 
   const hasEnoughOlas = useMemo(
     () => (totalOlasBalance || 0) >= (serviceFundRequirements?.olas || 0),
