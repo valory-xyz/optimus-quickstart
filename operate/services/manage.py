@@ -436,7 +436,7 @@ class ServiceManager:
                 self.logger.info(
                     f"Approved {token_utility_allowance} OLAS from {wallet.safe} to {token_utility}"
                 )
-                cost_of_bond = 0
+                cost_of_bond = 1
 
             self.logger.info("Activating service")
             sftxb.new_tx().add(
@@ -485,7 +485,7 @@ class ServiceManager:
                 self.logger.info(
                     f"Approved {token_utility_allowance} OLAS from {wallet.safe} to {token_utility}"
                 )
-                cost_of_bond = 0
+                cost_of_bond = 1
 
             self.logger.info(
                 f"Registering service: {service.chain_data.token} -> {instances}"
