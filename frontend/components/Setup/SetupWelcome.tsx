@@ -18,6 +18,8 @@ import { AccountService } from '@/service/Account';
 
 import { FormFlex } from '../styled/FormFlex';
 
+const { Title } = Typography;
+
 export const SetupWelcome = () => {
   const [isSetup, setIsSetup] = useState<AccountIsSetup>(
     AccountIsSetup.Loading,
@@ -56,7 +58,7 @@ export const SetupWelcome = () => {
   }, [isSetup]);
 
   return (
-    <Card>
+    <Card bordered={false}>
       <Flex vertical align="center">
         <Image
           src={'/onboarding-robot.svg'}
@@ -64,7 +66,7 @@ export const SetupWelcome = () => {
           width={80}
           height={80}
         />
-        <Typography.Title>Pearl</Typography.Title>
+        <Title>Pearl</Title>
       </Flex>
       {welcomeScreen}
     </Card>

@@ -117,9 +117,6 @@ const createTray = () => {
   ]);
   tray.setToolTip('Pearl');
   tray.setContextMenu(contextMenu);
-  tray.on('click', () => {
-    mainWindow.show();
-  });
 
   ipcMain.on('tray', (_event, status) => {
     switch (status) {
@@ -461,13 +458,11 @@ app.on('ready', async () => {
 });
 
 app.on('window-all-closed', () => {
-  if (process.platform !== 'darwin') {
-    app.quit();
-  }
+  app.quit();
 });
 
-app.on('before-quit', () => {
-  beforeQuit();
+app.on('before-quit', async () => {
+  await beforeQuit();
 });
 
 // UPDATER EVENTS
