@@ -304,6 +304,17 @@ class Deployment(LocalResource):
         for node in deployment["services"]:
             if "abci" in node:
                 deployment["services"][node]["volumes"].extend(_volumes)
+                # Mech request patch
+                if (
+                    "SKILL_TRADER_ABCI_MODELS_PARAMS_ARGS_MECH_REQUEST_PRICE=0"
+                    in deployment["services"][node]["environment"]
+                ):
+                    deployment["services"][node]["environment"].remove(
+                        "SKILL_TRADER_ABCI_MODELS_PARAMS_ARGS_MECH_REQUEST_PRICE=0"
+                    )
+                    deployment["services"][node]["environment"].append(
+                        "SKILL_TRADER_ABCI_MODELS_PARAMS_ARGS_MECH_REQUEST_PRICE=10000000000000000"
+                    )
 
         with (build / DOCKER_COMPOSE_YAML).open("w", encoding="utf-8") as stream:
             yaml_dump(data=deployment, stream=stream)
