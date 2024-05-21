@@ -19,12 +19,13 @@ export default function Home() {
       }
     }
 
-    const bodyElement = document.querySelector('body');
-    if (!bodyElement) return;
-
-    const observer = new MutationObserver(updateAppHeight);
-    observer.observe(bodyElement, { childList: true, subtree: true });
+    const resizeObserver = new ResizeObserver(updateAppHeight);
+    resizeObserver.observe(document.body);
     updateAppHeight();
+
+    return () => {
+      resizeObserver.unobserve(document.body);
+    };
   }, [setAppHeight]);
 
   const page = useMemo(() => {
