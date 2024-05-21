@@ -18,7 +18,7 @@ const Loader = styled.div`
 `;
 
 export const MainRewards = () => {
-  const { availableRewardsForEpochEther, isEligibleForRewards } = useReward();
+  const { availableRewardsForEpochEth, isEligibleForRewards } = useReward();
   const { isBalanceLoaded } = useBalance();
 
   return (
@@ -27,7 +27,7 @@ export const MainRewards = () => {
       {isBalanceLoaded ? (
         <Flex gap={10}>
           <Text strong>
-            {balanceFormat(availableRewardsForEpochEther, 2)} OLAS
+            {balanceFormat(availableRewardsForEpochEth, 2)} OLAS
           </Text>
           <RewardsEarned isEligibleForRewards={isEligibleForRewards} />
         </Flex>

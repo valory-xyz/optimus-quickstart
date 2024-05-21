@@ -1,3 +1,4 @@
+import { ethers } from 'ethers';
 import {
   createContext,
   PropsWithChildren,
@@ -14,11 +15,13 @@ import { ServicesContext } from './ServicesProvider';
 
 export const RewardContext = createContext<{
   availableRewardsForEpoch?: number;
+  availableRewardsForEpochEth?: number;
   isEligibleForRewards?: boolean;
   optimisticRewardsEarnedForEpoch?: number;
   updateRewards: () => Promise<void>;
 }>({
   availableRewardsForEpoch: undefined,
+  availableRewardsForEpochEth: undefined,
   isEligibleForRewards: undefined,
   optimisticRewardsEarnedForEpoch: undefined,
   updateRewards: async () => {},
@@ -32,12 +35,22 @@ export const RewardProvider = ({ children }: PropsWithChildren) => {
     useState<number>();
   const [isEligibleForRewards, setIsEligibleForRewards] = useState<boolean>();
 
+  const availableRewardsForEpochEth = useMemo<number | undefined>(() => {
+    if (!availableRewardsForEpoch) return;
+
+    const formatRewardsEth = parseFloat(
+      ethers.utils.formatUnits(`${availableRewardsForEpoch}`, 18),
+    );
+
+    return formatRewardsEth;
+  }, [availableRewardsForEpoch]);
+
   const optimisticRewardsEarnedForEpoch = useMemo<number | undefined>(() => {
-    if (isEligibleForRewards && availableRewardsForEpoch) {
-      return availableRewardsForEpoch;
+    if (isEligibleForRewards && availableRewardsForEpochEth) {
+      return availableRewardsForEpochEth;
     }
     return;
-  }, [availableRewardsForEpoch, isEligibleForRewards]);
+  }, [availableRewardsForEpochEth, isEligibleForRewards]);
 
   const updateRewards = useCallback(async (): Promise<void> => {
     // service is deployed, created, etc.
@@ -66,6 +79,7 @@ export const RewardProvider = ({ children }: PropsWithChildren) => {
     <RewardContext.Provider
       value={{
         availableRewardsForEpoch,
+        availableRewardsForEpochEth,
         isEligibleForRewards,
         optimisticRewardsEarnedForEpoch,
         updateRewards,
