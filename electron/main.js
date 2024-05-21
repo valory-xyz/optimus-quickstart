@@ -117,9 +117,6 @@ const createTray = () => {
   ]);
   tray.setToolTip('Pearl');
   tray.setContextMenu(contextMenu);
-  tray.on('click', () => {
-    mainWindow.show();
-  });
 
   ipcMain.on('tray', (_event, status) => {
     switch (status) {
@@ -159,15 +156,18 @@ const createSplashWindow = () => {
     },
   });
   splashWindow.loadURL('file://' + __dirname + '/loading/index.html');
+
   if (isDev) {
     splashWindow.webContents.openDevTools();
   }
 };
 
+const HEIGHT = 700;
 /**
  * Creates the main window
  */
 const createMainWindow = () => {
+  const width = isDev ? 840 : 420;
   mainWindow = new BrowserWindow({
     title: 'Pearl',
     resizable: false,
@@ -176,8 +176,8 @@ const createMainWindow = () => {
     transparent: true,
     fullscreenable: false,
     maximizable: false,
-    width: isDev ? 840 : 420,
-    height: 735,
+    width,
+    maxHeight: HEIGHT,
     webPreferences: {
       nodeIntegration: false,
       contextIsolation: true,
@@ -199,6 +199,10 @@ const createMainWindow = () => {
 
   ipcMain.on('minimize-app', () => {
     mainWindow.minimize();
+  });
+
+  ipcMain.on('set-height', (_event, height) => {
+    mainWindow.setSize(width, height);
   });
 
   mainWindow.webContents.on('did-fail-load', () => {
@@ -454,13 +458,11 @@ app.on('ready', async () => {
 });
 
 app.on('window-all-closed', () => {
-  if (process.platform !== 'darwin') {
-    app.quit();
-  }
+  app.quit();
 });
 
-app.on('before-quit', () => {
-  beforeQuit();
+app.on('before-quit', async () => {
+  await beforeQuit();
 });
 
 // UPDATER EVENTS

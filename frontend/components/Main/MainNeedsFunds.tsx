@@ -11,9 +11,9 @@ import { CardSection } from '../styled/CardSection';
 
 const { Text } = Typography;
 
-export const MainNeedsFunds = () => {
+export const useNeedsFunds = () => {
   const serviceTemplate = SERVICE_TEMPLATES[0];
-  const { isBalanceLoaded, totalEthBalance, totalOlasBalance } = useBalance();
+  const { totalEthBalance, totalOlasBalance } = useBalance();
 
   const serviceFundRequirements = useMemo(() => {
     const monthlyGasEstimate = Number(
@@ -48,13 +48,23 @@ export const MainNeedsFunds = () => {
     [serviceFundRequirements?.olas, totalOlasBalance],
   );
 
+  return { hasEnoughEth, hasEnoughOlas, serviceFundRequirements };
+};
+
+export const MainNeedsFunds = () => {
+  const { isBalanceLoaded, totalEthBalance, totalOlasBalance } = useBalance();
+  const { hasEnoughEth, hasEnoughOlas, serviceFundRequirements } =
+    useNeedsFunds();
+
   const isVisible: boolean = useMemo(() => {
     if (
       [totalEthBalance, totalOlasBalance].some(
         (balance) => balance === undefined,
       )
-    )
+    ) {
       return false;
+    }
+
     if (hasEnoughEth && hasEnoughOlas) return false;
     return true;
   }, [hasEnoughEth, hasEnoughOlas, totalEthBalance, totalOlasBalance]);
