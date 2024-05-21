@@ -77,6 +77,8 @@ async function beforeQuit() {
     }
   }
 
+  console.log(tray?.destroy);
+
   tray && tray.destroy();
   mainWindow && mainWindow.destroy();
 }
@@ -117,9 +119,6 @@ const createTray = () => {
   ]);
   tray.setToolTip('Pearl');
   tray.setContextMenu(contextMenu);
-  tray.on('click', () => {
-    mainWindow.show();
-  });
 
   ipcMain.on('tray', (_event, status) => {
     switch (status) {
@@ -170,7 +169,8 @@ const HEIGHT = 700;
  * Creates the main window
  */
 const createMainWindow = () => {
-  const width = isDev ? 840 : 420;
+  const width = 420;
+  // const width = isDev ? 840 : 420;
   mainWindow = new BrowserWindow({
     title: 'Pearl',
     resizable: false,
@@ -227,9 +227,9 @@ const createMainWindow = () => {
     mainWindow.hide();
   });
 
-  if (isDev) {
-    mainWindow.webContents.openDevTools();
-  }
+  // if (isDev) {
+  //   mainWindow.webContents.openDevTools();
+  // }
 };
 
 async function launchDaemon() {
@@ -461,13 +461,24 @@ app.on('ready', async () => {
 });
 
 app.on('window-all-closed', () => {
+  console.log('window-all-closed: 555', process.platform);
   if (process.platform !== 'darwin') {
-    app.quit();
+    app?.quit();
   }
 });
 
-app.on('before-quit', () => {
-  beforeQuit();
+app.on('before-quit', async () => {
+  await beforeQuit();
+  app.quit();
+  console.log('before-quit: 222');
+});
+
+// Additional tray destruction to ensure it is removed
+app.on('quit', () => {
+  console.log('quit 111');
+  if (tray) {
+    tray.destroy();
+  }
 });
 
 // UPDATER EVENTS
