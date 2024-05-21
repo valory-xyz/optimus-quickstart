@@ -125,10 +125,15 @@ export const MainHeader = () => {
   }, [services, setServiceStatus]);
 
   const serviceToggleButton = useMemo(() => {
-    if (
-      serviceButtonState === ServiceButtonLoadingState.Starting ||
-      serviceButtonState === ServiceButtonLoadingState.Pausing
-    ) {
+    if (serviceButtonState === ServiceButtonLoadingState.Pausing) {
+      return (
+        <Button type="default" size="large" ghost disabled loading>
+          Stopping...
+        </Button>
+      );
+    }
+
+    if (serviceButtonState === ServiceButtonLoadingState.Starting) {
       return (
         <Popover
           trigger={['hover', 'click']}
@@ -144,10 +149,7 @@ export const MainHeader = () => {
           }
         >
           <Button type="default" size="large" ghost disabled loading>
-            {serviceButtonState === ServiceButtonLoadingState.Starting &&
-              'Starting...'}
-            {serviceButtonState === ServiceButtonLoadingState.Pausing &&
-              'Stopping...'}
+            Starting...
           </Button>
         </Popover>
       );
