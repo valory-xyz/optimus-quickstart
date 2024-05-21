@@ -1,19 +1,24 @@
 import { InfoCircleOutlined } from '@ant-design/icons';
 import { Alert, Flex, Typography } from 'antd';
 import { formatUnits } from 'ethers/lib/utils';
-import { ReactNode, useMemo } from 'react';
+import { ReactNode, useEffect, useMemo } from 'react';
 
 import { COLOR, SERVICE_TEMPLATES } from '@/constants';
 import { UNICODE_SYMBOLS } from '@/constants/unicode';
 import { useBalance } from '@/hooks';
+import { useStore } from '@/hooks/useStore';
 
 import { CardSection } from '../styled/CardSection';
 
 const { Text } = Typography;
 
+const serviceTemplate = SERVICE_TEMPLATES[0];
+
 export const MainNeedsFunds = () => {
-  const serviceTemplate = SERVICE_TEMPLATES[0];
+  const { storeState, storeIpc } = useStore();
   const { isBalanceLoaded, totalEthBalance, totalOlasBalance } = useBalance();
+
+  const isInitialFunded = storeState?.isInitialFunded;
 
   const serviceFundRequirements = useMemo(() => {
     const monthlyGasEstimate = Number(
@@ -32,11 +37,7 @@ export const MainNeedsFunds = () => {
       eth: monthlyGasEstimate,
       olas: olasCostOfBond + olasRequiredToStake,
     };
-  }, [
-    serviceTemplate.configuration.monthly_gas_estimate,
-    serviceTemplate.configuration.olas_cost_of_bond,
-    serviceTemplate.configuration.olas_required_to_stake,
-  ]);
+  }, []);
 
   const hasEnoughEth = useMemo(
     () => (totalEthBalance || 0) >= (serviceFundRequirements?.eth || 0),
@@ -49,6 +50,7 @@ export const MainNeedsFunds = () => {
   );
 
   const isVisible: boolean = useMemo(() => {
+    if (isInitialFunded) return false;
     if (
       [totalEthBalance, totalOlasBalance].some(
         (balance) => balance === undefined,
@@ -57,7 +59,13 @@ export const MainNeedsFunds = () => {
       return false;
     if (hasEnoughEth && hasEnoughOlas) return false;
     return true;
-  }, [hasEnoughEth, hasEnoughOlas, totalEthBalance, totalOlasBalance]);
+  }, [
+    hasEnoughEth,
+    hasEnoughOlas,
+    isInitialFunded,
+    totalEthBalance,
+    totalOlasBalance,
+  ]);
 
   const message: ReactNode = useMemo(
     () => (
@@ -82,6 +90,12 @@ export const MainNeedsFunds = () => {
     ),
     [serviceFundRequirements, hasEnoughEth, hasEnoughOlas],
   );
+
+  useEffect(() => {
+    if (hasEnoughEth && hasEnoughOlas && isInitialFunded === false) {
+      storeIpc?.set('isInitialFunded', true);
+    }
+  }, [hasEnoughEth, hasEnoughOlas, isInitialFunded, storeIpc]);
 
   if (!isVisible) return null;
   if (!isBalanceLoaded) return null;

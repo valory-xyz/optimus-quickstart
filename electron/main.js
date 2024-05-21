@@ -28,6 +28,7 @@ const { killProcesses } = require('./processes');
 const { isPortAvailable, findAvailablePort } = require('./ports');
 const { PORT_RANGE, isWindows, isMac } = require('./constants');
 const { macUpdater } = require('./update');
+const { setupStoreIpc } = require('./store');
 
 // Configure environment variables
 dotenv.config();
@@ -59,6 +60,8 @@ let tray,
   operateDaemonPid,
   nextAppProcess,
   nextAppProcessPid;
+
+setupStoreIpc(ipcMain);
 
 async function beforeQuit() {
   if (operateDaemonPid) {
@@ -316,20 +319,43 @@ async function launchNextApp() {
 }
 
 async function launchNextAppDev() {
-  await new Promise(function (resolve, _reject) {
-    process.env.NEXT_PUBLIC_BACKEND_PORT = appConfig.ports.dev.operate; // must set next env var to connect to backend
-    nextAppProcess = spawn(
-      'yarn',
-      ['dev:frontend', '--port', appConfig.ports.dev.next],
-      {
-        env: { ...process.env },
-      },
+  // await new Promise(function (resolve, _reject) {
+  //   process.env.NEXT_PUBLIC_BACKEND_PORT = appConfig.ports.dev.operate; // must set next env var to connect to backend
+  //   nextAppProcess = spawn(
+  //     'yarn',
+  //     ['dev:frontend', '--port', appConfig.ports.dev.next],
+  //     {
+  //       env: { ...process.env },
+  //     },
+  //   );
+  //   nextAppProcessPid = nextAppProcess.pid;
+  //   nextAppProcess.stdout.on('data', (data) => {
+  //     console.log(data.toString().trim());
+  //     resolve();
+  //   });
+  // });
+  const nextApp = next({
+    dev: true,
+    dir: path.join(__dirname, '../frontend'),
+    port: appConfig.ports.prod.next,
+    env: {
+      GNOSIS_RPC:
+        process.env.NODE_ENV === 'development'
+          ? process.env.FORK_URL
+          : process.env.DEV_RPC,
+    },
+  });
+  await nextApp.prepare();
+
+  const handle = nextApp.getRequestHandler();
+  const server = http.createServer((req, res) => {
+    handle(req, res); // Handle requests using the Next.js request handler
+  });
+  server.listen(appConfig.ports.dev.next, (err) => {
+    if (err) throw err;
+    console.log(
+      `> Next server running on http://localhost:${appConfig.ports.dev.next}`,
     );
-    nextAppProcessPid = nextAppProcess.pid;
-    nextAppProcess.stdout.on('data', (data) => {
-      console.log(data.toString().trim());
-      resolve();
-    });
   });
 }
 
