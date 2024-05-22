@@ -157,3 +157,9 @@ export const MainRewards = () => (
     <NotifyRewards />
   </>
 );
+
+/**
+ * animation
+ * - https://lottiefiles.com/animations/success-icon-iY8xKnizbH
+ *
+ */
