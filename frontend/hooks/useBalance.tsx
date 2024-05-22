@@ -13,6 +13,7 @@ export const useBalance = () => {
     walletBalances,
     updateBalances,
     setIsPaused,
+    totalOlasStakedBalance,
   } = useContext(BalanceContext);
 
   return {
@@ -25,5 +26,6 @@ export const useBalance = () => {
     walletBalances,
     updateBalances,
     setIsPaused,
+    totalOlasStakedBalance,
   };
 };

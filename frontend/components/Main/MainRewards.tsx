@@ -8,13 +8,13 @@ import { CardSection } from '../styled/CardSection';
 
 const { Text } = Typography;
 
+// TODO: Replace with real data
+const isStakingInfoLoaded = false;
+const isStaked = false;
+
 export const MainRewards = () => {
   const { availableRewardsForEpochEther, isEligibleForRewards } = useReward();
-  const { isBalanceLoaded } = useBalance();
-
-  const isStakingInfoLoaded = false;
-  const isStaked = false;
-  const stakedAmount = 10;
+  const { isBalanceLoaded, totalOlasStakedBalance } = useBalance();
 
   return (
     <CardSection gap={5} vertical>
@@ -48,7 +48,7 @@ export const MainRewards = () => {
             {isStakingInfoLoaded ? (
               <>
                 <Text strong style={{ fontSize: 20 }}>
-                  {balanceFormat(stakedAmount, 2)} OLAS
+                  {balanceFormat(totalOlasStakedBalance, 2)} OLAS
                 </Text>
                 {isStaked ? null : <Tag color="processing">Not yet staked</Tag>}
               </>
