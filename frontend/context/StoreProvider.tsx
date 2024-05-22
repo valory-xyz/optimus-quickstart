@@ -1,5 +1,6 @@
 import { createContext, PropsWithChildren, useEffect, useState } from 'react';
 
+import { ElectronApiService } from '@/service';
 import type { ElectronStore } from '@/types';
 
 export const StoreContext = createContext<{ storeState?: ElectronStore }>({
@@ -10,12 +11,15 @@ export const StoreProvider = ({ children }: PropsWithChildren) => {
   const [storeState, setStoreState] = useState<ElectronStore>();
 
   const setupStore = async () => {
-    const store: ElectronStore = await window.electronAPI.store.store();
-    setStoreState(store);
+    const store = await ElectronApiService?.store.store();
+    if (store) setStoreState(store);
 
-    // ipcRenderer.on('store-change', (_event, data: ElectronStore) => {
-    // setStoreState(data);
-    // });
+    ElectronApiService?.ipcRenderer.on(
+      'store-change',
+      (_event: unknown, data: ElectronStore) => {
+        setStoreState(data);
+      },
+    );
   };
 
   useEffect(() => {

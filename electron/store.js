@@ -7,8 +7,9 @@ const beforeEachMigration = (_store, context) => {
 const setupStoreIpc = async (ipcChannel) => {
   const Store = (await import('electron-store')).default;
 
+  // update this object if/when you add/remove keys from the store
   const migrations = {
-    '0.0.1': (store) => {
+    '>=0.1.0-rc20': (store) => {
       store.set('isInitialFunded', false);
     },
   };

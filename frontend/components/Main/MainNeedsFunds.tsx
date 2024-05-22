@@ -6,16 +6,19 @@ import { ReactNode, useEffect, useMemo } from 'react';
 import { COLOR, SERVICE_TEMPLATES } from '@/constants';
 import { UNICODE_SYMBOLS } from '@/constants/unicode';
 import { useBalance } from '@/hooks';
+import { useStore } from '@/hooks/useStore';
+import { ElectronApiService } from '@/service';
 
 import { CardSection } from '../styled/CardSection';
 
 const { Text } = Typography;
 
-export const useNeedsFunds = () => {
+const useNeedsFunds = () => {
   const serviceTemplate = SERVICE_TEMPLATES[0];
+  const { storeState } = useStore();
   const { totalEthBalance, totalOlasBalance } = useBalance();
 
-  const isInitialFunded = storeState?.isInitialFunded;
+  const isInitialFunded = storeState?.isInitialFunded as boolean | undefined;
 
   const serviceFundRequirements = useMemo(() => {
     const monthlyGasEstimate = Number(
@@ -50,13 +53,22 @@ export const useNeedsFunds = () => {
     [serviceFundRequirements?.olas, totalOlasBalance],
   );
 
-  return { hasEnoughEth, hasEnoughOlas, serviceFundRequirements };
+  return {
+    hasEnoughEth,
+    hasEnoughOlas,
+    serviceFundRequirements,
+    isInitialFunded,
+  };
 };
 
 export const MainNeedsFunds = () => {
   const { isBalanceLoaded, totalEthBalance, totalOlasBalance } = useBalance();
-  const { hasEnoughEth, hasEnoughOlas, serviceFundRequirements } =
-    useNeedsFunds();
+  const {
+    hasEnoughEth,
+    hasEnoughOlas,
+    serviceFundRequirements,
+    isInitialFunded,
+  } = useNeedsFunds();
 
   const isVisible: boolean = useMemo(() => {
     if (isInitialFunded) return false;
@@ -103,9 +115,9 @@ export const MainNeedsFunds = () => {
 
   useEffect(() => {
     if (hasEnoughEth && hasEnoughOlas && isInitialFunded === false) {
-      storeIpc?.set('isInitialFunded', true);
+      ElectronApiService?.store.set('isInitialFunded', true);
     }
-  }, [hasEnoughEth, hasEnoughOlas, isInitialFunded, storeIpc]);
+  }, [hasEnoughEth, hasEnoughOlas, isInitialFunded]);
 
   if (!isVisible) return null;
   if (!isBalanceLoaded) return null;

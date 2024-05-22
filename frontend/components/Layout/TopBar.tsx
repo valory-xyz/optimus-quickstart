@@ -2,7 +2,7 @@ import { Typography } from 'antd';
 import styled from 'styled-components';
 
 import { COLOR } from '@/constants';
-import { useElectronApi } from '@/hooks/useElectronApi';
+import { ElectronApiService } from '@/service';
 
 const { Text } = Typography;
 
@@ -47,13 +47,11 @@ const TopBarContainer = styled.div`
 `;
 
 export const TopBar = () => {
-  const { minimizeApp, closeApp } = useElectronApi();
-
   return (
     <TopBarContainer>
       <TrafficLights>
-        <RedLight onClick={() => closeApp?.()} />
-        <YellowLight onClick={() => minimizeApp?.()} />
+        <RedLight onClick={() => ElectronApiService?.closeApp?.()} />
+        <YellowLight onClick={() => ElectronApiService?.minimizeApp?.()} />
         <DisabledLight />
       </TrafficLights>
 

@@ -1,17 +1,15 @@
 import { InfoCircleOutlined } from '@ant-design/icons';
 import { Badge, Button, Flex, Popover, Typography } from 'antd';
 import { formatUnits } from 'ethers/lib/utils';
-import get from 'lodash/get';
 import Image from 'next/image';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
 import { Chain, DeploymentStatus } from '@/client';
-import { setTrayIcon } from '@/common-util';
 import { COLOR, LOW_BALANCE, SERVICE_TEMPLATES } from '@/constants';
 import { useBalance, useServiceTemplates } from '@/hooks';
 import { useServices } from '@/hooks/useServices';
 import { useWallet } from '@/hooks/useWallet';
-import { ServicesService } from '@/service';
+import { ElectronApiService, ServicesService } from '@/service';
 import { WalletService } from '@/service/Wallet';
 
 const { Text } = Typography;
@@ -24,11 +22,6 @@ enum ServiceButtonLoadingState {
   Pausing,
   NotLoading,
 }
-
-const notifyAgentRunning = () => {
-  const fn = get(window, 'electronAPI.notifyAgentRunning') ?? (() => null);
-  return fn();
-};
 
 export const MainHeader = () => {
   const { services, serviceStatus, setServiceStatus } = useServices();
@@ -50,11 +43,11 @@ export const MainHeader = () => {
 
   useEffect(() => {
     if (totalEthBalance && totalEthBalance < LOW_BALANCE) {
-      setTrayIcon('low-gas');
+      ElectronApiService?.setTrayIcon('low-gas');
     } else if (serviceStatus === DeploymentStatus.DEPLOYED) {
-      setTrayIcon('running');
+      ElectronApiService?.setTrayIcon('running');
     } else if (serviceStatus === DeploymentStatus.STOPPED) {
-      setTrayIcon('paused');
+      ElectronApiService?.setTrayIcon('paused');
     }
   }, [totalEthBalance, serviceStatus]);
 
@@ -118,7 +111,7 @@ export const MainHeader = () => {
         setServiceStatus(DeploymentStatus.DEPLOYED);
         setIsBalancePollingPaused(false);
         setServiceButtonState(ServiceButtonLoadingState.NotLoading);
-        notifyAgentRunning();
+        ElectronApiService?.notifyAgentRunning();
       });
     } catch (error) {
       setIsBalancePollingPaused(false);
