@@ -14,4 +14,4 @@ configuration:
   monthly_gas_estimate: 22500000000000000000
   fund_requirements:
     agent: 100000000000000000
-    safe: 500000000000000000
+    safe: 5000000000000000000
