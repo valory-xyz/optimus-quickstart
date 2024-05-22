@@ -6,8 +6,8 @@ import { ReactNode, useEffect, useMemo } from 'react';
 import { COLOR, SERVICE_TEMPLATES } from '@/constants';
 import { UNICODE_SYMBOLS } from '@/constants/unicode';
 import { useBalance } from '@/hooks';
+import { useElectronApi } from '@/hooks/useElectronApi';
 import { useStore } from '@/hooks/useStore';
-import { ElectronApiService } from '@/service';
 
 import { CardSection } from '../styled/CardSection';
 
@@ -70,6 +70,8 @@ export const MainNeedsFunds = () => {
     isInitialFunded,
   } = useNeedsFunds();
 
+  const electronApi = useElectronApi();
+
   const isVisible: boolean = useMemo(() => {
     if (isInitialFunded) return false;
     if (
@@ -115,9 +117,9 @@ export const MainNeedsFunds = () => {
 
   useEffect(() => {
     if (hasEnoughEth && hasEnoughOlas && isInitialFunded === false) {
-      ElectronApiService?.store.set('isInitialFunded', true);
+      electronApi.store?.set?.('isInitialFunded', true);
     }
-  }, [hasEnoughEth, hasEnoughOlas, isInitialFunded]);
+  }, [electronApi.store, hasEnoughEth, hasEnoughOlas, isInitialFunded]);
 
   if (!isVisible) return null;
   if (!isBalanceLoaded) return null;

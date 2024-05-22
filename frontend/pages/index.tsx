@@ -4,20 +4,21 @@ import { Settings, Setup } from '@/components';
 import { Main } from '@/components/Main/Main';
 import { DEFAULT_HEIGHT, PageState } from '@/enums';
 import { usePageState } from '@/hooks';
-import { ElectronApiService } from '@/service';
-
-function updateAppHeight() {
-  const bodyElement = document.querySelector('body');
-  if (bodyElement) {
-    const scrollHeight = bodyElement.scrollHeight;
-    ElectronApiService?.setAppHeight(Math.min(DEFAULT_HEIGHT, scrollHeight));
-  }
-}
+import { useElectronApi } from '@/hooks/useElectronApi';
 
 export default function Home() {
   const { pageState } = usePageState();
+  const electronApi = useElectronApi();
 
   useEffect(() => {
+    function updateAppHeight() {
+      const bodyElement = document.querySelector('body');
+      if (bodyElement) {
+        const scrollHeight = bodyElement.scrollHeight;
+        electronApi?.setAppHeight?.(Math.min(DEFAULT_HEIGHT, scrollHeight));
+      }
+    }
+
     const resizeObserver = new ResizeObserver(updateAppHeight);
     resizeObserver.observe(document.body);
     updateAppHeight();
@@ -25,7 +26,7 @@ export default function Home() {
     return () => {
       resizeObserver.unobserve(document.body);
     };
-  }, []);
+  }, [electronApi]);
 
   const page = useMemo(() => {
     switch (pageState) {

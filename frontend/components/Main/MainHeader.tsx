@@ -7,9 +7,10 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Chain, DeploymentStatus } from '@/client';
 import { COLOR, LOW_BALANCE, SERVICE_TEMPLATES } from '@/constants';
 import { useBalance, useServiceTemplates } from '@/hooks';
+import { useElectronApi } from '@/hooks/useElectronApi';
 import { useServices } from '@/hooks/useServices';
 import { useWallet } from '@/hooks/useWallet';
-import { ElectronApiService, ServicesService } from '@/service';
+import { ServicesService } from '@/service';
 import { WalletService } from '@/service/Wallet';
 
 const { Text } = Typography;
@@ -32,6 +33,7 @@ export const MainHeader = () => {
     totalEthBalance,
     setIsPaused: setIsBalancePollingPaused,
   } = useBalance();
+  const electronApi = useElectronApi();
 
   const [serviceButtonState, setServiceButtonState] =
     useState<ServiceButtonLoadingState>(ServiceButtonLoadingState.NotLoading);
@@ -43,13 +45,13 @@ export const MainHeader = () => {
 
   useEffect(() => {
     if (totalEthBalance && totalEthBalance < LOW_BALANCE) {
-      ElectronApiService?.setTrayIcon('low-gas');
+      electronApi?.setTrayIcon?.('low-gas');
     } else if (serviceStatus === DeploymentStatus.DEPLOYED) {
-      ElectronApiService?.setTrayIcon('running');
+      electronApi?.setTrayIcon?.('running');
     } else if (serviceStatus === DeploymentStatus.STOPPED) {
-      ElectronApiService?.setTrayIcon('paused');
+      electronApi?.setTrayIcon?.('paused');
     }
-  }, [totalEthBalance, serviceStatus]);
+  }, [totalEthBalance, serviceStatus, electronApi]);
 
   const agentHead = useMemo(() => {
     if (
@@ -111,13 +113,14 @@ export const MainHeader = () => {
         setServiceStatus(DeploymentStatus.DEPLOYED);
         setIsBalancePollingPaused(false);
         setServiceButtonState(ServiceButtonLoadingState.NotLoading);
-        ElectronApiService?.notifyAgentRunning();
+        electronApi?.notifyAgentRunning?.();
       });
     } catch (error) {
       setIsBalancePollingPaused(false);
       setServiceButtonState(ServiceButtonLoadingState.NotLoading);
     }
   }, [
+    electronApi,
     masterSafeAddress,
     serviceTemplate,
     setIsBalancePollingPaused,

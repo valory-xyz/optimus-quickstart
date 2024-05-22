@@ -1,30 +1,39 @@
-import { createContext, PropsWithChildren, useEffect, useState } from 'react';
+import {
+  createContext,
+  PropsWithChildren,
+  useCallback,
+  useContext,
+  useEffect,
+  useState,
+} from 'react';
 
-import { ElectronApiService } from '@/service';
 import type { ElectronStore } from '@/types';
+
+import { ElectronApiContext } from './ElectronApiProvider';
 
 export const StoreContext = createContext<{ storeState?: ElectronStore }>({
   storeState: undefined,
 });
 
 export const StoreProvider = ({ children }: PropsWithChildren) => {
+  const { store, ipcRenderer } = useContext(ElectronApiContext);
   const [storeState, setStoreState] = useState<ElectronStore>();
 
-  const setupStore = async () => {
-    const store = await ElectronApiService?.store.store();
-    if (store) setStoreState(store);
+  const setupStore = useCallback(async () => {
+    const tempStore = await store?.store?.();
+    if (store) setStoreState(tempStore);
 
-    ElectronApiService?.ipcRenderer.on(
+    ipcRenderer?.on?.(
       'store-change',
       (_event: unknown, data: ElectronStore) => {
         setStoreState(data);
       },
     );
-  };
+  }, [ipcRenderer, store]);
 
   useEffect(() => {
     if (!storeState) setupStore().catch(console.error);
-  }, [storeState]);
+  }, [setupStore, storeState]);
 
   return (
     <StoreContext.Provider value={{ storeState }}>
