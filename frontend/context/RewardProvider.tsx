@@ -53,13 +53,11 @@ export const RewardProvider = ({ children }: PropsWithChildren) => {
   }, [availableRewardsForEpochEth, isEligibleForRewards]);
 
   const updateRewards = useCallback(async (): Promise<void> => {
-    // service is deployed, created, etc.
-
     let rewardsInfoPromise;
     if (service?.chain_data?.multisig && service?.chain_data?.token) {
       rewardsInfoPromise = AutonolasService.getAgentStakingRewardsInfo({
-        agentMultisigAddress: service.chain_data.multisig,
-        serviceId: service.chain_data.token,
+        agentMultisigAddress: service?.chain_data?.multisig,
+        serviceId: service?.chain_data?.token,
       });
     }
 

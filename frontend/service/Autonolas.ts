@@ -86,10 +86,17 @@ const getAgentStakingRewardsInfo = async ({
     // Accumulated inactivity that might lead to the service eviction
     uint256 inactivity;}
    */
-  const isEligibleForRewards =
-    mechRequestCount - serviceInfo[2][1] >=
-    (livenessPeriod * livenessRatio) / 10 ** 18 +
-      REQUIRED_MECH_REQUESTS_SAFETY_MARGIN;
+
+  const liveRatioFormatted = livenessRatio / 1e18;
+
+  const multisigNonce = serviceInfo[2][1];
+
+  const eligibleRequests = mechRequestCount - multisigNonce;
+
+  const eligibilityMargin =
+    livenessPeriod * liveRatioFormatted + REQUIRED_MECH_REQUESTS_SAFETY_MARGIN;
+
+  const isEligibleForRewards = eligibleRequests >= eligibilityMargin;
 
   const availableRewardsForEpoch = rewardsPerSecond * livenessPeriod;
 
