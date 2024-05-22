@@ -4,7 +4,7 @@ const beforeEachMigration = (_store, context) => {
   );
 };
 
-const setupStoreIpc = async (ipcChannel) => {
+const setupStoreIpc = async (ipcChannel, mainWindow) => {
   const Store = (await import('electron-store')).default;
 
   // update this object if/when you add/remove keys from the store
@@ -15,6 +15,11 @@ const setupStoreIpc = async (ipcChannel) => {
   };
 
   const store = new Store({ beforeEachMigration, migrations });
+
+  store.onDidAnyChange((data) => {
+    if (mainWindow?.webContents)
+      mainWindow.webContents.send('store-changed', data);
+  });
 
   // exposed to electron browser window
   ipcChannel.handle('store', () => store.store);

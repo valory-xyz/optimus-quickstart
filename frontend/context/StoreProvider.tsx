@@ -23,7 +23,7 @@ export const StoreProvider = ({ children }: PropsWithChildren) => {
     const tempStore = await store?.store?.();
     setStoreState(tempStore);
     ipcRenderer?.on?.(
-      'store-change',
+      'store-changed',
       (_event: unknown, data: ElectronStore) => {
         setStoreState(data);
       },

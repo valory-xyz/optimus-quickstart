@@ -61,8 +61,6 @@ let tray,
   nextAppProcess,
   nextAppProcessPid;
 
-setupStoreIpc(ipcMain);
-
 async function beforeQuit() {
   if (operateDaemonPid) {
     try {
@@ -247,6 +245,8 @@ const createMainWindow = () => {
     event.preventDefault();
     mainWindow.hide();
   });
+
+  setupStoreIpc(ipcMain, mainWindow);
 
   if (isDev) {
     mainWindow.webContents.openDevTools();
