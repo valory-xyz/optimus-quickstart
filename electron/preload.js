@@ -5,4 +5,6 @@ contextBridge.exposeInMainWorld('electronAPI', {
   closeApp: () => ipcRenderer.send('close-app'),
   minimizeApp: () => ipcRenderer.send('minimize-app'),
   setAppHeight: (height) => ipcRenderer.send('set-height', height),
+  showNotification: (title, description) =>
+    ipcRenderer.send('show-notification', title, description),
 });

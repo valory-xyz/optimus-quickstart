@@ -60,6 +60,10 @@ let tray,
   nextAppProcess,
   nextAppProcessPid;
 
+function showNotification(title, body) {
+  new Notification({ title, body }).show();
+}
+
 async function beforeQuit() {
   if (operateDaemonPid) {
     try {
@@ -218,6 +222,10 @@ const createMainWindow = () => {
     mainWindow.setSize(width, height);
   });
 
+  ipcMain.on('show-notification', (title, description) => {
+    showNotification(title, description);
+  });
+
   mainWindow.webContents.on('did-fail-load', () => {
     mainWindow.webContents.reloadIgnoringCache();
   });
@@ -241,10 +249,6 @@ const createMainWindow = () => {
     mainWindow.webContents.openDevTools();
   }
 };
-
-function showNotification(title, body) {
-  new Notification({ title, body }).show();
-}
 
 async function launchDaemon() {
   function appendLog(data) {
@@ -467,9 +471,6 @@ ipcMain.on('check', async function (event, _argument) {
 // APP-SPECIFIC EVENTS
 app.on('ready', async () => {
   if (platform === 'darwin') {
-    console.log('macOS detected');
-    showNotification('Pearl', 'Starting Pearl...');
-
     app.dock?.setIcon(
       path.join(__dirname, 'assets/icons/splash-robot-head-dock.png'),
     );
