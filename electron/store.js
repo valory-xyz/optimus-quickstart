@@ -1,20 +1,18 @@
-const beforeEachMigration = (_store, context) => {
-  console.log(
-    `[store] migrate from ${context.fromVersion} → ${context.toVersion}`,
-  );
+// set schema to validate store data
+const schema = {
+  isInitialFunded: {
+    type: 'boolean',
+    default: false,
+  },
 };
 
 const setupStoreIpc = async (ipcChannel, mainWindow) => {
   const Store = (await import('electron-store')).default;
 
-  // update this object if/when you add/remove keys from the store
-  const migrations = {
-    '>=0.1.0-rc20': (store) => {
-      store.set('isInitialFunded', false);
-    },
-  };
-
-  const store = new Store({ beforeEachMigration, migrations });
+  /** @type import Store from 'electron-store' */
+  const store = new Store({
+    schema,
+  });
 
   store.onDidAnyChange((data) => {
     if (mainWindow?.webContents)
