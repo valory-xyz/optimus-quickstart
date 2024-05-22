@@ -1,9 +1,11 @@
 import { Col, Flex, Row, Skeleton, Tag, Typography } from 'antd';
+import { useEffect } from 'react';
 import styled from 'styled-components';
 
 import { balanceFormat } from '@/common-util';
 import { COLOR } from '@/constants';
 import { useBalance } from '@/hooks';
+import { useElectronApi } from '@/hooks/useElectronApi';
 import { useReward } from '@/hooks/useReward';
 
 const { Text } = Typography;
@@ -71,8 +73,28 @@ const DisplayRewards = () => {
   );
 };
 
+const NotifyRewards = () => {
+  const { isEligibleForRewards, availableRewardsForEpochEther } = useReward();
+  const { showNotification } = useElectronApi();
+
+  useEffect(() => {
+    const hasAlreadyNotified = false; // TODO: Implement this
+
+    if (hasAlreadyNotified) return;
+    if (!isEligibleForRewards) return;
+
+    showNotification?.(
+      'Your agent earned its first staking rewards!',
+      `Congratulations! Your agent just got the first reward for you! Your current balance: ${availableRewardsForEpochEther} OLAS`,
+    );
+  }, [isEligibleForRewards, availableRewardsForEpochEther, showNotification]);
+
+  return null;
+};
+
 export const MainRewards = () => (
   <>
     <DisplayRewards />
+    <NotifyRewards />
   </>
 );
