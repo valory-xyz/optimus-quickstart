@@ -20,7 +20,7 @@ const RewardsRow = styled(Row)`
 const isStakingInfoLoaded = false;
 const isStaked = false;
 
-export const MainRewards = () => {
+const DisplayRewards = () => {
   const { availableRewardsForEpochEther, isEligibleForRewards } = useReward();
   const { isBalanceLoaded, totalOlasStakedBalance } = useBalance();
 
@@ -70,3 +70,9 @@ export const MainRewards = () => {
     </RewardsRow>
   );
 };
+
+export const MainRewards = () => (
+  <>
+    <DisplayRewards />
+  </>
+);
