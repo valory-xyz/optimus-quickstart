@@ -17,7 +17,7 @@ const RewardsRow = styled(Row)`
 `;
 
 const DisplayRewards = () => {
-  const { availableRewardsForEpochEther, isEligibleForRewards } = useReward();
+  const { availableRewardsForEpochEth, isEligibleForRewards } = useReward();
   const { isBalanceLoaded, totalOlasStakedBalance } = useBalance();
 
   // 20 OLAS is the minimum amount to stake
@@ -31,7 +31,7 @@ const DisplayRewards = () => {
           {isBalanceLoaded ? (
             <>
               <Text strong style={{ fontSize: 20 }}>
-                {balanceFormat(availableRewardsForEpochEther, 2)} OLAS
+                {balanceFormat(availableRewardsForEpochEth, 2)} OLAS
               </Text>
               {isEligibleForRewards ? (
                 <Tag color="success">Earned</Tag>
