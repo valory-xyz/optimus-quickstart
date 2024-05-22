@@ -220,6 +220,14 @@ const createMainWindow = () => {
     mainWindow.setSize(width, height);
   });
 
+  ipcMain.on('notify-agent-running', () => {
+    if (!mainWindow.isVisible()) {
+      new Notification({
+        title: 'Your agent is now running!',
+      }).show();
+    }
+  });
+
   mainWindow.webContents.on('did-fail-load', () => {
     mainWindow.webContents.reloadIgnoringCache();
   });
