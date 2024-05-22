@@ -156,13 +156,15 @@ const createTray = () => {
   });
 };
 
+const APP_WIDTH = 460;
+
 /**
  * Creates the splash window
  */
 const createSplashWindow = () => {
   splashWindow = new BrowserWindow({
-    width: 420,
-    height: 420,
+    width: APP_WIDTH,
+    height: APP_WIDTH,
     resizable: false,
     show: true,
     title: 'Pearl',
@@ -184,7 +186,7 @@ const HEIGHT = 700;
  * Creates the main window
  */
 const createMainWindow = () => {
-  const width = isDev ? 840 : 420;
+  const width = isDev ? 840 : APP_WIDTH;
   mainWindow = new BrowserWindow({
     title: 'Pearl',
     resizable: false,
@@ -223,7 +225,7 @@ const createMainWindow = () => {
   });
 
   ipcMain.on('show-notification', (title, description) => {
-    showNotification(title, description);
+    showNotification(title, description || undefined);
   });
 
   mainWindow.webContents.on('did-fail-load', () => {

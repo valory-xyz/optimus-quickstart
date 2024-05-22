@@ -42,6 +42,7 @@ export const BalanceContext = createContext<{
   walletBalances: WalletAddressNumberRecord;
   updateBalances: () => Promise<void>;
   setIsPaused: Dispatch<SetStateAction<boolean>>;
+  totalOlasStakedBalance?: number;
 }>({
   isLoaded: false,
   setIsLoaded: () => {},
@@ -54,6 +55,7 @@ export const BalanceContext = createContext<{
   walletBalances: {},
   updateBalances: async () => {},
   setIsPaused: () => {},
+  totalOlasStakedBalance: undefined,
 });
 
 export const BalanceProvider = ({ children }: PropsWithChildren) => {
@@ -100,6 +102,11 @@ export const BalanceProvider = ({ children }: PropsWithChildren) => {
     optimisticRewardsEarnedForEpoch,
     walletBalances,
   ]);
+
+  const totalOlasStakedBalance: number | undefined = useMemo(() => {
+    if (!isLoaded) return;
+    return (olasBondBalance ?? 0) + (olasDepositBalance ?? 0);
+  }, [isLoaded, olasBondBalance, olasDepositBalance]);
 
   const updateBalances = useCallback(async (): Promise<void> => {
     if (!masterEoaAddress) return;
@@ -190,6 +197,7 @@ export const BalanceProvider = ({ children }: PropsWithChildren) => {
         walletBalances,
         updateBalances,
         setIsPaused,
+        totalOlasStakedBalance,
       }}
     >
       {children}

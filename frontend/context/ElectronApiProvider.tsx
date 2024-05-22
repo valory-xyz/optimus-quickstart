@@ -5,7 +5,7 @@ type ElectronApiContextProps = {
   setAppHeight?: (height: number) => void;
   closeApp?: () => void;
   minimizeApp?: () => void;
-  showNotification?: (title: string, body: string) => void;
+  showNotification?: (title: string, body?: string) => void;
 };
 
 export const ElectronApiContext = createContext<ElectronApiContextProps>({

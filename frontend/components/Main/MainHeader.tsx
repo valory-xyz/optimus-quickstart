@@ -8,6 +8,7 @@ import { Chain, DeploymentStatus } from '@/client';
 import { setTrayIcon } from '@/common-util';
 import { COLOR, LOW_BALANCE, SERVICE_TEMPLATES } from '@/constants';
 import { useBalance, useServiceTemplates } from '@/hooks';
+import { useElectronApi } from '@/hooks/useElectronApi';
 import { useServices } from '@/hooks/useServices';
 import { useWallet } from '@/hooks/useWallet';
 import { ServicesService } from '@/service';
@@ -26,6 +27,7 @@ enum ServiceButtonLoadingState {
 
 export const MainHeader = () => {
   const { services, serviceStatus, setServiceStatus } = useServices();
+  const { showNotification } = useElectronApi();
   const { getServiceTemplates } = useServiceTemplates();
   const { wallets, masterSafeAddress } = useWallet();
   const {
@@ -112,6 +114,7 @@ export const MainHeader = () => {
         setServiceStatus(DeploymentStatus.DEPLOYED);
         setIsBalancePollingPaused(false);
         setServiceButtonState(ServiceButtonLoadingState.NotLoading);
+        showNotification?.('Your agent is now running!');
       });
     } catch (error) {
       setIsBalancePollingPaused(false);
@@ -123,6 +126,7 @@ export const MainHeader = () => {
     setIsBalancePollingPaused,
     setServiceStatus,
     wallets,
+    showNotification,
   ]);
 
   const handlePause = useCallback(() => {

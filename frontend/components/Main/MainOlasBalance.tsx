@@ -21,7 +21,7 @@ export const MainOlasBalance = () => {
   }, [totalOlasBalance]);
 
   return (
-    <CardSection align="end" gap={5} bordertop borderbottom>
+    <CardSection align="end" gap={5} bordertop="true" borderbottom="true">
       {isBalanceLoaded ? (
         <>
           <span className="balance-symbol">{UNICODE_SYMBOLS.OLAS}</span>
