@@ -153,7 +153,7 @@ const AddFundsAddressSection = ({
 );
 
 const AddFundsGetTokensSection = () => (
-  <CardSection justify="center" bordertop>
+  <CardSection justify="center" bordertop="true">
     <Link target="_blank" href={COW_SWAP_GNOSIS_XDAI_OLAS_URL}>
       Get OLAS + XDAI on Gnosis Chain {UNICODE_SYMBOLS.EXTERNAL_LINK}
     </Link>

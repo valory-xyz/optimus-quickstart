@@ -4,8 +4,8 @@ import styled from 'styled-components';
 import { COLOR } from '@/constants';
 
 type CardSectionProps = FlexProps & {
-  bordertop?: boolean;
-  borderbottom?: boolean;
+  bordertop?: 'true' | 'false';
+  borderbottom?: 'true' | 'false';
   padding?: number;
 };
 
@@ -18,12 +18,12 @@ export const CardSection = styled(Flex)<CardSectionProps>`
     const { padding, borderbottom, bordertop } = props;
 
     const paddingStyle = `padding: ${Number(padding) ? `${padding}` : '24'}px;`;
-    const borderTopStyle = bordertop
-      ? `border-top: 1px solid ${COLOR.BORDER_GRAY};`
-      : '';
-    const borderBottomStyle = borderbottom
-      ? `border-bottom: 1px solid ${COLOR.BORDER_GRAY};`
-      : '';
+    const borderTopStyle =
+      bordertop === 'true' ? `border-top: 1px solid ${COLOR.BORDER_GRAY};` : '';
+    const borderBottomStyle =
+      borderbottom === 'true'
+        ? `border-bottom: 1px solid ${COLOR.BORDER_GRAY};`
+        : '';
 
     return `
       ${paddingStyle}
