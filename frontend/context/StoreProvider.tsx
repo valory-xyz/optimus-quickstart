@@ -21,8 +21,7 @@ export const StoreProvider = ({ children }: PropsWithChildren) => {
 
   const setupStore = useCallback(async () => {
     const tempStore = await store?.store?.();
-    if (store) setStoreState(tempStore);
-
+    setStoreState(tempStore);
     ipcRenderer?.on?.(
       'store-change',
       (_event: unknown, data: ElectronStore) => {
