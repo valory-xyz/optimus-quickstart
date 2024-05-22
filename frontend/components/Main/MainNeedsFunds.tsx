@@ -34,7 +34,11 @@ export const useNeedsFunds = () => {
       eth: monthlyGasEstimate,
       olas: olasCostOfBond + olasRequiredToStake,
     };
-  }, []);
+  }, [
+    serviceTemplate.configuration.monthly_gas_estimate,
+    serviceTemplate.configuration.olas_cost_of_bond,
+    serviceTemplate.configuration.olas_required_to_stake,
+  ]);
 
   const hasEnoughEth = useMemo(
     () => (totalEthBalance || 0) >= (serviceFundRequirements?.eth || 0),
