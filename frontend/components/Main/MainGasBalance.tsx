@@ -3,7 +3,7 @@ import { Skeleton, Tooltip, Typography } from 'antd';
 import { useMemo } from 'react';
 import styled from 'styled-components';
 
-import { COLOR } from '@/constants';
+import { COLOR, LOW_BALANCE } from '@/constants';
 import { useBalance } from '@/hooks';
 import { useWallet } from '@/hooks/useWallet';
 
@@ -41,7 +41,7 @@ const BalanceStatus = () => {
       return { statusName: 'Empty', StatusComponent: EmptyDot };
     }
 
-    if (totalEthBalance < 0.1) {
+    if (totalEthBalance < LOW_BALANCE) {
       return { statusName: 'Low', StatusComponent: LowDot };
     }
 
@@ -70,7 +70,7 @@ export const MainGasBalance = () => {
   const { isBalanceLoaded } = useBalance();
 
   return (
-    <CardSection justify="space-between" borderTop borderBottom>
+    <CardSection justify="space-between" bordertop borderbottom>
       <Text>
         Gas and trading balance&nbsp;
         {masterSafeAddress && (

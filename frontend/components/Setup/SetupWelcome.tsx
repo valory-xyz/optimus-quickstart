@@ -14,9 +14,12 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { AccountIsSetup } from '@/client';
 import { PageState, SetupScreen } from '@/enums';
 import { usePageState, useSetup } from '@/hooks';
+import { useWallet } from '@/hooks/useWallet';
 import { AccountService } from '@/service/Account';
 
 import { FormFlex } from '../styled/FormFlex';
+
+const { Title } = Typography;
 
 export const SetupWelcome = () => {
   const [isSetup, setIsSetup] = useState<AccountIsSetup>(
@@ -56,7 +59,7 @@ export const SetupWelcome = () => {
   }, [isSetup]);
 
   return (
-    <Card>
+    <Card bordered={false}>
       <Flex vertical align="center">
         <Image
           src={'/onboarding-robot.svg'}
@@ -64,7 +67,7 @@ export const SetupWelcome = () => {
           width={80}
           height={80}
         />
-        <Typography.Title>Pearl</Typography.Title>
+        <Title>Pearl</Title>
       </Flex>
       {welcomeScreen}
     </Card>
@@ -95,6 +98,8 @@ export const SetupWelcomeLogin = () => {
   const { goto } = useSetup();
   const { goto: gotoPage } = usePageState();
 
+  const { masterEoaAddress, masterSafeAddress } = useWallet();
+
   const [isLoggingIn, setIsLoggingIn] = useState(false);
 
   const [form] = Form.useForm();
@@ -103,14 +108,21 @@ export const SetupWelcomeLogin = () => {
     async ({ password }: { password: string }) => {
       setIsLoggingIn(true);
       AccountService.loginAccount(password)
-        .then(() => gotoPage(PageState.Main))
+        .then(() => {
+          if (masterEoaAddress && !masterSafeAddress) {
+            gotoPage(PageState.Setup);
+            goto(SetupScreen.SetupEoaFundingIncomplete);
+          } else {
+            gotoPage(PageState.Main);
+          }
+        })
         .catch((e) => {
           console.error(e);
           message.error('Invalid password');
         })
         .finally(() => setIsLoggingIn(false));
     },
-    [gotoPage],
+    [goto, gotoPage, masterEoaAddress, masterSafeAddress],
   );
 
   return (

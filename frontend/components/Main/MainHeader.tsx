@@ -1,11 +1,13 @@
 import { InfoCircleOutlined } from '@ant-design/icons';
 import { Badge, Button, Flex, Popover, Typography } from 'antd';
 import { formatUnits } from 'ethers/lib/utils';
+import get from 'lodash/get';
 import Image from 'next/image';
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 
 import { Chain, DeploymentStatus } from '@/client';
-import { COLOR, SERVICE_TEMPLATES } from '@/constants';
+import { setTrayIcon } from '@/common-util';
+import { COLOR, LOW_BALANCE, SERVICE_TEMPLATES } from '@/constants';
 import { useBalance, useServiceTemplates } from '@/hooks';
 import { useServices } from '@/hooks/useServices';
 import { useWallet } from '@/hooks/useWallet';
@@ -22,6 +24,11 @@ enum ServiceButtonLoadingState {
   Pausing,
   NotLoading,
 }
+
+const notifyAgentRunning = () => {
+  const fn = get(window, 'electronAPI.notifyAgentRunning') ?? (() => null);
+  return fn();
+};
 
 export const MainHeader = () => {
   const { services, serviceStatus, setServiceStatus } = useServices();
@@ -40,6 +47,16 @@ export const MainHeader = () => {
     () => getServiceTemplates()[0],
     [getServiceTemplates],
   );
+
+  useEffect(() => {
+    if (totalEthBalance && totalEthBalance < LOW_BALANCE) {
+      setTrayIcon('low-gas');
+    } else if (serviceStatus === DeploymentStatus.DEPLOYED) {
+      setTrayIcon('running');
+    } else if (serviceStatus === DeploymentStatus.STOPPED) {
+      setTrayIcon('paused');
+    }
+  }, [totalEthBalance, serviceStatus]);
 
   const agentHead = useMemo(() => {
     if (
@@ -101,6 +118,7 @@ export const MainHeader = () => {
         setServiceStatus(DeploymentStatus.DEPLOYED);
         setIsBalancePollingPaused(false);
         setServiceButtonState(ServiceButtonLoadingState.NotLoading);
+        notifyAgentRunning();
       });
     } catch (error) {
       setIsBalancePollingPaused(false);
@@ -125,10 +143,15 @@ export const MainHeader = () => {
   }, [services, setServiceStatus]);
 
   const serviceToggleButton = useMemo(() => {
-    if (
-      serviceButtonState === ServiceButtonLoadingState.Starting ||
-      serviceButtonState === ServiceButtonLoadingState.Pausing
-    ) {
+    if (serviceButtonState === ServiceButtonLoadingState.Pausing) {
+      return (
+        <Button type="default" size="large" ghost disabled loading>
+          Stopping...
+        </Button>
+      );
+    }
+
+    if (serviceButtonState === ServiceButtonLoadingState.Starting) {
       return (
         <Popover
           trigger={['hover', 'click']}
@@ -144,10 +167,7 @@ export const MainHeader = () => {
           }
         >
           <Button type="default" size="large" ghost disabled loading>
-            {serviceButtonState === ServiceButtonLoadingState.Starting &&
-              'Starting...'}
-            {serviceButtonState === ServiceButtonLoadingState.Pausing &&
-              'Stopping...'}
+            Starting...
           </Button>
         </Popover>
       );

@@ -6,17 +6,14 @@ import { ReactNode, useEffect, useMemo } from 'react';
 import { COLOR, SERVICE_TEMPLATES } from '@/constants';
 import { UNICODE_SYMBOLS } from '@/constants/unicode';
 import { useBalance } from '@/hooks';
-import { useStore } from '@/hooks/useStore';
 
 import { CardSection } from '../styled/CardSection';
 
 const { Text } = Typography;
 
-const serviceTemplate = SERVICE_TEMPLATES[0];
-
-export const MainNeedsFunds = () => {
-  const { storeState, storeIpc } = useStore();
-  const { isBalanceLoaded, totalEthBalance, totalOlasBalance } = useBalance();
+export const useNeedsFunds = () => {
+  const serviceTemplate = SERVICE_TEMPLATES[0];
+  const { totalEthBalance, totalOlasBalance } = useBalance();
 
   const isInitialFunded = storeState?.isInitialFunded;
 
@@ -49,14 +46,24 @@ export const MainNeedsFunds = () => {
     [serviceFundRequirements?.olas, totalOlasBalance],
   );
 
+  return { hasEnoughEth, hasEnoughOlas, serviceFundRequirements };
+};
+
+export const MainNeedsFunds = () => {
+  const { isBalanceLoaded, totalEthBalance, totalOlasBalance } = useBalance();
+  const { hasEnoughEth, hasEnoughOlas, serviceFundRequirements } =
+    useNeedsFunds();
+
   const isVisible: boolean = useMemo(() => {
     if (isInitialFunded) return false;
     if (
       [totalEthBalance, totalOlasBalance].some(
         (balance) => balance === undefined,
       )
-    )
+    ) {
       return false;
+    }
+
     if (hasEnoughEth && hasEnoughOlas) return false;
     return true;
   }, [
@@ -74,14 +81,13 @@ export const MainNeedsFunds = () => {
           Your agent needs funds
         </Text>
         <small>
-          To run your agent, you must have at least these amounts in your
-          account:
+          To run your agent, you must add these amounts to your account:
         </small>
-        <ul className="alert-list text-sm">
+        <ul className="alert-list text-sm font-weight-600">
           {!hasEnoughOlas && (
             <li>
               {UNICODE_SYMBOLS.OLAS}
-              {serviceFundRequirements.olas} OLAS
+              {serviceFundRequirements.olas} OLAS (for staking)
             </li>
           )}
           {!hasEnoughEth && <li>${serviceFundRequirements.eth} XDAI</li>}

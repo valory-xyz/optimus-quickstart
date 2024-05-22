@@ -34,8 +34,8 @@ const CustomizedCardSection = styled(CardSection)<{ border?: boolean }>`
 `;
 
 export const MainAddFunds = () => {
-  const { masterSafeAddress, masterEoaAddress } = useWallet();
   const [isAddFundsVisible, setIsAddFundsVisible] = useState(false);
+  const { masterSafeAddress, masterEoaAddress } = useWallet();
 
   const fundingAddress: Address | undefined =
     masterSafeAddress ?? masterEoaAddress;
@@ -153,7 +153,7 @@ const AddFundsAddressSection = ({
 );
 
 const AddFundsGetTokensSection = () => (
-  <CardSection justify="center" borderTop>
+  <CardSection justify="center" bordertop>
     <Link target="_blank" href={COW_SWAP_GNOSIS_XDAI_OLAS_URL}>
       Get OLAS + XDAI on Gnosis Chain {UNICODE_SYMBOLS.EXTERNAL_LINK}
     </Link>
