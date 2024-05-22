@@ -41,16 +41,6 @@
     });
 
     ipcRenderer.send("check", "Starting check...");
-
-    if (Notification.permission === 'granted') {
-      new Notification('Hello', { body: 'Your Electron app is ready!' });
-    } else if (Notification.permission !== 'denied') {
-      Notification.requestPermission().then(permission => {
-        if (permission === 'granted') {
-          new Notification('Hello', { body: 'Your Electron app is ready!' });
-        }
-      });
-    }
   </script>
 
 </html>
