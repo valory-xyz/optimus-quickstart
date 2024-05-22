@@ -242,6 +242,10 @@ const createMainWindow = () => {
   }
 };
 
+function showNotification(title, body) {
+  new Notification({ title, body }).show();
+}
+
 async function launchDaemon() {
   function appendLog(data) {
     fs.appendFileSync(`${OperateDirectory}/logs.txt`, data.trim() + '\n', {
@@ -463,6 +467,9 @@ ipcMain.on('check', async function (event, _argument) {
 // APP-SPECIFIC EVENTS
 app.on('ready', async () => {
   if (platform === 'darwin') {
+    console.log('macOS detected');
+    showNotification('Pearl', 'Starting Pearl...');
+
     app.dock?.setIcon(
       path.join(__dirname, 'assets/icons/splash-robot-head-dock.png'),
     );
