@@ -2,6 +2,7 @@ import { Button, Col, Flex, Modal, Row, Skeleton, Tag, Typography } from 'antd';
 import Image from 'next/image';
 import { useEffect, useState } from 'react';
 import styled from 'styled-components';
+import { useTimeout } from 'usehooks-ts';
 
 import { balanceFormat } from '@/common-util';
 import { COLOR } from '@/constants';
@@ -81,15 +82,18 @@ const NotifyRewards = () => {
   const { totalOlasBalance } = useBalance();
   const { showNotification } = useElectronApi();
 
-  const [canShowNotification, setCanShowNotification] = useState(true);
+  const [canShowNotification, setCanShowNotification] = useState(false);
+
+  useTimeout(() => setCanShowNotification(true), 1000);
 
   useEffect(() => {
-    // const hasAlreadyNotified = false; // TODO: Implement this once state persistence is available
-    // if (!isEligibleForRewards) return;
-    // if (hasAlreadyNotified) return;
-    // setCanShowNotification(
-    //   isEligibleForRewards && !!availableRewardsForEpochEther,
-    // );
+    // TODO: Implement this once state persistence is available
+    const hasAlreadyNotified = false;
+
+    if (!isEligibleForRewards) return;
+    if (hasAlreadyNotified) return;
+
+    setCanShowNotification(!!availableRewardsForEpochEther);
   }, [isEligibleForRewards, availableRewardsForEpochEther, showNotification]);
 
   useEffect(() => {
@@ -111,14 +115,7 @@ const NotifyRewards = () => {
       width={400}
       onCancel={() => setCanShowNotification(false)}
       footer={[
-        <Button
-          key="back"
-          // disabled
-          type="primary"
-          block
-          size="large"
-          style={{ marginTop: 16 }}
-        >
+        <Button key="back" type="primary" block size="large" className="mt-8">
           <Flex align="center" justify="center" gap={2}>
             Share on
             <Image src="/twitter.svg" width={24} height={24} alt="OLAS logo" />
@@ -167,11 +164,3 @@ export const MainRewards = () => (
     <NotifyRewards />
   </>
 );
-
-/**
- * animation
- * - https://lottiefiles.com/animations/success-icon-iY8xKnizbH
- * - https://www.npmjs.com/package/react-confetti-explosion
- * - https://fireworks.js.org/
- * - https://www.codewithrandom.com/2023/11/21/confetti-effects-using-css/
- */
