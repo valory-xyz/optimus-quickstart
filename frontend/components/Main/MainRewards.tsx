@@ -22,13 +22,12 @@ const RewardsRow = styled(Row)`
   }
 `;
 
-// TODO: Replace with real data
-const isStakingInfoLoaded = false;
-const isStaked = false;
-
 const DisplayRewards = () => {
-  const { availableRewardsForEpochEther, isEligibleForRewards } = useReward();
+  const { availableRewardsForEpochEth, isEligibleForRewards } = useReward();
   const { isBalanceLoaded, totalOlasStakedBalance } = useBalance();
+
+  // 20 OLAS is the minimum amount to stake
+  const isStaked = totalOlasStakedBalance === 20;
 
   return (
     <RewardsRow>
@@ -38,7 +37,7 @@ const DisplayRewards = () => {
           {isBalanceLoaded ? (
             <>
               <Text strong style={{ fontSize: 20 }}>
-                {balanceFormat(availableRewardsForEpochEther, 2)} OLAS
+                {balanceFormat(availableRewardsForEpochEth, 2)} OLAS
               </Text>
               {isEligibleForRewards ? (
                 <Tag color="success">Earned</Tag>
@@ -58,7 +57,7 @@ const DisplayRewards = () => {
       <Col span={12}>
         <Flex vertical gap={4} align="flex-start">
           <Text>Staked amount</Text>
-          {isStakingInfoLoaded ? (
+          {isBalanceLoaded ? (
             <>
               <Text strong style={{ fontSize: 20 }}>
                 {balanceFormat(totalOlasStakedBalance, 2)} OLAS

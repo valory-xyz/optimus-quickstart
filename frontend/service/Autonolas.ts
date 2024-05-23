@@ -56,6 +56,9 @@ const getAgentStakingRewardsInfo = async ({
     serviceStakingTokenMechUsageContract.livenessPeriod(),
     serviceStakingTokenMechUsageContract.livenessRatio(),
     serviceStakingTokenMechUsageContract.rewardsPerSecond(),
+    serviceStakingTokenMechUsageContract.calculateServiceStakingReward(
+      serviceId,
+    ),
   ];
 
   await gnosisMulticallProvider.init();
@@ -68,6 +71,7 @@ const getAgentStakingRewardsInfo = async ({
     livenessPeriod,
     livenessRatio,
     rewardsPerSecond,
+    accruedServiceStakingRewards,
   ] = multicallResponse;
 
   /**
@@ -86,10 +90,18 @@ const getAgentStakingRewardsInfo = async ({
     // Accumulated inactivity that might lead to the service eviction
     uint256 inactivity;}
    */
-  const isEligibleForRewards =
-    mechRequestCount - serviceInfo[2][1] >=
-    (livenessPeriod * livenessRatio) / 10 ** 18 +
-      REQUIRED_MECH_REQUESTS_SAFETY_MARGIN;
+
+  const livenessRatioFormatted = livenessRatio / 1e18;
+
+  const multisigNonce = serviceInfo[2][1];
+
+  const eligibleRequests = mechRequestCount - multisigNonce;
+
+  const eligibilityMargin =
+    livenessPeriod * livenessRatioFormatted +
+    REQUIRED_MECH_REQUESTS_SAFETY_MARGIN;
+
+  const isEligibleForRewards = eligibleRequests >= eligibilityMargin;
 
   const availableRewardsForEpoch = rewardsPerSecond * livenessPeriod;
 
@@ -101,6 +113,9 @@ const getAgentStakingRewardsInfo = async ({
     rewardsPerSecond,
     isEligibleForRewards,
     availableRewardsForEpoch,
+    accruedServiceStakingRewards: parseFloat(
+      ethers.utils.formatEther(`${accruedServiceStakingRewards}`),
+    ),
   } as StakingRewardsInfo;
 };
 
