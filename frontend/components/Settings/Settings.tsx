@@ -64,7 +64,7 @@ const SettingsMain = () => {
         </Button>
       }
     >
-      <CardSection borderbottom justify="space-between" align="center">
+      <CardSection borderbottom="true" justify="space-between" align="center">
         <Flex vertical>
           <Paragraph strong>Password</Paragraph>
           <Text style={{ lineHeight: 1 }}>********</Text>
