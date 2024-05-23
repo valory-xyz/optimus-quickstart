@@ -1,16 +1,31 @@
+import { ElectronStore, ElectronTrayIconStatus } from '@/types';
 import { get } from 'lodash';
 import { createContext, PropsWithChildren } from 'react';
 
-import { ElectronApi } from '@/types';
-
-type ElectronApiContextProps = {
-  setAppHeight?: (height: number) => void;
+export type ElectronApiContextProps = {
   closeApp?: () => void;
   minimizeApp?: () => void;
+  setTrayIcon?: (status: ElectronTrayIconStatus) => void;
+  ipcRenderer?: {
+    send?: (channel: string, data: unknown) => void;
+    on?: (
+      channel: string,
+      func: (event: unknown, data: unknown) => void,
+    ) => void;
+    invoke?: (channel: string, data: unknown) => Promise<unknown>;
+  };
+  store?: {
+    store?: () => Promise<ElectronStore>;
+    get?: (key: string) => Promise<unknown>;
+    set?: (key: string, value: unknown) => Promise<void>;
+    delete?: (key: string) => Promise<void>;
+  };
+  setAppHeight?: (height: unknown) => void;
+  notifyAgentRunning?: () => void;
   showNotification?: (title: string, body?: string) => void;
 };
 
-export const ElectronApiContext = createContext<ElectronApi>({
+export const ElectronApiContext = createContext<ElectronApiContextProps>({
   closeApp: () => {},
   minimizeApp: () => {},
   setTrayIcon: () => {},

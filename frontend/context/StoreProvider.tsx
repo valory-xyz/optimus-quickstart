@@ -9,7 +9,7 @@ import {
 
 import type { ElectronStore } from '@/types';
 
-import { ElectronApiContext } from './ElectronApiProvider';
+import { ElectronApiContextProps } from './ElectronApiProvider';
 
 export const StoreContext = createContext<{ storeState?: ElectronStore }>({
   storeState: undefined,
