@@ -70,8 +70,13 @@ export const MainGasBalance = () => {
   const { isBalanceLoaded } = useBalance();
 
   return (
-    <CardSection justify="space-between" bordertop="true" borderbottom="true">
-      <Text>
+    <CardSection
+      justify="space-between"
+      bordertop="true"
+      borderbottom="true"
+      padding="16px 24px"
+    >
+      <Text type="secondary">
         Gas and trading balance&nbsp;
         {masterSafeAddress && (
           <Tooltip

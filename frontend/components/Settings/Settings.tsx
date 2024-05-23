@@ -1,16 +1,16 @@
 import { CloseOutlined, SettingOutlined } from '@ant-design/icons';
-import { Alert, Button, Card, Flex, Typography } from 'antd';
+import { Button, Card, Flex, Typography } from 'antd';
 import Link from 'next/link';
 import { useMemo } from 'react';
 
 import { truncateAddress } from '@/common-util';
-import { COLOR } from '@/constants';
 import { UNICODE_SYMBOLS } from '@/constants/unicode';
 import { PageState, SettingsScreen } from '@/enums';
 import { usePageState } from '@/hooks';
 import { useMasterSafe } from '@/hooks/useMasterSafe';
 import { useSettings } from '@/hooks/useSettings';
 
+import { Alert } from '../common/Alert';
 import { CardTitle } from '../common/CardTitle';
 import { CardSection } from '../styled/CardSection';
 import { SettingsAddBackupWallet } from './SettingsAddBackupWallet';
@@ -98,17 +98,13 @@ const NoBackupWallet = () => {
       <CardSection style={{ marginTop: 12, marginBottom: 18 }}>
         <Alert
           type="warning"
-          className="card-section-alert"
+          fullWidth
           showIcon
           message={
             <>
               <Flex vertical gap={5}>
-                <Text strong style={{ color: COLOR.BROWN }}>
-                  Your funds are at risk!
-                </Text>
-                <Text style={{ color: COLOR.BROWN }}>
-                  You will lose any assets you send on other chains.
-                </Text>
+                <Text strong>Your funds are at risk!</Text>
+                <Text>You will lose any assets you send on other chains.</Text>
               </Flex>
             </>
           }

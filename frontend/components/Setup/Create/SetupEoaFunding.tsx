@@ -1,10 +1,8 @@
 import {
   CopyOutlined,
-  InfoCircleOutlined,
   // QrcodeOutlined
 } from '@ant-design/icons';
 import {
-  Alert,
   Button,
   Flex,
   message,
@@ -18,10 +16,10 @@ import styled from 'styled-components';
 
 import { Chain } from '@/client';
 import { copyToClipboard } from '@/common-util';
+import { Alert } from '@/components/common/Alert';
 import { CardFlex } from '@/components/styled/CardFlex';
 import { CardSection } from '@/components/styled/CardSection';
 import {
-  COLOR,
   COW_SWAP_GNOSIS_XDAI_OLAS_URL,
   MIN_ETH_BALANCE_THRESHOLDS,
 } from '@/constants';
@@ -141,15 +139,15 @@ const SetupEoaFundingWaiting = ({
     <>
       <CardSection>
         <Alert
-          className="card-section-alert"
+          fullWidth
           type="warning"
           showIcon
           message={
             <Flex vertical gap={5}>
-              <Typography.Text strong style={{ color: COLOR.BROWN }}>
+              <Typography.Text strong>
                 Only send funds on Gnosis Chain!
               </Typography.Text>
-              <Typography.Text style={{ color: COLOR.BROWN }}>
+              <Typography.Text>
                 You will lose any assets you send on other chains.
               </Typography.Text>
             </Flex>
@@ -194,9 +192,8 @@ const SetupEoaFundingWaiting = ({
           {`GNO: ${masterEoa}`}
         </span>
         <Alert
-          className="account-creation-alert"
+          type="info"
           showIcon
-          icon={<InfoCircleOutlined />}
           message={
             'After this point, do not send more funds to this address. Once your account is created, you will be given a new address - send further funds there.'
           }
@@ -218,14 +215,6 @@ const AccountCreationCard = styled.div`
   padding: 16px;
   background-image: url("data:image/svg+xml,%3csvg width='100%25' height='100%25' xmlns='http://www.w3.org/2000/svg'%3e%3crect width='100%25' height='100%25' fill='none' rx='12' ry='12' stroke='%23A3AEBB' stroke-width='2' stroke-dasharray='6' stroke-dashoffset='15' stroke-linecap='square'/%3e%3c/svg%3e");
   border-radius: 12px;
-
-  .account-creation-alert {
-    margin-top: 8px;
-    background: #e6f4ff;
-    border: 1px solid #91caff;
-    color: #002c8c;
-    align-items: flex-start;
-  }
 `;
 
 const ICON_STYLE = { color: '#606F85' };

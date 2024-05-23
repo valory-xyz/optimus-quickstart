@@ -60,13 +60,44 @@ button, input, select, textarea, .ant-input-suffix {
   line-height: 24px;
 }
 
-.card-section-alert {
-  margin: 0;
-  border-radius: 0;
-  border-left: 0;
-  border-right: 0;
-  margin: -24px;
+.custom-alert {
   align-items: flex-start;
+
+  &--primary {
+    border-color: #ECD7FE;
+    background-color: #F8F0FF;
+    color: #36075F;
+
+    .ant-alert-icon {
+      color: #7E22CE;
+    }
+  }
+
+  &--info {
+    color: #002C8C;
+  }
+
+  &--warning {
+    color: #873800;
+  }
+
+  &--error {
+    color: #A8071A;
+  }
+
+  .ant-typography {
+    color: inherit;
+  }
+
+  &--full-width {
+    flex: auto;
+    margin: 0;
+    border-radius: 0;
+    border-left: 0;
+    border-right: 0;
+    padding: 12px 24px;
+    margin: -24px;
+  }
 }
 
 .can-select-text {
@@ -79,6 +110,10 @@ button, input, select, textarea, .ant-input-suffix {
 
 .m-0 {
   margin: 0 !important;
+}
+
+.mb-4 {
+  margin-bottom: 4px !important;
 }
 
 .mb-auto {

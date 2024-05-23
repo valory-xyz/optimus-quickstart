@@ -39,10 +39,10 @@ export const Main = () => {
       style={{ borderTopColor: 'transparent' }}
     >
       <Flex vertical>
-        <MainNeedsFunds />
         <MainOlasBalance />
         <MainRewards />
         <MainGasBalance />
+        <MainNeedsFunds />
         <MainAddFunds />
       </Flex>
     </Card>
