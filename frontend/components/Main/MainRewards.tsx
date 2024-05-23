@@ -77,7 +77,7 @@ const DisplayRewards = () => {
 };
 
 const NotifyRewards = () => {
-  const { isEligibleForRewards, availableRewardsForEpochEther } = useReward();
+  const { isEligibleForRewards, availableRewardsForEpochEth } = useReward();
   const { totalOlasBalance } = useBalance();
   const { showNotification } = useElectronApi();
 
@@ -92,10 +92,10 @@ const NotifyRewards = () => {
 
     if (!isEligibleForRewards) return;
     if (hasAlreadyNotified) return;
-    if (!availableRewardsForEpochEther) return;
+    if (!availableRewardsForEpochEth) return;
 
     setCanShowNotification(true);
-  }, [isEligibleForRewards, availableRewardsForEpochEther, showNotification]);
+  }, [isEligibleForRewards, availableRewardsForEpochEth, showNotification]);
 
   // hook to show app notification
   useEffect(() => {
@@ -103,9 +103,9 @@ const NotifyRewards = () => {
 
     showNotification?.(
       'Your agent earned its first staking rewards!',
-      `Congratulations! Your agent just got the first reward for you! Your current balance: ${availableRewardsForEpochEther} OLAS`,
+      `Congratulations! Your agent just got the first reward for you! Your current balance: ${availableRewardsForEpochEth} OLAS`,
     );
-  }, [canShowNotification, availableRewardsForEpochEther, showNotification]);
+  }, [canShowNotification, availableRewardsForEpochEth, showNotification]);
 
   const closeNotificationModal = useCallback(() => {
     setCanShowNotification(false);
@@ -120,7 +120,15 @@ const NotifyRewards = () => {
       width={400}
       onCancel={closeNotificationModal}
       footer={[
-        <Button key="back" type="primary" block size="large" className="mt-8">
+        <Button
+          key="back"
+          type="primary"
+          block
+          size="large"
+          className="mt-8"
+          disabled
+          // TODO: add twitter share functionality
+        >
           <Flex align="center" justify="center" gap={2}>
             Share on
             <Image
@@ -152,7 +160,7 @@ const NotifyRewards = () => {
         <Text>
           Congratulations! Your agent just earned the first
           <Text strong>
-            {` ${balanceFormat(availableRewardsForEpochEther, 2)} OLAS `}
+            {` ${balanceFormat(availableRewardsForEpochEth, 2)} OLAS `}
           </Text>
           for you!
         </Text>
