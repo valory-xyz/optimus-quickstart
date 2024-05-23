@@ -9,7 +9,10 @@ export type ElectronApi = {
   setTrayIcon?: (status: ElectronTrayIconStatus) => void;
   ipcRenderer?: {
     send?: (channel: string, data: unknown) => void;
-    on?: (channel: string, func: (event: unknown, data: any) => void) => void;
+    on?: (
+      channel: string,
+      func: (event: unknown, data: unknown) => void,
+    ) => void;
     invoke?: (channel: string, data: unknown) => Promise<unknown>;
   };
   store?: {
