@@ -3,6 +3,13 @@ import { createContext, PropsWithChildren } from 'react';
 
 import { ElectronApi } from '@/types';
 
+type ElectronApiContextProps = {
+  setAppHeight?: (height: number) => void;
+  closeApp?: () => void;
+  minimizeApp?: () => void;
+  showNotification?: (title: string, body?: string) => void;
+};
+
 export const ElectronApiContext = createContext<ElectronApi>({
   closeApp: () => {},
   minimizeApp: () => {},
@@ -55,6 +62,7 @@ export const ElectronApiProvider = ({ children }: PropsWithChildren) => {
         },
         setAppHeight: getElectronApiFunction('setAppHeight'),
         notifyAgentRunning: getElectronApiFunction('notifyAgentRunning'),
+        showNotification: getElectronApiFunction('showNotification'),
       }}
     >
       {children}

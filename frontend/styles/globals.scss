@@ -15,7 +15,7 @@ html, body {
 }
 
 body {
-  max-width: 420px;
+  max-width: 460px;
   border-radius: 8px;
   user-select: none;
 }
@@ -66,6 +66,7 @@ button, input, select, textarea, .ant-input-suffix {
   border-left: 0;
   border-right: 0;
   margin: -24px;
+  align-items: flex-start;
 }
 
 .can-select-text {
@@ -82,6 +83,14 @@ button, input, select, textarea, .ant-input-suffix {
 
 .mb-auto {
   margin-bottom: auto !important;
+}
+
+.mt-8 {
+  margin-top: 8px !important;
+}
+
+.mt-12 {
+  margin-top: 12px !important;
 }
 
 .mx-auto {

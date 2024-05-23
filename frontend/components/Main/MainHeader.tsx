@@ -26,6 +26,7 @@ enum ServiceButtonLoadingState {
 
 export const MainHeader = () => {
   const { services, serviceStatus, setServiceStatus } = useServices();
+  const { showNotification } = useElectronApi();
   const { getServiceTemplates } = useServiceTemplates();
   const { wallets, masterSafeAddress } = useWallet();
   const {
@@ -112,8 +113,8 @@ export const MainHeader = () => {
       }).then(() => {
         setServiceStatus(DeploymentStatus.DEPLOYED);
         setIsBalancePollingPaused(false);
-        setServiceButtonState(ServiceButtonLoadingState.NotLoading);
-        electronApi?.notifyAgentRunning?.();
+        setServiceButtonState(ServiceButtonLoadingState.NotLoading);        
+        showNotification?.('Your agent is now running!');
       });
     } catch (error) {
       setIsBalancePollingPaused(false);
@@ -126,6 +127,7 @@ export const MainHeader = () => {
     setIsBalancePollingPaused,
     setServiceStatus,
     wallets,
+    showNotification,
   ]);
 
   const handlePause = useCallback(() => {

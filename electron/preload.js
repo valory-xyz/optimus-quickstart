@@ -17,5 +17,6 @@ contextBridge.exposeInMainWorld('electronAPI', {
     delete: (key) => ipcRenderer.invoke('store-delete', key),
   },
   setAppHeight: (height) => ipcRenderer.send('set-height', height),
-  notifyAgentRunning: () => ipcRenderer.send('notify-agent-running'),
+  showNotification: (title, description) =>
+    ipcRenderer.send('show-notification', title, description),
 });
