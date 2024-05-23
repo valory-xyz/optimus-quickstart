@@ -5,12 +5,14 @@ type ElectronApiContextProps = {
   setAppHeight?: (height: number) => void;
   closeApp?: () => void;
   minimizeApp?: () => void;
+  showNotification?: (title: string, body?: string) => void;
 };
 
 export const ElectronApiContext = createContext<ElectronApiContextProps>({
   setAppHeight: undefined,
   closeApp: undefined,
   minimizeApp: undefined,
+  showNotification: undefined,
 });
 
 const getElectronApiFunction = (functionNameInWindow: string) => {
@@ -33,6 +35,7 @@ export const ElectronApiProvider = ({ children }: PropsWithChildren) => {
         setAppHeight: getElectronApiFunction('setAppHeight'),
         closeApp: getElectronApiFunction('closeApp'),
         minimizeApp: getElectronApiFunction('minimizeApp'),
+        showNotification: getElectronApiFunction('showNotification'),
       }}
     >
       {children}
