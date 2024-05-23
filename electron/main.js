@@ -220,6 +220,14 @@ const createMainWindow = () => {
     mainWindow.minimize();
   });
 
+  app.on('activate', () => {
+    if (mainWindow.isMinimized()) {
+      mainWindow.restore();
+    } else {
+      mainWindow.show();
+    }
+  });
+
   ipcMain.on('set-height', (_event, height) => {
     mainWindow.setSize(width, height);
   });
