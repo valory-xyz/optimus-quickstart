@@ -2,7 +2,6 @@ import { Button, Col, Flex, Modal, Row, Skeleton, Tag, Typography } from 'antd';
 import Image from 'next/image';
 import { useCallback, useEffect, useState } from 'react';
 import styled from 'styled-components';
-import { useTimeout } from 'usehooks-ts';
 
 import { balanceFormat } from '@/common-util';
 import { COLOR } from '@/constants';
@@ -83,12 +82,9 @@ const NotifyRewards = () => {
 
   const [canShowNotification, setCanShowNotification] = useState(false);
 
-  // TODO: remove just to test the notification
-  useTimeout(() => setCanShowNotification(true), 1000);
-
   useEffect(() => {
     // TODO: Implement this once state persistence is available
-    const hasAlreadyNotified = false;
+    const hasAlreadyNotified = true;
 
     if (!isEligibleForRewards) return;
     if (hasAlreadyNotified) return;
