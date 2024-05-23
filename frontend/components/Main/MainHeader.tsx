@@ -113,7 +113,7 @@ export const MainHeader = () => {
       }).then(() => {
         setServiceStatus(DeploymentStatus.DEPLOYED);
         setIsBalancePollingPaused(false);
-        setServiceButtonState(ServiceButtonLoadingState.NotLoading);        
+        setServiceButtonState(ServiceButtonLoadingState.NotLoading);
         showNotification?.('Your agent is now running!');
       });
     } catch (error) {
@@ -121,7 +121,6 @@ export const MainHeader = () => {
       setServiceButtonState(ServiceButtonLoadingState.NotLoading);
     }
   }, [
-    electronApi,
     masterSafeAddress,
     serviceTemplate,
     setIsBalancePollingPaused,

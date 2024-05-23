@@ -1,18 +1,19 @@
-import { ElectronStore, ElectronTrayIconStatus } from '@/types';
 import { get } from 'lodash';
 import { createContext, PropsWithChildren } from 'react';
 
-export type ElectronApiContextProps = {
+import { ElectronStore, ElectronTrayIconStatus } from '@/types';
+
+type ElectronApiContextProps = {
   closeApp?: () => void;
   minimizeApp?: () => void;
   setTrayIcon?: (status: ElectronTrayIconStatus) => void;
   ipcRenderer?: {
-    send?: (channel: string, data: unknown) => void;
+    send?: (channel: string, data: unknown) => void; // send messages to main process
     on?: (
       channel: string,
       func: (event: unknown, data: unknown) => void,
-    ) => void;
-    invoke?: (channel: string, data: unknown) => Promise<unknown>;
+    ) => void; // listen to messages from main process
+    invoke?: (channel: string, data: unknown) => Promise<unknown>; // send message to main process and get Promise response
   };
   store?: {
     store?: () => Promise<ElectronStore>;
