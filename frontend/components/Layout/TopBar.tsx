@@ -57,7 +57,7 @@ export const TopBar = () => {
         <DisabledLight />
       </TrafficLights>
 
-      <Text>Pearl</Text>
+      <Text>Pearl (alpha)</Text>
     </TopBarContainer>
   );
 };
