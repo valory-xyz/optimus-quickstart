@@ -116,7 +116,7 @@ export const MainNeedsFunds = () => {
   );
 
   useEffect(() => {
-    if (hasEnoughEth && hasEnoughOlas && isInitialFunded === false) {
+    if (hasEnoughEth && hasEnoughOlas && !isInitialFunded) {
       electronApi.store?.set?.('isInitialFunded', true);
     }
   }, [electronApi.store, hasEnoughEth, hasEnoughOlas, isInitialFunded]);

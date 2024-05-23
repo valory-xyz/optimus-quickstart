@@ -35,10 +35,9 @@ const CustomizedCardSection = styled(CardSection)<{ border?: boolean }>`
 
 export const MainAddFunds = () => {
   const [isAddFundsVisible, setIsAddFundsVisible] = useState(false);
-  const { masterSafeAddress, masterEoaAddress } = useWallet();
+  const { masterSafeAddress } = useWallet();
 
-  const fundingAddress: Address | undefined =
-    masterSafeAddress ?? masterEoaAddress;
+  const fundingAddress: Address | undefined = masterSafeAddress;
 
   const truncatedFundingAddress: string | undefined = useMemo(
     () => fundingAddress && truncateAddress(fundingAddress),
