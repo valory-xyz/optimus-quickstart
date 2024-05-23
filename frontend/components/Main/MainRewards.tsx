@@ -1,6 +1,6 @@
 import { Button, Col, Flex, Modal, Row, Skeleton, Tag, Typography } from 'antd';
 import Image from 'next/image';
-import { useEffect, useMemo } from 'react';
+import { useEffect, useState } from 'react';
 import styled from 'styled-components';
 
 import { balanceFormat } from '@/common-util';
@@ -8,6 +8,8 @@ import { COLOR } from '@/constants';
 import { useBalance } from '@/hooks';
 import { useElectronApi } from '@/hooks/useElectronApi';
 import { useReward } from '@/hooks/useReward';
+
+import { Confetti } from '../../common-util/Confetti';
 
 const { Text, Title } = Typography;
 
@@ -79,14 +81,16 @@ const NotifyRewards = () => {
   const { totalOlasBalance } = useBalance();
   const { showNotification } = useElectronApi();
 
-  const canShowNotification = useMemo(() => {
-    const hasAlreadyNotified = false; // TODO: Implement this once state persistence is available
+  const [canShowNotification, setCanShowNotification] = useState(true);
 
-    if (hasAlreadyNotified) return false;
-    if (!isEligibleForRewards) return false;
-
-    return isEligibleForRewards && availableRewardsForEpochEther;
-  }, [isEligibleForRewards, availableRewardsForEpochEther]);
+  useEffect(() => {
+    // const hasAlreadyNotified = false; // TODO: Implement this once state persistence is available
+    // if (!isEligibleForRewards) return;
+    // if (hasAlreadyNotified) return;
+    // setCanShowNotification(
+    //   isEligibleForRewards && !!availableRewardsForEpochEther,
+    // );
+  }, [isEligibleForRewards, availableRewardsForEpochEther, showNotification]);
 
   useEffect(() => {
     if (!canShowNotification) return;
@@ -95,15 +99,17 @@ const NotifyRewards = () => {
       'Your agent earned its first staking rewards!',
       `Congratulations! Your agent just got the first reward for you! Your current balance: ${availableRewardsForEpochEther} OLAS`,
     );
-    // TODO: setter for hasAlreadyNotified
+
+    // TODO: add setter for hasAlreadyNotified
   }, [canShowNotification, availableRewardsForEpochEther, showNotification]);
 
-  // if (!canShowNotification) return null;
+  if (!canShowNotification) return null;
 
   return (
     <Modal
-      open
+      open={canShowNotification}
       width={400}
+      onCancel={() => setCanShowNotification(false)}
       footer={[
         <Button
           key="back"
@@ -120,6 +126,8 @@ const NotifyRewards = () => {
         </Button>,
       ]}
     >
+      <Confetti />
+
       <Flex align="center" justify="center">
         <Image
           src="/splash-robot-head.png"
@@ -129,7 +137,9 @@ const NotifyRewards = () => {
         />
       </Flex>
 
-      <Title level={5}>Your agent just earned the first reward!</Title>
+      <Title level={5} className="mt-12">
+        Your agent just earned the first reward!
+      </Title>
 
       <Flex vertical gap={16}>
         <Text>
@@ -161,5 +171,7 @@ export const MainRewards = () => (
 /**
  * animation
  * - https://lottiefiles.com/animations/success-icon-iY8xKnizbH
- *
+ * - https://www.npmjs.com/package/react-confetti-explosion
+ * - https://fireworks.js.org/
+ * - https://www.codewithrandom.com/2023/11/21/confetti-effects-using-css/
  */
