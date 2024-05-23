@@ -103,7 +103,7 @@ const NoBackupWallet = () => {
           message={
             <>
               <Flex vertical gap={5}>
-                <Text strong>Your funds are at risk!</Text>
+                <Text className="font-weight-600">Your funds are at risk!</Text>
                 <Text>You will lose any assets you send on other chains.</Text>
               </Flex>
             </>

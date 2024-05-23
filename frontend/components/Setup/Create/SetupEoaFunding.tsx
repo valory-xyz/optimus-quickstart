@@ -116,7 +116,10 @@ export const SetupEoaFunding = ({
         The app needs these funds to create your account on-chain.
       </Typography.Paragraph>
 
-      <CardSection bordertop="true" borderbottom="true">
+      <CardSection
+        bordertop="true"
+        borderbottom={isFundedMasterEoa ? 'true' : 'false'}
+      >
         <Typography.Text
           className={loadingStatuses.includes(status) ? 'loading-ellipses' : ''}
         >
