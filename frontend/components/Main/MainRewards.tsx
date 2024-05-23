@@ -1,6 +1,6 @@
 import { Button, Col, Flex, Modal, Row, Skeleton, Tag, Typography } from 'antd';
 import Image from 'next/image';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import styled from 'styled-components';
 import { useTimeout } from 'usehooks-ts';
 
@@ -10,7 +10,7 @@ import { useBalance } from '@/hooks';
 import { useElectronApi } from '@/hooks/useElectronApi';
 import { useReward } from '@/hooks/useReward';
 
-import { Confetti } from '../../common-util/Confetti';
+import { ConfettiAnimation } from '../common/ConfettiAnimation';
 
 const { Text, Title } = Typography;
 
@@ -84,6 +84,7 @@ const NotifyRewards = () => {
 
   const [canShowNotification, setCanShowNotification] = useState(false);
 
+  // TODO: remove just to test the notification
   useTimeout(() => setCanShowNotification(true), 1000);
 
   useEffect(() => {
@@ -92,10 +93,12 @@ const NotifyRewards = () => {
 
     if (!isEligibleForRewards) return;
     if (hasAlreadyNotified) return;
+    if (!availableRewardsForEpochEther) return;
 
-    setCanShowNotification(!!availableRewardsForEpochEther);
+    setCanShowNotification(true);
   }, [isEligibleForRewards, availableRewardsForEpochEther, showNotification]);
 
+  // hook to show app notification
   useEffect(() => {
     if (!canShowNotification) return;
 
@@ -103,9 +106,12 @@ const NotifyRewards = () => {
       'Your agent earned its first staking rewards!',
       `Congratulations! Your agent just got the first reward for you! Your current balance: ${availableRewardsForEpochEther} OLAS`,
     );
-
-    // TODO: add setter for hasAlreadyNotified
   }, [canShowNotification, availableRewardsForEpochEther, showNotification]);
+
+  const closeNotificationModal = useCallback(() => {
+    setCanShowNotification(false);
+    // TODO: add setter for hasAlreadyNotified
+  }, []);
 
   if (!canShowNotification) return null;
 
@@ -113,17 +119,22 @@ const NotifyRewards = () => {
     <Modal
       open={canShowNotification}
       width={400}
-      onCancel={() => setCanShowNotification(false)}
+      onCancel={closeNotificationModal}
       footer={[
         <Button key="back" type="primary" block size="large" className="mt-8">
           <Flex align="center" justify="center" gap={2}>
             Share on
-            <Image src="/twitter.svg" width={24} height={24} alt="OLAS logo" />
+            <Image
+              src="/twitter.svg"
+              width={24}
+              height={24}
+              alt="Share on twitter"
+            />
           </Flex>
         </Button>,
       ]}
     >
-      <Confetti />
+      <ConfettiAnimation />
 
       <Flex align="center" justify="center">
         <Image
