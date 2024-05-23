@@ -61,7 +61,7 @@ export const SetupPassword = () => {
           <Checkbox>
             I agree to the Pearl’s{' '}
             <a
-              href="https://olas.network/disclaimer"
+              href="https://olas.network/pearl-terms"
               target="_blank"
               rel="noreferrer"
             >
