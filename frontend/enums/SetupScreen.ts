@@ -5,7 +5,7 @@ export enum SetupScreen {
   SetupSeedPhrase,
   SetupBackupSigner,
   SetupEoaFunding,
-  SetupEoaFundingIncomplete,
+  SetupCreateSafe,
   Restore,
   RestoreViaSeed,
   RestoreSetPassword,

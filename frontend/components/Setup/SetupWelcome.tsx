@@ -111,7 +111,7 @@ export const SetupWelcomeLogin = () => {
         .then(() => {
           if (masterEoaAddress && !masterSafeAddress) {
             gotoPage(PageState.Setup);
-            goto(SetupScreen.SetupEoaFundingIncomplete);
+            goto(SetupScreen.SetupCreateSafe);
           } else {
             gotoPage(PageState.Main);
           }
