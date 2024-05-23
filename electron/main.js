@@ -60,6 +60,10 @@ let tray,
   nextAppProcess,
   nextAppProcessPid;
 
+function showNotification(title, body) {
+  new Notification({ title, body }).show();
+}
+
 async function beforeQuit() {
   if (operateDaemonPid) {
     try {
@@ -220,12 +224,8 @@ const createMainWindow = () => {
     mainWindow.setSize(width, height);
   });
 
-  ipcMain.on('notify-agent-running', () => {
-    if (!mainWindow.isVisible()) {
-      new Notification({
-        title: 'Your agent is now running!',
-      }).show();
-    }
+  ipcMain.on('show-notification', (title, description) => {
+    showNotification(title, description || undefined);
   });
 
   mainWindow.webContents.on('did-fail-load', () => {
