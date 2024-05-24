@@ -3,16 +3,18 @@ import { Contract as MulticallContract } from 'ethers-multicall';
 
 import {
   AGENT_MECH_ABI,
+  MECH_ACTIVITY_CHECKER_ABI,
   SERVICE_REGISTRY_L2_ABI,
   SERVICE_REGISTRY_TOKEN_UTILITY_ABI,
   SERVICE_STAKING_TOKEN_MECH_USAGE_ABI,
 } from '@/abi';
 import { Chain } from '@/client';
 import {
-  AGENT_MECH_CONTRACT,
-  SERVICE_REGISTRY_L2_CONTRACT,
-  SERVICE_REGISTRY_TOKEN_UTILITY_CONTRACT,
-  SERVICE_STAKING_TOKEN_MECH_USAGE_CONTRACT,
+  AGENT_MECH_CONTRACT_ADDRESS,
+  MECH_ACTIVITY_CHECKER_CONTRACT_ADDRESS,
+  SERVICE_REGISTRY_L2_CONTRACT_ADDRESS,
+  SERVICE_REGISTRY_TOKEN_UTILITY_CONTRACT_ADDRESS,
+  SERVICE_STAKING_TOKEN_MECH_USAGE_CONTRACT_ADDRESS,
 } from '@/constants';
 import { gnosisMulticallProvider } from '@/constants/providers';
 import { ServiceRegistryL2ServiceState } from '@/enums';
@@ -21,23 +23,28 @@ import { Address, StakingRewardsInfo } from '@/types';
 const REQUIRED_MECH_REQUESTS_SAFETY_MARGIN = 1;
 
 const agentMechContract = new MulticallContract(
-  AGENT_MECH_CONTRACT[Chain.GNOSIS],
+  AGENT_MECH_CONTRACT_ADDRESS[Chain.GNOSIS],
   AGENT_MECH_ABI.filter((abi) => abi.type === 'function'), // weird bug in the package where their filter doesn't work..
 );
 
-const serviceStakingTokenMechUsageContract = new MulticallContract(
-  SERVICE_STAKING_TOKEN_MECH_USAGE_CONTRACT[Chain.GNOSIS],
+const stakingTokenContract = new MulticallContract(
+  SERVICE_STAKING_TOKEN_MECH_USAGE_CONTRACT_ADDRESS[Chain.GNOSIS],
   SERVICE_STAKING_TOKEN_MECH_USAGE_ABI.filter((abi) => abi.type === 'function'), // same as above
 );
 
 const serviceRegistryTokenUtilityContract = new MulticallContract(
-  SERVICE_REGISTRY_TOKEN_UTILITY_CONTRACT[Chain.GNOSIS],
+  SERVICE_REGISTRY_TOKEN_UTILITY_CONTRACT_ADDRESS[Chain.GNOSIS],
   SERVICE_REGISTRY_TOKEN_UTILITY_ABI.filter((abi) => abi.type === 'function'), // same as above
 );
 
 const serviceRegistryL2Contract = new MulticallContract(
-  SERVICE_REGISTRY_L2_CONTRACT[Chain.GNOSIS],
+  SERVICE_REGISTRY_L2_CONTRACT_ADDRESS[Chain.GNOSIS],
   SERVICE_REGISTRY_L2_ABI.filter((abi) => abi.type === 'function'), // same as above
+);
+
+const mechActivityCheckerContract = new MulticallContract(
+  MECH_ACTIVITY_CHECKER_CONTRACT_ADDRESS[Chain.GNOSIS],
+  MECH_ACTIVITY_CHECKER_ABI.filter((abi) => abi.type === 'function'), // same as above
 );
 
 const getAgentStakingRewardsInfo = async ({
@@ -52,13 +59,11 @@ const getAgentStakingRewardsInfo = async ({
 
   const contractCalls = [
     agentMechContract.getRequestsCount(agentMultisigAddress),
-    serviceStakingTokenMechUsageContract.getServiceInfo(serviceId),
-    serviceStakingTokenMechUsageContract.livenessPeriod(),
-    serviceStakingTokenMechUsageContract.livenessRatio(),
-    serviceStakingTokenMechUsageContract.rewardsPerSecond(),
-    serviceStakingTokenMechUsageContract.calculateServiceStakingReward(
-      serviceId,
-    ),
+    stakingTokenContract.getServiceInfo(serviceId),
+    stakingTokenContract.livenessPeriod(),
+    mechActivityCheckerContract.livenessRatio(),
+    stakingTokenContract.rewardsPerSecond(),
+    stakingTokenContract.calculateStakingReward(serviceId),
   ];
 
   await gnosisMulticallProvider.init();
@@ -75,7 +80,6 @@ const getAgentStakingRewardsInfo = async ({
   ] = multicallResponse;
 
   /**
-   * serviceInfo represents the ServiceInfo struct in the ServiceStakingTokenMechUsage contract
    * struct ServiceInfo {
     // Service multisig address
     address multisig;
@@ -121,8 +125,8 @@ const getAgentStakingRewardsInfo = async ({
 
 const getAvailableRewardsForEpoch = async (): Promise<number | undefined> => {
   const contractCalls = [
-    serviceStakingTokenMechUsageContract.rewardsPerSecond(),
-    serviceStakingTokenMechUsageContract.livenessPeriod(),
+    stakingTokenContract.rewardsPerSecond(),
+    stakingTokenContract.livenessPeriod(),
   ];
 
   await gnosisMulticallProvider.init();
