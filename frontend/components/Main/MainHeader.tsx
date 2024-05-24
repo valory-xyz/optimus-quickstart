@@ -26,7 +26,7 @@ enum ServiceButtonLoadingState {
 
 export const MainHeader = () => {
   const { services, serviceStatus, setServiceStatus } = useServices();
-  const { showNotification } = useElectronApi();
+  const { showNotification, setTrayIcon } = useElectronApi();
   const { getServiceTemplates } = useServiceTemplates();
   const { wallets, masterSafeAddress } = useWallet();
   const {
@@ -34,7 +34,6 @@ export const MainHeader = () => {
     totalEthBalance,
     setIsPaused: setIsBalancePollingPaused,
   } = useBalance();
-  const electronApi = useElectronApi();
 
   const [serviceButtonState, setServiceButtonState] =
     useState<ServiceButtonLoadingState>(ServiceButtonLoadingState.NotLoading);
@@ -46,13 +45,13 @@ export const MainHeader = () => {
 
   useEffect(() => {
     if (totalEthBalance && totalEthBalance < LOW_BALANCE) {
-      electronApi?.setTrayIcon?.('low-gas');
+      setTrayIcon?.('low-gas');
     } else if (serviceStatus === DeploymentStatus.DEPLOYED) {
-      electronApi?.setTrayIcon?.('running');
+      setTrayIcon?.('running');
     } else if (serviceStatus === DeploymentStatus.STOPPED) {
-      electronApi?.setTrayIcon?.('paused');
+      setTrayIcon?.('paused');
     }
-  }, [totalEthBalance, serviceStatus, electronApi]);
+  }, [totalEthBalance, serviceStatus, setTrayIcon]);
 
   const agentHead = useMemo(() => {
     if (
