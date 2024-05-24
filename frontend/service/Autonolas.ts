@@ -27,7 +27,7 @@ const agentMechContract = new MulticallContract(
   AGENT_MECH_ABI.filter((abi) => abi.type === 'function'), // weird bug in the package where their filter doesn't work..
 );
 
-const stakingTokenContract = new MulticallContract(
+const serviceStakingTokenMechUsageContract = new MulticallContract(
   SERVICE_STAKING_TOKEN_MECH_USAGE_CONTRACT_ADDRESS[Chain.GNOSIS],
   SERVICE_STAKING_TOKEN_MECH_USAGE_ABI.filter((abi) => abi.type === 'function'), // same as above
 );
@@ -59,11 +59,11 @@ const getAgentStakingRewardsInfo = async ({
 
   const contractCalls = [
     agentMechContract.getRequestsCount(agentMultisigAddress),
-    stakingTokenContract.getServiceInfo(serviceId),
-    stakingTokenContract.livenessPeriod(),
+    serviceStakingTokenMechUsageContract.getServiceInfo(serviceId),
+    serviceStakingTokenMechUsageContract.livenessPeriod(),
     mechActivityCheckerContract.livenessRatio(),
-    stakingTokenContract.rewardsPerSecond(),
-    stakingTokenContract.calculateStakingReward(serviceId),
+    serviceStakingTokenMechUsageContract.rewardsPerSecond(),
+    serviceStakingTokenMechUsageContract.calculateStakingReward(serviceId),
   ];
 
   await gnosisMulticallProvider.init();
@@ -125,8 +125,8 @@ const getAgentStakingRewardsInfo = async ({
 
 const getAvailableRewardsForEpoch = async (): Promise<number | undefined> => {
   const contractCalls = [
-    stakingTokenContract.rewardsPerSecond(),
-    stakingTokenContract.livenessPeriod(),
+    serviceStakingTokenMechUsageContract.rewardsPerSecond(),
+    serviceStakingTokenMechUsageContract.livenessPeriod(),
   ];
 
   await gnosisMulticallProvider.init();
