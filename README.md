@@ -93,6 +93,7 @@ pipx install poetry
 If promoted to run `pipx ensurepath`, run this command.
 
 #### Docker
+
 ##### Linux
 You can change the `ubuntu.22.04~jammy` version to your OS in the following command:
 ```bash
@@ -106,14 +107,18 @@ lsb_release -a
 ```
 ##### MacOS
 
-You must install Docker V24 manually, as brew does not allow for versioning with Docker.
+You can [install Docker Desktop via the Docker website](https://www.docker.com/products/docker-desktop/). Be sure to select the correct version for your system's CPU architecture.
 
-- Docker Desktop version that supports Docker V24: [https://docs.docker.com/desktop/release-notes/#4261](https://docs.docker.com/desktop/release-notes/#4261)
-- Guide to install: [https://docs.docker.com/desktop/install/mac-install/](https://docs.docker.com/desktop/install/mac-install/)
+If you are unsure about your system's CPU architecture, run the following command:
+```bash
+uname -p
+# x86 64    Intel chip
+# arm64     Apple chip
+```
 
 </details>
 
-<details><summary><h3>Setup ENV file</h3></summary>
+<details><summary><h3>Setting up your .env file</h3></summary>
 
 Create a `.env` file in the root directory, or rename `.env.example` to `.env`.
 
@@ -123,25 +128,39 @@ For production usage, set `NODE_ENV=production`.
 
 #### FORK_URL
 
-**Required for forking Gnosis using a Hardhat node during development.**
+**Required for both development and production.**
+**Must be a Gnosis Mainnet RPC URL.**
+
+- In `development` this RPC url is forked by Hardhat, so you can interact with the chain without losing your assets.
+- In `production` this RPC URL is used as the main RPC for Pearl.
 
 You can get a Gnosis RPC from [Nodies](https://www.nodies.app/).
 
-Then, set `FORK_URL=https://....` in your .env file.
+Then, set `FORK_URL=https://YOUR_RPC_URL_HERE` in your .env file.
 
-Be sure to set an external RPC here.
+Note: this must be an external RPC, not your hardhat node RPC, if using Hardhat.
+
+### DEV_RPC
+
+This RPC is only used while `NODE_ENV=development` is set.
+It is used throughout Pearl as the main RPC.
+This URL should be set as the RPC URL that you wish to connect to.
+
+If you're using Hardhat, you can set `DEV_RPC=http://localhost:8545`.
+Or, you can use another, external RPC URL here, ensuring that the chain ID is 100 (Gnosis Mainnet's chain ID).
+
 </details>
 
-<details><summary><h3>Install project dependencies</h3></summary>
+<details><summary><h3>Installing project dependencies</h3></summary>
 
-This will install the required dependencies for the backend, frontend, and electron.
+This command installs the required dependencies for the backend, frontend, and electron application.
 
 ```bash
 yarn install-deps
 ```
 </details>
 
-<details><summary><h3>Run the development app</h3></summary>
+<details><summary><h3>Running the development app</h3></summary>
 
 In the root directory, run:
 
@@ -149,23 +168,39 @@ In the root directory, run:
 yarn start
 ```
 
-This will run Electron, which launches NextJS and the Backend as child processes.
+This will run Electron, which launches the NextJS frontend and the Python backend as child processes.
 </details>
 
-<details><summary><h3>Starting Hardhat (for development)</h3></summary>
+<details><summary><h3>Chain forking (for development)</h3></summary>
 
-In the interest of not losing funds, we can run a Hardhat node that forks Gnosis -- provided the FORK_URL has been set to an external RPC in your .env file.
+In the interest of not losing funds, you can run a forked version of Gnosis Mainnet.
 
-Run the following to start your Hardhat node:
+There are two recommended options:
+- Tenderly
+- Hardhat
+
+<details><summary><h4>Tenderly (preferred)</h4></summary>
+[Tenderly](https://tenderly.co/) is a service with a plethora of useful blockchain development tools. Of which, the core tool required here is the ability to **fork networks**.
+
+1. Signup to [Tenderly](https://tenderly.co/), and select the plan you desire. **The Free plan should suffice for most users**.
+2. Go to *Forks* under the *Development* tab -- in the left sidebar of your dashboard.
+3. Click *Create Fork*, select "Gnosis Chain" as the network, and use Chain ID `100`.
+4. Copy the RPC url into the appropriate .env variables in your repository. (Recommended to set both `FORK_URL` & `DEV_RPC` to this RPC url during development).
+5. Click the *Fund Accounts* button to fund your accounts with XDAI (native token) and [OLAS](https://gnosisscan.io/token/0xce11e14225575945b8e6dc0d4f2dd4c570f79d9f).
+</details>
+
+<details><summary><h4>Hardhat</h4></summary>
+Note: using Hardhat will result in the loss of chain state once your Hardhat node is turned off.
+
+Run the following command in the root of your project folder to start your Hardhat node:
 
 ```bash
 npx hardhat node
 ```
 
-**Once Hardhat is running, you can use `http://localhost:8545` during the agent spawning process as your RPC.**
-</details>
+**Once Hardhat is running, you will be able to use `http://localhost:8545` as your development RPC.**
 
-<details><summary><h3>Funding addresses while running a Hardhat fork</h3></summary>
+##### Funding your addresses
 There are a number of scripts to fund addresses for testing:
 
 - XDAI funding:
@@ -173,6 +208,14 @@ There are a number of scripts to fund addresses for testing:
 poetry run python scripts/fund.py 0xYOURADDRESS
 ```
 - OLAS funding: `TBA`
+
+</details>
+
+
+</details>
+
+<details><summary><h3>Funding addresses while running a Hardhat fork</h3></summary>
+
 
 </details>
 
