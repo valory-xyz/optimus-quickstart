@@ -1,9 +1,12 @@
-# Pearl
-Electron + NextJS + Python Backend application to one-click run Agents.
+<h1 align="center"> 
+<b>Pearl<b>
+</h1>
+
+Pearl is an application used to run autonomous agents.
 
 ## Technologies Used
 - Electron
-- NodeJS (20.11 LTS)
+- NodeJS (20.11)
 - AntD
 - TypeScript
 - Python (3.10)
@@ -12,12 +15,12 @@ Electron + NextJS + Python Backend application to one-click run Agents.
 
 ## Getting Started
 
-### Installing system dependencies
+<details><summary><h3>Installing system dependencies</h3></summary>
 
 The following installation scripts assume you have the following on each OS:
 - Linux: a debian based operating system such as Ubuntu with `apt` to install packages.
 - MacOS: [Homebrew](https://brew.sh/)
-- Windows: [Chocolatey](https://chocolatey.org/install)
+- ~~Windows: [Chocolatey](https://chocolatey.org/install)~~ (Coming soon...)
 
 #### NodeJS via NVM
 
@@ -108,7 +111,9 @@ You must install Docker V24 manually, as brew does not allow for versioning with
 - Docker Desktop version that supports Docker V24: [https://docs.docker.com/desktop/release-notes/#4261](https://docs.docker.com/desktop/release-notes/#4261)
 - Guide to install: [https://docs.docker.com/desktop/install/mac-install/](https://docs.docker.com/desktop/install/mac-install/)
 
-### Setup ENV file
+</details>
+
+<details><summary><h3>Setup ENV file</h3></summary>
 
 Create a `.env` file in the root directory, or rename `.env.example` to `.env`.
 
@@ -125,17 +130,18 @@ You can get a Gnosis RPC from [Nodies](https://www.nodies.app/).
 Then, set `FORK_URL=https://....` in your .env file.
 
 Be sure to set an external RPC here.
+</details>
 
-
-### Install project dependencies
+<details><summary><h3>Install project dependencies</h3></summary>
 
 This will install the required dependencies for the backend, frontend, and electron.
 
 ```bash
 yarn install-deps
 ```
+</details>
 
-### Run the development app
+<details><summary><h3>Run the development app</h3></summary>
 
 In the root directory, run:
 
@@ -144,8 +150,9 @@ yarn start
 ```
 
 This will run Electron, which launches NextJS and the Backend as child processes.
+</details>
 
-### Starting Hardhat (for development)
+<details><summary><h3>Starting Hardhat (for development)</h3></summary>
 
 In the interest of not losing funds, we can run a Hardhat node that forks Gnosis -- provided the FORK_URL has been set to an external RPC in your .env file.
 
@@ -156,8 +163,9 @@ npx hardhat node
 ```
 
 **Once Hardhat is running, you can use `http://localhost:8545` during the agent spawning process as your RPC.**
+</details>
 
-### Funding addresses while running a Hardhat fork
+<details><summary><h3>Funding addresses while running a Hardhat fork</h3></summary>
 There are a number of scripts to fund addresses for testing:
 
 - XDAI funding:
@@ -165,6 +173,8 @@ There are a number of scripts to fund addresses for testing:
 poetry run python scripts/fund.py 0xYOURADDRESS
 ```
 - OLAS funding: `TBA`
+
+</details>
 
 ## Further notes / issues
 
