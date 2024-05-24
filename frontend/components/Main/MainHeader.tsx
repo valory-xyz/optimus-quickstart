@@ -5,7 +5,6 @@ import Image from 'next/image';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
 import { Chain, DeploymentStatus } from '@/client';
-import { setTrayIcon } from '@/common-util';
 import { COLOR, LOW_BALANCE, SERVICE_TEMPLATES } from '@/constants';
 import { useBalance, useServiceTemplates } from '@/hooks';
 import { useElectronApi } from '@/hooks/useElectronApi';
@@ -35,6 +34,7 @@ export const MainHeader = () => {
     totalEthBalance,
     setIsPaused: setIsBalancePollingPaused,
   } = useBalance();
+  const electronApi = useElectronApi();
 
   const [serviceButtonState, setServiceButtonState] =
     useState<ServiceButtonLoadingState>(ServiceButtonLoadingState.NotLoading);
@@ -46,13 +46,13 @@ export const MainHeader = () => {
 
   useEffect(() => {
     if (totalEthBalance && totalEthBalance < LOW_BALANCE) {
-      setTrayIcon('low-gas');
+      electronApi?.setTrayIcon?.('low-gas');
     } else if (serviceStatus === DeploymentStatus.DEPLOYED) {
-      setTrayIcon('running');
+      electronApi?.setTrayIcon?.('running');
     } else if (serviceStatus === DeploymentStatus.STOPPED) {
-      setTrayIcon('paused');
+      electronApi?.setTrayIcon?.('paused');
     }
-  }, [totalEthBalance, serviceStatus]);
+  }, [totalEthBalance, serviceStatus, electronApi]);
 
   const agentHead = useMemo(() => {
     if (

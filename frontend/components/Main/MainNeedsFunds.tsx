@@ -1,10 +1,12 @@
 import { Flex, Typography } from 'antd';
 import { formatUnits } from 'ethers/lib/utils';
-import { ReactNode, useMemo } from 'react';
+import { ReactNode, useEffect, useMemo } from 'react';
 
 import { SERVICE_TEMPLATES } from '@/constants';
 import { UNICODE_SYMBOLS } from '@/constants/unicode';
 import { useBalance } from '@/hooks';
+import { useElectronApi } from '@/hooks/useElectronApi';
+import { useStore } from '@/hooks/useStore';
 
 import { Alert } from '../common/Alert';
 import { CardSection } from '../styled/CardSection';
@@ -12,9 +14,12 @@ import { CardSection } from '../styled/CardSection';
 const { Text, Paragraph } = Typography;
 const COVER_PREV_BLOCK_BORDER_STYLE = { marginTop: '-1px' };
 
-export const useNeedsFunds = () => {
+const useNeedsFunds = () => {
   const serviceTemplate = SERVICE_TEMPLATES[0];
+  const { storeState } = useStore();
   const { totalEthBalance, totalOlasBalance } = useBalance();
+
+  const isInitialFunded = storeState?.isInitialFunded as boolean | undefined;
 
   const serviceFundRequirements = useMemo(() => {
     const monthlyGasEstimate = Number(
@@ -49,15 +54,27 @@ export const useNeedsFunds = () => {
     [serviceFundRequirements?.olas, totalOlasBalance],
   );
 
-  return { hasEnoughEth, hasEnoughOlas, serviceFundRequirements };
+  return {
+    hasEnoughEth,
+    hasEnoughOlas,
+    serviceFundRequirements,
+    isInitialFunded,
+  };
 };
 
 export const MainNeedsFunds = () => {
   const { isBalanceLoaded, totalEthBalance, totalOlasBalance } = useBalance();
-  const { hasEnoughEth, hasEnoughOlas, serviceFundRequirements } =
-    useNeedsFunds();
+  const {
+    hasEnoughEth,
+    hasEnoughOlas,
+    serviceFundRequirements,
+    isInitialFunded,
+  } = useNeedsFunds();
+
+  const electronApi = useElectronApi();
 
   const isVisible: boolean = useMemo(() => {
+    if (isInitialFunded) return false;
     if (
       [totalEthBalance, totalOlasBalance].some(
         (balance) => balance === undefined,
@@ -68,7 +85,13 @@ export const MainNeedsFunds = () => {
 
     if (hasEnoughEth && hasEnoughOlas) return false;
     return true;
-  }, [hasEnoughEth, hasEnoughOlas, totalEthBalance, totalOlasBalance]);
+  }, [
+    hasEnoughEth,
+    hasEnoughOlas,
+    isInitialFunded,
+    totalEthBalance,
+    totalOlasBalance,
+  ]);
 
   const message: ReactNode = useMemo(
     () => (
@@ -99,6 +122,12 @@ export const MainNeedsFunds = () => {
     ),
     [serviceFundRequirements, hasEnoughEth, hasEnoughOlas],
   );
+
+  useEffect(() => {
+    if (hasEnoughEth && hasEnoughOlas && !isInitialFunded) {
+      electronApi.store?.set?.('isInitialFunded', true);
+    }
+  }, [electronApi.store, hasEnoughEth, hasEnoughOlas, isInitialFunded]);
 
   if (!isVisible) return null;
   if (!isBalanceLoaded) return null;

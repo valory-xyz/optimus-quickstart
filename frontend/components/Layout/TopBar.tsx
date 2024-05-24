@@ -47,13 +47,12 @@ const TopBarContainer = styled.div`
 `;
 
 export const TopBar = () => {
-  const { minimizeApp, closeApp } = useElectronApi();
-
+  const electronApi = useElectronApi();
   return (
     <TopBarContainer>
       <TrafficLights>
-        <RedLight onClick={() => closeApp?.()} />
-        <YellowLight onClick={() => minimizeApp?.()} />
+        <RedLight onClick={() => electronApi?.closeApp?.()} />
+        <YellowLight onClick={() => electronApi?.minimizeApp?.()} />
         <DisabledLight />
       </TrafficLights>
 

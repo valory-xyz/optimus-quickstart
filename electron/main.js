@@ -28,6 +28,7 @@ const { killProcesses } = require('./processes');
 const { isPortAvailable, findAvailablePort } = require('./ports');
 const { PORT_RANGE, isWindows, isMac } = require('./constants');
 const { macUpdater } = require('./update');
+const { setupStoreIpc } = require('./store');
 
 // Configure environment variables
 dotenv.config();
@@ -254,6 +255,8 @@ const createMainWindow = () => {
     event.preventDefault();
     mainWindow.hide();
   });
+
+  setupStoreIpc(ipcMain, mainWindow);
 
   if (isDev) {
     mainWindow.webContents.openDevTools();
