@@ -34,19 +34,19 @@ const LowDot = styled(Dot)`
 `;
 
 const BalanceStatus = () => {
-  const { totalEthBalance } = useBalance();
+  const { safeBalance } = useBalance();
 
   const status = useMemo(() => {
-    if (!totalEthBalance || totalEthBalance === 0) {
+    if (!safeBalance || safeBalance.ETH === 0) {
       return { statusName: 'Empty', StatusComponent: EmptyDot };
     }
 
-    if (totalEthBalance < LOW_BALANCE) {
+    if (safeBalance.ETH < LOW_BALANCE) {
       return { statusName: 'Low', StatusComponent: LowDot };
     }
 
     return { statusName: 'Fine', StatusComponent: FineDot };
-  }, [totalEthBalance]);
+  }, [safeBalance]);
 
   const { statusName, StatusComponent } = status;
   return (
