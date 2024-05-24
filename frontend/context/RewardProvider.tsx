@@ -84,10 +84,14 @@ export const RewardProvider = ({ children }: PropsWithChildren) => {
   }, [service]);
 
   useEffect(() => {
-    if (isEligibleForRewards && !storeState?.rewardsEarnedOnce) {
-      electronApi.store?.set?.('rewardsEarnedOnce', true);
+    if (isEligibleForRewards && !storeState?.firstStakingRewardAchieved) {
+      electronApi.store?.set?.('firstStakingRewardAchieved', true);
     }
-  }, [electronApi.store, isEligibleForRewards, storeState?.rewardsEarnedOnce]);
+  }, [
+    electronApi.store,
+    isEligibleForRewards,
+    storeState?.firstStakingRewardAchieved,
+  ]);
 
   useInterval(async () => updateRewards(), 5000);
 

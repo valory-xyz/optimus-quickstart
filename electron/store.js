@@ -4,7 +4,7 @@ const schema = {
     type: 'boolean',
     default: false,
   },
-  rewardsEarnedOnce: {
+  firstStakingRewardAchieved: {
     type: 'boolean',
     default: false,
   },

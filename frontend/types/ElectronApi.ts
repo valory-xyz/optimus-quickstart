@@ -1,6 +1,6 @@
 export type ElectronStore = {
   isInitialFunded?: boolean;
-  rewardsEarnedOnce?: boolean;
+  firstStakingRewardAchieved?: boolean;
 };
 
 export type ElectronTrayIconStatus = 'low-gas' | 'running' | 'paused';
