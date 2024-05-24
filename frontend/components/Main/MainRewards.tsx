@@ -2,12 +2,14 @@ import { Button, Col, Flex, Modal, Row, Skeleton, Tag, Typography } from 'antd';
 import Image from 'next/image';
 import { useCallback, useEffect, useState } from 'react';
 import styled from 'styled-components';
+import { useTimeout } from 'usehooks-ts';
 
 import { balanceFormat } from '@/common-util';
 import { COLOR } from '@/constants';
 import { useBalance } from '@/hooks';
 import { useElectronApi } from '@/hooks/useElectronApi';
 import { useReward } from '@/hooks/useReward';
+import { useStore } from '@/hooks/useStore';
 
 import { ConfettiAnimation } from '../common/ConfettiAnimation';
 
@@ -81,20 +83,29 @@ const DisplayRewards = () => {
 const NotifyRewards = () => {
   const { isEligibleForRewards, availableRewardsForEpochEth } = useReward();
   const { totalOlasBalance } = useBalance();
-  const { showNotification } = useElectronApi();
+  const { showNotification, store } = useElectronApi();
+  const { storeState } = useStore();
 
   const [canShowNotification, setCanShowNotification] = useState(false);
 
-  useEffect(() => {
-    // TODO: Implement this once state persistence is available
-    const hasAlreadyNotified = true;
+  useTimeout(() => {
+    // notification shown
+    setCanShowNotification(true);
+  }, 3000);
 
+  useEffect(() => {
     if (!isEligibleForRewards) return;
-    if (hasAlreadyNotified) return;
+    if (!storeState) return;
+    if (storeState?.firstRewardNotificationShown) return;
     if (!availableRewardsForEpochEth) return;
 
     setCanShowNotification(true);
-  }, [isEligibleForRewards, availableRewardsForEpochEth, showNotification]);
+  }, [
+    isEligibleForRewards,
+    availableRewardsForEpochEth,
+    showNotification,
+    storeState,
+  ]);
 
   // hook to show app notification
   useEffect(() => {
@@ -108,8 +119,10 @@ const NotifyRewards = () => {
 
   const closeNotificationModal = useCallback(() => {
     setCanShowNotification(false);
-    // TODO: add setter for hasAlreadyNotified
-  }, []);
+    store?.set?.('firstRewardNotificationShown', true);
+  }, [store]);
+
+  console.log(storeState);
 
   if (!canShowNotification) return null;
 
