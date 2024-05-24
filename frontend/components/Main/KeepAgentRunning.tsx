@@ -13,10 +13,8 @@ export const KeepAgentRunning = () => {
   const { storeState } = useStore();
   const { serviceStatus } = useServices();
 
-  const firstStakingRewardAchieved = storeState?.firstStakingRewardAchieved;
-
-  if (firstStakingRewardAchieved) return false;
-  if (serviceStatus !== DeploymentStatus.DEPLOYED) return;
+  if (storeState?.firstStakingRewardAchieved) return null;
+  if (serviceStatus !== DeploymentStatus.DEPLOYED) return null;
 
   return (
     <CardSection>
