@@ -42,7 +42,6 @@ export const ElectronApiContext = createContext<ElectronApiContextProps>({
     delete: async () => {},
   },
   setAppHeight: () => {},
-  notifyAgentRunning: () => {},
 });
 
 export const ElectronApiProvider = ({ children }: PropsWithChildren) => {
@@ -77,7 +76,6 @@ export const ElectronApiProvider = ({ children }: PropsWithChildren) => {
           delete: getElectronApiFunction('store.delete'),
         },
         setAppHeight: getElectronApiFunction('setAppHeight'),
-        notifyAgentRunning: getElectronApiFunction('notifyAgentRunning'),
         showNotification: getElectronApiFunction('showNotification'),
       }}
     >
