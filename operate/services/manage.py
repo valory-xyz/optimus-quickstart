@@ -767,59 +767,60 @@ class ServiceManager:
         service.chain_data.staked = True
         service.store()
 
-    def fund_service(
+    def fund_service(  # pylint: disable=too-many-arguments
         self,
         hash: str,
         rpc: t.Optional[str] = None,
-        min_agent_fund_requirement: t.Optional[float] = None,
-        min_safe_fund_requirement: t.Optional[float] = None,
+        agent_topup: t.Optional[float] = None,
+        safe_topup: t.Optional[float] = None,
+        agent_fund_threshold: t.Optional[float] = None,
+        safe_fund_treshold: t.Optional[float] = None,
         from_safe: bool = True,
     ) -> None:
         """Fund service if required."""
         service = self.create_or_load(hash=hash)
         wallet = self.wallet_manager.load(ledger_type=service.ledger_config.type)
         ledger_api = wallet.ledger_api(chain_type=service.ledger_config.chain, rpc=rpc)
-        min_agent_fund_requirement = (
-            min_agent_fund_requirement
+        agent_fund_threshold = (
+            agent_fund_threshold
             or service.chain_data.user_params.fund_requirements.agent
         )
 
         for key in service.keys:
             agent_balance = ledger_api.get_balance(address=key.address)
             self.logger.info(f"Agent {key.address} balance: {agent_balance}")
-            self.logger.info(f"Required balance: {min_agent_fund_requirement}")
-            if agent_balance < min_agent_fund_requirement:
+            self.logger.info(f"Required balance: {agent_fund_threshold}")
+            if agent_balance < agent_fund_threshold:
                 self.logger.info("Funding agents")
                 to_transfer = (
-                    service.chain_data.user_params.fund_requirements.agent
-                    - agent_balance
+                    agent_topup
+                    or service.chain_data.user_params.fund_requirements.agent
                 )
                 self.logger.info(f"Transferring {to_transfer} units to {key.address}")
                 wallet.transfer(
                     to=key.address,
-                    amount=to_transfer,
+                    amount=int(to_transfer),
                     chain_type=service.ledger_config.chain,
                     from_safe=from_safe,
                 )
 
         safe_balanace = ledger_api.get_balance(service.chain_data.multisig)
-        min_safe_fund_requirement = (
-            min_safe_fund_requirement
-            or service.chain_data.user_params.fund_requirements.safe
+        safe_fund_treshold = (
+            safe_fund_treshold or service.chain_data.user_params.fund_requirements.safe
         )
         self.logger.info(f"Safe {service.chain_data.multisig} balance: {safe_balanace}")
-        self.logger.info(f"Required balance: {min_safe_fund_requirement}")
-        if safe_balanace < min_safe_fund_requirement:
+        self.logger.info(f"Required balance: {safe_fund_treshold}")
+        if safe_balanace < safe_fund_treshold:
             self.logger.info("Funding safe")
             to_transfer = (
-                service.chain_data.user_params.fund_requirements.safe - safe_balanace
+                safe_topup or service.chain_data.user_params.fund_requirements.safe
             )
             self.logger.info(
                 f"Transferring {to_transfer} units to {service.chain_data.multisig}"
             )
             wallet.transfer(
                 to=t.cast(str, service.chain_data.multisig),
-                amount=to_transfer,
+                amount=int(to_transfer),
                 chain_type=service.ledger_config.chain,
             )
 
@@ -838,10 +839,12 @@ class ServiceManager:
                     await loop.run_in_executor(
                         executor,
                         self.fund_service,
-                        hash,
-                        PUBLIC_RPCS[service.ledger_config.chain],
-                        100000000000000000,
-                        500000000000000000,
+                        hash,  # Service hash
+                        PUBLIC_RPCS[service.ledger_config.chain],  # RPC
+                        100000000000000000,  # agent_topup
+                        2000000000000000000,  # safe_topup
+                        50000000000000000,  # agent_fund_threshold
+                        500000000000000000,  # safe_fund_treshold
                         from_safe,
                     )
                 except Exception:  # pylint: disable=broad-except
