@@ -1,4 +1,4 @@
-name: Build, Notarize, Release
+name: Release
 
 # This workflow is triggered on pushing a tag BE CAREFUL this application AUTO UPDATES !!! 
 # git tag vX.Y.Z
