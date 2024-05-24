@@ -81,12 +81,10 @@ jobs:
                 APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLEIDPASS }}
                 APPLE_ID: ${{ secrets.APPLEID }}
                 APPLETEAMID: ${{ secrets.APPLETEAMID }}
-                #CSC_FOR_PULL_REQUEST: true #required during testing
                 CSC_KEY_PASSWORD: ${{ secrets.CSC_KEY_PASSWORD }}
                 CSC_LINK: ${{ secrets.CSC_LINK }}
                 GH_TOKEN: ${{ secrets.github_token}}
                 NODE_ENV: production
                 DEV_RPC: https://rpc-gate.autonolas.tech/gnosis-rpc/
                 FORK_URL: https://rpc-gate.autonolas.tech/gnosis-rpc/
-                #PUBLISH_FOR_PULL_REQUEST: true #required during testing
               run: node build.js
