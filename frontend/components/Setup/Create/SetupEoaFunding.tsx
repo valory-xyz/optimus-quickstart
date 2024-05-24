@@ -11,7 +11,7 @@ import {
   Tooltip,
   Typography,
 } from 'antd';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo } from 'react';
 import styled from 'styled-components';
 
 import { Chain } from '@/client';
@@ -24,90 +24,44 @@ import {
   MIN_ETH_BALANCE_THRESHOLDS,
 } from '@/constants';
 import { UNICODE_SYMBOLS } from '@/constants/unicode';
-import { PageState, SetupScreen } from '@/enums';
-import { useBalance, usePageState, useSetup } from '@/hooks';
+import { SetupScreen } from '@/enums';
+import { useBalance, useSetup } from '@/hooks';
 import { useWallet } from '@/hooks/useWallet';
-import { WalletService } from '@/service/Wallet';
 import { Address } from '@/types';
 
 import { SetupCreateHeader } from './SetupCreateHeader';
 
-enum SetupEaoFundingStatus {
-  WaitingForEoaFunding,
-  CreatingSafe,
-  Done,
-  Error,
-}
-
-const loadingStatuses = [
-  SetupEaoFundingStatus.WaitingForEoaFunding,
-  SetupEaoFundingStatus.CreatingSafe,
-];
-
-export const SetupEoaFunding = ({
-  isIncomplete,
-}: {
-  isIncomplete?: boolean;
-}) => {
-  const { masterEoaAddress: masterEaoAddress, masterSafeAddress } = useWallet();
+export const SetupEoaFunding = () => {
+  const { masterEoaAddress } = useWallet();
   const { walletBalances } = useBalance();
-  const { backupSigner } = useSetup();
-  const { goto } = usePageState();
-
-  const [isCreatingSafe, setIsCreatingSafe] = useState(false);
+  const { goto } = useSetup();
 
   const masterEaoEthBalance =
-    masterEaoAddress && walletBalances?.[masterEaoAddress]?.ETH;
+    masterEoaAddress && walletBalances?.[masterEoaAddress]?.ETH;
 
   const isFundedMasterEoa =
     masterEaoEthBalance &&
     masterEaoEthBalance >=
       MIN_ETH_BALANCE_THRESHOLDS[Chain.GNOSIS].safeCreation;
 
-  const status = useMemo(() => {
-    if (!isFundedMasterEoa) return SetupEaoFundingStatus.WaitingForEoaFunding;
-    if (isCreatingSafe) return SetupEaoFundingStatus.CreatingSafe;
-    if (masterSafeAddress) return SetupEaoFundingStatus.Done;
-    return SetupEaoFundingStatus.Error;
-  }, [isCreatingSafe, isFundedMasterEoa, masterSafeAddress]);
-
   const statusMessage = useMemo(() => {
-    switch (status) {
-      case SetupEaoFundingStatus.WaitingForEoaFunding:
-        return 'Waiting for transaction';
-      case SetupEaoFundingStatus.CreatingSafe:
-        return 'Creating account';
-      case SetupEaoFundingStatus.Done:
-        return 'Account created';
-      case SetupEaoFundingStatus.Error:
-        return 'Error, please contact support';
+    if (isFundedMasterEoa) {
+      return 'Funds have been received!';
+    } else {
+      return 'Waiting for transaction';
     }
-  }, [status]);
+  }, [isFundedMasterEoa]);
 
   useEffect(() => {
-    // Create the safe once the master EOA is funded
+    // Move to create the safe stage once the master EOA is funded
     if (!isFundedMasterEoa) return;
-    if (isCreatingSafe) return;
-    setIsCreatingSafe(true);
     message.success('Funds have been received!');
-    // TODO: add backup signer
-    WalletService.createSafe(Chain.GNOSIS, backupSigner).catch((e) => {
-      console.error(e);
-      message.error('Failed to create an account. Please try again later.');
-    });
-  }, [backupSigner, goto, isCreatingSafe, isFundedMasterEoa]);
-
-  useEffect(() => {
-    // Only progress is the safe is created and accessible via context (updates on interval)
-    if (masterSafeAddress) goto(PageState.Main);
-  }, [goto, masterSafeAddress]);
+    goto(SetupScreen.SetupCreateSafe);
+  }, [goto, isFundedMasterEoa]);
 
   return (
     <CardFlex>
-      <SetupCreateHeader
-        prev={SetupScreen.SetupBackupSigner}
-        disabled={isCreatingSafe || isIncomplete}
-      />
+      <SetupCreateHeader prev={SetupScreen.SetupBackupSigner} />
       <Typography.Title level={3}>
         Deposit {MIN_ETH_BALANCE_THRESHOLDS[Chain.GNOSIS].safeCreation} XDAI on
         Gnosis
@@ -121,13 +75,13 @@ export const SetupEoaFunding = ({
         borderbottom={isFundedMasterEoa ? 'true' : 'false'}
       >
         <Typography.Text
-          className={loadingStatuses.includes(status) ? 'loading-ellipses' : ''}
+          className={isFundedMasterEoa ? '' : 'loading-ellipses'}
         >
           Status: {statusMessage}
         </Typography.Text>
       </CardSection>
       {!isFundedMasterEoa && (
-        <SetupEoaFundingWaiting masterEoa={masterEaoAddress} />
+        <SetupEoaFundingWaiting masterEoa={masterEoaAddress} />
       )}
     </CardFlex>
   );

@@ -4,6 +4,7 @@ import { SetupContext } from '@/context';
 import { SetupScreen } from '@/enums';
 
 import { SetupBackupSigner } from './Create/SetupBackupSigner';
+import { SetupCreateSafe } from './Create/SetupCreateSafe';
 import { SetupEoaFunding } from './Create/SetupEoaFunding';
 import { SetupPassword } from './Create/SetupPassword';
 import { SetupSeedPhrase } from './Create/SetupSeedPhrase';
@@ -30,8 +31,8 @@ export const Setup = () => {
         return <SetupBackupSigner />;
       case SetupScreen.SetupEoaFunding:
         return <SetupEoaFunding />;
-      case SetupScreen.SetupEoaFundingIncomplete:
-        return <SetupEoaFunding isIncomplete />;
+      case SetupScreen.SetupCreateSafe:
+        return <SetupCreateSafe />;
       // Restore account
       case SetupScreen.Restore:
         return <SetupRestoreMain />;
