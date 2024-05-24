@@ -4,15 +4,15 @@ name: Build, Notarize, Release
 # git tag vX.Y.Z
 # git push origin tag vX.Y.Z
 
-on: 
+on:
     push:
         tags:
             - 'v*.*.*'
 
 jobs:
     verify-main-branch: # ensures we only release from main
-      runs-on: ubuntu-latest 
-      steps:       
+      runs-on: ubuntu-latest
+      steps:
       - name: Exit if not on main branch
         if: github.ref != 'refs/heads/main'
         run: echo "Not on main branch, exiting" && exit -1
@@ -21,7 +21,7 @@ jobs:
         needs: 
           - "verify-main-branch"
         runs-on: "ubuntu-latest"
-        steps:           
+        steps:
             - uses: actions/checkout@v2
             - uses: actions/setup-python@v4
               with:
@@ -90,36 +90,3 @@ jobs:
                 FORK_URL: https://rpc-gate.autonolas.tech/gnosis-rpc/
                 #PUBLISH_FOR_PULL_REQUEST: true #required during testing
               run: node build.js
-
-    changelog:
-        runs-on: ubuntu-latest
-        needs:
-          - "release-middleware"
-          - "release-operate"
-          - "verify-main-branch"
-        steps:
-          - uses: actions/checkout@v2
-          - uses: actions/setup-python@v4
-            with:
-              python-version: "3.10"
-          - uses: actions/checkout@master
-          - uses: actions/setup-python@v3
-            with:
-              python-version: "3.10"
-          - name: Install dependencies
-            run: |
-              sudo apt-get update
-              sudo apt-get autoremove
-              sudo apt-get autoclean
-              python -m pip install --upgrade pip
-              pip install poetry twine
-          - name: Build wheels and source tarball
-            run: |
-              poetry build
-          - name: Publish Olas Operate Middleware
-            uses: pypa/gh-action-pypi-publish@release/v1
-            with:
-              user: __token__
-              password: ${{ secrets.PYPI_TOKEN }}
-              skip-existing: true
-              packages-dir: dist/
