@@ -47,10 +47,10 @@ export const SetupEoaFunding = () => {
       MIN_ETH_BALANCE_THRESHOLDS[Chain.GNOSIS].safeCreation;
 
   const statusMessage = useMemo(() => {
-    if (!isFundedMasterEoa) {
-      return 'Waiting for transaction';
-    } else {
+    if (isFundedMasterEoa) {
       return 'Funds have been received!';
+    } else {
+      return 'Waiting for transaction';
     }
   }, [isFundedMasterEoa]);
 
@@ -74,7 +74,7 @@ export const SetupEoaFunding = () => {
 
       <CardSection bordertop="true" borderbottom="true">
         <Typography.Text
-          className={!isFundedMasterEoa ? 'loading-ellipses' : ''}
+          className={isFundedMasterEoa ? '' : 'loading-ellipses'}
         >
           Status: {statusMessage}
         </Typography.Text>
