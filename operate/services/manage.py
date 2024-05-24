@@ -842,7 +842,7 @@ class ServiceManager:
                         hash,  # Service hash
                         PUBLIC_RPCS[service.ledger_config.chain],  # RPC
                         100000000000000000,  # agent_topup
-                        5000000000000000000,  # safe_topup
+                        2000000000000000000,  # safe_topup
                         50000000000000000,  # agent_fund_threshold
                         500000000000000000,  # safe_fund_treshold
                         from_safe,
