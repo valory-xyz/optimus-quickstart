@@ -1,15 +1,16 @@
-import { InfoCircleOutlined } from '@ant-design/icons';
-import { Alert, Flex, Typography } from 'antd';
+import { Flex, Typography } from 'antd';
 import { formatUnits } from 'ethers/lib/utils';
 import { ReactNode, useMemo } from 'react';
 
-import { COLOR, SERVICE_TEMPLATES } from '@/constants';
+import { SERVICE_TEMPLATES } from '@/constants';
 import { UNICODE_SYMBOLS } from '@/constants/unicode';
 import { useBalance } from '@/hooks';
 
+import { Alert } from '../common/Alert';
 import { CardSection } from '../styled/CardSection';
 
-const { Text } = Typography;
+const { Text, Paragraph } = Typography;
+const COVER_PREV_BLOCK_BORDER_STYLE = { marginTop: '-1px' };
 
 export const useNeedsFunds = () => {
   const serviceTemplate = SERVICE_TEMPLATES[0];
@@ -71,22 +72,29 @@ export const MainNeedsFunds = () => {
 
   const message: ReactNode = useMemo(
     () => (
-      <Flex vertical>
-        <Text strong style={{ color: 'inherit' }}>
-          Your agent needs funds
-        </Text>
-        <small>
+      <Flex vertical gap={4}>
+        <Text className="font-weight-600 mb-4">Your agent needs funds</Text>
+        <Paragraph className="mb-4">
+          USE THE ACCOUNT CREDENTIALS PROVIDED IN THE “ADD FUNDS” INSTRUCTIONS
+          BELOW.
+        </Paragraph>
+        <Paragraph className="mb-4">
           To run your agent, you must add these amounts to your account:
-        </small>
-        <ul className="alert-list text-sm font-weight-600">
-          {!hasEnoughOlas && (
-            <li>
-              {UNICODE_SYMBOLS.OLAS}
-              {serviceFundRequirements.olas} OLAS (for staking)
-            </li>
-          )}
-          {!hasEnoughEth && <li>${serviceFundRequirements.eth} XDAI</li>}
-        </ul>
+        </Paragraph>
+        {!hasEnoughOlas && (
+          <Text>
+            <span className="font-weight-600">{`${UNICODE_SYMBOLS.OLAS}${serviceFundRequirements.olas} OLAS `}</span>
+            - for staking.
+          </Text>
+        )}
+        {!hasEnoughEth && (
+          <Text>
+            <span className="font-weight-600">
+              {`${serviceFundRequirements.eth} XDAI `}
+            </span>
+            - for gas & trading balance.
+          </Text>
+        )}
       </Flex>
     ),
     [serviceFundRequirements, hasEnoughEth, hasEnoughOlas],
@@ -96,19 +104,8 @@ export const MainNeedsFunds = () => {
   if (!isBalanceLoaded) return null;
 
   return (
-    <CardSection>
-      <Alert
-        className="card-section-alert"
-        icon={
-          <InfoCircleOutlined
-            className="mb-auto"
-            style={{ color: COLOR.PURPLE_DARK }}
-          />
-        }
-        showIcon
-        message={message}
-        type="info"
-      />
+    <CardSection style={COVER_PREV_BLOCK_BORDER_STYLE}>
+      <Alert showIcon message={message} type="primary" fullWidth />
     </CardSection>
   );
 };

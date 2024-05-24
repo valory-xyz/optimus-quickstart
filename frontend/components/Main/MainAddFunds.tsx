@@ -1,10 +1,8 @@
 import {
   CopyOutlined,
   // QrcodeOutlined,
-  WarningOutlined,
 } from '@ant-design/icons';
 import {
-  Alert,
   Button,
   Flex,
   message,
@@ -18,11 +16,12 @@ import { useCallback, useMemo, useState } from 'react';
 import styled from 'styled-components';
 
 import { copyToClipboard, truncateAddress } from '@/common-util';
-import { COLOR, COW_SWAP_GNOSIS_XDAI_OLAS_URL } from '@/constants';
+import { COW_SWAP_GNOSIS_XDAI_OLAS_URL } from '@/constants';
 import { UNICODE_SYMBOLS } from '@/constants/unicode';
 import { useWallet } from '@/hooks/useWallet';
 import { Address } from '@/types';
 
+import { Alert } from '../common/Alert';
 import { CardSection } from '../styled/CardSection';
 
 const { Text } = Typography;
@@ -94,16 +93,15 @@ export const MainAddFunds = () => {
 const AddFundsWarningAlertSection = () => (
   <CardSection>
     <Alert
-      className="card-section-alert"
       type="warning"
+      fullWidth
       showIcon
-      icon={<WarningOutlined />}
       message={
         <Flex vertical gap={2.5}>
-          <Text className="text-base" strong style={{ color: COLOR.BROWN }}>
+          <Text className="text-base" strong>
             Only send funds on Gnosis Chain!
           </Text>
-          <Text className="text-base" style={{ color: COLOR.BROWN }}>
+          <Text className="text-base">
             You will lose any assets you send on other chains.
           </Text>
         </Flex>
@@ -121,7 +119,7 @@ const AddFundsAddressSection = ({
   truncatedFundingAddress?: string;
   handleCopy: () => void;
 }) => (
-  <CardSection gap={10} justify="center" align="center">
+  <CardSection gap={10} justify="center" align="center" padding="16px 24px">
     <Tooltip
       title={
         <span className="can-select-text flex">
@@ -132,9 +130,7 @@ const AddFundsAddressSection = ({
       <Text title={fundingAddress}>GNO: {truncatedFundingAddress ?? '--'}</Text>
     </Tooltip>
 
-    <Button onClick={handleCopy}>
-      <CopyOutlined />
-    </Button>
+    <Button onClick={handleCopy} icon={<CopyOutlined />} size="large" />
 
     {/* <Popover
       title="Scan QR code"
@@ -145,15 +141,13 @@ const AddFundsAddressSection = ({
         />
       }
     >
-      <Button>
-        <QrcodeOutlined />
-      </Button>
+      <Button icon={<QrcodeOutlined />} size="large" />
     </Popover> */}
   </CardSection>
 );
 
 const AddFundsGetTokensSection = () => (
-  <CardSection justify="center" bordertop="true">
+  <CardSection justify="center" bordertop="true" padding="16px 24px">
     <Link target="_blank" href={COW_SWAP_GNOSIS_XDAI_OLAS_URL}>
       Get OLAS + XDAI on Gnosis Chain {UNICODE_SYMBOLS.EXTERNAL_LINK}
     </Link>

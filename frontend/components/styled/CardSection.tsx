@@ -6,7 +6,7 @@ import { COLOR } from '@/constants';
 type CardSectionProps = FlexProps & {
   bordertop?: 'true' | 'false';
   borderbottom?: 'true' | 'false';
-  padding?: number;
+  padding?: string;
 };
 
 /**
@@ -17,7 +17,7 @@ export const CardSection = styled(Flex)<CardSectionProps>`
   ${(props) => {
     const { padding, borderbottom, bordertop } = props;
 
-    const paddingStyle = `padding: ${Number(padding) ? `${padding}` : '24'}px;`;
+    const paddingStyle = `padding: ${padding ?? '24px'};`;
     const borderTopStyle =
       bordertop === 'true' ? `border-top: 1px solid ${COLOR.BORDER_GRAY};` : '';
     const borderBottomStyle =

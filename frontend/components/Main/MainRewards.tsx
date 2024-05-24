@@ -17,7 +17,10 @@ const RewardsRow = styled(Row)`
   margin: 0 -24px;
   > .ant-col {
     padding: 24px;
-    border-right: 1px solid ${COLOR.BORDER_GRAY};
+
+    &:not(:last-child) {
+      border-right: 1px solid ${COLOR.BORDER_GRAY};
+    }
   }
 `;
 
@@ -32,7 +35,7 @@ const DisplayRewards = () => {
     <RewardsRow>
       <Col span={12}>
         <Flex vertical gap={4} align="flex-start">
-          <Text>Staking rewards today</Text>
+          <Text type="secondary">Staking rewards today</Text>
           {isBalanceLoaded ? (
             <>
               <Text strong style={{ fontSize: 20 }}>
@@ -55,7 +58,7 @@ const DisplayRewards = () => {
 
       <Col span={12}>
         <Flex vertical gap={4} align="flex-start">
-          <Text>Staked amount</Text>
+          <Text type="secondary">Staked amount</Text>
           {isBalanceLoaded ? (
             <>
               <Text strong style={{ fontSize: 20 }}>

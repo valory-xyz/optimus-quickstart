@@ -16,12 +16,6 @@ export const mainTheme: ThemeConfig = {
   components: {
     Alert: {
       fontSize: 16,
-      colorInfoBg: '#F8F0FF',
-      colorInfoBorder: '#CF9EFA',
-      colorInfoText: '#36075F',
-      colorIconHover: '#36075F',
-      colorText: '#36075F',
-      colorIcon: '#36075F',
     },
     Button: {
       fontSize: 16,
