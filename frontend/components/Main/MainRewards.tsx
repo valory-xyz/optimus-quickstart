@@ -134,7 +134,7 @@ const NotifyRewards = () => {
           size="large"
           className="mt-8"
           disabled
-          // TODO: add twitter share functionality
+          style={{ display: 'none' }} // TODO: add twitter share functionality
         >
           <Flex align="center" justify="center" gap={2}>
             Share on
