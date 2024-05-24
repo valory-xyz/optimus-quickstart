@@ -30,8 +30,10 @@ export const MainHeader = () => {
   const { getServiceTemplates } = useServiceTemplates();
   const { wallets, masterSafeAddress } = useWallet();
   const {
+    safeBalance,
     totalOlasBalance,
     totalEthBalance,
+    isBalanceLoaded,
     setIsPaused: setIsBalancePollingPaused,
   } = useBalance();
 
@@ -44,14 +46,14 @@ export const MainHeader = () => {
   );
 
   useEffect(() => {
-    if (totalEthBalance && totalEthBalance < LOW_BALANCE) {
+    if (safeBalance && safeBalance.ETH < LOW_BALANCE) {
       setTrayIcon?.('low-gas');
     } else if (serviceStatus === DeploymentStatus.DEPLOYED) {
       setTrayIcon?.('running');
     } else if (serviceStatus === DeploymentStatus.STOPPED) {
       setTrayIcon?.('paused');
     }
-  }, [totalEthBalance, serviceStatus, setTrayIcon]);
+  }, [safeBalance, serviceStatus, setTrayIcon]);
 
   const agentHead = useMemo(() => {
     if (
@@ -185,7 +187,7 @@ export const MainHeader = () => {
       );
     }
 
-    if (totalOlasBalance === undefined || totalEthBalance === undefined) {
+    if (!isBalanceLoaded) {
       return (
         <Button type="primary" size="large" disabled>
           Start agent
@@ -213,8 +215,9 @@ export const MainHeader = () => {
     );
 
     if (
-      totalOlasBalance < olasCostOfBond + olasRequiredToStake ||
-      totalEthBalance < monthlyGasEstimate
+      (totalOlasBalance &&
+        totalOlasBalance < olasCostOfBond + olasRequiredToStake) ||
+      (totalEthBalance && totalEthBalance < monthlyGasEstimate)
     ) {
       return (
         <Button type="default" size="large" disabled>
@@ -229,12 +232,13 @@ export const MainHeader = () => {
       </Button>
     );
   }, [
+    handlePause,
+    handleStart,
+    isBalanceLoaded,
     serviceButtonState,
     serviceStatus,
-    totalOlasBalance,
     totalEthBalance,
-    handleStart,
-    handlePause,
+    totalOlasBalance,
   ]);
 
   return (

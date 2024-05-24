@@ -12,17 +12,17 @@ import { CardTitle } from '../common/CardTitle';
 import { CardFlex } from '../styled/CardFlex';
 
 export const SettingsAddBackupWallet = () => {
-  const { totalEthBalance } = useBalance();
+  const { eoaBalance } = useBalance();
   const { goto } = useSettings();
 
   const [form] = Form.useForm();
 
   const isFunded = useMemo<boolean>(() => {
-    if (!totalEthBalance) return false;
+    if (!eoaBalance) return false;
     return (
-      totalEthBalance >= MIN_ETH_BALANCE_THRESHOLDS[Chain.GNOSIS].safeAddSigner
+      eoaBalance.ETH >= MIN_ETH_BALANCE_THRESHOLDS[Chain.GNOSIS].safeAddSigner
     );
-  }, [totalEthBalance]);
+  }, [eoaBalance]);
 
   return (
     <CardFlex
