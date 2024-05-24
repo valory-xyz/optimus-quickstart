@@ -1,8 +1,8 @@
 <h1 align="center">
-<b>Pearl<b>
+<b>Pearl</b>
 </h1>
 
-Pearl is an application used to run autonomous agents.
+Pearl is an application used to run autonomous agents powered by the OLAS Network.
 
 ## Technologies Used
 
@@ -16,19 +16,18 @@ Pearl is an application used to run autonomous agents.
 
 ## Getting Started
 
-<details><summary><h3>Installing system dependencies</h3></summary>
+### Installing system dependencies
 
-The following installation scripts assume you have the following on each OS:
+The following installation steps assume you have the following on each OS:
 
 - Linux: a debian based operating system such as Ubuntu with `apt` to install packages.
 - MacOS: [Homebrew](https://brew.sh/)
-- ~~Windows: [Chocolatey](https://chocolatey.org/install)~~ (Coming soon...)
 
-#### NodeJS via NVM
+<details><summary><h4>NodeJS</summary></h4>
 
-NodeJS is best installed and managed through NVM, which allows you to install and select the version of NodeJS you wish to use. For this project is the current LTS version 20.11.
+NodeJS is best installed and managed through NVM. It allows you to install and select specific versions of NodeJS. Pearl has been built using version 20.11, LTS.
 
-##### Linux
+<h5>Linux</h5>
 
 ```bash
 sudo apt install curl 
@@ -38,7 +37,7 @@ nvm install --lts
 nvm use --lts
 ```
 
-##### MacOS
+<h5>MacOS</h5>
 
 ```bash
 brew install nvm
@@ -62,22 +61,24 @@ nvm install --lts
 nvm use --lts
 ```
 
-#### Yarn
+</details>
+
+<details><summary><h4>Yarn</h4></summary>
 
 ```bash
 npm install --global yarn
 ```
+</details>
 
-#### Python
+<details><summary><h4>Python</h4></summary>
 
-<details><summary><h5>Linux</h5></summary>
+<h5>Linux</h5>
 
 ```bash
 sudo apt install python3
 ```
-</details>
 
-<details><summary><h5>MacOS</h5></summary>
+<h5>MacOS</h5>
 
 ```bash
 brew install python
@@ -85,17 +86,15 @@ brew install python
 
 </details>
 
-#### PIPX
+<details><summary><h4>PIPX</h4></summary>
 
-<details><summary><h5>Linux</h5></summary>
+<h5>Linux</h5>
 
 ```bash
 sudo apt install pipx
 ```
 
-</details>
-
-<details><summary><h5>MacOS</h5></summary>
+<h5>MacOS</h5>
 
 ```bash
 brew install pipx
@@ -103,19 +102,21 @@ brew install pipx
 
 </details>
 
-#### Poetry
+<details><summary><h4>Poetry</h4></summary>
 
 ```bash
 pipx install poetry
 ```
 
-If promoted to run `pipx ensurepath`, run this command.
+If promoted to run `pipx ensurepath`, run it.
 
-#### Docker
+</details>
 
-<details><summary><h5>Linux</h5></summary>
+<details><summary><h4>Docker</h4></summary>
 
-You can change the `ubuntu.22.04~jammy` version to your OS in the following command:
+<h5>Linux</h5>
+
+*Update the `ubuntu.22.04~jammy` version string to your current OS version before running the following command:*
 
 ```bash
 VERSION_STRING=5:24.0.7-1~ubuntu.22.04~jammy
@@ -123,15 +124,13 @@ sudo apt-get install docker-ce=$VERSION_STRING docker-ce-cli=$VERSION_STRING con
 sudo usermod -aG docker $USER
 ```
 
-If you are unsure of your current release version and codename to update the VERSION_STRING above, you can run:
+If you are unsure about your current OS version/codename, you can find it by running:
 
 ```bash
 lsb_release -a
 ```
 
-</details>
-
-<details><summary><h5>MacOS</h5></summary>
+<h5>MacOS</h5>
 
 You can [install Docker Desktop via the Docker website](https://www.docker.com/products/docker-desktop/). Be sure to select the correct version for your system's CPU architecture.
 
@@ -145,74 +144,75 @@ uname -p
 
 </details>
 
-</details>
+<h3>Setting up your .env file</h3>
 
-<details><summary><h3>Setting up your .env file</h3></summary>
+Create an `.env` file in the root directory, or rename `.env.example` to `.env`.
+Then set the following environment variables.
 
-Create a `.env` file in the root directory, or rename `.env.example` to `.env`.
-
-#### NODE_ENV
+<details><summary><h4>NODE_ENV</h4></summary>
 
 For development usage, set `NODE_ENV=development`.
 For production usage, set `NODE_ENV=production`.
 
-#### FORK_URL
+</details>
 
-**Required for both development and production.**
+<details><summary><h4>FORK_URL</h4></summary>
+
+**This variable is required for both development and production.**
 **Must be a Gnosis Mainnet RPC URL.**
 
-- In `development` this RPC url is forked by Hardhat, so you can interact with the chain without losing your assets.
+- In `development` this RPC url is only used if/when forking mainnet with Hardhat (covered later). This process allows you to test without losing funds.
 - In `production` this RPC URL is used as the main RPC for Pearl.
 
 You can get a Gnosis RPC from [Nodies](https://www.nodies.app/).
 
-Then, set `FORK_URL=https://YOUR_RPC_URL_HERE` in your .env file.
+Once you have a Gnosis Mainnet RPC URL, set `FORK_URL=YOUR_RPC_URL_HERE` in your .env file.
 
-Note: this must be an external RPC, not your hardhat node RPC, if using Hardhat.
+Note: this must be an external RPC. If you decide to use Hardhat for testing on a mainnet fork, do _not_ set your Hardhat Node URL here.
+</details>
 
-### DEV_RPC
+<details><summary><h4>DEV_RPC</h4></summary>
 
-This RPC is only used while `NODE_ENV=development` is set.
-It is used throughout Pearl as the main RPC.
-This URL should be set as the RPC URL that you wish to connect to.
+This environment variable is only used when `NODE_ENV=development` is set.
+
+In `development` mode, it is used throughout Pearl as the main RPC.
 
 If you're using Hardhat, you can set `DEV_RPC=http://localhost:8545`.
-Or, you can use another, external RPC URL here, ensuring that the chain ID is 100 (Gnosis Mainnet's chain ID).
+Or, you can use another, external RPC URL that wish to test on, ensuring that the chain ID is 100 (Gnosis Mainnet's chain ID).
 
 </details>
 
-<details><summary><h3>Installing project dependencies</h3></summary>
+<h3>Installing project dependencies</h3>
 
-This command installs the required dependencies for the backend, frontend, and electron application.
+Run the following command to install all project dependencies.
 
 ```bash
 yarn install-deps
 ```
 
-</details>
+<h3>Running the application</h3>
 
-<details><summary><h3>Running the development app</h3></summary>
+Provided your system dependencies are installed, environment variables are set, and your RPC is running.
 
-In the root directory, run:
+You can start Pearl by running the following command in the root directory:
 
 ```bash
 yarn start
 ```
 
 This will run Electron, which launches the NextJS frontend and the Python backend as child processes.
-</details>
 
-<details><summary><h3>Chain forking (for development)</h3></summary>
+<h3>Chain forking (for development)</h3>
 
-In the interest of not losing funds, you can run a forked version of Gnosis Mainnet.
+In the interest of protecting your funds during development, you can run a forked version of Gnosis Mainnet.
 
-There are two recommended options:
-
-- Tenderly
-- Hardhat
+There are two recommended options, choose one:
 
 <details><summary><h4>Tenderly (preferred)</h4></summary>
-[Tenderly](https://tenderly.co/) is a service with a plethora of useful blockchain development tools. Of which, the core tool required here is the ability to **fork networks**.
+
+[Tenderly](https://tenderly.co/) is a service with a plethora of useful blockchain development tools. The tool required here gives you the ability to **fork networks**.
+
+Can you can also monitor all transactions, and fund your accounts with any token that you please.
 
 1. Signup to [Tenderly](https://tenderly.co/), and select the plan you desire. **The Free plan should suffice for most users**.
 2. Go to *Forks* under the *Development* tab -- in the left sidebar of your dashboard.
@@ -233,26 +233,25 @@ npx hardhat node
 
 **Once Hardhat is running, you will be able to use `http://localhost:8545` as your development RPC.**
 
-##### Funding your addresses
+<h5>Funding your addresses with Hardhat</h5>
 
-There are a number of scripts to fund addresses for testing:
+There are scripts to fund addresses during testing/development:
 
 - XDAI funding:
 
-```
+```bash
 poetry run python scripts/fund.py 0xYOURADDRESS
 ```
 
-- OLAS funding: `TBA`
+- OLAS funding: 
+
+```bash
+poetry run python scripts/transfer_olas.py PATH_TO_KEY_CONTAINING_OLAS ADDRESS_TO_TRANSFER AMOUNT
+```
 
 </details>
 
-</details>
+<h2>Notes and Common Issues</h2>
 
-<details><summary><h3>Funding addresses while running a Hardhat fork</h3></summary>
-
-</details>
-
-## Further notes / issues
-
-- Only one agent can be run at a time.
+- If Pearl is running, it will kill any attempt to run another Pearl instance. This is to ensure there are no port conflicts.
+- Enivironment variables are cached in the terminal, if you change them while your terminal is open, you will need to restart the terminal.
