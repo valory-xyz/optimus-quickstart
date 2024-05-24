@@ -4,6 +4,8 @@ import { useEffect, useState } from 'react';
 
 import { Chain } from '@/client';
 import { CardSection } from '@/components/styled/CardSection';
+import { SUPPORT_URL } from '@/constants';
+import { UNICODE_SYMBOLS } from '@/constants/unicode';
 import { PageState } from '@/enums';
 import { usePageState, useSetup } from '@/hooks';
 import { useWallet } from '@/hooks/useWallet';
@@ -15,7 +17,7 @@ export const SetupCreateSafe = () => {
   const { goto } = usePageState();
 
   const [isCreatingSafe, setIsCreatingSafe] = useState(false);
-  const [isError, setIsError] = useState(true);
+  const [isError, setIsError] = useState(false);
 
   useEffect(() => {
     if (isCreatingSafe) return;
@@ -41,13 +43,24 @@ export const SetupCreateSafe = () => {
       padding="80px 24px"
       gap={12}
     >
-      <Image src="/onboarding-robot.svg" alt="logo" width={80} height={80} />
       {isError ? (
-        <Typography.Text type="secondary">
-          Error, please contact support
-        </Typography.Text>
+        <>
+          <Image src="/broken-robot.svg" alt="logo" width={80} height={80} />
+          <Typography.Text type="secondary" className="mt-12">
+            Error, please contact{' '}
+            <a target="_blank" href={SUPPORT_URL}>
+              Olas community {UNICODE_SYMBOLS.EXTERNAL_LINK}
+            </a>
+          </Typography.Text>
+        </>
       ) : (
         <>
+          <Image
+            src="/onboarding-robot.svg"
+            alt="logo"
+            width={80}
+            height={80}
+          />
           <Typography.Title
             level={4}
             className="m-0 mt-12 loading-ellipses"
