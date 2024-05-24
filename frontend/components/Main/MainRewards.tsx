@@ -2,7 +2,6 @@ import { Button, Col, Flex, Modal, Row, Skeleton, Tag, Typography } from 'antd';
 import Image from 'next/image';
 import { useCallback, useEffect, useState } from 'react';
 import styled from 'styled-components';
-import { useTimeout } from 'usehooks-ts';
 
 import { balanceFormat } from '@/common-util';
 import { COLOR } from '@/constants';
@@ -88,11 +87,7 @@ const NotifyRewards = () => {
 
   const [canShowNotification, setCanShowNotification] = useState(false);
 
-  useTimeout(() => {
-    // notification shown
-    setCanShowNotification(true);
-  }, 3000);
-
+  // hook to set the flag to show the notification
   useEffect(() => {
     if (!isEligibleForRewards) return;
     if (!storeState) return;
@@ -107,7 +102,7 @@ const NotifyRewards = () => {
     storeState,
   ]);
 
-  // hook to show app notification
+  // hook to show desktop app notification
   useEffect(() => {
     if (!canShowNotification) return;
 
@@ -119,10 +114,10 @@ const NotifyRewards = () => {
 
   const closeNotificationModal = useCallback(() => {
     setCanShowNotification(false);
+
+    // once the notification is closed, set the flag to true
     store?.set?.('firstRewardNotificationShown', true);
   }, [store]);
-
-  console.log(storeState);
 
   if (!canShowNotification) return null;
 
