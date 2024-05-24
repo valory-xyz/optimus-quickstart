@@ -4,6 +4,10 @@ const schema = {
     type: 'boolean',
     default: false,
   },
+  rewardsEarnedOnce: {
+    type: 'boolean',
+    default: false,
+  },
 };
 
 const setupStoreIpc = async (ipcChannel, mainWindow) => {

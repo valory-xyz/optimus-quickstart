@@ -4,11 +4,14 @@ import {
   PropsWithChildren,
   useCallback,
   useContext,
+  useEffect,
   useMemo,
   useState,
 } from 'react';
 import { useInterval } from 'usehooks-ts';
 
+import { useElectronApi } from '@/hooks/useElectronApi';
+import { useStore } from '@/hooks/useStore';
 import { AutonolasService } from '@/service/Autonolas';
 
 import { ServicesContext } from './ServicesProvider';
@@ -32,6 +35,8 @@ export const RewardContext = createContext<{
 export const RewardProvider = ({ children }: PropsWithChildren) => {
   const { services } = useContext(ServicesContext);
   const service = useMemo(() => services?.[0], [services]);
+  const { storeState } = useStore();
+  const electronApi = useElectronApi();
 
   const [accruedServiceStakingRewards, setAccruedServiceStakingRewards] =
     useState<number>();
@@ -77,6 +82,12 @@ export const RewardProvider = ({ children }: PropsWithChildren) => {
     );
     setAvailableRewardsForEpoch(rewards);
   }, [service]);
+
+  useEffect(() => {
+    if (isEligibleForRewards && !storeState?.rewardsEarnedOnce) {
+      electronApi.store?.set?.('rewardsEarnedOnce', true);
+    }
+  }, [electronApi.store, isEligibleForRewards, storeState?.rewardsEarnedOnce]);
 
   useInterval(async () => updateRewards(), 5000);
 

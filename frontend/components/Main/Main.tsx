@@ -5,6 +5,7 @@ import { useEffect } from 'react';
 import { PageState } from '@/enums';
 import { useBalance, usePageState, useServices } from '@/hooks';
 
+import { KeepAgentRunning } from './KeepAgentRunning';
 import { MainAddFunds } from './MainAddFunds';
 import { MainGasBalance } from './MainGasBalance';
 import { MainHeader } from './MainHeader';
@@ -41,6 +42,7 @@ export const Main = () => {
       <Flex vertical>
         <MainOlasBalance />
         <MainRewards />
+        <KeepAgentRunning />
         <MainGasBalance />
         <MainNeedsFunds />
         <MainAddFunds />
