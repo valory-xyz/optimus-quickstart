@@ -1,10 +1,11 @@
-<h1 align="center"> 
+<h1 align="center">
 <b>Pearl<b>
 </h1>
 
 Pearl is an application used to run autonomous agents.
 
 ## Technologies Used
+
 - Electron
 - NodeJS (20.11)
 - AntD
@@ -18,6 +19,7 @@ Pearl is an application used to run autonomous agents.
 <details><summary><h3>Installing system dependencies</h3></summary>
 
 The following installation scripts assume you have the following on each OS:
+
 - Linux: a debian based operating system such as Ubuntu with `apt` to install packages.
 - MacOS: [Homebrew](https://brew.sh/)
 - ~~Windows: [Chocolatey](https://chocolatey.org/install)~~ (Coming soon...)
@@ -67,49 +69,74 @@ npm install --global yarn
 ```
 
 #### Python
-##### Linux
+
+<details><summary><h5>Linux</h5></summary>
+
 ```bash
 sudo apt install python3
 ```
-##### MacOS
-```
+</details>
+
+<details><summary><h5>MacOS</h5></summary>
+
+```bash
 brew install python
 ```
 
+</details>
+
 #### PIPX
-##### Linux
+
+<details><summary><h5>Linux</h5></summary>
+
 ```bash
 sudo apt install pipx
 ```
-##### MacOS
+
+</details>
+
+<details><summary><h5>MacOS</h5></summary>
+
 ```bash
 brew install pipx
 ```
 
+</details>
+
 #### Poetry
+
 ```bash
 pipx install poetry
 ```
+
 If promoted to run `pipx ensurepath`, run this command.
 
 #### Docker
 
-##### Linux
+<details><summary><h5>Linux</h5></summary>
+
 You can change the `ubuntu.22.04~jammy` version to your OS in the following command:
+
 ```bash
 VERSION_STRING=5:24.0.7-1~ubuntu.22.04~jammy
 sudo apt-get install docker-ce=$VERSION_STRING docker-ce-cli=$VERSION_STRING containerd.io docker-buildx-plugin docker-compose-plugin
 sudo usermod -aG docker $USER
 ```
+
 If you are unsure of your current release version and codename to update the VERSION_STRING above, you can run:
+
 ```bash
 lsb_release -a
 ```
-##### MacOS
+
+</details>
+
+<details><summary><h5>MacOS</h5></summary>
 
 You can [install Docker Desktop via the Docker website](https://www.docker.com/products/docker-desktop/). Be sure to select the correct version for your system's CPU architecture.
 
 If you are unsure about your system's CPU architecture, run the following command:
+
 ```bash
 uname -p
 # x86 64    Intel chip
@@ -118,11 +145,14 @@ uname -p
 
 </details>
 
+</details>
+
 <details><summary><h3>Setting up your .env file</h3></summary>
 
 Create a `.env` file in the root directory, or rename `.env.example` to `.env`.
 
 #### NODE_ENV
+
 For development usage, set `NODE_ENV=development`.
 For production usage, set `NODE_ENV=production`.
 
@@ -158,6 +188,7 @@ This command installs the required dependencies for the backend, frontend, and e
 ```bash
 yarn install-deps
 ```
+
 </details>
 
 <details><summary><h3>Running the development app</h3></summary>
@@ -176,6 +207,7 @@ This will run Electron, which launches the NextJS frontend and the Python backen
 In the interest of not losing funds, you can run a forked version of Gnosis Mainnet.
 
 There are two recommended options:
+
 - Tenderly
 - Hardhat
 
@@ -187,6 +219,7 @@ There are two recommended options:
 3. Click *Create Fork*, select "Gnosis Chain" as the network, and use Chain ID `100`.
 4. Copy the RPC url into the appropriate .env variables in your repository. (Recommended to set both `FORK_URL` & `DEV_RPC` to this RPC url during development).
 5. Click the *Fund Accounts* button to fund your accounts with XDAI (native token) and [OLAS](https://gnosisscan.io/token/0xce11e14225575945b8e6dc0d4f2dd4c570f79d9f).
+
 </details>
 
 <details><summary><h4>Hardhat</h4></summary>
@@ -201,21 +234,22 @@ npx hardhat node
 **Once Hardhat is running, you will be able to use `http://localhost:8545` as your development RPC.**
 
 ##### Funding your addresses
+
 There are a number of scripts to fund addresses for testing:
 
 - XDAI funding:
+
 ```
 poetry run python scripts/fund.py 0xYOURADDRESS
 ```
+
 - OLAS funding: `TBA`
 
 </details>
 
-
 </details>
 
 <details><summary><h3>Funding addresses while running a Hardhat fork</h3></summary>
-
 
 </details>
 
