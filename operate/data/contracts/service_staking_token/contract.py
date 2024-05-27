@@ -49,7 +49,7 @@ class ServiceStakingTokenContract(Contract):
     ) -> JSONLike:
         """Check whether the service is staked."""
         contract_instance = cls.get_instance(ledger_api, contract_address)
-        res = contract_instance.functions.getServiceStakingState(service_id).call()
+        res = contract_instance.functions.getStakingState(service_id).call()
         return dict(data=StakingState(res))
 
     @classmethod
@@ -107,7 +107,7 @@ class ServiceStakingTokenContract(Contract):
     ) -> JSONLike:
         """Get the service's staking rewards."""
         contract = cls.get_instance(ledger_api, contract_address)
-        reward = contract.functions.calculateServiceStakingReward(service_id).call()
+        reward = contract.functions.calculateStakingReward(service_id).call()
         return dict(data=reward)
 
     @classmethod
