@@ -18,19 +18,27 @@ const RewardsRow = styled(Row)`
   margin: 0 -24px;
   > .ant-col {
     padding: 24px;
-
     &:not(:last-child) {
       border-right: 1px solid ${COLOR.BORDER_GRAY};
     }
   }
 `;
 
+const Loader = () => (
+  <Flex vertical gap={8}>
+    <Skeleton.Button active size="small" style={{ width: 92 }} />
+    <Skeleton.Button active size="small" style={{ width: 92 }} />
+  </Flex>
+);
+
+const MINIMUM_STAKED_AMOUNT = 20;
+
 const DisplayRewards = () => {
   const { availableRewardsForEpochEth, isEligibleForRewards } = useReward();
   const { isBalanceLoaded, totalOlasStakedBalance } = useBalance();
 
   // 20 OLAS is the minimum amount to stake
-  const isStaked = totalOlasStakedBalance === 20;
+  const isStaked = totalOlasStakedBalance === MINIMUM_STAKED_AMOUNT;
 
   return (
     <RewardsRow>
@@ -49,10 +57,7 @@ const DisplayRewards = () => {
               )}
             </>
           ) : (
-            <Flex vertical gap={8}>
-              <Skeleton.Button active size="small" style={{ width: 92 }} />
-              <Skeleton.Button active size="small" style={{ width: 92 }} />
-            </Flex>
+            <Loader />
           )}
         </Flex>
       </Col>
@@ -68,10 +73,7 @@ const DisplayRewards = () => {
               {isStaked ? null : <Tag color="processing">Not yet staked</Tag>}
             </>
           ) : (
-            <Flex vertical gap={8}>
-              <Skeleton.Button active size="small" style={{ width: 92 }} />
-              <Skeleton.Button active size="small" style={{ width: 92 }} />
-            </Flex>
+            <Loader />
           )}
         </Flex>
       </Col>
