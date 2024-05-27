@@ -9,6 +9,7 @@ import { PageStateProvider, ServicesProvider, SetupProvider } from '@/context';
 import { BalanceProvider } from '@/context/BalanceProvider';
 import { ElectronApiProvider } from '@/context/ElectronApiProvider';
 import { MasterSafeProvider } from '@/context/MasterSafeProvider';
+import { OnlineStatusProvider } from '@/context/OnlineStatusProvider';
 import { RewardProvider } from '@/context/RewardProvider';
 import { SettingsProvider } from '@/context/SettingsProvider';
 import { StoreProvider } from '@/context/StoreProvider';
@@ -29,27 +30,29 @@ export default function App({ Component, pageProps }: AppProps) {
     <ElectronApiProvider>
       <StoreProvider>
         <PageStateProvider>
-          <WalletProvider>
-            <MasterSafeProvider>
-              <ServicesProvider>
-                <RewardProvider>
-                  <BalanceProvider>
-                    <SetupProvider>
-                      <SettingsProvider>
-                        {isMounted ? (
-                          <ConfigProvider theme={mainTheme}>
-                            <Layout>
-                              <Component {...pageProps} />
-                            </Layout>
-                          </ConfigProvider>
-                        ) : null}
-                      </SettingsProvider>
-                    </SetupProvider>
-                  </BalanceProvider>
-                </RewardProvider>
-              </ServicesProvider>
-            </MasterSafeProvider>
-          </WalletProvider>
+          <OnlineStatusProvider>
+            <WalletProvider>
+              <MasterSafeProvider>
+                <ServicesProvider>
+                  <RewardProvider>
+                    <BalanceProvider>
+                      <SetupProvider>
+                        <SettingsProvider>
+                          {isMounted ? (
+                            <ConfigProvider theme={mainTheme}>
+                              <Layout>
+                                <Component {...pageProps} />
+                              </Layout>
+                            </ConfigProvider>
+                          ) : null}
+                        </SettingsProvider>
+                      </SetupProvider>
+                    </BalanceProvider>
+                  </RewardProvider>
+                </ServicesProvider>
+              </MasterSafeProvider>
+            </WalletProvider>
+          </OnlineStatusProvider>
         </PageStateProvider>
       </StoreProvider>
     </ElectronApiProvider>

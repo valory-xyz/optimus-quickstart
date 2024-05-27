@@ -28,6 +28,7 @@ import {
 } from '@/types';
 
 import { ServicesContext } from '.';
+import { OnlineStatusContext } from './OnlineStatusProvider';
 import { RewardContext } from './RewardProvider';
 import { WalletContext } from './WalletProvider';
 
@@ -64,6 +65,7 @@ export const BalanceContext = createContext<{
 });
 
 export const BalanceProvider = ({ children }: PropsWithChildren) => {
+  const { isOnline } = useContext(OnlineStatusContext);
   const { wallets, masterEoaAddress, masterSafeAddress } =
     useContext(WalletContext);
   const { services, serviceAddresses } = useContext(ServicesContext);
@@ -197,7 +199,7 @@ export const BalanceProvider = ({ children }: PropsWithChildren) => {
     () => {
       updateBalances();
     },
-    isPaused ? null : 5000,
+    isPaused || !isOnline ? null : 5000,
   );
 
   return (
