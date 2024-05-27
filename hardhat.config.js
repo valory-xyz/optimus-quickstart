@@ -8,7 +8,7 @@ const config = {
   networks: {    
     hardhat: {
       forking: {
-        url: "https://gnosis-pokt.nodies.app"      
+        url: process.env.FORK_URL,      
       },
       chainId: 100,
     },    

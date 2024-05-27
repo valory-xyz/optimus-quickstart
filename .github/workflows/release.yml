@@ -1,16 +1,27 @@
-name: Build, Notarize, Release
+name: Release
 
 # This workflow is triggered on pushing a tag BE CAREFUL this application AUTO UPDATES !!! 
 # git tag vX.Y.Z
 # git push origin tag vX.Y.Z
-on: 
+
+on:
     push:
         tags:
             - 'v*.*.*'
+
 jobs:
+    verify-main-branch: # ensures we only release from main
+      runs-on: ubuntu-latest
+      steps:
+      - name: Exit if not on main branch
+        if: github.ref != 'refs/heads/main'
+        run: echo "Not on main branch, exiting" && exit -1
+
     release-middleware:
+        needs: 
+          - "verify-main-branch"
         runs-on: "ubuntu-latest"
-        steps:           
+        steps:
             - uses: actions/checkout@v2
             - uses: actions/setup-python@v4
               with:
@@ -36,10 +47,12 @@ jobs:
                 password: ${{ secrets.PYPI_TOKEN }}
                 skip-existing: true
                 packages-dir: dist/
+
     release-operate:
         runs-on: macos-latest
         needs:
           - "release-middleware"
+          - "verify-main-branch"
         steps:           
             - uses: actions/checkout@v2
             - uses: actions/setup-python@v4
@@ -68,12 +81,10 @@ jobs:
                 APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLEIDPASS }}
                 APPLE_ID: ${{ secrets.APPLEID }}
                 APPLETEAMID: ${{ secrets.APPLETEAMID }}
-                #CSC_FOR_PULL_REQUEST: true #required during testing
                 CSC_KEY_PASSWORD: ${{ secrets.CSC_KEY_PASSWORD }}
                 CSC_LINK: ${{ secrets.CSC_LINK }}
                 GH_TOKEN: ${{ secrets.github_token}}
                 NODE_ENV: production
                 DEV_RPC: https://rpc-gate.autonolas.tech/gnosis-rpc/
                 FORK_URL: https://rpc-gate.autonolas.tech/gnosis-rpc/
-                #PUBLISH_FOR_PULL_REQUEST: true #required during testing
               run: node build.js

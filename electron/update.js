@@ -1,21 +1,16 @@
-const { publishOptions, updateKey } = require('./constants/publishOptions');
+const { publishOptions } = require('./constants/publishOptions');
 const electronUpdater = require('electron-updater');
 const electronLogger = require('electron-log');
 
 const macUpdater = new electronUpdater.MacUpdater({
   ...publishOptions,
-  private: true,
-  token: updateKey,
+  private: false,
 });
 
 macUpdater.logger = electronLogger;
 
 macUpdater.setFeedURL({
   ...publishOptions,
-  token: updateKey,
-  requestHeaders: {
-    authorization: `Bearer ${updateKey}`,
-  },
 });
 
 macUpdater.autoDownload = true;

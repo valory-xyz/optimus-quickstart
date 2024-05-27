@@ -36,3 +36,4 @@ dist/
 electron/.next
 
 cache
+leak_report
