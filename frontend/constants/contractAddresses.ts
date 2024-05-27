@@ -19,7 +19,7 @@ export const SERVICE_STAKING_TOKEN_MECH_USAGE_CONTRACT_ADDRESS: Record<
   number,
   Address
 > = {
-  [Chain.GNOSIS]: '0x43fb32f25dce34eb76c78c7a42c8f40f84bcd237',
+  [Chain.GNOSIS]: '0xEE9F19b5DF06c7E8Bfc7B28745dcf944C504198A',
 };
 
 export const AGENT_MECH_CONTRACT_ADDRESS: Record<number, Address> = {
