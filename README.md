@@ -66,6 +66,8 @@ nvm use --lts
 
 <details><summary><h4>Yarn</h4></summary>
 
+Yarn is the package manager used for dependency management of the Electron app and NextJS frontend.
+
 ```bash
 npm install --global yarn
 ```
@@ -104,6 +106,8 @@ brew install pipx
 </details>
 
 <details><summary><h4>Poetry</h4></summary>
+
+Poetry is used on the backend to install and manage dependencies, and create a virtual environment for the backend API.
 
 ```bash
 pipx install poetry
