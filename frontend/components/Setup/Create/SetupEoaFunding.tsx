@@ -27,22 +27,16 @@ import { UNICODE_SYMBOLS } from '@/constants/unicode';
 import { SetupScreen } from '@/enums';
 import { useBalance, useSetup } from '@/hooks';
 import { useWallet } from '@/hooks/useWallet';
-import { Address } from '@/types';
 
 import { SetupCreateHeader } from './SetupCreateHeader';
 
 export const SetupEoaFunding = () => {
-  const { masterEoaAddress } = useWallet();
-  const { walletBalances } = useBalance();
+  const { eoaBalance } = useBalance();
   const { goto } = useSetup();
 
-  const masterEaoEthBalance =
-    masterEoaAddress && walletBalances?.[masterEoaAddress]?.ETH;
-
   const isFundedMasterEoa =
-    masterEaoEthBalance &&
-    masterEaoEthBalance >=
-      MIN_ETH_BALANCE_THRESHOLDS[Chain.GNOSIS].safeCreation;
+    eoaBalance?.ETH &&
+    eoaBalance.ETH >= MIN_ETH_BALANCE_THRESHOLDS[Chain.GNOSIS].safeCreation;
 
   const statusMessage = useMemo(() => {
     if (isFundedMasterEoa) {
@@ -80,18 +74,14 @@ export const SetupEoaFunding = () => {
           Status: {statusMessage}
         </Typography.Text>
       </CardSection>
-      {!isFundedMasterEoa && (
-        <SetupEoaFundingWaiting masterEoa={masterEoaAddress} />
-      )}
+      {!isFundedMasterEoa && <SetupEoaFundingWaiting />}
     </CardFlex>
   );
 };
 
-const SetupEoaFundingWaiting = ({
-  masterEoa,
-}: {
-  masterEoa: Address | undefined;
-}) => {
+const SetupEoaFundingWaiting = () => {
+  const { masterEoaAddress } = useWallet();
+
   return (
     <>
       <CardSection>
@@ -121,21 +111,21 @@ const SetupEoaFundingWaiting = ({
               <CopyOutlined
                 style={ICON_STYLE}
                 onClick={() =>
-                  masterEoa &&
-                  copyToClipboard(masterEoa).then(() =>
+                  masterEoaAddress &&
+                  copyToClipboard(masterEoaAddress).then(() =>
                     message.success('Address copied!'),
                   )
                 }
               />
             </Tooltip>
 
-            {/* {masterEoa && (
+            {/* {masterEoaAddress && (
                 <Popover
                   title="Scan QR code"
                   content={
                     <QRCode
                       size={250}
-                      value={`https://metamask.app.link/send/${masterEoa}@${100}`}
+                      value={`https://metamask.app.link/send/${masterEoaAddress}@${100}`}
                     />
                   }
                 >
@@ -146,7 +136,7 @@ const SetupEoaFundingWaiting = ({
         </Flex>
 
         <span className="can-select-text break-word">
-          {`GNO: ${masterEoa}`}
+          {`GNO: ${masterEoaAddress}`}
         </span>
         <Alert
           type="info"

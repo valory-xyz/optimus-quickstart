@@ -26,15 +26,16 @@ enum ServiceButtonLoadingState {
 
 export const MainHeader = () => {
   const { services, serviceStatus, setServiceStatus } = useServices();
-  const { showNotification } = useElectronApi();
+  const { showNotification, setTrayIcon } = useElectronApi();
   const { getServiceTemplates } = useServiceTemplates();
   const { wallets, masterSafeAddress } = useWallet();
   const {
+    safeBalance,
     totalOlasBalance,
     totalEthBalance,
+    isBalanceLoaded,
     setIsPaused: setIsBalancePollingPaused,
   } = useBalance();
-  const electronApi = useElectronApi();
 
   const [serviceButtonState, setServiceButtonState] =
     useState<ServiceButtonLoadingState>(ServiceButtonLoadingState.NotLoading);
@@ -45,14 +46,14 @@ export const MainHeader = () => {
   );
 
   useEffect(() => {
-    if (totalEthBalance && totalEthBalance < LOW_BALANCE) {
-      electronApi?.setTrayIcon?.('low-gas');
+    if (safeBalance && safeBalance.ETH < LOW_BALANCE) {
+      setTrayIcon?.('low-gas');
     } else if (serviceStatus === DeploymentStatus.DEPLOYED) {
-      electronApi?.setTrayIcon?.('running');
+      setTrayIcon?.('running');
     } else if (serviceStatus === DeploymentStatus.STOPPED) {
-      electronApi?.setTrayIcon?.('paused');
+      setTrayIcon?.('paused');
     }
-  }, [totalEthBalance, serviceStatus, electronApi]);
+  }, [safeBalance, serviceStatus, setTrayIcon]);
 
   const agentHead = useMemo(() => {
     if (
@@ -186,7 +187,7 @@ export const MainHeader = () => {
       );
     }
 
-    if (totalOlasBalance === undefined || totalEthBalance === undefined) {
+    if (!isBalanceLoaded) {
       return (
         <Button type="primary" size="large" disabled>
           Start agent
@@ -214,8 +215,9 @@ export const MainHeader = () => {
     );
 
     if (
-      totalOlasBalance < olasCostOfBond + olasRequiredToStake ||
-      totalEthBalance < monthlyGasEstimate
+      (totalOlasBalance &&
+        totalOlasBalance < olasCostOfBond + olasRequiredToStake) ||
+      (totalEthBalance && totalEthBalance < monthlyGasEstimate)
     ) {
       return (
         <Button type="default" size="large" disabled>
@@ -230,12 +232,13 @@ export const MainHeader = () => {
       </Button>
     );
   }, [
+    handlePause,
+    handleStart,
+    isBalanceLoaded,
     serviceButtonState,
     serviceStatus,
-    totalOlasBalance,
     totalEthBalance,
-    handleStart,
-    handlePause,
+    totalOlasBalance,
   ]);
 
   return (

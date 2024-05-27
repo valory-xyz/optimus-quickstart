@@ -1,6 +1,7 @@
 import { message } from 'antd';
 import { isAddress } from 'ethers/lib/utils';
 import { isNumber } from 'lodash';
+import { ValueOf } from 'next/dist/shared/lib/constants';
 import {
   createContext,
   Dispatch,
@@ -36,6 +37,8 @@ export const BalanceContext = createContext<{
   isBalanceLoaded: boolean;
   olasBondBalance?: number;
   olasDepositBalance?: number;
+  eoaBalance?: ValueOf<WalletAddressNumberRecord>;
+  safeBalance?: ValueOf<WalletAddressNumberRecord>;
   totalEthBalance?: number;
   totalOlasBalance?: number;
   wallets?: Wallet[];
@@ -49,6 +52,8 @@ export const BalanceContext = createContext<{
   isBalanceLoaded: false,
   olasBondBalance: undefined,
   olasDepositBalance: undefined,
+  eoaBalance: undefined,
+  safeBalance: undefined,
   totalEthBalance: undefined,
   totalOlasBalance: undefined,
   wallets: undefined,
@@ -179,6 +184,15 @@ export const BalanceProvider = ({ children }: PropsWithChildren) => {
     }
   }, [masterEoaAddress, masterSafeAddress, serviceAddresses, services]);
 
+  const eoaBalance = useMemo(
+    () => masterEoaAddress && walletBalances[masterEoaAddress],
+    [masterEoaAddress, walletBalances],
+  );
+  const safeBalance = useMemo(
+    () => masterSafeAddress && walletBalances[masterSafeAddress],
+    [masterSafeAddress, walletBalances],
+  );
+
   useInterval(
     () => {
       updateBalances();
@@ -194,6 +208,8 @@ export const BalanceProvider = ({ children }: PropsWithChildren) => {
         isBalanceLoaded,
         olasBondBalance,
         olasDepositBalance,
+        eoaBalance,
+        safeBalance,
         totalEthBalance,
         totalOlasBalance,
         wallets,

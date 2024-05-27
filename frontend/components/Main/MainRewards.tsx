@@ -8,6 +8,7 @@ import { COLOR } from '@/constants';
 import { useBalance } from '@/hooks';
 import { useElectronApi } from '@/hooks/useElectronApi';
 import { useReward } from '@/hooks/useReward';
+import { useStore } from '@/hooks/useStore';
 
 import { ConfettiAnimation } from '../common/ConfettiAnimation';
 
@@ -81,22 +82,27 @@ const DisplayRewards = () => {
 const NotifyRewards = () => {
   const { isEligibleForRewards, availableRewardsForEpochEth } = useReward();
   const { totalOlasBalance } = useBalance();
-  const { showNotification } = useElectronApi();
+  const { showNotification, store } = useElectronApi();
+  const { storeState } = useStore();
 
   const [canShowNotification, setCanShowNotification] = useState(false);
 
+  // hook to set the flag to show the notification
   useEffect(() => {
-    // TODO: Implement this once state persistence is available
-    const hasAlreadyNotified = true;
-
     if (!isEligibleForRewards) return;
-    if (hasAlreadyNotified) return;
+    if (!storeState) return;
+    if (storeState?.firstRewardNotificationShown) return;
     if (!availableRewardsForEpochEth) return;
 
     setCanShowNotification(true);
-  }, [isEligibleForRewards, availableRewardsForEpochEth, showNotification]);
+  }, [
+    isEligibleForRewards,
+    availableRewardsForEpochEth,
+    showNotification,
+    storeState,
+  ]);
 
-  // hook to show app notification
+  // hook to show desktop app notification
   useEffect(() => {
     if (!canShowNotification) return;
 
@@ -108,8 +114,10 @@ const NotifyRewards = () => {
 
   const closeNotificationModal = useCallback(() => {
     setCanShowNotification(false);
-    // TODO: add setter for hasAlreadyNotified
-  }, []);
+
+    // once the notification is closed, set the flag to true
+    store?.set?.('firstRewardNotificationShown', true);
+  }, [store]);
 
   if (!canShowNotification) return null;
 
@@ -126,7 +134,7 @@ const NotifyRewards = () => {
           size="large"
           className="mt-8"
           disabled
-          // TODO: add twitter share functionality
+          style={{ display: 'none' }} // TODO: add twitter share functionality
         >
           <Flex align="center" justify="center" gap={2}>
             Share on

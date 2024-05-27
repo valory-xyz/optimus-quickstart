@@ -17,9 +17,9 @@ const COVER_PREV_BLOCK_BORDER_STYLE = { marginTop: '-1px' };
 const useNeedsFunds = () => {
   const serviceTemplate = SERVICE_TEMPLATES[0];
   const { storeState } = useStore();
-  const { totalEthBalance, totalOlasBalance } = useBalance();
+  const { safeBalance } = useBalance();
 
-  const isInitialFunded = storeState?.isInitialFunded as boolean | undefined;
+  const isInitialFunded = storeState?.isInitialFunded;
 
   const serviceFundRequirements = useMemo(() => {
     const monthlyGasEstimate = Number(
@@ -45,13 +45,13 @@ const useNeedsFunds = () => {
   ]);
 
   const hasEnoughEth = useMemo(
-    () => (totalEthBalance || 0) >= (serviceFundRequirements?.eth || 0),
-    [serviceFundRequirements?.eth, totalEthBalance],
+    () => (safeBalance?.ETH || 0) >= (serviceFundRequirements?.eth || 0),
+    [serviceFundRequirements?.eth, safeBalance],
   );
 
   const hasEnoughOlas = useMemo(
-    () => (totalOlasBalance || 0) >= (serviceFundRequirements?.olas || 0),
-    [serviceFundRequirements?.olas, totalOlasBalance],
+    () => (safeBalance?.OLAS || 0) >= (serviceFundRequirements?.olas || 0),
+    [serviceFundRequirements?.olas, safeBalance],
   );
 
   return {
@@ -63,7 +63,7 @@ const useNeedsFunds = () => {
 };
 
 export const MainNeedsFunds = () => {
-  const { isBalanceLoaded, totalEthBalance, totalOlasBalance } = useBalance();
+  const { isBalanceLoaded } = useBalance();
   const {
     hasEnoughEth,
     hasEnoughOlas,
@@ -75,23 +75,10 @@ export const MainNeedsFunds = () => {
 
   const isVisible: boolean = useMemo(() => {
     if (isInitialFunded) return false;
-    if (
-      [totalEthBalance, totalOlasBalance].some(
-        (balance) => balance === undefined,
-      )
-    ) {
-      return false;
-    }
-
+    if (!isBalanceLoaded) return false;
     if (hasEnoughEth && hasEnoughOlas) return false;
     return true;
-  }, [
-    hasEnoughEth,
-    hasEnoughOlas,
-    isInitialFunded,
-    totalEthBalance,
-    totalOlasBalance,
-  ]);
+  }, [hasEnoughEth, hasEnoughOlas, isBalanceLoaded, isInitialFunded]);
 
   const message: ReactNode = useMemo(
     () => (
@@ -130,7 +117,6 @@ export const MainNeedsFunds = () => {
   }, [electronApi.store, hasEnoughEth, hasEnoughOlas, isInitialFunded]);
 
   if (!isVisible) return null;
-  if (!isBalanceLoaded) return null;
 
   return (
     <CardSection style={COVER_PREV_BLOCK_BORDER_STYLE}>

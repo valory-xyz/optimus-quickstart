@@ -4,6 +4,14 @@ const schema = {
     type: 'boolean',
     default: false,
   },
+  firstStakingRewardAchieved: {
+    type: 'boolean',
+    default: false,
+  },
+  firstRewardNotificationShown: {
+    type: 'boolean',
+    default: false,
+  },
 };
 
 const setupStoreIpc = async (ipcChannel, mainWindow) => {

@@ -47,7 +47,7 @@ let appConfig = {
       next: 3000,
     },
     prod: {
-      operate: 8000,
+      operate: 8765,
       next: 3000,
     },
   },
@@ -270,6 +270,21 @@ async function launchDaemon() {
     });
     return data;
   }
+
+  // Free up backend port if already occupied
+  try {
+    await fetch(`http://localhost:${appConfig.ports.prod.operate}/api`);
+    console.log('Killing backend server!');
+    let endpoint = fs
+      .readFileSync(`${OperateDirectory}/operate.kill`)
+      .toString()
+      .trimLeft()
+      .trimRight();
+    await fetch(`http://localhost:${appConfig.ports.prod.operate}/${endpoint}`);
+  } catch (err) {
+    console.log('Backend not running!');
+  }
+
   const check = new Promise(function (resolve, _reject) {
     operateDaemon = spawn(
       OperateCmd,
@@ -281,6 +296,14 @@ async function launchDaemon() {
       { env: Env },
     );
     operateDaemonPid = operateDaemon.pid;
+    fs.appendFileSync(
+      `${OperateDirectory}/operate.pip`,
+      `${operateDaemon.pid}`,
+      {
+        encoding: 'utf-8',
+      },
+    );
+
     operateDaemon.stderr.on('data', (data) => {
       if (data.toString().includes('Uvicorn running on')) {
         resolve({ running: true, error: null });
@@ -337,6 +360,10 @@ async function launchNextApp() {
         process.env.NODE_ENV === 'production'
           ? process.env.FORK_URL
           : process.env.DEV_RPC,
+      NEXT_PUBLIC_BACKEND_PORT:
+        process.env.NODE_ENV === 'production'
+          ? appConfig.ports.prod.operate
+          : appConfig.ports.dev.operate,
     },
   });
   await nextApp.prepare();
@@ -360,7 +387,10 @@ async function launchNextAppDev() {
       'yarn',
       ['dev:frontend', '--port', appConfig.ports.dev.next],
       {
-        env: { ...process.env },
+        env: {
+          ...process.env,
+          NEXT_PUBLIC_BACKEND_PORT: appConfig.ports.dev.operate,
+        },
       },
     );
     nextAppProcessPid = nextAppProcess.pid;
@@ -444,15 +474,8 @@ ipcMain.on('check', async function (event, _argument) {
       await launchNextAppDev();
     } else {
       event.sender.send('response', 'Starting Pearl Daemon');
-      const daemonPortAvailable = await isPortAvailable(
-        appConfig.ports.prod.operate,
-      );
-      if (!daemonPortAvailable) {
-        appConfig.ports.prod.operate = await findAvailablePort({
-          ...PORT_RANGE,
-        });
-      }
       await launchDaemon();
+
       event.sender.send('response', 'Starting Frontend Server');
       const frontendPortAvailable = await isPortAvailable(
         appConfig.ports.prod.next,
