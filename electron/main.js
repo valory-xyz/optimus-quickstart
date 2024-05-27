@@ -360,7 +360,10 @@ async function launchNextApp() {
         process.env.NODE_ENV === 'production'
           ? process.env.FORK_URL
           : process.env.DEV_RPC,
-      NEXT_PUBLIC_BACKEND_PORT: appConfig.ports.prod.operate,
+      NEXT_PUBLIC_BACKEND_PORT:
+        process.env.NODE_ENV === 'production'
+          ? appConfig.ports.prod.operate
+          : appConfig.ports.dev.operate,
     },
   });
   await nextApp.prepare();
