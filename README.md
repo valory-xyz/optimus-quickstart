@@ -213,7 +213,7 @@ There are two recommended options, choose one:
 
 [Tenderly](https://tenderly.co/) is a service with a plethora of useful blockchain development tools. The tool required here gives you the ability to **fork networks**.
 
-Can you can also monitor all transactions, and fund your accounts with any token that you please.
+You can also monitor all transactions, and fund your accounts with any token that you please.
 
 1. Signup to [Tenderly](https://tenderly.co/), and select the plan you desire. **The Free plan should suffice for most users**.
 2. Go to *Forks* under the *Development* tab -- in the left sidebar of your dashboard.
