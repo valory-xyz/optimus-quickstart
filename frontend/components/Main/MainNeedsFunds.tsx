@@ -19,7 +19,7 @@ const useNeedsFunds = () => {
   const { storeState } = useStore();
   const { safeBalance } = useBalance();
 
-  const isInitialFunded = storeState?.isInitialFunded as boolean | undefined;
+  const isInitialFunded = storeState?.isInitialFunded;
 
   const serviceFundRequirements = useMemo(() => {
     const monthlyGasEstimate = Number(
