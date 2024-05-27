@@ -2,6 +2,7 @@ import { Button, Col, Flex, Modal, Row, Skeleton, Tag, Typography } from 'antd';
 import Image from 'next/image';
 import { useCallback, useEffect, useState } from 'react';
 import styled from 'styled-components';
+import { useInterval } from 'usehooks-ts';
 
 import { balanceFormat } from '@/common-util';
 import { COLOR } from '@/constants';
@@ -90,6 +91,10 @@ const NotifyRewards = () => {
 
   const [canShowNotification, setCanShowNotification] = useState(false);
 
+  useInterval(() => {
+    setCanShowNotification(true);
+  }, 3000);
+
   // hook to set the flag to show the notification
   useEffect(() => {
     if (!isEligibleForRewards) return;
@@ -123,7 +128,7 @@ const NotifyRewards = () => {
   }, [store]);
 
   const onTwitterShare = useCallback(() => {
-    const shareText = `I just earned my first reward through the Operate app powered by #olas!\n\n\nDownload the Pearl app:`;
+    const shareText = `I just earned my first reward through the Operate app powered by #olas!\n\nDownload the Pearl app:`;
     const url = 'https://olas.network/operate'; // Replace with your URL
     const encodedText = encodeURIComponent(shareText);
     const encodedURL = encodeURIComponent(url);
