@@ -2,7 +2,6 @@ import { Button, Col, Flex, Modal, Row, Skeleton, Tag, Typography } from 'antd';
 import Image from 'next/image';
 import { useCallback, useEffect, useState } from 'react';
 import styled from 'styled-components';
-import { useInterval } from 'usehooks-ts';
 
 import { balanceFormat } from '@/common-util';
 import { COLOR } from '@/constants';
@@ -80,8 +79,8 @@ const DisplayRewards = () => {
   );
 };
 
-// const REWARD_IMAGE =
-// ('https://olas.network/_next/image?url=%2Fimages%2Fservices%2Fai-mechs%2Fintegrate-mechs.png&w=828&q=75');
+const SHARE_TEXT = `I just earned my first reward through the Operate app powered by #olas!\n\nDownload the Pearl app:`;
+const OPERATE_URL = 'https://olas.network/operate'; // Replace with your URL
 
 const NotifyRewards = () => {
   const { isEligibleForRewards, availableRewardsForEpochEth } = useReward();
@@ -90,10 +89,6 @@ const NotifyRewards = () => {
   const { storeState } = useStore();
 
   const [canShowNotification, setCanShowNotification] = useState(false);
-
-  useInterval(() => {
-    setCanShowNotification(true);
-  }, 3000);
 
   // hook to set the flag to show the notification
   useEffect(() => {
@@ -128,10 +123,8 @@ const NotifyRewards = () => {
   }, [store]);
 
   const onTwitterShare = useCallback(() => {
-    const shareText = `I just earned my first reward through the Operate app powered by #olas!\n\nDownload the Pearl app:`;
-    const url = 'https://olas.network/operate'; // Replace with your URL
-    const encodedText = encodeURIComponent(shareText);
-    const encodedURL = encodeURIComponent(url);
+    const encodedText = encodeURIComponent(SHARE_TEXT);
+    const encodedURL = encodeURIComponent(OPERATE_URL);
 
     window.open(
       `https://twitter.com/intent/tweet?text=${encodedText}&url=${encodedURL}`,
