@@ -14,6 +14,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { AccountIsSetup } from '@/client';
 import { PageState, SetupScreen } from '@/enums';
 import { usePageState, useSetup } from '@/hooks';
+import { useElectronApi } from '@/hooks/useElectronApi';
 import { useWallet } from '@/hooks/useWallet';
 import { AccountService } from '@/service/Account';
 
@@ -22,6 +23,7 @@ import { FormFlex } from '../styled/FormFlex';
 const { Title } = Typography;
 
 export const SetupWelcome = () => {
+  const electronApi = useElectronApi();
   const [isSetup, setIsSetup] = useState<AccountIsSetup>(
     AccountIsSetup.Loading,
   );
@@ -32,8 +34,12 @@ export const SetupWelcome = () => {
         switch (res.is_setup) {
           case true:
             setIsSetup(AccountIsSetup.True);
+
             break;
           case false:
+            // Reset persistent state
+            // if creating new account
+            electronApi.store?.clear?.();
             setIsSetup(AccountIsSetup.False);
             break;
           default:
