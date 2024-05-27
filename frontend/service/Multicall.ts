@@ -3,12 +3,12 @@ import { Contract as MulticallContract, ContractCall } from 'ethers-multicall';
 
 import { MULTICALL3_ABI } from '@/abi';
 import { ERC20_BALANCEOF_FRAGMENT } from '@/abi/erc20';
-import { MULTICALL_CONTRACT } from '@/constants';
+import { MULTICALL_CONTRACT_ADDRESS } from '@/constants';
 import { gnosisMulticallProvider } from '@/constants/providers';
 import { Address, AddressNumberRecord } from '@/types';
 
 const multicallContract = new MulticallContract(
-  MULTICALL_CONTRACT,
+  MULTICALL_CONTRACT_ADDRESS,
   MULTICALL3_ABI,
 );
 
