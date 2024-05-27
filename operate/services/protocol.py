@@ -208,7 +208,7 @@ class StakingManager(OnChainHelper):
                 ledger_api=self.ledger_api,
                 contract_address=staking_contract,
             )
-            .functions.getServiceStakingState(service_id)
+            .functions.getStakingState(service_id)
             .call()
         )
 
