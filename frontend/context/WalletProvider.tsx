@@ -1,9 +1,11 @@
-import { createContext, PropsWithChildren, useState } from 'react';
+import { createContext, PropsWithChildren, useContext, useState } from 'react';
 import { useInterval } from 'usehooks-ts';
 
 import { Wallet } from '@/client';
 import { WalletService } from '@/service/Wallet';
 import { Address } from '@/types';
+
+import { OnlineStatusContext } from './OnlineStatusProvider';
 
 export const WalletContext = createContext<{
   masterEoaAddress?: Address;
@@ -18,6 +20,8 @@ export const WalletContext = createContext<{
 });
 
 export const WalletProvider = ({ children }: PropsWithChildren) => {
+  const { isOnline } = useContext(OnlineStatusContext);
+
   const [wallets, setWallets] = useState<Wallet[]>();
 
   const masterEoaAddress: Address | undefined = wallets?.[0]?.address;
@@ -29,7 +33,7 @@ export const WalletProvider = ({ children }: PropsWithChildren) => {
     setWallets(wallets);
   };
 
-  useInterval(updateWallets, 5000);
+  useInterval(updateWallets, isOnline ? 5000 : null);
 
   return (
     <WalletContext.Provider

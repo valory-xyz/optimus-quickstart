@@ -14,6 +14,7 @@ import { useElectronApi } from '@/hooks/useElectronApi';
 import { useStore } from '@/hooks/useStore';
 import { AutonolasService } from '@/service/Autonolas';
 
+import { OnlineStatusContext } from './OnlineStatusProvider';
 import { ServicesContext } from './ServicesProvider';
 
 export const RewardContext = createContext<{
@@ -33,6 +34,7 @@ export const RewardContext = createContext<{
 });
 
 export const RewardProvider = ({ children }: PropsWithChildren) => {
+  const { isOnline } = useContext(OnlineStatusContext);
   const { services } = useContext(ServicesContext);
   const service = useMemo(() => services?.[0], [services]);
   const { storeState } = useStore();
@@ -93,7 +95,7 @@ export const RewardProvider = ({ children }: PropsWithChildren) => {
     storeState?.firstStakingRewardAchieved,
   ]);
 
-  useInterval(async () => updateRewards(), 5000);
+  useInterval(async () => updateRewards(), isOnline ? 5000 : null);
 
   return (
     <RewardContext.Provider
