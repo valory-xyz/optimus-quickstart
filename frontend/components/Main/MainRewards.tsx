@@ -31,14 +31,19 @@ const Loader = () => (
   </Flex>
 );
 
-const MINIMUM_STAKED_AMOUNT = 20;
-
 const DisplayRewards = () => {
-  const { availableRewardsForEpochEth, isEligibleForRewards } = useReward();
+  const {
+    availableRewardsForEpochEth,
+    isEligibleForRewards,
+    minimumStakedAmountRequired,
+  } = useReward();
   const { isBalanceLoaded, totalOlasStakedBalance } = useBalance();
 
-  // 20 OLAS is the minimum amount to stake
-  const isStaked = totalOlasStakedBalance === MINIMUM_STAKED_AMOUNT;
+  // check if the staked amount is greater than the minimum required
+  const isStaked =
+    minimumStakedAmountRequired &&
+    totalOlasStakedBalance &&
+    totalOlasStakedBalance >= minimumStakedAmountRequired;
 
   return (
     <RewardsRow>
@@ -70,7 +75,13 @@ const DisplayRewards = () => {
               <Text strong style={{ fontSize: 20 }}>
                 {balanceFormat(totalOlasStakedBalance, 2)} OLAS
               </Text>
-              {isStaked ? null : <Tag color="processing">Not yet staked</Tag>}
+              {minimumStakedAmountRequired && (
+                <>
+                  {isStaked ? null : (
+                    <Tag color="processing">Not yet staked</Tag>
+                  )}
+                </>
+              )}
             </>
           ) : (
             <Loader />
