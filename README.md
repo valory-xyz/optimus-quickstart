@@ -7,12 +7,13 @@ Pearl is an application used to run autonomous agents powered by the OLAS Networ
 ## Technologies Used
 
 - Electron
-- NodeJS (20.11)
-- AntD
-- TypeScript
+- NodeJS (20.11 LTS)
+- AntD (^5)
+- NextJS (^14)
+- Javascript / TypeScript
 - Python (3.10)
-- Poetry (1.7.1)
-- Docker (24)
+- Poetry (^1.7.1)
+- Docker Engine
 
 ## Getting Started
 
