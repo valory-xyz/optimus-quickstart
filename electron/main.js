@@ -273,15 +273,16 @@ async function launchDaemon() {
 
   // Free up backend port if already occupied
   try {
-    await fetch(`http://localhost:${appConfig.ports.prod.operate}/api`)
-    console.log("Killing backend server!")
-    let endpoint = fs.readFileSync(`${OperateDirectory}/operate.kill`)
+    await fetch(`http://localhost:${appConfig.ports.prod.operate}/api`);
+    console.log('Killing backend server!');
+    let endpoint = fs
+      .readFileSync(`${OperateDirectory}/operate.kill`)
       .toString()
       .trimLeft()
-      .trimRight()
-    await fetch(`http://localhost:${appConfig.ports.prod.operate}/${endpoint}`)
+      .trimRight();
+    await fetch(`http://localhost:${appConfig.ports.prod.operate}/${endpoint}`);
   } catch (err) {
-    console.log("Backend not running!")
+    console.log('Backend not running!');
   }
 
   const check = new Promise(function (resolve, _reject) {
@@ -295,9 +296,13 @@ async function launchDaemon() {
       { env: Env },
     );
     operateDaemonPid = operateDaemon.pid;
-    fs.appendFileSync(`${OperateDirectory}/operate.pip`, `${operateDaemon.pid}`, {
-      encoding: 'utf-8',
-    });
+    fs.appendFileSync(
+      `${OperateDirectory}/operate.pip`,
+      `${operateDaemon.pid}`,
+      {
+        encoding: 'utf-8',
+      },
+    );
 
     operateDaemon.stderr.on('data', (data) => {
       if (data.toString().includes('Uvicorn running on')) {
@@ -355,7 +360,7 @@ async function launchNextApp() {
         process.env.NODE_ENV === 'production'
           ? process.env.FORK_URL
           : process.env.DEV_RPC,
-      NEXT_PUBLIC_BACKEND_PORT: appConfig.ports.prod.operate
+      NEXT_PUBLIC_BACKEND_PORT: appConfig.ports.prod.operate,
     },
   });
   await nextApp.prepare();
@@ -379,7 +384,10 @@ async function launchNextAppDev() {
       'yarn',
       ['dev:frontend', '--port', appConfig.ports.dev.next],
       {
-        env: { ...process.env, NEXT_PUBLIC_BACKEND_PORT: appConfig.ports.dev.operate },
+        env: {
+          ...process.env,
+          NEXT_PUBLIC_BACKEND_PORT: appConfig.ports.dev.operate,
+        },
       },
     );
     nextAppProcessPid = nextAppProcess.pid;
