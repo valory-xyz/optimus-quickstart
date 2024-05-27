@@ -7,12 +7,13 @@ Pearl is an application used to run autonomous agents powered by the OLAS Networ
 ## Technologies Used
 
 - Electron
-- NodeJS (20.11)
-- AntD
-- TypeScript
+- NodeJS (20.11 LTS)
+- AntD (^5)
+- NextJS (^14)
+- Javascript / TypeScript
 - Python (3.10)
-- Poetry (1.7.1)
-- Docker (24)
+- Poetry (^1.7.1)
+- Docker Engine
 
 ## Getting Started
 
@@ -65,6 +66,8 @@ nvm use --lts
 
 <details><summary><h4>Yarn</h4></summary>
 
+Yarn is the package manager used for dependency management of the Electron app and NextJS frontend.
+
 ```bash
 npm install --global yarn
 ```
@@ -103,6 +106,8 @@ brew install pipx
 </details>
 
 <details><summary><h4>Poetry</h4></summary>
+
+Poetry is used on the backend to install and manage dependencies, and create a virtual environment for the backend API.
 
 ```bash
 pipx install poetry
@@ -212,7 +217,7 @@ There are two recommended options, choose one:
 
 [Tenderly](https://tenderly.co/) is a service with a plethora of useful blockchain development tools. The tool required here gives you the ability to **fork networks**.
 
-Can you can also monitor all transactions, and fund your accounts with any token that you please.
+You can also monitor all transactions, and fund your accounts with any token that you please.
 
 1. Signup to [Tenderly](https://tenderly.co/), and select the plan you desire. **The Free plan should suffice for most users**.
 2. Go to *Forks* under the *Development* tab -- in the left sidebar of your dashboard.
