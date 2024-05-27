@@ -54,6 +54,11 @@ const getAgentStakingRewardsInfo = async ({
   agentMultisigAddress: Address;
   serviceId: number;
 }): Promise<StakingRewardsInfo | undefined> => {
+  console.log('getAgentStakingRewardsInfo', {
+    agentMultisigAddress,
+    serviceId,
+  });
+
   if (!agentMultisigAddress) return;
   if (!serviceId) return;
 
@@ -64,11 +69,16 @@ const getAgentStakingRewardsInfo = async ({
     mechActivityCheckerContract.livenessRatio(),
     serviceStakingTokenMechUsageContract.rewardsPerSecond(),
     serviceStakingTokenMechUsageContract.calculateStakingReward(serviceId),
+    serviceStakingTokenMechUsageContract.minStakingDeposit(),
   ];
+
+  console.log('contractCalls', contractCalls);
 
   await gnosisMulticallProvider.init();
 
   const multicallResponse = await gnosisMulticallProvider.all(contractCalls);
+
+  console.log('multicallResponse', multicallResponse);
 
   const [
     mechRequestCount,
@@ -77,6 +87,7 @@ const getAgentStakingRewardsInfo = async ({
     livenessRatio,
     rewardsPerSecond,
     accruedServiceStakingRewards,
+    minimumStakingDeposit,
   ] = multicallResponse;
 
   /**
@@ -109,6 +120,11 @@ const getAgentStakingRewardsInfo = async ({
 
   const availableRewardsForEpoch = rewardsPerSecond * livenessPeriod;
 
+  // Minimum staked amount is double the minimum staking deposit
+  // (basically all the bonds must be the same as deposit)
+  const minimumStakedAmount =
+    parseFloat(ethers.utils.formatEther(`${minimumStakingDeposit}`)) * 2;
+
   return {
     mechRequestCount,
     serviceInfo,
@@ -120,6 +136,7 @@ const getAgentStakingRewardsInfo = async ({
     accruedServiceStakingRewards: parseFloat(
       ethers.utils.formatEther(`${accruedServiceStakingRewards}`),
     ),
+    minimumStakedAmount,
   } as StakingRewardsInfo;
 };
 
