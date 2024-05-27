@@ -22,8 +22,10 @@
 import asyncio
 import logging
 import os
+import signal
 import traceback
 import typing as t
+import uuid
 from pathlib import Path
 
 from aea.helpers.logging import setup_logger
@@ -151,6 +153,12 @@ def create_app(  # pylint: disable=too-many-locals, unused-argument, too-many-st
     operate = OperateApp(home=home, logger=logger)
     funding_jobs: t.Dict[str, asyncio.Task] = {}
 
+    # Create shutdown endpoint
+    shutdown_endpoint = uuid.uuid4().hex
+    (operate._path / "operate.kill").write_text(  # pylint: disable=protected-access
+        shutdown_endpoint
+    )
+
     def pull_latest_images() -> None:
         """Pull latest docker images."""
         logger.info("Pulling latest images")
@@ -196,9 +204,7 @@ def create_app(  # pylint: disable=too-many-locals, unused-argument, too-many-st
             logger.info(f"Funding job cancellation for {service} failed")
 
     app = FastAPI(
-        on_startup=[
-            pull_latest_images,
-        ],
+        on_startup=[pull_latest_images],
     )
 
     app.add_middleware(
@@ -236,6 +242,11 @@ def create_app(  # pylint: disable=too-many-locals, unused-argument, too-many-st
             return JSONResponse(content={"errors": errors}, status_code=500)
 
         return _call
+
+    @app.get(f"/{shutdown_endpoint}")
+    async def _kill_server(request: Request) -> JSONResponse:
+        """Kill backend server from inside."""
+        os.kill(os.getpid(), signal.SIGINT)
 
     @app.get("/api")
     @with_retries
