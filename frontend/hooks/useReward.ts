@@ -7,11 +7,13 @@ export const useReward = () => {
     availableRewardsForEpoch,
     availableRewardsForEpochEth,
     isEligibleForRewards,
+    minimumStakedAmountRequired,
   } = useContext(RewardContext);
 
   return {
     availableRewardsForEpoch,
     availableRewardsForEpochEth,
     isEligibleForRewards,
+    minimumStakedAmountRequired,
   };
 };

@@ -22,6 +22,7 @@ export const RewardContext = createContext<{
   availableRewardsForEpochEth?: number;
   isEligibleForRewards?: boolean;
   optimisticRewardsEarnedForEpoch?: number;
+  minimumStakedAmountRequired?: number;
   updateRewards: () => Promise<void>;
 }>({
   accruedServiceStakingRewards: undefined,
@@ -29,6 +30,7 @@ export const RewardContext = createContext<{
   availableRewardsForEpochEth: undefined,
   isEligibleForRewards: undefined,
   optimisticRewardsEarnedForEpoch: undefined,
+  minimumStakedAmountRequired: undefined,
   updateRewards: async () => {},
 });
 
@@ -43,6 +45,8 @@ export const RewardProvider = ({ children }: PropsWithChildren) => {
   const [availableRewardsForEpoch, setAvailableRewardsForEpoch] =
     useState<number>();
   const [isEligibleForRewards, setIsEligibleForRewards] = useState<boolean>();
+  const [minimumStakedAmountRequired, setMinimumStakedAmountRequired] =
+    useState<number>();
 
   const availableRewardsForEpochEth = useMemo<number | undefined>(() => {
     if (!availableRewardsForEpoch) return;
@@ -63,9 +67,7 @@ export const RewardProvider = ({ children }: PropsWithChildren) => {
 
   const updateRewards = useCallback(async (): Promise<void> => {
     let stakingRewardsInfoPromise;
-    console.log('service', service);
     if (service?.chain_data?.multisig && service?.chain_data?.token) {
-      console.log('HEEEEEEEE');
       stakingRewardsInfoPromise = AutonolasService.getAgentStakingRewardsInfo({
         agentMultisigAddress: service?.chain_data?.multisig,
         serviceId: service?.chain_data?.token,
@@ -78,15 +80,11 @@ export const RewardProvider = ({ children }: PropsWithChildren) => {
       epochRewardsPromise,
     ]);
 
-    console.log('stakingRewardsInfo', {
-      stakingRewardsInfo,
-      rewards,
-    });
-
     setIsEligibleForRewards(stakingRewardsInfo?.isEligibleForRewards);
     setAccruedServiceStakingRewards(
       stakingRewardsInfo?.accruedServiceStakingRewards,
     );
+    setMinimumStakedAmountRequired(stakingRewardsInfo?.minimumStakedAmount);
     setAvailableRewardsForEpoch(rewards);
   }, [service]);
 
@@ -110,6 +108,7 @@ export const RewardProvider = ({ children }: PropsWithChildren) => {
         availableRewardsForEpochEth,
         isEligibleForRewards,
         optimisticRewardsEarnedForEpoch,
+        minimumStakedAmountRequired,
         updateRewards,
       }}
     >

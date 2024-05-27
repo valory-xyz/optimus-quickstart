@@ -54,11 +54,6 @@ const getAgentStakingRewardsInfo = async ({
   agentMultisigAddress: Address;
   serviceId: number;
 }): Promise<StakingRewardsInfo | undefined> => {
-  console.log('getAgentStakingRewardsInfo', {
-    agentMultisigAddress,
-    serviceId,
-  });
-
   if (!agentMultisigAddress) return;
   if (!serviceId) return;
 
@@ -72,13 +67,9 @@ const getAgentStakingRewardsInfo = async ({
     serviceStakingTokenMechUsageContract.minStakingDeposit(),
   ];
 
-  console.log('contractCalls', contractCalls);
-
   await gnosisMulticallProvider.init();
 
   const multicallResponse = await gnosisMulticallProvider.all(contractCalls);
-
-  console.log('multicallResponse', multicallResponse);
 
   const [
     mechRequestCount,
