@@ -215,9 +215,8 @@ export const MainHeader = () => {
     );
 
     if (
-      (totalOlasBalance &&
-        totalOlasBalance < olasCostOfBond + olasRequiredToStake) ||
-      (totalEthBalance && totalEthBalance < monthlyGasEstimate)
+      (totalOlasBalance ?? 0) < olasCostOfBond + olasRequiredToStake ||
+      (totalEthBalance ?? 0) < monthlyGasEstimate
     ) {
       return (
         <Button type="default" size="large" disabled>
