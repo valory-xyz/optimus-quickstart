@@ -79,6 +79,9 @@ const DisplayRewards = () => {
   );
 };
 
+// const REWARD_IMAGE =
+// ('https://olas.network/_next/image?url=%2Fimages%2Fservices%2Fai-mechs%2Fintegrate-mechs.png&w=828&q=75');
+
 const NotifyRewards = () => {
   const { isEligibleForRewards, availableRewardsForEpochEth } = useReward();
   const { totalOlasBalance } = useBalance();
@@ -119,6 +122,18 @@ const NotifyRewards = () => {
     store?.set?.('firstRewardNotificationShown', true);
   }, [store]);
 
+  const onTwitterShare = useCallback(() => {
+    const shareText = `I just earned my first reward through the Operate app powered by #olas!\n\n\nDownload the Pearl app:`;
+    const url = 'https://olas.network/operate'; // Replace with your URL
+    const encodedText = encodeURIComponent(shareText);
+    const encodedURL = encodeURIComponent(url);
+
+    window.open(
+      `https://twitter.com/intent/tweet?text=${encodedText}&url=${encodedURL}`,
+      '_blank',
+    );
+  }, []);
+
   if (!canShowNotification) return null;
 
   return (
@@ -133,8 +148,7 @@ const NotifyRewards = () => {
           block
           size="large"
           className="mt-8"
-          disabled
-          style={{ display: 'none' }} // TODO: add twitter share functionality
+          onClick={onTwitterShare}
         >
           <Flex align="center" justify="center" gap={2}>
             Share on
