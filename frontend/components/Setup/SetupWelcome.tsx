@@ -104,7 +104,7 @@ export const SetupWelcomeLogin = () => {
   const { goto } = useSetup();
   const { goto: gotoPage } = usePageState();
 
-  const { masterEoaAddress, masterSafeAddress } = useWallet();
+  const { masterEoaAddress, masterSafeAddress, updateWallets } = useWallet();
 
   const [isLoggingIn, setIsLoggingIn] = useState(false);
 
@@ -114,6 +114,7 @@ export const SetupWelcomeLogin = () => {
     async ({ password }: { password: string }) => {
       setIsLoggingIn(true);
       AccountService.loginAccount(password)
+        .then(() => updateWallets())
         .then(() => {
           if (masterEoaAddress && !masterSafeAddress) {
             gotoPage(PageState.Setup);
@@ -128,7 +129,7 @@ export const SetupWelcomeLogin = () => {
         })
         .finally(() => setIsLoggingIn(false));
     },
-    [goto, gotoPage, masterEoaAddress, masterSafeAddress],
+    [goto, gotoPage, masterEoaAddress, masterSafeAddress, updateWallets],
   );
 
   return (
