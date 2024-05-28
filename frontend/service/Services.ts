@@ -35,20 +35,27 @@ const createService = async ({
   serviceTemplate: ServiceTemplate;
   deploy: boolean;
 }): Promise<Service> =>
-  fetch(`${BACKEND_URL}/services`, {
-    method: 'POST',
-    body: JSON.stringify({
-      ...serviceTemplate,
-      deploy,
-      configuration: {
-        ...serviceTemplate.configuration,
-        rpc: `${process.env.GNOSIS_RPC}`,
+  new Promise((resolve, reject) =>
+    fetch(`${BACKEND_URL}/services`, {
+      method: 'POST',
+      body: JSON.stringify({
+        ...serviceTemplate,
+        deploy,
+        configuration: {
+          ...serviceTemplate.configuration,
+          rpc: `${process.env.GNOSIS_RPC}`,
+        },
+      }),
+      headers: {
+        'Content-Type': 'application/json',
       },
+    }).then((response) => {
+      if (response.ok) {
+        resolve(response.json());
+      }
+      reject('Failed to create service');
     }),
-    headers: {
-      'Content-Type': 'application/json',
-    },
-  }).then((response) => response.json());
+  );
 
 const deployOnChain = async (serviceHash: ServiceHash): Promise<Deployment> =>
   fetch(`${BACKEND_URL}/services/${serviceHash}/onchain/deploy`, {

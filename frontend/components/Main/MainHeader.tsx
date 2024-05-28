@@ -111,12 +111,15 @@ export const MainHeader = () => {
       return ServicesService.createService({
         serviceTemplate,
         deploy: true,
-      }).then(() => {
-        setServiceStatus(DeploymentStatus.DEPLOYED);
-        setIsBalancePollingPaused(false);
-        setServiceButtonState(ServiceButtonLoadingState.NotLoading);
-        showNotification?.('Your agent is now running!');
-      });
+      })
+        .then(() => {
+          setServiceStatus(DeploymentStatus.DEPLOYED);
+          showNotification?.('Your agent is now running!');
+        })
+        .finally(() => {
+          setIsBalancePollingPaused(false);
+          setServiceButtonState(ServiceButtonLoadingState.NotLoading);
+        });
     } catch (error) {
       setIsBalancePollingPaused(false);
       setServiceButtonState(ServiceButtonLoadingState.NotLoading);
