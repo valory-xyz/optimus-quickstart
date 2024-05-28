@@ -75,13 +75,9 @@ const DisplayRewards = () => {
               <Text strong style={{ fontSize: 20 }}>
                 {balanceFormat(totalOlasStakedBalance, 2)} OLAS
               </Text>
-              {minimumStakedAmountRequired && (
-                <>
-                  {isStaked ? null : (
-                    <Tag color="processing">Not yet staked</Tag>
-                  )}
-                </>
-              )}
+              {minimumStakedAmountRequired && !isStaked ? (
+                <Tag color="processing">Not yet staked</Tag>
+              ) : null}
             </>
           ) : (
             <Loader />
