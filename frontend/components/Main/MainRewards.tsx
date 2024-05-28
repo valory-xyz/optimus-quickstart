@@ -80,7 +80,7 @@ const DisplayRewards = () => {
 };
 
 const SHARE_TEXT = `I just earned my first reward through the Operate app powered by #olas!\n\nDownload the Pearl app:`;
-const OPERATE_URL = 'https://olas.network/operate?pearl=first-reward'; // Replace with your URL
+const OPERATE_URL = 'https://olas.network/operate?pearl=first-reward';
 
 const NotifyRewards = () => {
   const { isEligibleForRewards, availableRewardsForEpochEth } = useReward();
