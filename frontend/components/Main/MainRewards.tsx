@@ -79,6 +79,9 @@ const DisplayRewards = () => {
   );
 };
 
+const SHARE_TEXT = `I just earned my first reward through the Operate app powered by #olas!\n\nDownload the Pearl app:`;
+const OPERATE_URL = 'https://olas.network/operate?pearl=first-reward';
+
 const NotifyRewards = () => {
   const { isEligibleForRewards, availableRewardsForEpochEth } = useReward();
   const { totalOlasBalance } = useBalance();
@@ -119,6 +122,16 @@ const NotifyRewards = () => {
     store?.set?.('firstRewardNotificationShown', true);
   }, [store]);
 
+  const onTwitterShare = useCallback(() => {
+    const encodedText = encodeURIComponent(SHARE_TEXT);
+    const encodedURL = encodeURIComponent(OPERATE_URL);
+
+    window.open(
+      `https://twitter.com/intent/tweet?text=${encodedText}&url=${encodedURL}`,
+      '_blank',
+    );
+  }, []);
+
   if (!canShowNotification) return null;
 
   return (
@@ -133,8 +146,7 @@ const NotifyRewards = () => {
           block
           size="large"
           className="mt-8"
-          disabled
-          style={{ display: 'none' }} // TODO: add twitter share functionality
+          onClick={onTwitterShare}
         >
           <Flex align="center" justify="center" gap={2}>
             Share on
