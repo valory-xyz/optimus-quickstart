@@ -17,7 +17,7 @@ const COVER_PREV_BLOCK_BORDER_STYLE = { marginTop: '-1px' };
 const useNeedsFunds = () => {
   const serviceTemplate = SERVICE_TEMPLATES[0];
   const { storeState } = useStore();
-  const { safeBalance } = useBalance();
+  const { safeBalance, totalOlasStakedBalance } = useBalance();
 
   const isInitialFunded = storeState?.isInitialFunded;
 
@@ -44,19 +44,26 @@ const useNeedsFunds = () => {
     serviceTemplate.configuration.olas_required_to_stake,
   ]);
 
-  const hasEnoughEth = useMemo(
+  const hasEnoughEthForInitialFunding = useMemo(
     () => (safeBalance?.ETH || 0) >= (serviceFundRequirements?.eth || 0),
     [serviceFundRequirements?.eth, safeBalance],
   );
 
-  const hasEnoughOlas = useMemo(
-    () => (safeBalance?.OLAS || 0) >= (serviceFundRequirements?.olas || 0),
-    [serviceFundRequirements?.olas, safeBalance],
-  );
+  const hasEnoughOlasForInitialFunding = useMemo(() => {
+    const olasInSafe = safeBalance?.OLAS || 0;
+    const olasStakedBySafe = totalOlasStakedBalance || 0;
+    const olasInSafeAndStaked = olasInSafe + olasStakedBySafe;
+
+    return olasInSafeAndStaked >= (serviceFundRequirements.olas || 0);
+  }, [
+    safeBalance?.OLAS,
+    totalOlasStakedBalance,
+    serviceFundRequirements?.olas,
+  ]);
 
   return {
-    hasEnoughEth,
-    hasEnoughOlas,
+    hasEnoughEthForInitialFunding,
+    hasEnoughOlasForInitialFunding,
     serviceFundRequirements,
     isInitialFunded,
   };
@@ -65,8 +72,8 @@ const useNeedsFunds = () => {
 export const MainNeedsFunds = () => {
   const { isBalanceLoaded } = useBalance();
   const {
-    hasEnoughEth,
-    hasEnoughOlas,
+    hasEnoughEthForInitialFunding,
+    hasEnoughOlasForInitialFunding,
     serviceFundRequirements,
     isInitialFunded,
   } = useNeedsFunds();
@@ -76,9 +83,15 @@ export const MainNeedsFunds = () => {
   const isVisible: boolean = useMemo(() => {
     if (isInitialFunded) return false;
     if (!isBalanceLoaded) return false;
-    if (hasEnoughEth && hasEnoughOlas) return false;
+    if (hasEnoughEthForInitialFunding && hasEnoughOlasForInitialFunding)
+      return false;
     return true;
-  }, [hasEnoughEth, hasEnoughOlas, isBalanceLoaded, isInitialFunded]);
+  }, [
+    hasEnoughEthForInitialFunding,
+    hasEnoughOlasForInitialFunding,
+    isBalanceLoaded,
+    isInitialFunded,
+  ]);
 
   const message: ReactNode = useMemo(
     () => (
@@ -91,13 +104,13 @@ export const MainNeedsFunds = () => {
         <Paragraph className="mb-4">
           To run your agent, you must add these amounts to your account:
         </Paragraph>
-        {!hasEnoughOlas && (
+        {!hasEnoughOlasForInitialFunding && (
           <Text>
             <span className="font-weight-600">{`${UNICODE_SYMBOLS.OLAS}${serviceFundRequirements.olas} OLAS `}</span>
             - for staking.
           </Text>
         )}
-        {!hasEnoughEth && (
+        {!hasEnoughEthForInitialFunding && (
           <Text>
             <span className="font-weight-600">
               {`${serviceFundRequirements.eth} XDAI `}
@@ -107,14 +120,31 @@ export const MainNeedsFunds = () => {
         )}
       </Flex>
     ),
-    [serviceFundRequirements, hasEnoughEth, hasEnoughOlas],
+    [
+      serviceFundRequirements,
+      hasEnoughEthForInitialFunding,
+      hasEnoughOlasForInitialFunding,
+    ],
   );
 
   useEffect(() => {
-    if (hasEnoughEth && hasEnoughOlas && !isInitialFunded) {
+    if (isInitialFunded) {
+      electronApi.store?.set?.('isInitialFunded', false);
+    }
+
+    if (
+      hasEnoughEthForInitialFunding &&
+      hasEnoughOlasForInitialFunding &&
+      !isInitialFunded
+    ) {
       electronApi.store?.set?.('isInitialFunded', true);
     }
-  }, [electronApi.store, hasEnoughEth, hasEnoughOlas, isInitialFunded]);
+  }, [
+    electronApi.store,
+    hasEnoughEthForInitialFunding,
+    hasEnoughOlasForInitialFunding,
+    isInitialFunded,
+  ]);
 
   if (!isVisible) return null;
 
