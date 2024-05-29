@@ -61,7 +61,7 @@ export const TopBar = () => {
 
       <Text>
         Pearl (alpha)
-        {store?.storeState?.appVersion?.includes('rc') ? ' (staging)' : ''}
+        {store?.storeState?.appVersion?.includes('rc') ? '' : ' (staging)'}
       </Text>
     </TopBarContainer>
   );
