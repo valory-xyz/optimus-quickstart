@@ -104,7 +104,7 @@ export const SetupWelcomeLogin = () => {
   const { goto } = useSetup();
   const { goto: gotoPage } = usePageState();
 
-  const { masterEoaAddress, masterSafeAddress, updateWallets } = useWallet();
+  const { masterEoaAddress, masterSafeAddress } = useWallet();
 
   const [isLoggingIn, setIsLoggingIn] = useState(false);
 
