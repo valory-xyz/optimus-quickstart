@@ -865,7 +865,7 @@ class ServiceManager:
         deployment.start()
         return deployment
 
-    def stop_service_locally(self, hash: str, delete: bool) -> Deployment:
+    def stop_service_locally(self, hash: str, delete: bool = False) -> Deployment:
         """
         Stop service locally
 
