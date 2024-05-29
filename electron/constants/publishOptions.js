@@ -2,7 +2,7 @@ const publishOptions = {
   provider: 'github',
   owner: 'valory-xyz',
   repo: 'olas-operate-app',
-  releaseType: 'release',
+  releaseType: 'draft',
   token: process.env.GH_TOKEN,
   private: false,
   publishAutoUpdate: true,
