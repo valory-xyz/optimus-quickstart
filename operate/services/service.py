@@ -24,7 +24,7 @@ import os
 import platform
 import shutil
 import signal
-import subprocess
+import subprocess  # nosec
 import typing as t
 from copy import deepcopy
 from dataclasses import dataclass
@@ -205,7 +205,7 @@ class HostDeploymentGenerator(BaseDeploymentGenerator):
     def generate_config_tendermint(self) -> "HostDeploymentGenerator":
         """Generate tendermint configuration."""
         tmhome = str(self.build_dir / "node")
-        subprocess.run(  # pylint: disable=subprocess-run-check
+        subprocess.run(  # pylint: disable=subprocess-run-check # nosec
             args=[
                 str(
                     shutil.which("tendermint"),
@@ -279,7 +279,7 @@ class HostDeploymentGenerator(BaseDeploymentGenerator):
 def _run_cmd(args: t.List[str], cwd: t.Optional[Path] = None) -> None:
     """Run command in a subprocess."""
     print(f"Running: {' '.join(args)}")
-    result = subprocess.run(  # pylint: disable=subprocess-run-check
+    result = subprocess.run(  # pylint: disable=subprocess-run-check # nosec
         args=args,
         cwd=cwd,
         stdout=subprocess.PIPE,
@@ -389,7 +389,7 @@ def _start_agent(working_dir: Path) -> None:
     )
     env["SKILL_TRADER_ABCI_MODELS_PARAMS_ARGS_TENDERMINT_P2P_URL"] = "localhost:26656"
 
-    process = subprocess.Popen(  # pylint: disable=consider-using-with
+    process = subprocess.Popen(  # pylint: disable=consider-using-with # nosec
         args=[str(working_dir / "venv" / "bin" / "aea"), "run"],
         cwd=working_dir / "agent",
         stdout=subprocess.DEVNULL,
@@ -409,7 +409,7 @@ def _start_agent(working_dir: Path) -> None:
 def _start_tendermint(working_dir: Path) -> None:
     """Start tendermint process."""
     env = json.loads((working_dir / "tendermint.json").read_text(encoding="utf-8"))
-    process = subprocess.Popen(  # pylint: disable=consider-using-with
+    process = subprocess.Popen(  # pylint: disable=consider-using-with # nosec
         args=[
             str(working_dir / "venv" / "bin" / "flask"),
             "run",

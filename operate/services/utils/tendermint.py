@@ -395,7 +395,7 @@ def update_peers(validators: List[Dict], config_path: Path) -> None:
     new_peer_string = 'persistent_peers = "'
     for peer in validators:
         hostname = peer["hostname"]
-        if hostname in ("localhost", "0.0.0.0"):
+        if hostname in ("localhost", "0.0.0.0"):  # nosec
             # This (tendermint) node will be running in a docker container and no other node
             # will be running in the same container. If we receive either localhost or 0.0.0.0,
             # we make an assumption that the address belongs to a node running on the
@@ -581,7 +581,7 @@ def create_app(  # pylint: disable=too-many-statements
     def app_hash() -> Tuple[Any, int]:
         """Get the app hash."""
         try:
-            non_routable, loopback = "0.0.0.0", "127.0.0.1"
+            non_routable, loopback = "0.0.0.0", "127.0.0.1"  # nosec
             endpoint = f"{tendermint_params.rpc_laddr.replace('tcp', 'http').replace(non_routable, loopback)}/block"
             height = request.args.get("height")
             params = {"height": height} if height is not None else None
