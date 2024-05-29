@@ -129,10 +129,6 @@ export const MainNeedsFunds = () => {
   );
 
   useEffect(() => {
-    if (isInitialFunded) {
-      electronApi.store?.set?.('isInitialFunded', false);
-    }
-
     if (
       hasEnoughEthForInitialFunding &&
       hasEnoughOlasForInitialFunding &&
