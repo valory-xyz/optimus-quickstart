@@ -3,6 +3,7 @@ import styled from 'styled-components';
 
 import { COLOR } from '@/constants';
 import { useElectronApi } from '@/hooks/useElectronApi';
+import { useStore } from '@/hooks/useStore';
 
 const { Text } = Typography;
 
@@ -48,6 +49,8 @@ const TopBarContainer = styled.div`
 
 export const TopBar = () => {
   const electronApi = useElectronApi();
+  const store = useStore();
+
   return (
     <TopBarContainer>
       <TrafficLights>
@@ -56,7 +59,10 @@ export const TopBar = () => {
         <DisabledLight />
       </TrafficLights>
 
-      <Text>Pearl (alpha)</Text>
+      <Text>
+        Pearl (alpha)
+        {store?.storeState?.appVersion?.includes('rc') ? ' (staging)' : ''}
+      </Text>
     </TopBarContainer>
   );
 };

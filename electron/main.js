@@ -256,7 +256,10 @@ const createMainWindow = () => {
     mainWindow.hide();
   });
 
-  setupStoreIpc(ipcMain, mainWindow);
+  const storeInitialValues = {
+    appVersion: app.getVersion(),
+  };
+  setupStoreIpc(ipcMain, mainWindow, storeInitialValues);
 
   if (isDev) {
     mainWindow.webContents.openDevTools();

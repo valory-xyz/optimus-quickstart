@@ -1,5 +1,9 @@
 // set schema to validate store data
-const schema = {
+const defaultSchema = {
+  appVersion: {
+    type: 'string',
+    default: '',
+  },
   isInitialFunded: {
     type: 'boolean',
     default: false,
@@ -14,13 +18,19 @@ const schema = {
   },
 };
 
-const setupStoreIpc = async (ipcChannel, mainWindow) => {
+const setupStoreIpc = async (ipcChannel, mainWindow, storeInitialValues) => {
   const Store = (await import('electron-store')).default;
 
-  /** @type import Store from 'electron-store' */
-  const store = new Store({
-    schema,
+  // set default values for store
+  const schema = Object.assign({}, defaultSchema);
+  Object.keys(schema).forEach((key) => {
+    if (storeInitialValues[key] !== undefined) {
+      schema[key].default = storeInitialValues[key];
+    }
   });
+
+  /** @type import Store from 'electron-store' */
+  const store = new Store({ schema });
 
   store.onDidAnyChange((data) => {
     if (mainWindow?.webContents)
