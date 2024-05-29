@@ -33,11 +33,17 @@ export const MainHeader = () => {
   const { wallets, masterSafeAddress } = useWallet();
   const {
     safeBalance,
-    totalOlasBalance,
+    totalOlasStakedBalance,
     totalEthBalance,
     isBalanceLoaded,
     setIsPaused: setIsBalancePollingPaused,
   } = useBalance();
+
+  const safeOlasBalanceWithStaked = useMemo(() => {
+    if (safeBalance?.OLAS === undefined) return;
+    if (totalOlasStakedBalance === undefined) return;
+    return totalOlasStakedBalance + safeBalance.OLAS;
+  }, [safeBalance?.OLAS, totalOlasStakedBalance]);
 
   const [serviceButtonState, setServiceButtonState] =
     useState<ServiceButtonLoadingState>(ServiceButtonLoadingState.NotLoading);
@@ -226,7 +232,7 @@ export const MainHeader = () => {
     const isDeployable = (() => {
       // case where required values are undefined (not fetched from the server)
       if (totalEthBalance === undefined) return false;
-      if (totalOlasBalance === undefined) return false;
+      if (safeOlasBalanceWithStaked === undefined) return false;
       if (!services) return false;
 
       // deployment statuses where agent should not be deployed
@@ -236,9 +242,12 @@ export const MainHeader = () => {
 
       // case where service exists & user has initial funded
       if (services[0] && storeState?.isInitialFunded)
-        return totalOlasBalance >= requiredOlas; // at present agent will always require staked/bonded OLAS
+        return safeOlasBalanceWithStaked >= requiredOlas; // at present agent will always require staked/bonded OLAS
 
-      return totalOlasBalance >= requiredOlas && totalEthBalance > requiredGas;
+      return (
+        safeOlasBalanceWithStaked >= requiredOlas &&
+        totalEthBalance > requiredGas
+      );
     })();
 
     if (!isDeployable) {
@@ -258,12 +267,12 @@ export const MainHeader = () => {
     handlePause,
     handleStart,
     isBalanceLoaded,
+    safeOlasBalanceWithStaked,
     serviceButtonState,
     serviceStatus,
     services,
     storeState?.isInitialFunded,
     totalEthBalance,
-    totalOlasBalance,
   ]);
 
   return (
