@@ -242,7 +242,7 @@ export const MainHeader = () => {
 
       // case where service exists & user has initial funded
       if (services[0] && storeState?.isInitialFunded)
-        return safeOlasBalanceWithStaked >= requiredOlas; // at present agent will always require staked/bonded OLAS
+        return safeOlasBalanceWithStaked >= requiredOlas; // at present agent will always require staked/bonded OLAS (or the ability to stake/bond)
 
       return (
         safeOlasBalanceWithStaked >= requiredOlas &&
