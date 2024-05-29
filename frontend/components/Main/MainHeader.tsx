@@ -9,6 +9,7 @@ import { COLOR, LOW_BALANCE, SERVICE_TEMPLATES } from '@/constants';
 import { useBalance, useServiceTemplates } from '@/hooks';
 import { useElectronApi } from '@/hooks/useElectronApi';
 import { useServices } from '@/hooks/useServices';
+import { useStore } from '@/hooks/useStore';
 import { useWallet } from '@/hooks/useWallet';
 import { ServicesService } from '@/service';
 import { WalletService } from '@/service/Wallet';
@@ -25,6 +26,7 @@ enum ServiceButtonLoadingState {
 }
 
 export const MainHeader = () => {
+  const { storeState } = useStore();
   const { services, serviceStatus, setServiceStatus } = useServices();
   const { showNotification, setTrayIcon } = useElectronApi();
   const { getServiceTemplates } = useServiceTemplates();
@@ -204,23 +206,42 @@ export const MainHeader = () => {
         18,
       ),
     );
+
     const olasRequiredToStake = Number(
       formatUnits(
         `${SERVICE_TEMPLATES[0].configuration.olas_required_to_stake}`,
         18,
       ),
     );
-    const monthlyGasEstimate = Number(
+
+    const requiredOlas = olasCostOfBond + olasRequiredToStake;
+
+    const requiredGas = Number(
       formatUnits(
         `${SERVICE_TEMPLATES[0].configuration.monthly_gas_estimate}`,
         18,
       ),
     );
 
-    if (
-      (totalOlasBalance ?? 0) < olasCostOfBond + olasRequiredToStake ||
-      (totalEthBalance ?? 0) < monthlyGasEstimate
-    ) {
+    const isDeployable = (() => {
+      // case where required values are undefined (not fetched from the server)
+      if (totalEthBalance === undefined) return false;
+      if (totalOlasBalance === undefined) return false;
+      if (!services) return false;
+
+      // deployment statuses where agent should not be deployed
+      // if (serviceStatus === DeploymentStatus.DEPLOYED) return false; // condition already checked above
+      if (serviceStatus === DeploymentStatus.DEPLOYING) return false;
+      if (serviceStatus === DeploymentStatus.STOPPING) return false;
+
+      // case where service exists & user has initial funded
+      if (services[0] && storeState?.isInitialFunded)
+        return totalOlasBalance >= requiredOlas; // at present agent will always require staked/bonded OLAS
+
+      return totalOlasBalance >= requiredOlas && totalEthBalance > requiredGas;
+    })();
+
+    if (!isDeployable) {
       return (
         <Button type="default" size="large" disabled>
           Start agent
@@ -239,6 +260,8 @@ export const MainHeader = () => {
     isBalanceLoaded,
     serviceButtonState,
     serviceStatus,
+    services,
+    storeState?.isInitialFunded,
     totalEthBalance,
     totalOlasBalance,
   ]);
