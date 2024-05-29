@@ -52,9 +52,10 @@ const useNeedsFunds = () => {
   const hasEnoughOlasForInitialFunding = useMemo(() => {
     const olasInSafe = safeBalance?.OLAS || 0;
     const olasStakedBySafe = totalOlasStakedBalance || 0;
+
     const olasInSafeAndStaked = olasInSafe + olasStakedBySafe;
 
-    return olasInSafeAndStaked >= (serviceFundRequirements.olas || 0);
+    return olasInSafeAndStaked >= serviceFundRequirements.olas;
   }, [
     safeBalance?.OLAS,
     totalOlasStakedBalance,
