@@ -10,16 +10,7 @@ on:
             - 'v*.*.*'
 
 jobs:
-    verify-main-branch: # ensures we only release from main
-      runs-on: ubuntu-latest
-      steps:
-      - name: Exit if not on main branch
-        if: github.ref != 'refs/heads/main'
-        run: echo "Not on main branch, exiting" && exit -1
-
     release-middleware:
-        needs: 
-          - "verify-main-branch"
         runs-on: "ubuntu-latest"
         steps:
             - uses: actions/checkout@v2
@@ -47,12 +38,10 @@ jobs:
                 password: ${{ secrets.PYPI_TOKEN }}
                 skip-existing: true
                 packages-dir: dist/
-
     release-operate:
         runs-on: macos-latest
         needs:
           - "release-middleware"
-          - "verify-main-branch"
         steps:           
             - uses: actions/checkout@v2
             - uses: actions/setup-python@v4

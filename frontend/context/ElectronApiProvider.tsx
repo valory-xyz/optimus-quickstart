@@ -20,6 +20,7 @@ type ElectronApiContextProps = {
     get?: (key: string) => Promise<unknown>;
     set?: (key: string, value: unknown) => Promise<void>;
     delete?: (key: string) => Promise<void>;
+    clear?: () => Promise<void>;
   };
   setAppHeight?: (height: unknown) => void;
   notifyAgentRunning?: () => void;
@@ -40,6 +41,7 @@ export const ElectronApiContext = createContext<ElectronApiContextProps>({
     get: async () => {},
     set: async () => {},
     delete: async () => {},
+    clear: async () => {},
   },
   setAppHeight: () => {},
 });
@@ -74,6 +76,7 @@ export const ElectronApiProvider = ({ children }: PropsWithChildren) => {
           get: getElectronApiFunction('store.get'),
           set: getElectronApiFunction('store.set'),
           delete: getElectronApiFunction('store.delete'),
+          clear: getElectronApiFunction('store.clear'),
         },
         setAppHeight: getElectronApiFunction('setAppHeight'),
         showNotification: getElectronApiFunction('showNotification'),

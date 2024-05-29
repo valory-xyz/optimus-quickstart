@@ -14,6 +14,7 @@ import { useElectronApi } from '@/hooks/useElectronApi';
 import { useStore } from '@/hooks/useStore';
 import { AutonolasService } from '@/service/Autonolas';
 
+import { OnlineStatusContext } from './OnlineStatusProvider';
 import { ServicesContext } from './ServicesProvider';
 
 export const RewardContext = createContext<{
@@ -22,6 +23,7 @@ export const RewardContext = createContext<{
   availableRewardsForEpochEth?: number;
   isEligibleForRewards?: boolean;
   optimisticRewardsEarnedForEpoch?: number;
+  minimumStakedAmountRequired?: number;
   updateRewards: () => Promise<void>;
 }>({
   accruedServiceStakingRewards: undefined,
@@ -29,10 +31,12 @@ export const RewardContext = createContext<{
   availableRewardsForEpochEth: undefined,
   isEligibleForRewards: undefined,
   optimisticRewardsEarnedForEpoch: undefined,
+  minimumStakedAmountRequired: undefined,
   updateRewards: async () => {},
 });
 
 export const RewardProvider = ({ children }: PropsWithChildren) => {
+  const { isOnline } = useContext(OnlineStatusContext);
   const { services } = useContext(ServicesContext);
   const service = useMemo(() => services?.[0], [services]);
   const { storeState } = useStore();
@@ -43,6 +47,8 @@ export const RewardProvider = ({ children }: PropsWithChildren) => {
   const [availableRewardsForEpoch, setAvailableRewardsForEpoch] =
     useState<number>();
   const [isEligibleForRewards, setIsEligibleForRewards] = useState<boolean>();
+  const [minimumStakedAmountRequired, setMinimumStakedAmountRequired] =
+    useState<number>();
 
   const availableRewardsForEpochEth = useMemo<number | undefined>(() => {
     if (!availableRewardsForEpoch) return;
@@ -80,6 +86,7 @@ export const RewardProvider = ({ children }: PropsWithChildren) => {
     setAccruedServiceStakingRewards(
       stakingRewardsInfo?.accruedServiceStakingRewards,
     );
+    setMinimumStakedAmountRequired(stakingRewardsInfo?.minimumStakedAmount);
     setAvailableRewardsForEpoch(rewards);
   }, [service]);
 
@@ -93,7 +100,7 @@ export const RewardProvider = ({ children }: PropsWithChildren) => {
     storeState?.firstStakingRewardAchieved,
   ]);
 
-  useInterval(async () => updateRewards(), 5000);
+  useInterval(async () => updateRewards(), isOnline ? 5000 : null);
 
   return (
     <RewardContext.Provider
@@ -103,6 +110,7 @@ export const RewardProvider = ({ children }: PropsWithChildren) => {
         availableRewardsForEpochEth,
         isEligibleForRewards,
         optimisticRewardsEarnedForEpoch,
+        minimumStakedAmountRequired,
         updateRewards,
       }}
     >

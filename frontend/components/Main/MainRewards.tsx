@@ -18,19 +18,32 @@ const RewardsRow = styled(Row)`
   margin: 0 -24px;
   > .ant-col {
     padding: 24px;
-
     &:not(:last-child) {
       border-right: 1px solid ${COLOR.BORDER_GRAY};
     }
   }
 `;
 
+const Loader = () => (
+  <Flex vertical gap={8}>
+    <Skeleton.Button active size="small" style={{ width: 92 }} />
+    <Skeleton.Button active size="small" style={{ width: 92 }} />
+  </Flex>
+);
+
 const DisplayRewards = () => {
-  const { availableRewardsForEpochEth, isEligibleForRewards } = useReward();
+  const {
+    availableRewardsForEpochEth,
+    isEligibleForRewards,
+    minimumStakedAmountRequired,
+  } = useReward();
   const { isBalanceLoaded, totalOlasStakedBalance } = useBalance();
 
-  // 20 OLAS is the minimum amount to stake
-  const isStaked = totalOlasStakedBalance === 20;
+  // check if the staked amount is greater than the minimum required
+  const isStaked =
+    minimumStakedAmountRequired &&
+    totalOlasStakedBalance &&
+    totalOlasStakedBalance >= minimumStakedAmountRequired;
 
   return (
     <RewardsRow>
@@ -49,10 +62,7 @@ const DisplayRewards = () => {
               )}
             </>
           ) : (
-            <Flex vertical gap={8}>
-              <Skeleton.Button active size="small" style={{ width: 92 }} />
-              <Skeleton.Button active size="small" style={{ width: 92 }} />
-            </Flex>
+            <Loader />
           )}
         </Flex>
       </Col>
@@ -65,19 +75,21 @@ const DisplayRewards = () => {
               <Text strong style={{ fontSize: 20 }}>
                 {balanceFormat(totalOlasStakedBalance, 2)} OLAS
               </Text>
-              {isStaked ? null : <Tag color="processing">Not yet staked</Tag>}
+              {minimumStakedAmountRequired && !isStaked ? (
+                <Tag color="processing">Not yet staked</Tag>
+              ) : null}
             </>
           ) : (
-            <Flex vertical gap={8}>
-              <Skeleton.Button active size="small" style={{ width: 92 }} />
-              <Skeleton.Button active size="small" style={{ width: 92 }} />
-            </Flex>
+            <Loader />
           )}
         </Flex>
       </Col>
     </RewardsRow>
   );
 };
+
+const SHARE_TEXT = `I just earned my first reward through the Operate app powered by #olas!\n\nDownload the Pearl app:`;
+const OPERATE_URL = 'https://olas.network/operate?pearl=first-reward';
 
 const NotifyRewards = () => {
   const { isEligibleForRewards, availableRewardsForEpochEth } = useReward();
@@ -119,6 +131,16 @@ const NotifyRewards = () => {
     store?.set?.('firstRewardNotificationShown', true);
   }, [store]);
 
+  const onTwitterShare = useCallback(() => {
+    const encodedText = encodeURIComponent(SHARE_TEXT);
+    const encodedURL = encodeURIComponent(OPERATE_URL);
+
+    window.open(
+      `https://twitter.com/intent/tweet?text=${encodedText}&url=${encodedURL}`,
+      '_blank',
+    );
+  }, []);
+
   if (!canShowNotification) return null;
 
   return (
@@ -133,8 +155,7 @@ const NotifyRewards = () => {
           block
           size="large"
           className="mt-8"
-          disabled
-          style={{ display: 'none' }} // TODO: add twitter share functionality
+          onClick={onTwitterShare}
         >
           <Flex align="center" justify="center" gap={2}>
             Share on

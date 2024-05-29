@@ -32,6 +32,7 @@ const setupStoreIpc = async (ipcChannel, mainWindow) => {
   ipcChannel.handle('store-get', (_, key) => store.get(key));
   ipcChannel.handle('store-set', (_, key, value) => store.set(key, value));
   ipcChannel.handle('store-delete', (_, key) => store.delete(key));
+  ipcChannel.handle('store-clear', (_) => store.clear());
 };
 
 module.exports = { setupStoreIpc };

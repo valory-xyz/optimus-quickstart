@@ -5,6 +5,7 @@ import {
   PropsWithChildren,
   SetStateAction,
   useCallback,
+  useContext,
   useMemo,
   useState,
 } from 'react';
@@ -13,6 +14,8 @@ import { useInterval } from 'usehooks-ts';
 import { DeploymentStatus, Service } from '@/client';
 import { ServicesService } from '@/service';
 import { Address } from '@/types';
+
+import { OnlineStatusContext } from './OnlineStatusProvider';
 
 type ServicesContextProps = {
   services?: Service[];
@@ -39,6 +42,8 @@ export const ServicesContext = createContext<ServicesContextProps>({
 });
 
 export const ServicesProvider = ({ children }: PropsWithChildren) => {
+  const { isOnline } = useContext(OnlineStatusContext);
+
   const [services, setServices] = useState<Service[]>();
 
   const [serviceStatus, setServiceStatus] = useState<
@@ -86,7 +91,7 @@ export const ServicesProvider = ({ children }: PropsWithChildren) => {
       updateServicesState()
         .then(() => updateServiceStatus())
         .catch((e) => message.error(e.message)),
-    5000,
+    isOnline ? 5000 : null,
   );
 
   return (

@@ -14,6 +14,7 @@ import { useInterval } from 'usehooks-ts';
 import { GnosisSafeService } from '@/service/GnosisSafe';
 import { Address } from '@/types';
 
+import { OnlineStatusContext } from './OnlineStatusProvider';
 import { WalletContext } from './WalletProvider';
 
 export const MasterSafeContext = createContext<{
@@ -31,6 +32,7 @@ export const MasterSafeContext = createContext<{
 });
 
 export const MasterSafeProvider = ({ children }: PropsWithChildren) => {
+  const { isOnline } = useContext(OnlineStatusContext);
   const { masterSafeAddress, masterEoaAddress } = useContext(WalletContext);
 
   const [masterSafeOwners, setMasterSafeOwners] = useState<Address[]>();
@@ -66,7 +68,9 @@ export const MasterSafeProvider = ({ children }: PropsWithChildren) => {
 
   useInterval(
     updateMasterSafeOwners,
-    masterSafeOwners && masterSafeOwners.length >= 2 ? null : 5000,
+    (masterSafeOwners && masterSafeOwners.length >= 2) || !isOnline
+      ? null
+      : 5000,
   );
 
   return (
