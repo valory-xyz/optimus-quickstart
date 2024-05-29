@@ -102,7 +102,7 @@ export const MainNeedsFunds = () => {
             <span className="font-weight-600">
               {`${serviceFundRequirements.eth} XDAI `}
             </span>
-            - for gas & trading balance.
+            - for trading balance.
           </Text>
         )}
       </Flex>

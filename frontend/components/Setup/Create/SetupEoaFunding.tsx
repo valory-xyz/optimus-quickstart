@@ -30,7 +30,11 @@ import { useWallet } from '@/hooks/useWallet';
 
 import { SetupCreateHeader } from './SetupCreateHeader';
 
-export const SetupEoaFunding = () => {
+export const SetupEoaFunding = ({
+  isIncomplete,
+}: {
+  isIncomplete?: boolean;
+}) => {
   const { eoaBalance } = useBalance();
   const { goto } = useSetup();
 
@@ -55,7 +59,10 @@ export const SetupEoaFunding = () => {
 
   return (
     <CardFlex>
-      <SetupCreateHeader prev={SetupScreen.SetupBackupSigner} />
+      <SetupCreateHeader
+        prev={SetupScreen.SetupBackupSigner}
+        disabled={isIncomplete}
+      />
       <Typography.Title level={3}>
         Deposit {MIN_ETH_BALANCE_THRESHOLDS[Chain.GNOSIS].safeCreation} XDAI on
         Gnosis
