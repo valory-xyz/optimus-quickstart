@@ -7,6 +7,11 @@ const process = require('process');
 const { spawnSync } = require('child_process');
 const Docker = require('dockerode');
 
+/**
+ * current version of the pearl release
+ * - use "rc" for release candidate, for example "0.1.0rc26"
+ * - use "alpha" for alpha release, for example "0.1.0alpha26"
+ */
 const Version = '0.1.0rc26';
 const OperateDirectory = `${os.homedir()}/.operate`;
 const VenvDir = `${OperateDirectory}/venv`;
@@ -46,7 +51,7 @@ function appendLog(log) {
 function runCmdUnix(command, options) {
   fs.appendFileSync(
     OperateInstallationLog,
-    `Runninng ${command} with options ${JSON.stringify(options)}`,
+    `Running ${command} with options ${JSON.stringify(options)}`,
     { encoding: 'utf-8' },
   );
   let bin = getBinPath(command);
