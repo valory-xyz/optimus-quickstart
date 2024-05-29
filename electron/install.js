@@ -11,7 +11,7 @@ const axios = require("axios")
 const Docker = require('dockerode');
 const { spawnSync } = require('child_process');
 
-const Version = '0.1.0rc26';
+const Version = '0.1.0rc27';
 const OperateDirectory = `${os.homedir()}/.operate`;
 const VenvDir = `${OperateDirectory}/venv`;
 const TempDir = `${OperateDirectory}/temp`;
