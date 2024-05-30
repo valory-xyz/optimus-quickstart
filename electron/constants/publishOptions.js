@@ -5,8 +5,7 @@ const publishOptions = {
   token: process.env.GH_TOKEN,
   private: false,
   publishAutoUpdate: true,
-  releaseType: process.env.IS_STAGING === 'true' ? 'prerelease' : 'release',
-  channel: process.env.IS_STAGING === 'true' ? 'alpha' : 'latest',
+  releaseType: process.env.IS_STAGING === 'true' ? 'draft' : 'release',
 };
 
 module.exports = { publishOptions };

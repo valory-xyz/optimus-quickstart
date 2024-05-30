@@ -1,21 +1,10 @@
 // set schema to validate store data
 const defaultSchema = {
-  appVersion: {
-    type: 'string',
-    default: '',
-  },
-  isInitialFunded: {
-    type: 'boolean',
-    default: false,
-  },
-  firstStakingRewardAchieved: {
-    type: 'boolean',
-    default: false,
-  },
-  firstRewardNotificationShown: {
-    type: 'boolean',
-    default: false,
-  },
+  appVersion: { type: 'string', default: '' },
+  releaseType: { type: 'string', default: '' },
+  isInitialFunded: { type: 'boolean', default: false },
+  firstStakingRewardAchieved: { type: 'boolean', default: false },
+  firstRewardNotificationShown: { type: 'boolean', default: false },
 };
 
 const setupStoreIpc = async (ipcChannel, mainWindow, storeInitialValues) => {

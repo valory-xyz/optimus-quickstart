@@ -1,5 +1,6 @@
 export type ElectronStore = {
   appVersion?: string;
+  releaseType?: string;
   isInitialFunded?: boolean;
   firstStakingRewardAchieved?: boolean;
   firstRewardNotificationShown?: boolean;
