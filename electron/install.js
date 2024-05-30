@@ -11,7 +11,7 @@ const axios = require("axios")
 const Docker = require('dockerode');
 const { spawnSync } = require('child_process');
 
-const Version = '0.1.0rc27';
+const Version = '0.1.0rc28';
 const OperateDirectory = `${os.homedir()}/.operate`;
 const VenvDir = `${OperateDirectory}/venv`;
 const TempDir = `${OperateDirectory}/temp`;
@@ -295,13 +295,6 @@ async function setupDarwin(ipcChannel) {
     installBrew();
   }
 
-  console.log(appendLog('Checking docker installation'));
-  if (!isDockerInstalledDarwin()) {
-    ipcChannel.send('response', 'Installing Pearl Daemon');
-    console.log(appendLog('Installing docker'));
-    installDockerDarwin();
-  }
-
   console.log(appendLog('Checking tendermint installation'));
   if (!isTendermintInstalledUnix()) {
     ipcChannel.send('response', 'Installing Pearl Daemon');
@@ -348,12 +341,6 @@ async function setupDarwin(ipcChannel) {
 // TODO: Add Tendermint installation
 async function setupUbuntu(ipcChannel) {
   removeInstallationLogFile();
-  console.log(appendLog('Checking docker installation'));
-  if (!isDockerInstalledUbuntu()) {
-    ipcChannel.send('response', 'Installing Pearl Daemon');
-    console.log(appendLog('Installing docker'));
-    await installDockerUbuntu();
-  }
 
   console.log(appendLog('Checking python installation'));
   if (!isPythonInstalledUbuntu()) {
