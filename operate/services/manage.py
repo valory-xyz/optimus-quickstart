@@ -451,7 +451,7 @@ class ServiceManager:
         if service.chain_data.on_chain_state == OnChainState.ACTIVATED:
             cost_of_bond = user_params.cost_of_bond
             if user_params.use_staking:
-                token_utility = "0xa45E64d13A30a51b91ae0eb182e88a40e9b18eD8" # nosec
+                token_utility = "0xa45E64d13A30a51b91ae0eb182e88a40e9b18eD8"  # nosec
                 olas_token = "0xcE11e14225575945b8E6Dc0D4F2dD4C570f79d9f"  # nosec
                 self.logger.info(
                     f"Approving OLAS as bonding token from {wallet.safe} to {token_utility}"
