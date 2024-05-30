@@ -47,6 +47,10 @@ const TopBarContainer = styled.div`
   -webkit-app-region: drag;
 `;
 
+const isStaging = (version?: string) => {
+  return !!version && (version.includes('alpha') || version.includes('beta'));
+};
+
 export const TopBar = () => {
   const electronApi = useElectronApi();
   const store = useStore();
@@ -61,7 +65,7 @@ export const TopBar = () => {
 
       <Text>
         Pearl (alpha)
-        {store?.storeState?.appVersion?.includes('rc') ? '' : ' (staging)'}
+        {isStaging(store?.storeState?.appVersion) ? ' (staging)' : ''}
       </Text>
     </TopBarContainer>
   );
