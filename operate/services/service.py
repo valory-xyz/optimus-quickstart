@@ -317,13 +317,10 @@ def _setup_agent(working_dir: Path) -> None:
     _run_cmd(
         args=[
             abin,
-            "--registry-path",
-            "/Users/virajpatel/valory/trader/packages",
             "fetch",
             env["AEA_AGENT"],
             "--alias",
             "agent",
-            "--local",
         ],
         cwd=working_dir,
     )
@@ -341,24 +338,6 @@ def _setup_agent(working_dir: Path) -> None:
     )
     _run_cmd(
         args=[abin, "add-key", "ethereum"],
-        cwd=working_dir / "agent",
-    )
-    shutil.copy(
-        working_dir / "ethereum_private_key.txt",
-        working_dir / "agent" / "ethereum_flashbots_private_key.txt",
-    )
-    _run_cmd(
-        args=[abin, "add-key", "ethereum_flashbots"],
-        cwd=working_dir / "agent",
-    )
-
-    # Generate certifictes
-    _run_cmd(
-        args=[abin, "generate-key", "cosmos", "--connection"],
-        cwd=working_dir / "agent",
-    )
-    _run_cmd(
-        args=[abin, "add-key", "cosmos", "--connection"],
         cwd=working_dir / "agent",
     )
     _run_cmd(
