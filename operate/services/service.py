@@ -32,6 +32,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from venv import main as venv_cli
 
+import psutil
 from aea.__version__ import __version__ as aea_version
 from aea.configurations.constants import (
     DEFAULT_LEDGER,
@@ -428,7 +429,15 @@ def _start_tendermint(working_dir: Path) -> None:
 
 def _kill_process(pid: int) -> None:
     """Kill process."""
+    print(f"Trying to kill process: {pid}")
     while True:
+        if not psutil.pid_exists(pid=pid):
+            return
+        if psutil.Process(pid=pid).status() in (
+            psutil.STATUS_DEAD,
+            psutil.STATUS_ZOMBIE,
+        ):
+            return
         try:
             os.kill(
                 pid,
@@ -440,7 +449,7 @@ def _kill_process(pid: int) -> None:
             )
         except OSError:
             return
-        time.sleep(3)
+        time.sleep(1)
 
 
 def _stop_agent(working_dir: Path) -> None:
