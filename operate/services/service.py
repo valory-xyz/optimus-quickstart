@@ -294,6 +294,36 @@ def _run_cmd(args: t.List[str], cwd: t.Optional[Path] = None) -> None:
 def _setup_agent(working_dir: Path) -> None:
     """Setup agent."""
     env = json.loads((working_dir / "agent.json").read_text(encoding="utf-8"))
+    # Patch for trader agent
+    if "SKILL_TRADER_ABCI_MODELS_PARAMS_ARGS_POLICY_STORE_PATH" in env:
+        data_dir = working_dir / "data"
+        data_dir.mkdir(exist_ok=True)
+        env["SKILL_TRADER_ABCI_MODELS_PARAMS_ARGS_POLICY_STORE_PATH"] = str(data_dir)
+
+    # TODO: Dynamic port allocation, backport to service builder
+    env["CONNECTION_ABCI_CONFIG_HOST"] = "localhost"
+    env["CONNECTION_ABCI_CONFIG_PORT"] = "26658"
+
+    for var in env:
+        # Fix tendermint connection params
+        if var.endswith("MODELS_PARAMS_ARGS_TENDERMINT_COM_URL"):
+            env[var] = "http://localhost:8080"
+
+        if var.endswith("MODELS_PARAMS_ARGS_TENDERMINT_URL"):
+            env[var] = "http://localhost:26657"
+
+        if var.endswith("MODELS_PARAMS_ARGS_TENDERMINT_P2P_URL"):
+            env[var] = "localhost:26656"
+
+        if var.endswith("MODELS_BENCHMARK_TOOL_ARGS_LOG_DIR"):
+            benchmarks_dir = working_dir / "benchmarks"
+            benchmarks_dir.mkdir(exist_ok=True, parents=True)
+            env[var] = str(benchmarks_dir.resolve())
+
+    (working_dir / "agent.json").write_text(
+        json.dumps(env, indent=4),
+        encoding="utf-8",
+    )
     venv = working_dir / "venv"
     pbin = str(venv / "bin" / "python")
 
@@ -365,32 +395,12 @@ def _setup_agent(working_dir: Path) -> None:
 def _start_agent(working_dir: Path) -> None:
     """Start agent process."""
     env = json.loads((working_dir / "agent.json").read_text(encoding="utf-8"))
-    # Patch for trader agent
-    if "SKILL_TRADER_ABCI_MODELS_PARAMS_ARGS_POLICY_STORE_PATH" in env:
-        data_dir = working_dir / "data"
-        data_dir.mkdir(exist_ok=True)
-        env["SKILL_TRADER_ABCI_MODELS_PARAMS_ARGS_POLICY_STORE_PATH"] = str(data_dir)
-
-    # TODO: Dynamic port allocation, backport to service builder
-    env["CONNECTION_ABCI_CONFIG_HOST"] = "localhost"
-    env["CONNECTION_ABCI_CONFIG_PORT"] = "26658"
-
-    # Fix tendermint connection params
-    env[
-        "SKILL_TRADER_ABCI_MODELS_PARAMS_ARGS_TENDERMINT_COM_URL"
-    ] = "http://localhost:8080"
-    env[
-        "SKILL_TRADER_ABCI_MODELS_PARAMS_ARGS_TENDERMINT_URL"
-    ] = "http://localhost:26657"
-    env["SKILL_TRADER_ABCI_MODELS_PARAMS_ARGS_TENDERMINT_P2P_URL"] = "localhost:26656"
-
     process = subprocess.Popen(  # pylint: disable=consider-using-with # nosec
         args=[str(working_dir / "venv" / "bin" / "aea"), "run"],
         cwd=working_dir / "agent",
         stdout=subprocess.DEVNULL,
         stderr=subprocess.DEVNULL,
         env={**os.environ, **env},
-        # TODO: Enable for windows
         creationflags=(
             0x00000008 if platform.system() == "Windows" else 0
         ),  # Detach process from the main process
