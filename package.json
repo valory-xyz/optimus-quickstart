@@ -54,5 +54,5 @@
     "start": "electron .",
     "build": "rm -rf dist/ && electron-builder build"
   },
-  "version": "0.1.0-rc30"
+  "version": "0.1.0-rc31"
 }
