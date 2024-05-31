@@ -271,7 +271,7 @@ function versionBumpRequired() {
 }
 
 function removeLogFile() {
-  if (fs.existsSync()) {
+  if (fs.existsSync(LogFile)) {
     fs.rmSync(LogFile);
   }
 }
