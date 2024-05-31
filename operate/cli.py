@@ -29,13 +29,6 @@ import uuid
 from pathlib import Path
 
 from aea.helpers.logging import setup_logger
-from autonomy.constants import (
-    AUTONOMY_IMAGE_NAME,
-    AUTONOMY_IMAGE_VERSION,
-    TENDERMINT_IMAGE_NAME,
-    TENDERMINT_IMAGE_VERSION,
-)
-from autonomy.deploy.generators.docker_compose.base import get_docker_client
 from clea import group, params, run
 from compose.project import ProjectError
 from docker.errors import APIError
@@ -159,23 +152,6 @@ def create_app(  # pylint: disable=too-many-locals, unused-argument, too-many-st
         shutdown_endpoint
     )
 
-    def pull_latest_images() -> None:
-        """Pull latest docker images."""
-        logger.info("Pulling latest images")
-        client = get_docker_client()
-
-        logger.info(f"Pulling {AUTONOMY_IMAGE_NAME}:{AUTONOMY_IMAGE_VERSION}")
-        client.images.pull(
-            repository=AUTONOMY_IMAGE_NAME,
-            tag=AUTONOMY_IMAGE_VERSION,
-        )
-
-        logger.info(f"Pulling {TENDERMINT_IMAGE_NAME}:{TENDERMINT_IMAGE_VERSION}")
-        client.images.pull(
-            repository=TENDERMINT_IMAGE_NAME,
-            tag=TENDERMINT_IMAGE_VERSION,
-        )
-
     def schedule_funding_job(
         service: str,
         from_safe: bool = True,
@@ -203,9 +179,7 @@ def create_app(  # pylint: disable=too-many-locals, unused-argument, too-many-st
         if not status:
             logger.info(f"Funding job cancellation for {service} failed")
 
-    app = FastAPI(
-        on_startup=[pull_latest_images],
-    )
+    app = FastAPI()
 
     app.add_middleware(
         CORSMiddleware,

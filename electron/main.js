@@ -24,7 +24,6 @@ const {
   setupUbuntu,
   OperateCmd,
   OperateDirectory,
-  startDocker,
   Env,
   dirs,
 } = require('./install');
@@ -441,8 +440,6 @@ ipcMain.on('check', async function (event, _argument) {
         await setupUbuntu(event.sender);
       }
     }
-
-    startDocker(event.sender);
 
     if (isDev) {
       event.sender.send(
