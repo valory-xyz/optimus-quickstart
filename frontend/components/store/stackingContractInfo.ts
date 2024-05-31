@@ -6,6 +6,7 @@ const initialState = {
   isStakingContractInfoLoading: true,
   isRewardsAvailable: false,
   hasEnoughServiceSlots: false,
+  canStartAgent: false,
   maxNumServices: 0,
 };
 
@@ -13,6 +14,7 @@ export const useStakingContractInfo = create<{
   isStakingContractInfoLoading: boolean;
   isRewardsAvailable: boolean;
   hasEnoughServiceSlots: boolean;
+  canStartAgent: boolean;
   fetchStakingContractInfo: () => Promise<void>;
   maxNumServices: number;
 }>((set) => {
@@ -31,13 +33,15 @@ export const useStakingContractInfo = create<{
         if (!info) return;
 
         const { availableRewards, maxNumServices, getServiceIds } = info;
+        const isRewardsAvailable = availableRewards > 0;
+        const hasEnoughServiceSlots = getServiceIds.length < maxNumServices;
+        const canStartAgent = isRewardsAvailable && hasEnoughServiceSlots;
 
         set({
-          // availableRewards,
           maxNumServices,
-          // getServiceIds,
-          isRewardsAvailable: availableRewards > 0,
-          hasEnoughServiceSlots: getServiceIds.length < maxNumServices,
+          isRewardsAvailable,
+          hasEnoughServiceSlots,
+          canStartAgent,
         });
       } catch (error) {
         console.error('Failed to fetch staking contract info', error);

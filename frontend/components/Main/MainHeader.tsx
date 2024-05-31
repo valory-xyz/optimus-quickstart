@@ -14,6 +14,8 @@ import { useWallet } from '@/hooks/useWallet';
 import { ServicesService } from '@/service';
 import { WalletService } from '@/service/Wallet';
 
+import { useStakingContractInfo } from '../store/stackingContractInfo';
+
 const { Text } = Typography;
 
 const LOADING_MESSAGE =
@@ -38,6 +40,7 @@ export const MainHeader = () => {
     isBalanceLoaded,
     setIsPaused: setIsBalancePollingPaused,
   } = useBalance();
+  const { canStartAgent } = useStakingContractInfo();
 
   const safeOlasBalanceWithStaked = useMemo(() => {
     if (safeBalance?.OLAS === undefined) return;
@@ -259,7 +262,12 @@ export const MainHeader = () => {
     }
 
     return (
-      <Button type="primary" size="large" onClick={handleStart}>
+      <Button
+        type="primary"
+        size="large"
+        onClick={handleStart}
+        disabled={!canStartAgent}
+      >
         Start agent
       </Button>
     );
@@ -273,6 +281,7 @@ export const MainHeader = () => {
     services,
     storeState?.isInitialFunded,
     totalEthBalance,
+    canStartAgent,
   ]);
 
   return (
