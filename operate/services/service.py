@@ -360,12 +360,12 @@ def _start_agent(working_dir: Path) -> None:
     env["CONNECTION_ABCI_CONFIG_PORT"] = "26658"
 
     # Fix tendermint connection params
-    env["SKILL_TRADER_ABCI_MODELS_PARAMS_ARGS_TENDERMINT_COM_URL"] = (
-        "http://localhost:8080"
-    )
-    env["SKILL_TRADER_ABCI_MODELS_PARAMS_ARGS_TENDERMINT_URL"] = (
-        "http://localhost:26657"
-    )
+    env[
+        "SKILL_TRADER_ABCI_MODELS_PARAMS_ARGS_TENDERMINT_COM_URL"
+    ] = "http://localhost:8080"
+    env[
+        "SKILL_TRADER_ABCI_MODELS_PARAMS_ARGS_TENDERMINT_URL"
+    ] = "http://localhost:26657"
     env["SKILL_TRADER_ABCI_MODELS_PARAMS_ARGS_TENDERMINT_P2P_URL"] = "localhost:26656"
 
     process = subprocess.Popen(  # pylint: disable=consider-using-with # nosec
