@@ -1,4 +1,4 @@
-import { ethers } from 'ethers';
+import { BigNumber, ethers } from 'ethers';
 import { Contract as MulticallContract } from 'ethers-multicall';
 
 import {
@@ -146,6 +146,43 @@ const getAvailableRewardsForEpoch = async (): Promise<number | undefined> => {
   return rewardsPerSecond * livenessPeriod;
 };
 
+type StakingContractInfo = {
+  availableRewards: number;
+  maxNumServices: number;
+  getServiceIds: number[];
+};
+
+/**
+ * function to get the staking contract info
+ */
+const getStakingContractInfo = async (): Promise<
+  StakingContractInfo | undefined
+> => {
+  const contractCalls = [
+    serviceStakingTokenMechUsageContract.availableRewards(),
+    serviceStakingTokenMechUsageContract.maxNumServices(),
+    serviceStakingTokenMechUsageContract.getServiceIds(),
+  ];
+
+  await gnosisMulticallProvider.init();
+
+  const multicallResponse = await gnosisMulticallProvider.all(contractCalls);
+  const [availableRewardsInBN, maxNumServicesInBN, getServiceIdsInBN] =
+    multicallResponse;
+
+  const availableRewards = parseFloat(
+    ethers.utils.formatUnits(availableRewardsInBN, 18),
+  );
+  const getServiceIds = getServiceIdsInBN.map((id: BigNumber) => id.toNumber());
+  const maxNumServices = maxNumServicesInBN.toNumber();
+
+  return {
+    availableRewards,
+    maxNumServices,
+    getServiceIds,
+  };
+};
+
 const getServiceRegistryInfo = async (
   operatorAddress: Address, // generally masterSafeAddress
   serviceId: number,
@@ -188,4 +225,5 @@ export const AutonolasService = {
   getAgentStakingRewardsInfo,
   getAvailableRewardsForEpoch,
   getServiceRegistryInfo,
+  getStakingContractInfo,
 };
