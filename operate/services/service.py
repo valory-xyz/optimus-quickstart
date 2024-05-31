@@ -27,7 +27,7 @@ import signal
 import subprocess  # nosec
 import time
 import typing as t
-from copy import deepcopy
+from copy import copy, deepcopy
 from dataclasses import dataclass
 from pathlib import Path
 from venv import main as venv_cli
@@ -39,6 +39,7 @@ from aea.configurations.constants import (
     LEDGER,
     PRIVATE_KEY,
     PRIVATE_KEY_PATH_SCHEMA,
+    SKILL,
 )
 from aea.configurations.data_types import PackageType
 from aea.helpers.yaml_utils import yaml_dump, yaml_load, yaml_load_all
@@ -81,6 +82,11 @@ from operate.types import (
     OnChainState,
     OnChainUserParams,
 )
+
+
+SAFE_CONTRACT_ADDRESS = "safe_contract_address"
+ALL_PARTICIPANTS = "all_participants"
+CONSENSUS_THRESHOLD = "consensus_threshold"
 
 
 # pylint: disable=no-member,redefined-builtin,too-many-instance-attributes
@@ -166,6 +172,63 @@ class ServiceBuilder(BaseServiceBuilder):
         ledger_connection_overrides["public_id"] = str(component_id.public_id)
         service_overrides.append(ledger_connection_overrides)
         self.service.overrides = service_overrides
+
+    def try_update_runtime_params(
+        self,
+        multisig_address: t.Optional[str] = None,
+        agent_instances: t.Optional[t.List[str]] = None,
+        consensus_threshold: t.Optional[int] = None,
+        service_id: t.Optional[int] = None,
+    ) -> None:
+        """Try and update setup parameters."""
+
+        param_overrides: t.List[t.Tuple[str, t.Any]] = []
+        if multisig_address is not None:
+            param_overrides.append(
+                (SAFE_CONTRACT_ADDRESS, multisig_address),
+            )
+
+        if agent_instances is not None:
+            param_overrides.append(
+                (ALL_PARTICIPANTS, agent_instances),
+            )
+
+        if consensus_threshold is not None:
+            param_overrides.append(
+                (CONSENSUS_THRESHOLD, consensus_threshold),
+            )
+
+        overrides = copy(self.service.overrides)
+        for override in overrides:
+            (
+                override,
+                component_id,
+                has_multiple_overrides,
+            ) = self.service.process_metadata(
+                configuration=override,
+            )
+
+            if component_id.component_type.value == SKILL:
+                self._try_update_setup_data(
+                    data=param_overrides,
+                    override=override,
+                    skill_id=component_id.public_id,
+                    has_multiple_overrides=has_multiple_overrides,
+                )
+                self._try_update_tendermint_params(
+                    override=override,
+                    skill_id=component_id.public_id,
+                    has_multiple_overrides=has_multiple_overrides,
+                )
+                if service_id is not None:
+                    override["models"]["params"]["args"][
+                        "on_chain_service_id"
+                    ] = service_id
+
+            override["type"] = component_id.package_type.value
+            override["public_id"] = str(component_id.public_id)
+
+        self.service.overrides = overrides
 
 
 class ServiceHelper:
@@ -577,6 +640,7 @@ class Deployment(LocalResource):
             builder.try_update_runtime_params(
                 multisig_address=service.chain_data.multisig,
                 agent_instances=service.chain_data.instances,
+                service_id=service.chain_data.token,
                 consensus_threshold=None,
             )
             # TODO: Support for multiledger
@@ -682,6 +746,7 @@ class Deployment(LocalResource):
             builder.try_update_runtime_params(
                 multisig_address=service.chain_data.multisig,
                 agent_instances=service.chain_data.instances,
+                service_id=service.chain_data.token,
                 consensus_threshold=None,
             )
             # TODO: Support for multiledger
