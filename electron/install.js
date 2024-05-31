@@ -163,6 +163,23 @@ async function installTendermintDarwin() {
   process.chdir(cwd)
 }
 
+async function installTendermintUbuntu() {
+  console.log(`Installing tendermint for ubuntu-${process.arch}`)
+  let url;
+  if (process.arch == "arm64") {
+    url = TendermintUrls.linux.arm
+  } else {
+    url = TendermintUrls.linux.amd
+  }
+  await downloadFile(url, `${TempDir}/tendermint.tar.gz`)
+
+  const cwd = process.cwd()
+  process.chdir(TempDir)
+  await runCmdUnix("tar", ["-xvf", "tendermint.tar.gz"])
+  await runSudoUnix("install", "tendermint /usr/local/bin")
+  process.chdir(cwd)
+}
+
 function isDockerInstalledDarwin() {
   return Boolean(getBinPath('docker'));
 }
@@ -342,6 +359,13 @@ async function setupDarwin(ipcChannel) {
 async function setupUbuntu(ipcChannel) {
   removeInstallationLogFile();
 
+  console.log(appendLog('Checking tendermint installation'));
+  if (!isTendermintInstalledUnix()) {
+    ipcChannel.send('response', 'Installing Pearl Daemon');
+    console.log(appendLog('Installing tendermint'));
+    await installTendermintUbuntu()
+  }
+
   console.log(appendLog('Checking python installation'));
   if (!isPythonInstalledUbuntu()) {
     ipcChannel.send('response', 'Installing Pearl Daemon');
@@ -361,7 +385,6 @@ async function setupUbuntu(ipcChannel) {
   await createDirectory(`${OperateDirectory}/temp`);
 
   if (versionBumpRequired()) {
-    // removePreviousInstallation();
     writeVersion();
   }
 
