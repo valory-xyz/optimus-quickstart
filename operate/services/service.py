@@ -691,7 +691,7 @@ class Deployment(LocalResource):
         if "SKILL_TRADER_ABCI_MODELS_PARAMS_ARGS_MECH_REQUEST_PRICE" in agent_vars:
             agent_vars[
                 "SKILL_TRADER_ABCI_MODELS_PARAMS_ARGS_MECH_REQUEST_PRICE"
-            ] = 10000000000000000
+            ] = "10000000000000000"
             Path(build, "agent.json").write_text(
                 json.dumps(agent_vars, indent=4),
                 encoding="utf-8",
