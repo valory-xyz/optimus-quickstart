@@ -155,7 +155,7 @@ async function installTendermintUnix() {
 
   console.log(appendLog(`Downloading ${url}, might take a while...`))
   await downloadFile(url, `${TempDir}/tendermint.tar.gz`)
-  
+
   console.log(appendLog(`Installing tendermint binary`))
   await runCmdUnix("tar", ["-xvf", "tendermint.tar.gz"])
   await runSudoUnix("install", "tendermint /usr/local/bin")
@@ -295,13 +295,6 @@ async function setupDarwin(ipcChannel) {
     installBrew();
   }
 
-  console.log(appendLog('Checking tendermint installation'));
-  if (!isTendermintInstalledUnix()) {
-    ipcChannel.send('response', 'Installing Pearl Daemon');
-    console.log(appendLog('Installing tendermint'));
-    await installTendermintUnix()
-  }
-
   console.log(appendLog('Checking python installation'));
   if (!isPythonInstalledDarwin()) {
     ipcChannel.send('response', 'Installing Pearl Daemon');
@@ -312,6 +305,13 @@ async function setupDarwin(ipcChannel) {
   console.log(appendLog('Creating required directories'));
   await createDirectory(`${OperateDirectory}`);
   await createDirectory(`${OperateDirectory}/temp`);
+
+  console.log(appendLog('Checking tendermint installation'));
+  if (!isTendermintInstalledUnix()) {
+    ipcChannel.send('response', 'Installing Pearl Daemon');
+    console.log(appendLog('Installing tendermint'));
+    await installTendermintUnix()
+  }
 
   if (!fs.existsSync(VenvDir)) {
     ipcChannel.send('response', 'Installing Pearl Daemon');
@@ -342,13 +342,6 @@ async function setupDarwin(ipcChannel) {
 async function setupUbuntu(ipcChannel) {
   removeInstallationLogFile();
 
-  console.log(appendLog('Checking tendermint installation'));
-  if (!isTendermintInstalledUnix()) {
-    ipcChannel.send('response', 'Installing Pearl Daemon');
-    console.log(appendLog('Installing tendermint'));
-    await installTendermintUnix()
-  }
-
   console.log(appendLog('Checking python installation'));
   if (!isPythonInstalledUbuntu()) {
     ipcChannel.send('response', 'Installing Pearl Daemon');
@@ -367,8 +360,11 @@ async function setupUbuntu(ipcChannel) {
   await createDirectory(`${OperateDirectory}`);
   await createDirectory(`${OperateDirectory}/temp`);
 
-  if (versionBumpRequired()) {
-    writeVersion();
+  console.log(appendLog('Checking tendermint installation'));
+  if (!isTendermintInstalledUnix()) {
+    ipcChannel.send('response', 'Installing Pearl Daemon');
+    console.log(appendLog('Installing tendermint'));
+    await installTendermintUnix()
   }
 
   if (!fs.existsSync(VenvDir)) {
