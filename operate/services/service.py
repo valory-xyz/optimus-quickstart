@@ -317,6 +317,20 @@ def _setup_agent(working_dir: Path) -> None:
     _run_cmd(
         args=[
             abin,
+            "init",
+            "--reset",
+            "--author",
+            "valory",
+            "--remote",
+            "--ipfs",
+            "--ipfs-node",
+            "/dns/registry.autonolas.tech/tcp/443/https",
+        ],
+        cwd=working_dir,
+    )
+    _run_cmd(
+        args=[
+            abin,
             "fetch",
             env["AEA_AGENT"],
             "--alias",
