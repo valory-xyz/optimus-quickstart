@@ -49,7 +49,7 @@ export const ElectronApiContext = createContext<ElectronApiContextProps>({
     clear: async () => {},
   },
   setAppHeight: () => {},
-  saveLogs: async () => ({}),
+  saveLogs: async () => ({ success: false }),
   openPath: () => {},
 });
 
