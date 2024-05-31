@@ -1,14 +1,14 @@
+import { useCallback, useEffect } from 'react';
 import { create } from 'zustand';
 
 import { AutonolasService } from '@/service/Autonolas';
 
-export const useStakingContractInfo = create((set) => ({
-  // maxNumServices: null,
-  // availableRewards: null,
-  // getServiceIds: null,
-  isStakingContractInfoLoading: false,
-  isRewardsAvailable: false,
-  fetchStakingContractInfo: async () => {
+export const useStakingContractInfo = create<{
+  isStakingContractInfoLoading: boolean;
+  isRewardsAvailable: boolean;
+  hasEnoughServiceSlots: boolean;
+}>((set) => {
+  const fetchStakingContractInfo = useCallback(async () => {
     try {
       set({ isStakingContractInfoLoading: true });
       const info = await AutonolasService.getStakingContractInfo();
@@ -29,5 +29,18 @@ export const useStakingContractInfo = create((set) => ({
     } finally {
       set({ isStakingContractInfoLoading: false });
     }
-  },
-}));
+  }, [set]);
+
+  useEffect(() => {
+    fetchStakingContractInfo();
+  }, [fetchStakingContractInfo]);
+
+  return {
+    // maxNumServices: null,
+    // availableRewards: null,
+    // getServiceIds: null,
+    isStakingContractInfoLoading: true,
+    isRewardsAvailable: false,
+    hasEnoughServiceSlots: false,
+  };
+});
