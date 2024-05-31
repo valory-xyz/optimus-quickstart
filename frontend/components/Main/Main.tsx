@@ -12,6 +12,7 @@ import { MainHeader } from './MainHeader';
 import { MainNeedsFunds } from './MainNeedsFunds';
 import { MainOlasBalance } from './MainOlasBalance';
 import { MainRewards } from './MainRewards';
+import { StakingValidations } from './StakingValidations';
 
 export const Main = () => {
   const { goto } = usePageState();
@@ -40,6 +41,7 @@ export const Main = () => {
       style={{ borderTopColor: 'transparent' }}
     >
       <Flex vertical>
+        <StakingValidations />
         <MainOlasBalance />
         <MainRewards />
         <KeepAgentRunning />
