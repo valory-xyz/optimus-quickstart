@@ -18,7 +18,7 @@ import {
 } from '@/constants';
 import { gnosisMulticallProvider } from '@/constants/providers';
 import { ServiceRegistryL2ServiceState } from '@/enums';
-import { Address, StakingRewardsInfo } from '@/types';
+import { Address, StakingContractInfo, StakingRewardsInfo } from '@/types';
 
 const REQUIRED_MECH_REQUESTS_SAFETY_MARGIN = 1;
 
@@ -144,12 +144,6 @@ const getAvailableRewardsForEpoch = async (): Promise<number | undefined> => {
   const [rewardsPerSecond, livenessPeriod] = multicallResponse;
 
   return rewardsPerSecond * livenessPeriod;
-};
-
-type StakingContractInfo = {
-  availableRewards: number;
-  maxNumServices: number;
-  getServiceIds: number[];
 };
 
 /**
