@@ -63,7 +63,7 @@ jobs:
                 env: 
                     NODE_ENV: production
                     DEV_RPC: https://rpc-gate.autonolas.tech/gnosis-rpc/
-                    IS_STAGING: ${{ contains(github.ref, '.dev') }}
+                    IS_STAGING: ${{ contains(github.ref, 'staging') }}
                     FORK_URL: https://rpc-gate.autonolas.tech/gnosis-rpc/
             - run: rm -rf /dist
             - name: "Build, notarize, publish"
