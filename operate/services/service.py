@@ -25,6 +25,7 @@ import platform
 import shutil
 import signal
 import subprocess  # nosec
+import time
 import typing as t
 from copy import deepcopy
 from dataclasses import dataclass
@@ -427,9 +428,19 @@ def _start_tendermint(working_dir: Path) -> None:
 
 def _kill_process(pid: int) -> None:
     """Kill process."""
-    if platform.platform() == "Windows":
-        return os.kill(pid, signal.CTRL_C_EVENT)  # type: ignore
-    return os.kill(pid, signal.SIGKILL)
+    while True:
+        try:
+            os.kill(
+                pid,
+                (
+                    signal.CTRL_C_EVENT  # type: ignore
+                    if platform.platform() == "Windows"
+                    else signal.SIGKILL
+                ),
+            )
+        except OSError:
+            return
+        time.sleep(3)
 
 
 def _stop_agent(working_dir: Path) -> None:
@@ -615,7 +626,9 @@ class Deployment(LocalResource):
         build = self.path / DEPLOYMENT
         if build.exists() and not force:
             return
+
         if build.exists() and force:
+            stop_host_deployment(build_dir=build)
             shutil.rmtree(build)
 
         service = Service.load(path=self.path)
