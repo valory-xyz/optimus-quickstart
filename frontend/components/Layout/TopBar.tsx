@@ -1,5 +1,4 @@
 import { Typography } from 'antd';
-import { useMemo } from 'react';
 import styled from 'styled-components';
 
 import { COLOR } from '@/constants';
@@ -51,17 +50,7 @@ const TopBarContainer = styled.div`
 export const TopBar = () => {
   const electronApi = useElectronApi();
   const store = useStore();
-
-  const versionName = useMemo(() => {
-    const releaseType = store?.storeState?.releaseType;
-    if (releaseType === 'draft') return ' (staging)';
-
-    const appVersion = store?.storeState?.appVersion;
-    if (!appVersion) return '';
-    if (appVersion.includes('alpha')) return ''; // TODO
-    if (appVersion.includes('beta')) return ''; // TODO
-    return '';
-  }, [store?.storeState?.appVersion, store?.storeState?.releaseType]);
+  const envName = store?.storeState?.environmentName;
 
   return (
     <TopBarContainer>
@@ -71,7 +60,7 @@ export const TopBar = () => {
         <DisabledLight />
       </TrafficLights>
 
-      <Text>{`Pearl (alpha) ${versionName}`.trim()}</Text>
+      <Text>{`Pearl (alpha) ${envName ? `(${envName})` : ''}`.trim()}</Text>
     </TopBarContainer>
   );
 };

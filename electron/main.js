@@ -257,8 +257,7 @@ const createMainWindow = () => {
   });
 
   const storeInitialValues = {
-    appVersion: app.getVersion(),
-    releaseType: process.env.IS_STAGING ? 'draft' : 'release',
+    environmentName: process.env.IS_STAGING ? 'staging' : '',
   };
   setupStoreIpc(ipcMain, mainWindow, storeInitialValues);
 

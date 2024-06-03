@@ -1,7 +1,6 @@
 // set schema to validate store data
 const defaultSchema = {
-  appVersion: { type: 'string', default: '' },
-  releaseType: { type: 'string', default: '' },
+  environmentName: { type: 'string', default: '' },
   isInitialFunded: { type: 'boolean', default: false },
   firstStakingRewardAchieved: { type: 'boolean', default: false },
   firstRewardNotificationShown: { type: 'boolean', default: false },
