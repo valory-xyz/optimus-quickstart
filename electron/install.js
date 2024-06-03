@@ -12,7 +12,7 @@ const Docker = require('dockerode');
  * - use "" (nothing as a suffix) for latest release candidate, for example "0.1.0rc26"
  * - use "alpha" for alpha release, for example "0.1.0rc26-alpha"
  */
-const Version = '0.1.0rc26';
+const OlasMiddlewareVersion = '0.1.0rc26';
 const OperateDirectory = `${os.homedir()}/.operate`;
 const VenvDir = `${OperateDirectory}/venv`;
 const VersionFile = `${OperateDirectory}/version.txt`;
@@ -83,7 +83,7 @@ function runSudoUnix(command, options) {
   if (!bin) {
     throw new Error(`Command ${command} not found`);
   }
-  return new Promise(function (resolve, reject) {
+  return new Promise(function (resolve, _reject) {
     sudo.exec(
       `${bin} ${options}`,
       SudoOptions,
@@ -162,7 +162,7 @@ function installOperatePackageUnix(path) {
     '-m',
     'pip',
     'install',
-    `olas-operate-middleware==${Version}`,
+    `olas-operate-middleware==${OlasMiddlewareVersion}`,
   ]);
 }
 
@@ -172,7 +172,7 @@ function reInstallOperatePackageUnix(path) {
     '-m',
     'pip',
     'install',
-    `olas-operate-middleware==${Version}`,
+    `olas-operate-middleware==${OlasMiddlewareVersion}`,
     '--force-reinstall',
   ]);
 }
@@ -182,11 +182,11 @@ function installOperateCli(path) {
   if (fs.existsSync(installPath)) {
     fs.rmSync(installPath);
   }
-  return new Promise((resolve, reject) => {
+  return new Promise((resolve, _reject) => {
     fs.copyFile(
       `${OperateDirectory}/venv/bin/operate`,
       installPath,
-      function (error, stdout, stderr) {
+      function (error, _stdout, _stderr) {
         resolve(!error);
       },
     );
@@ -197,7 +197,7 @@ function createDirectory(path) {
   if (fs.existsSync(path)) {
     return;
   }
-  return new Promise((resolve, reject) => {
+  return new Promise((resolve, _reject) => {
     fs.mkdir(path, { recursive: true }, (error) => {
       resolve(!error);
     });
@@ -205,15 +205,15 @@ function createDirectory(path) {
 }
 
 function writeVersion() {
-  fs.writeFileSync(VersionFile, Version);
+  fs.writeFileSync(VersionFile, OlasMiddlewareVersion);
 }
 
 function versionBumpRequired() {
   if (!fs.existsSync(VersionFile)) {
     return true;
   }
-  const version = fs.readFileSync(VersionFile).toString();
-  return version != Version;
+  const olasMiddlewareVersionInFile = fs.readFileSync(VersionFile).toString();
+  return olasMiddlewareVersionInFile != OlasMiddlewareVersion;
 }
 
 function removeLogFile() {
@@ -270,7 +270,9 @@ async function setupDarwin(ipcChannel) {
 
   console.log(appendLog('Checking if upgrade is required'));
   if (versionBumpRequired()) {
-    console.log(appendLog(`Upgrading pearl daemon to ${Version}`));
+    console.log(
+      appendLog(`Upgrading pearl daemon to ${OlasMiddlewareVersion}`),
+    );
     reInstallOperatePackageUnix(OperateDirectory);
     writeVersion();
     removeLogFile();
@@ -327,7 +329,9 @@ async function setupUbuntu(ipcChannel) {
 
   console.log(appendLog('Checking if upgrade is required'));
   if (versionBumpRequired()) {
-    console.log(appendLog(`Upgrading pearl daemon to ${Version}`));
+    console.log(
+      appendLog(`Upgrading pearl daemon to ${OlasMiddlewareVersion}`),
+    );
     reInstallOperatePackageUnix(OperateDirectory);
     writeVersion();
     removeLogFile();
