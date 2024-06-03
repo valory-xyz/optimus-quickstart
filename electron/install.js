@@ -1,20 +1,25 @@
 // Installation helpers.
 
+const https = require('https');
+const path = require('path');
 const fs = require('fs');
 const os = require('os');
 const sudo = require('sudo-prompt');
 const process = require('process');
-const { spawnSync } = require('child_process');
+const axios = require("axios")
+
 const Docker = require('dockerode');
+const { spawnSync } = require('child_process');
 
 /**
  * current version of the pearl release
  * - use "" (nothing as a suffix) for latest release candidate, for example "0.1.0rc26"
  * - use "alpha" for alpha release, for example "0.1.0rc26-alpha"
  */
-const OlasMiddlewareVersion = '0.1.0rc26';
+const OlasMiddlewareVersion = '0.1.0rc34';
 const OperateDirectory = `${os.homedir()}/.operate`;
 const VenvDir = `${OperateDirectory}/venv`;
+const TempDir = `${OperateDirectory}/temp`;
 const VersionFile = `${OperateDirectory}/version.txt`;
 const LogFile = `${OperateDirectory}/logs.txt`;
 const OperateInstallationLog = `${os.homedir()}/operate.log`;
@@ -27,6 +32,20 @@ const SudoOptions = {
   name: 'Pearl',
   env: Env,
 };
+const TendermintUrls = {
+  darwin: {
+    x64: "https://github.com/tendermint/tendermint/releases/download/v0.34.19/tendermint_0.34.19_darwin_amd64.tar.gz",
+    arm64: "https://github.com/tendermint/tendermint/releases/download/v0.34.19/tendermint_0.34.19_darwin_arm64.tar.gz",
+  },
+  linux: {
+    x64: "https://github.com/tendermint/tendermint/releases/download/v0.34.19/tendermint_0.34.19_linux_amd64.tar.gz",
+    arm64: "https://github.com/tendermint/tendermint/releases/download/v0.34.19/tendermint_0.34.19_linux_arm64.tar.gz",
+  },
+  win32: {
+    x64: "https://github.com/tendermint/tendermint/releases/download/v0.34.19/tendermint_0.34.19_windows_amd64.tar.gz",
+    arm64: "https://github.com/tendermint/tendermint/releases/download/v0.34.19/tendermint_0.34.19_windows_arm64.tar.gz"
+  }
+}
 
 function getBinPath(command) {
   return spawnSync('/usr/bin/which', [command], { env: Env })
@@ -108,6 +127,46 @@ function installBrew() {
     '$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)',
   ]);
 }
+
+function isTendermintInstalledUnix() {
+  return Boolean(getBinPath('tendermint'));
+}
+
+async function downloadFile(url, dest) {
+  const writer = fs.createWriteStream(dest);
+  try {
+    const response = await axios({
+      url,
+      method: 'GET',
+      responseType: 'stream'
+    });
+    response.data.pipe(writer);
+    return new Promise((resolve, reject) => {
+      writer.on('finish', resolve);
+      writer.on('error', reject);
+    });
+  } catch (err) {
+    fs.unlink(dest, () => { }); // Delete the file if there is an error
+    console.error('Error downloading the file:', err.message);
+  }
+}
+
+async function installTendermintUnix() {
+  const cwd = process.cwd()
+  process.chdir(TempDir)
+
+  console.log(appendLog(`Installing tendermint for ${os.platform()}-${process.arch}`))
+  const url = TendermintUrls[os.platform()][process.arch]
+
+  console.log(appendLog(`Downloading ${url}, might take a while...`))
+  await downloadFile(url, `${TempDir}/tendermint.tar.gz`)
+
+  console.log(appendLog(`Installing tendermint binary`))
+  await runCmdUnix("tar", ["-xvf", "tendermint.tar.gz"])
+  await runSudoUnix("install", "tendermint /usr/local/bin")
+  process.chdir(cwd)
+}
+
 
 function isDockerInstalledDarwin() {
   return Boolean(getBinPath('docker'));
@@ -217,7 +276,7 @@ function versionBumpRequired() {
 }
 
 function removeLogFile() {
-  if (fs.existsSync()) {
+  if (fs.existsSync(LogFile)) {
     fs.rmSync(LogFile);
   }
 }
@@ -241,13 +300,6 @@ async function setupDarwin(ipcChannel) {
     installBrew();
   }
 
-  console.log(appendLog('Checking docker installation'));
-  if (!isDockerInstalledDarwin()) {
-    ipcChannel.send('response', 'Installing Pearl Daemon');
-    console.log(appendLog('Installing docker'));
-    installDockerDarwin();
-  }
-
   console.log(appendLog('Checking python installation'));
   if (!isPythonInstalledDarwin()) {
     ipcChannel.send('response', 'Installing Pearl Daemon');
@@ -258,6 +310,13 @@ async function setupDarwin(ipcChannel) {
   console.log(appendLog('Creating required directories'));
   await createDirectory(`${OperateDirectory}`);
   await createDirectory(`${OperateDirectory}/temp`);
+
+  console.log(appendLog('Checking tendermint installation'));
+  if (!isTendermintInstalledUnix()) {
+    ipcChannel.send('response', 'Installing Pearl Daemon');
+    console.log(appendLog('Installing tendermint'));
+    await installTendermintUnix()
+  }
 
   if (!fs.existsSync(VenvDir)) {
     ipcChannel.send('response', 'Installing Pearl Daemon');
@@ -286,14 +345,9 @@ async function setupDarwin(ipcChannel) {
   await installOperateCli('/opt/homebrew/bin/operate');
 }
 
+// TODO: Add Tendermint installation
 async function setupUbuntu(ipcChannel) {
   removeInstallationLogFile();
-  console.log(appendLog('Checking docker installation'));
-  if (!isDockerInstalledUbuntu()) {
-    ipcChannel.send('response', 'Installing Pearl Daemon');
-    console.log(appendLog('Installing docker'));
-    await installDockerUbuntu();
-  }
 
   console.log(appendLog('Checking python installation'));
   if (!isPythonInstalledUbuntu()) {
@@ -313,9 +367,11 @@ async function setupUbuntu(ipcChannel) {
   await createDirectory(`${OperateDirectory}`);
   await createDirectory(`${OperateDirectory}/temp`);
 
-  if (versionBumpRequired()) {
-    // removePreviousInstallation();
-    writeVersion();
+  console.log(appendLog('Checking tendermint installation'));
+  if (!isTendermintInstalledUnix()) {
+    ipcChannel.send('response', 'Installing Pearl Daemon');
+    console.log(appendLog('Installing tendermint'));
+    await installTendermintUnix()
   }
 
   if (!fs.existsSync(VenvDir)) {
@@ -379,4 +435,9 @@ module.exports = {
   OperateDirectory,
   OperateCmd,
   Env,
+  dirs: {
+    VersionFile,
+    LogFile,
+    OperateInstallationLog,
+  },
 };

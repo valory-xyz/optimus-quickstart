@@ -13,7 +13,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 
 import { AccountIsSetup } from '@/client';
 import { PageState, SetupScreen } from '@/enums';
-import { usePageState, useSetup } from '@/hooks';
+import { useBalance, usePageState, useSetup } from '@/hooks';
 import { useElectronApi } from '@/hooks/useElectronApi';
 import { useWallet } from '@/hooks/useWallet';
 import { AccountService } from '@/service/Account';
@@ -104,9 +104,11 @@ export const SetupWelcomeLogin = () => {
   const { goto } = useSetup();
   const { goto: gotoPage } = usePageState();
 
-  const { masterEoaAddress, masterSafeAddress } = useWallet();
+  const { masterSafeAddress, wallets } = useWallet();
+  const { isBalanceLoaded, eoaBalance } = useBalance();
 
   const [isLoggingIn, setIsLoggingIn] = useState(false);
+  const [canNavigate, setCanNavigate] = useState(false);
 
   const [form] = Form.useForm();
 
@@ -115,21 +117,39 @@ export const SetupWelcomeLogin = () => {
       setIsLoggingIn(true);
       AccountService.loginAccount(password)
         .then(() => {
-          if (masterEoaAddress && !masterSafeAddress) {
-            gotoPage(PageState.Setup);
-            goto(SetupScreen.SetupCreateSafe);
-          } else {
-            gotoPage(PageState.Main);
-          }
+          setCanNavigate(true);
         })
         .catch((e) => {
           console.error(e);
+          setIsLoggingIn(false);
           message.error('Invalid password');
-        })
-        .finally(() => setIsLoggingIn(false));
+        });
     },
-    [goto, gotoPage, masterEoaAddress, masterSafeAddress],
+    [],
   );
+
+  useEffect(() => {
+    // Navigate only when wallets and balances are loaded
+    // To check if some setup steps were missed
+    if (canNavigate && wallets?.length && isBalanceLoaded) {
+      setIsLoggingIn(false);
+      if (!eoaBalance?.ETH) {
+        goto(SetupScreen.SetupEoaFundingIncomplete);
+      } else if (!masterSafeAddress) {
+        goto(SetupScreen.SetupCreateSafe);
+      } else {
+        gotoPage(PageState.Main);
+      }
+    }
+  }, [
+    canNavigate,
+    eoaBalance?.ETH,
+    goto,
+    gotoPage,
+    isBalanceLoaded,
+    masterSafeAddress,
+    wallets?.length,
+  ]);
 
   return (
     <FormFlex form={form} onFinish={handleLogin}>

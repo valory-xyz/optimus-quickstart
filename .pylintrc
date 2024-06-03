@@ -20,7 +20,7 @@ E0611: no-name-in-module
 R0903: Too few public methods
 
 [IMPORTS]
-ignored-modules=os,io
+ignored-modules=os,io,psutil
 
 [DESIGN]
 # min-public-methods=1
