@@ -256,7 +256,10 @@ const createMainWindow = () => {
     mainWindow.hide();
   });
 
-  setupStoreIpc(ipcMain, mainWindow);
+  const storeInitialValues = {
+    environmentName: process.env.IS_STAGING ? 'staging' : '',
+  };
+  setupStoreIpc(ipcMain, mainWindow, storeInitialValues);
 
   if (isDev) {
     mainWindow.webContents.openDevTools();
