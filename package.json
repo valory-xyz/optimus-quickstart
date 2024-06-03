@@ -3,7 +3,6 @@
   "main": "electron/main.js",
   "name": "olas-operate-app",
   "productName": "Pearl",
-  "private": true,
   "version": "0.1.0-rc34",
   "dependencies": {
     "@ant-design/cssinjs": "^1.18.4",
