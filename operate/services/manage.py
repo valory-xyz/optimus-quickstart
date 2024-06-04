@@ -26,7 +26,7 @@ import typing as t
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
-import aiohttp
+import aiohttp  # type: ignore
 from aea.helpers.base import IPFSHash
 from aea.helpers.logging import setup_logger
 from autonomy.chain.base import registry_contracts
@@ -58,6 +58,17 @@ KEYS_JSON = "keys.json"
 DOCKER_COMPOSE_YAML = "docker-compose.yaml"
 SERVICE_YAML = "service.yaml"
 HTTP_OK = 200
+
+
+async def check_service_health() -> bool:
+    """Check the service health"""
+    async with aiohttp.ClientSession() as session:
+        async with session.get("http://localhost:8000/healthcheck") as resp:
+            status = resp.status
+            response_json = await resp.json()
+            return status == HTTP_OK and response_json.get(
+                "is_transitioning_fast", False
+            )
 
 
 class ServiceManager:
@@ -826,17 +837,6 @@ class ServiceManager:
                 chain_type=service.ledger_config.chain,
             )
 
-    async def check_service_health(
-        self,
-    ) -> bool:
-        async with aiohttp.ClientSession() as session:
-            async with session.get("http://localhost:8000/healthcheck") as resp:
-                status = resp.status
-                response_json = await resp.json()
-                return status == HTTP_OK and response_json.get(
-                    "is_transitioning_fast", False
-                )
-
     async def funding_job(
         self,
         hash: str,
@@ -881,7 +881,7 @@ class ServiceManager:
                     # Check the service health
                     healthy = await loop.run_in_executor(
                         executor,
-                        self.check_service_health,
+                        check_service_health,
                     )
                     # Restart the service if the health failed 5 times in a row
                     if not healthy:
