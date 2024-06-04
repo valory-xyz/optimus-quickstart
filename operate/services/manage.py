@@ -25,7 +25,7 @@ import traceback
 import typing as t
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
-
+import aiohttp
 from aea.helpers.base import IPFSHash
 from aea.helpers.logging import setup_logger
 from autonomy.chain.base import registry_contracts
@@ -56,6 +56,7 @@ KEY = "master-key.txt"
 KEYS_JSON = "keys.json"
 DOCKER_COMPOSE_YAML = "docker-compose.yaml"
 SERVICE_YAML = "service.yaml"
+HTTP_OK = 200
 
 
 class ServiceManager:
@@ -824,6 +825,15 @@ class ServiceManager:
                 chain_type=service.ledger_config.chain,
             )
 
+    async def check_service_health(
+        self,
+    ) -> bool:
+        async with aiohttp.ClientSession() as session:
+            async with session.get("http://localhost:8000/healthcheck") as resp:
+                status = resp.status
+                response_json = await resp.json()
+                return status == HTTP_OK and response_json.get("is_transitioning_fast", False)
+
     async def funding_job(
         self,
         hash: str,
@@ -850,6 +860,38 @@ class ServiceManager:
                 except Exception:  # pylint: disable=broad-except
                     logging.info(
                         f"Error occured while funding the service\n{traceback.format_exc()}"
+                    )
+                await asyncio.sleep(60)
+
+    async def healthcheck_job(
+        self,
+        hash: str,
+        loop: t.Optional[asyncio.AbstractEventLoop] = None,
+    ) -> None:
+        """Start a background funding job."""
+        loop = loop or asyncio.get_event_loop()
+        failed_health_checks = 0
+
+        with ThreadPoolExecutor() as executor:
+            while True:
+                try:
+                    # Check the service health
+                    healthy = await loop.run_in_executor(
+                        executor,
+                        self.check_service_health,
+                    )
+                    # Restart the service if the health failed 5 times in a row
+                    if not healthy:
+                        failed_health_checks += 1
+                    else:
+                        failed_health_checks = 0
+                    if failed_health_checks >= 5:
+                        self.stop_service_locally(hash=hash)
+                        self.deploy_service_locally(hash=hash)
+
+                except Exception:  # pylint: disable=broad-except
+                    logging.info(
+                        f"Error occured while checking the service health\n{traceback.format_exc()}"
                     )
                 await asyncio.sleep(60)
 

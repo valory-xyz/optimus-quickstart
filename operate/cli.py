@@ -145,6 +145,7 @@ def create_app(  # pylint: disable=too-many-locals, unused-argument, too-many-st
     logger = setup_logger(name="operate")
     operate = OperateApp(home=home, logger=logger)
     funding_jobs: t.Dict[str, asyncio.Task] = {}
+    healthcheck_jobs: t.Dict[str, asyncio.Task] = {}
 
     # Create shutdown endpoint
     shutdown_endpoint = uuid.uuid4().hex
@@ -171,6 +172,23 @@ def create_app(  # pylint: disable=too-many-locals, unused-argument, too-many-st
             )
         )
 
+    def schedule_healthcheck_job(
+        service: str,
+    ) -> None:
+        """Schedule a healthcheck job."""
+        logger.info(f"Starting healthcheck job for {service}")
+        if service in healthcheck_jobs:
+            logger.info(f"Cancelling existing healthcheck_jobs job for {service}")
+            cancel_healthcheck_job(service=service)
+
+        loop = asyncio.get_running_loop()
+        healthcheck_jobs[service] = loop.create_task(
+            operate.service_manager().healthcheck_job(
+                hash=service,
+                loop=loop,
+            )
+        )
+
     def cancel_funding_job(service: str) -> None:
         """Cancel funding job."""
         if service not in funding_jobs:
@@ -178,6 +196,14 @@ def create_app(  # pylint: disable=too-many-locals, unused-argument, too-many-st
         status = funding_jobs[service].cancel()
         if not status:
             logger.info(f"Funding job cancellation for {service} failed")
+
+    def cancel_healthcheck_job(service: str) -> None:
+        """Cancel healthcheck job."""
+        if service not in healthcheck_jobs:
+            return
+        status = healthcheck_jobs[service].cancel()
+        if not status:
+            logger.info(f"Healthcheck job cancellation for {service} failed")
 
     app = FastAPI()
 
@@ -506,6 +532,7 @@ def create_app(  # pylint: disable=too-many-locals, unused-argument, too-many-st
             manager.fund_service(hash=service.hash)
             manager.deploy_service_locally(hash=service.hash)
             schedule_funding_job(service=service.hash)
+            schedule_healthcheck_job(service=service.hash)
 
         return JSONResponse(
             content=operate.service_manager().create_or_load(hash=service.hash).json
@@ -529,6 +556,7 @@ def create_app(  # pylint: disable=too-many-locals, unused-argument, too-many-st
             manager.fund_service(hash=service.hash)
             manager.deploy_service_locally(hash=service.hash)
             schedule_funding_job(service=service.hash)
+            schedule_healthcheck_job(service=service.hash)
 
         return JSONResponse(content=service.json)
 
@@ -638,6 +666,7 @@ def create_app(  # pylint: disable=too-many-locals, unused-argument, too-many-st
         manager.fund_service(hash=service)
         manager.deploy_service_locally(hash=service, force=True)
         schedule_funding_job(service=service)
+        schedule_healthcheck_job(service=service.hash)
         return JSONResponse(content=manager.create_or_load(service).deployment)
 
     @app.post("/api/services/{service}/deployment/stop")
