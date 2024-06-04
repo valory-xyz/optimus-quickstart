@@ -22,6 +22,7 @@ const OperateCmd = `${os.homedir()}/.operate/venv/bin/operate`;
 const Env = {
   ...process.env,
   PATH: `${process.env.PATH}:/opt/homebrew/bin:/usr/local/bin`,
+  HOMEBREW_NO_AUTO_UPDATE: "1",
 };
 const SudoOptions = {
   name: 'Pearl',
@@ -63,11 +64,7 @@ function appendLog(log) {
 }
 
 function runCmdUnix(command, options) {
-  fs.appendFileSync(
-    OperateInstallationLog,
-    `Runninng ${command} with options ${JSON.stringify(options)}`,
-    { encoding: 'utf-8' },
-  );
+  console.log(appendLog(`Runninng ${command} with options ${JSON.stringify(options)}`));
   let bin = getBinPath(command);
   if (!bin) {
     throw new Error(`Command ${command} not found; Path : ${Env.PATH}`);
