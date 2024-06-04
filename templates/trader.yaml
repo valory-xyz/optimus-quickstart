@@ -1,6 +1,6 @@
 name: "Trader Agent"
 description: "Trader agent for omen prediction markets"
-hash: bafybeiha6dxygx2ntgjxhs6zzymgqk3s5biy3ozeqw6zuhr6yxgjlebfmq
+hash: bafybeic5dkp7n5a6mgomy3vamkcugnmjl7eynlibntucc6hoiazbyiuupq
 image: https://operate.olas.network/_next/image?url=%2Fimages%2Fprediction-agent.png&w=3840&q=75
 configuration:
   nft: bafybeig64atqaladigoc3ds4arltdu63wkdrk3gesjfvnfdmz35amv7faq
