@@ -25,6 +25,7 @@ import traceback
 import typing as t
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
+
 import aiohttp
 from aea.helpers.base import IPFSHash
 from aea.helpers.logging import setup_logger
@@ -832,7 +833,9 @@ class ServiceManager:
             async with session.get("http://localhost:8000/healthcheck") as resp:
                 status = resp.status
                 response_json = await resp.json()
-                return status == HTTP_OK and response_json.get("is_transitioning_fast", False)
+                return status == HTTP_OK and response_json.get(
+                    "is_transitioning_fast", False
+                )
 
     async def funding_job(
         self,
