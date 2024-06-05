@@ -294,7 +294,7 @@ async function setupDarwin(ipcChannel) {
   if (!isBrewInstalled()) {
     ipcChannel.send('response', 'Installing Pearl Daemon');
     console.log(appendLog('Installing brew'));
-    console.log(installBrew());
+    installBrew();
   }
 
   console.log(appendLog('Checking python installation'));
