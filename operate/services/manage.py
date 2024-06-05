@@ -758,13 +758,8 @@ class ServiceManager:
                 service_id=service.chain_data.token,
                 staking_contract=STAKING[service.ledger_config.chain],
             )
-        ).add(
-            sftxb.get_staking_data(
-                service_id=service.chain_data.token,
-                staking_contract=STAKING[service.ledger_config.chain],
-            )
         ).settle()
-        service.chain_data.staked = True
+        service.chain_data.staked = False
         service.store()
 
     def fund_service(  # pylint: disable=too-many-arguments
