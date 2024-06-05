@@ -79,17 +79,13 @@ function runCmdUnix(command, options) {
   if (output.stderr) {
     appendLog(output.stdout.toString());
   }
-  if (output.error) {
+  if (output.error || output.stderr.length > 0) {
     throw new Error(
       `Error running ${command} with options ${options};
             Error: ${output.error}; Stdout: ${output.stdout}; Stderr: ${output.stderr}`,
     );
   }
-  return {
-    error: output.error,
-    stdout: output.stdout?.toString(),
-    stderr: output.stderr?.toString(),
-  };
+  console.log(appendLog(`Executed ${command} ${options} with output:\n${output.stdout}`))
 }
 
 function runSudoUnix(command, options) {
@@ -117,9 +113,8 @@ function isBrewInstalled() {
 }
 
 function installBrew() {
-  return runCmdUnix('bash', [
-    '-c',
-    '$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)',
+  runCmdUnix('bash', [
+    `${__dir}/scripts/install_brew.sh`
   ]);
 }
 
@@ -141,7 +136,7 @@ async function downloadFile(url, dest) {
       writer.on('error', reject);
     });
   } catch (err) {
-    fs.unlink(dest, () => {}); // Delete the file if there is an error
+    fs.unlink(dest, () => { }); // Delete the file if there is an error
     console.error('Error downloading the file:', err.message);
   }
 }
@@ -159,7 +154,7 @@ async function installTendermintUnix() {
   await downloadFile(url, `${TempDir}/tendermint.tar.gz`);
 
   console.log(appendLog(`Installing tendermint binary`));
-  await runCmdUnix('tar', ['-xvf', 'tendermint.tar.gz']);
+  runCmdUnix('tar', ['-xvf', 'tendermint.tar.gz']);
   await runSudoUnix('install', 'tendermint /usr/local/bin');
   process.chdir(cwd);
 }
@@ -169,7 +164,7 @@ function isDockerInstalledDarwin() {
 }
 
 function installDockerDarwin() {
-  return runCmdUnix('brew', ['install', 'docker']);
+  runCmdUnix('brew', ['install', 'docker']);
 }
 
 function isDockerInstalledUbuntu() {
@@ -185,11 +180,11 @@ function isPythonInstalledDarwin() {
 }
 
 function installPythonDarwin() {
-  return runCmdUnix('brew', ['install', 'python@3.10']);
+  runCmdUnix('brew', ['install', 'python@3.10']);
 }
 
 function createVirtualEnvUnix(path) {
-  return runCmdUnix('python3.10', ['-m', 'venv', path]);
+  runCmdUnix('python3.10', ['-m', 'venv', path]);
 }
 
 function isPythonInstalledUbuntu() {
@@ -209,11 +204,11 @@ function installGitUbuntu() {
 }
 
 function createVirtualEnvUbuntu(path) {
-  return runCmdUnix('python3.10', ['-m', 'venv', path]);
+  runCmdUnix('python3.10', ['-m', 'venv', path]);
 }
 
 function installOperatePackageUnix(path) {
-  return runCmdUnix(`${path}/venv/bin/python3.10`, [
+  runCmdUnix(`${path}/venv/bin/python3.10`, [
     '-m',
     'pip',
     'install',
@@ -223,7 +218,7 @@ function installOperatePackageUnix(path) {
 
 function reInstallOperatePackageUnix(path) {
   console.log(appendLog('Reinstalling pearl CLI'));
-  return runCmdUnix(`${path}/venv/bin/python3.10`, [
+  runCmdUnix(`${path}/venv/bin/python3.10`, [
     '-m',
     'pip',
     'install',
