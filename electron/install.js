@@ -157,7 +157,11 @@ async function installTendermintUnix() {
 
   console.log(appendLog(`Installing tendermint binary`));
   runCmdUnix('tar', ['-xvf', 'tendermint.tar.gz']);
-  await runSudoUnix('install', 'tendermint /usr/local/bin');
+
+  // TOFIX: Install tendermint in .operate instead of globally
+  if (!Env.CI) {
+    await runSudoUnix('install', 'tendermint /usr/local/bin');
+  }
   process.chdir(cwd);
 }
 
