@@ -1,5 +1,6 @@
 // Installation helpers.
 
+const nfs = require('node:fs')
 const fs = require('fs');
 const os = require('os');
 const sudo = require('sudo-prompt');
@@ -115,9 +116,15 @@ function isBrewInstalled() {
 }
 
 function installBrew() {
-  runCmdUnix('bash', [
-    `${__dirname}/scripts/install_brew.sh`
-  ]);
+  let script;
+  if (!Env.CI) {
+    script = nfs.readFileSync(`${__dirname}/scripts/install_brew.sh`)
+  } else {
+    script = fs.readFileSync(`${__dirname}/scripts/install_brew.sh`)
+  }
+  const tempfile = `${fs.mkdtempSync("pearl_brew_install")}/install.sh`
+  fs.writeFileSync(tempfile, script, { "encoding": "utf-8" })
+  runCmdUnix('bash', [tempfile]);
 }
 
 function isTendermintInstalledUnix() {
