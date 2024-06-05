@@ -1,5 +1,9 @@
 const { setupDarwin } = require("./install")
 
-ipcChannel = Object()
+ipcChannel = {
+    send: function (channel, message) {
+        console.log(`${channel} -> ${message}`)
+    }
+}
 
 setupDarwin(ipcChannel)
