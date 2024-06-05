@@ -114,7 +114,7 @@ function isBrewInstalled() {
 
 function installBrew() {
   runCmdUnix('bash', [
-    `${__dir}/scripts/install_brew.sh`
+    `${__dirname}/scripts/install_brew.sh`
   ]);
 }
 
