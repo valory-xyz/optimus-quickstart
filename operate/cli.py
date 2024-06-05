@@ -185,7 +185,6 @@ def create_app(  # pylint: disable=too-many-locals, unused-argument, too-many-st
         healthcheck_jobs[service] = loop.create_task(
             operate.service_manager().healthcheck_job(
                 hash=service,
-                loop=loop,
             )
         )
 

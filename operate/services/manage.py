@@ -869,34 +869,28 @@ class ServiceManager:
     async def healthcheck_job(
         self,
         hash: str,
-        loop: t.Optional[asyncio.AbstractEventLoop] = None,
     ) -> None:
         """Start a background funding job."""
-        loop = loop or asyncio.get_event_loop()
         failed_health_checks = 0
 
-        with ThreadPoolExecutor() as executor:
-            while True:
-                try:
-                    # Check the service health
-                    healthy = await loop.run_in_executor(
-                        executor,
-                        check_service_health,
-                    )
-                    # Restart the service if the health failed 5 times in a row
-                    if not healthy:
-                        failed_health_checks += 1
-                    else:
-                        failed_health_checks = 0
-                    if failed_health_checks >= 5:
-                        self.stop_service_locally(hash=hash)
-                        self.deploy_service_locally(hash=hash)
+        while True:
+            try:
+                # Check the service health
+                healthy = await check_service_health()
+                # Restart the service if the health failed 5 times in a row
+                if not healthy:
+                    failed_health_checks += 1
+                else:
+                    failed_health_checks = 0
+                if failed_health_checks >= 5:
+                    self.stop_service_locally(hash=hash)
+                    self.deploy_service_locally(hash=hash)
 
-                except Exception:  # pylint: disable=broad-except
-                    logging.info(
-                        f"Error occured while checking the service health\n{traceback.format_exc()}"
-                    )
-                await asyncio.sleep(60)
+            except Exception:  # pylint: disable=broad-except
+                logging.info(
+                    f"Error occured while checking the service health\n{traceback.format_exc()}"
+                )
+            await asyncio.sleep(60)
 
     def deploy_service_locally(self, hash: str, force: bool = True) -> Deployment:
         """
