@@ -1,0 +1,28 @@
+name: "Test Operate Installation E2E"
+on:
+  push:
+    branches:
+      - develop
+      - main
+  pull_request:
+jobs:
+  linter_checks:
+    continue-on-error: False
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [mac-12]
+        python-version: ["3.10.9"]
+    timeout-minutes: 30
+    steps:
+    - uses: actions/checkout@v2
+    - name: Setup Node.js
+      uses: actions/setup-node@v3
+      with:
+          node-version: "20.11"
+    - name: Install dependencies
+      run:  |
+        npm install
+    - name: Security checks
+      run: |
+        node electron/test.js
