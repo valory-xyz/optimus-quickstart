@@ -5,8 +5,7 @@ const BrewScript = "# We don't need return codes for \"$(command)\", only stdout
 "set -u\n" +
 "\n" +
 "abort() {\n" +
-"  printf \"%s\n" +
-"\" \"$@\" >&2\n" +
+"  printf \"%s\\n\" \"$@\" >&2\n" +
 "  exit 1\n" +
 "}\n" +
 "\n" +
@@ -63,7 +62,7 @@ const BrewScript = "# We don't need return codes for \"$(command)\", only stdout
 "# string formatters\n" +
 "if [[ -t 1 ]]\n" +
 "then\n" +
-"  tty_escape() { printf \"[%sm\" \"$1\"; }\n" +
+"  tty_escape() { printf \"\\033[%sm\" \"$1\"; }\n" +
 "else\n" +
 "  tty_escape() { :; }\n" +
 "fi\n" +
@@ -81,23 +80,20 @@ const BrewScript = "# We don't need return codes for \"$(command)\", only stdout
 "  for arg in \"$@\"\n" +
 "  do\n" +
 "    printf \" \"\n" +
-"    printf \"%s\" \"${arg// /\ }\"\n" +
+"    printf \"%s\" \"${arg// /\\ }\"\n" +
 "  done\n" +
 "}\n" +
 "\n" +
 "chomp() {\n" +
-"  printf \"%s\" \"${1/\"$'\n" +
-"'\"/}\"\n" +
+"  printf \"%s\" \"${1/\"$'\\n'\"/}\"\n" +
 "}\n" +
 "\n" +
 "ohai() {\n" +
-"  printf \"${tty_blue}==>${tty_bold} %s${tty_reset}\n" +
-"\" \"$(shell_join \"$@\")\"\n" +
+"  printf \"${tty_blue}==>${tty_bold} %s${tty_reset}\\n\" \"$(shell_join \"$@\")\"\n" +
 "}\n" +
 "\n" +
 "warn() {\n" +
-"  printf \"${tty_red}Warning${tty_reset}: %s\n" +
-"\" \"$(chomp \"$1\")\" >&2\n" +
+"  printf \"${tty_red}Warning${tty_reset}: %s\\n\" \"$(chomp \"$1\")\" >&2\n" +
 "}\n" +
 "\n" +
 "# Check if script is run non-interactively (e.g. CI)\n" +
@@ -290,7 +286,7 @@ const BrewScript = "# We don't need return codes for \"$(command)\", only stdout
 "  # Use the shell's audible bell.\n" +
 "  if [[ -t 1 ]]\n" +
 "  then\n" +
-"    printf \"\"\n" +
+"    printf \"\\a\"\n" +
 "  fi\n" +
 "}\n" +
 "\n" +
@@ -299,13 +295,7 @@ const BrewScript = "# We don't need return codes for \"$(command)\", only stdout
 "  echo\n" +
 "  echo \"Press ${tty_bold}RETURN${tty_reset}/${tty_bold}ENTER${tty_reset} to continue or any other key to abort:\"\n" +
 "  getc c\n" +
-"  # we test for \n" +
-" and \n" +
-" because some stuff does \n" +
-" instead\n" +
-"  if ! [[ \"${c}\" == $'\n" +
-"' || \"${c}\" == $'\n" +
-"' ]]\n" +
+"  if ! [[ \"${c}\" == $'\\r' || \"${c}\" == $'\\n' ]]\n" +
 "  then\n" +
 "    exit 1\n" +
 "  fi\n" +
@@ -389,7 +379,9 @@ const BrewScript = "# We don't need return codes for \"$(command)\", only stdout
 "    return 1\n" +
 "  fi\n" +
 "\n" +
-"  \"$1\" --enable-frozen-string-literal --disable=gems,did_you_mean,rubyopt -rrubygems -e     \"abort if Gem::Version.new(RUBY_VERSION.to_s.dup).to_s.split('.').first(2) !=               Gem::Version.new('${REQUIRED_RUBY_VERSION}').to_s.split('.').first(2)\" 2>/dev/null\n" +
+"  \"$1\" --enable-frozen-string-literal --disable=gems,did_you_mean,rubyopt -rrubygems -e \\\n" +
+"    \"abort if Gem::Version.new(RUBY_VERSION.to_s.dup).to_s.split('.').first(2) != \\\n" +
+"              Gem::Version.new('${REQUIRED_RUBY_VERSION}').to_s.split('.').first(2)\" 2>/dev/null\n" +
 "}\n" +
 "\n" +
 "test_curl() {\n" +
@@ -455,7 +447,7 @@ const BrewScript = "# We don't need return codes for \"$(command)\", only stdout
 "\n" +
 "outdated_glibc() {\n" +
 "  local glibc_version\n" +
-"  glibc_version=\"$(ldd --version | head -n1 | grep -o '[0-9.]*$' | grep -o '^[0-9]\+\.[0-9]\+')\"\n" +
+"  glibc_version=\"$(ldd --version | head -n1 | grep -o '[0-9.]*$' | grep -o '^[0-9]\\\+\\\.[0-9]\\\+')\"\n" +
 "  version_lt \"${glibc_version}\" \"${REQUIRED_GLIBC_VERSION}\"\n" +
 "}\n" +
 "\n" +
@@ -497,7 +489,7 @@ const BrewScript = "# We don't need return codes for \"$(command)\", only stdout
 "then\n" +
 "  abort \"$(\n" +
 "    cat <<EOABORT\n" +
-"Insufficient permissions to install Homebrew to \"${HOMEBREW_PREFIX}\" (the default prefix).\n" +
+"Insufficient permissions to install Homebrew to \\\"${HOMEBREW_PREFIX}\\\" (the default prefix).\n" +
 "\n" +
 "Alternative (unsupported) installation methods are available at:\n" +
 "https://docs.brew.sh/Installation#alternative-installs\n" +
@@ -579,12 +571,12 @@ const BrewScript = "# We don't need return codes for \"$(command)\", only stdout
 "      cat <<EOS\n" +
 "This installation may not succeed.\n" +
 "After installation, you will encounter build failures with some formulae.\n" +
-"Please create pull requests instead of asking for help on Homebrew's GitHub,\n" +
+"Please create pull requests instead of asking for help on Homebrew\\\'s GitHub,\n" +
 "Twitter or any other official channels. You are responsible for resolving any\n" +
 "issues you experience while you are running this ${what}.\n" +
 "EOS\n" +
 "    )\n" +
-"\" | tr -d \"\\\\\" \n" +
+"\" | tr -d \"\\\\\"\n" +
 "  fi\n" +
 "fi\n" +
 "\n" +
@@ -686,32 +678,27 @@ const BrewScript = "# We don't need return codes for \"$(command)\", only stdout
 "if [[ \"${#group_chmods[@]}\" -gt 0 ]]\n" +
 "then\n" +
 "  ohai \"The following existing directories will be made group writable:\"\n" +
-"  printf \"%s\n" +
-"\" \"${group_chmods[@]}\"\n" +
+"  printf \"%s\\n\" \"${group_chmods[@]}\"\n" +
 "fi\n" +
 "if [[ \"${#user_chmods[@]}\" -gt 0 ]]\n" +
 "then\n" +
 "  ohai \"The following existing directories will be made writable by user only:\"\n" +
-"  printf \"%s\n" +
-"\" \"${user_chmods[@]}\"\n" +
+"  printf \"%s\\n\" \"${user_chmods[@]}\"\n" +
 "fi\n" +
 "if [[ \"${#chowns[@]}\" -gt 0 ]]\n" +
 "then\n" +
 "  ohai \"The following existing directories will have their owner set to ${tty_underline}${USER}${tty_reset}:\"\n" +
-"  printf \"%s\n" +
-"\" \"${chowns[@]}\"\n" +
+"  printf \"%s\\n\" \"${chowns[@]}\"\n" +
 "fi\n" +
 "if [[ \"${#chgrps[@]}\" -gt 0 ]]\n" +
 "then\n" +
 "  ohai \"The following existing directories will have their group set to ${tty_underline}${GROUP}${tty_reset}:\"\n" +
-"  printf \"%s\n" +
-"\" \"${chgrps[@]}\"\n" +
+"  printf \"%s\\n\" \"${chgrps[@]}\"\n" +
 "fi\n" +
 "if [[ \"${#mkdirs[@]}\" -gt 0 ]]\n" +
 "then\n" +
 "  ohai \"The following new directories will be created:\"\n" +
-"  printf \"%s\n" +
-"\" \"${mkdirs[@]}\"\n" +
+"  printf \"%s\\n\" \"${mkdirs[@]}\"\n" +
 "fi\n" +
 "\n" +
 "if should_install_command_line_tools\n" +
@@ -726,7 +713,7 @@ const BrewScript = "# We don't need return codes for \"$(command)\", only stdout
 "  ohai \"HOMEBREW_BREW_GIT_REMOTE is set to a non-default URL:\"\n" +
 "  echo \"${tty_underline}${HOMEBREW_BREW_GIT_REMOTE}${tty_reset} will be used as the Homebrew/brew Git remote.\"\n" +
 "  non_default_repos=\"Homebrew/brew\"\n" +
-"  additional_shellenv_commands+=(\"export HOMEBREW_BREW_GIT_REMOTE=\"${HOMEBREW_BREW_GIT_REMOTE}\"\")\n" +
+"  additional_shellenv_commands+=(\"export HOMEBREW_BREW_GIT_REMOTE=\\\"${HOMEBREW_BREW_GIT_REMOTE}\\\"\")\n" +
 "fi\n" +
 "\n" +
 "if [[ \"${HOMEBREW_CORE_DEFAULT_GIT_REMOTE}\" != \"${HOMEBREW_CORE_GIT_REMOTE}\" ]]\n" +
@@ -734,7 +721,7 @@ const BrewScript = "# We don't need return codes for \"$(command)\", only stdout
 "  ohai \"HOMEBREW_CORE_GIT_REMOTE is set to a non-default URL:\"\n" +
 "  echo \"${tty_underline}${HOMEBREW_CORE_GIT_REMOTE}${tty_reset} will be used as the Homebrew/homebrew-core Git remote.\"\n" +
 "  non_default_repos=\"${non_default_repos:-}${non_default_repos:+ and }Homebrew/homebrew-core\"\n" +
-"  additional_shellenv_commands+=(\"export HOMEBREW_CORE_GIT_REMOTE=\"${HOMEBREW_CORE_GIT_REMOTE}\"\")\n" +
+"  additional_shellenv_commands+=(\"export HOMEBREW_CORE_GIT_REMOTE=\\\"${HOMEBREW_CORE_GIT_REMOTE}\\\"\")\n" +
 "fi\n" +
 "\n" +
 "if [[ -n \"${HOMEBREW_NO_INSTALL_FROM_API-}\" ]]\n" +
@@ -828,7 +815,7 @@ const BrewScript = "# We don't need return codes for \"$(command)\", only stdout
 "\n" +
 "  clt_label_command=\"/usr/sbin/softwareupdate -l |\n" +
 "                      grep -B 1 -E 'Command Line Tools' |\n" +
-"                      awk -F'*' '/^ *\*/ {print \$2}' |\n" +
+"                      awk -F'*' '/^ *\\\\*/ {print \\\$2}' |\n" +
 "                      sed -e 's/^ *Label: //' -e 's/^ *//' |\n" +
 "                      sort -V |\n" +
 "                      tail -n1\"\n" +
@@ -1046,20 +1033,20 @@ const BrewScript = "# We don't need return codes for \"$(command)\", only stdout
 "    ;;\n" +
 "esac\n" +
 "\n" +
-"if grep -qs \"eval \"\$(${HOMEBREW_PREFIX}/bin/brew shellenv)\"\" \"${shell_rcfile}\"\n" +
+"if grep -qs \"eval \\\"\\$(${HOMEBREW_PREFIX}/bin/brew shellenv)\\\"\" \"${shell_rcfile}\"\n" +
 "then\n" +
 "  if ! [[ -x \"$(command -v brew)\" ]]\n" +
 "  then\n" +
 "    cat <<EOS\n" +
 "- Run this command in your terminal to add Homebrew to your ${tty_bold}PATH${tty_reset}:\n" +
-"    eval \"\$(${HOMEBREW_PREFIX}/bin/brew shellenv)\"\n" +
+"    eval \"\\$(${HOMEBREW_PREFIX}/bin/brew shellenv)\"\n" +
 "EOS\n" +
 "  fi\n" +
 "else\n" +
 "  cat <<EOS\n" +
 "- Run these two commands in your terminal to add Homebrew to your ${tty_bold}PATH${tty_reset}:\n" +
-"    (echo; echo 'eval \"\$(${HOMEBREW_PREFIX}/bin/brew shellenv)\"') >> ${shell_rcfile}\n" +
-"    eval \"\$(${HOMEBREW_PREFIX}/bin/brew shellenv)\"\n" +
+"    (echo; echo 'eval \"\\$(${HOMEBREW_PREFIX}/bin/brew shellenv)\"') >> ${shell_rcfile}\n" +
+"    eval \"\\$(${HOMEBREW_PREFIX}/bin/brew shellenv)\"\n" +
 "EOS\n" +
 "fi\n" +
 "\n" +
@@ -1070,14 +1057,10 @@ const BrewScript = "# We don't need return codes for \"$(command)\", only stdout
 "  then\n" +
 "    plural=\"s\"\n" +
 "  fi\n" +
-"  printf -- \"- Run these commands in your terminal to add the non-default Git remote%s for %s:\n" +
-"\" \"${plural}\" \"${non_default_repos}\"\n" +
-"  printf \"    echo '# Set PATH, MANPATH, etc., for Homebrew.' >> %s\n" +
-"\" \"${shell_rcfile}\"\n" +
-"  printf \"    echo '%s' >> ${shell_rcfile}\n" +
-"\" \"${additional_shellenv_commands[@]}\"\n" +
-"  printf \"    %s\n" +
-"\" \"${additional_shellenv_commands[@]}\"\n" +
+"  printf -- \"- Run these commands in your terminal to add the non-default Git remote%s for %s:\\n\" \"${plural}\" \"${non_default_repos}\"\n" +
+"  printf \"    echo '# Set PATH, MANPATH, etc., for Homebrew.' >> %s\\n\" \"${shell_rcfile}\"\n" +
+"  printf \"    echo '%s' >> ${shell_rcfile}\\n\" \"${additional_shellenv_commands[@]}\"\n" +
+"  printf \"    %s\\n\" \"${additional_shellenv_commands[@]}\"\n" +
 "fi\n" +
 "\n" +
 "if [[ -n \"${HOMEBREW_ON_LINUX-}\" ]]\n" +
@@ -1112,8 +1095,4 @@ const BrewScript = "# We don't need return codes for \"$(command)\", only stdout
 "    ${tty_underline}https://docs.brew.sh${tty_reset}\n" +
 "\n" +
 "EOS\n" 
-
-
-module.exports = {
-    BrewScript
-}
+module.exports = {BrewScript}
