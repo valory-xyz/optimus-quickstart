@@ -19,9 +19,11 @@ jobs:
       uses: actions/setup-node@v3
       with:
           node-version: "20.11"
-    - name: Install dependencies
+    - name: Setup
       run:  |
         npm install
+        # Uninstall brew
+        /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/uninstall.sh)"
     - name: Run Test
       run: |
         node electron/test.js
