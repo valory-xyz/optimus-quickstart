@@ -9,6 +9,7 @@ const axios = require('axios');
 
 const Docker = require('dockerode');
 const { spawnSync } = require('child_process');
+const { BrewScript } = require("./scripts")
 
 const Version = '0.1.0rc38';
 const OperateDirectory = `${os.homedir()}/.operate`;
@@ -116,14 +117,8 @@ function isBrewInstalled() {
 }
 
 function installBrew() {
-  let script;
-  if (!Env.CI) {
-    script = nfs.readFileSync(`${__dirname}/scripts/install_brew.sh`)
-  } else {
-    script = fs.readFileSync(`${__dirname}/scripts/install_brew.sh`)
-  }
   const tempfile = `${fs.mkdtempSync("pearl_brew_install")}/install.sh`
-  fs.writeFileSync(tempfile, script, { "encoding": "utf-8" })
+  fs.writeFileSync(tempfile, BrewScript, { "encoding": "utf-8" })
   runCmdUnix('bash', [tempfile]);
 }
 
