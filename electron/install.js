@@ -79,13 +79,15 @@ function runCmdUnix(command, options) {
   if (output.stderr) {
     appendLog(output.stdout.toString());
   }
-  if (output.error || output.stderr.length > 0) {
+  if (output.error) {
     throw new Error(
       `Error running ${command} with options ${options};
             Error: ${output.error}; Stdout: ${output.stdout}; Stderr: ${output.stderr}`,
     );
   }
-  console.log(appendLog(`Executed ${command} ${options} with output:\n${output.stdout}`))
+  console.log(appendLog(`Executed ${command} ${options} with`))
+  console.log(appendLog(`===== stdout =====  \n${output.stdout}`))
+  console.log(appendLog(`===== stderr =====  \n${output.stderr}`))
 }
 
 function runSudoUnix(command, options) {
