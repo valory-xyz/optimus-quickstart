@@ -1,7 +1,5 @@
 // Installation helpers.
 
-const https = require('https');
-const path = require('path');
 const fs = require('fs');
 const os = require('os');
 const sudo = require('sudo-prompt');
