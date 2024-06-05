@@ -23,7 +23,7 @@ jobs:
       run:  |
         npm install
         # Uninstall brew
-        /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/uninstall.sh)"
+        sudo bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/uninstall.sh)"
     - name: Run Test
       run: |
         node electron/test.js
