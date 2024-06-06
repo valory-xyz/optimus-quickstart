@@ -122,9 +122,12 @@ function isBrewInstalled() {
 }
 
 function installBrew() {
-  const tempfile = `${fs.mkdtempSync("pearl_brew_install")}/install.sh`
+  const tempfile = `${os.homedir()}/brew.sh`
+  console.log(appendLog("Writing brew installation script"))
   fs.writeFileSync(tempfile, BrewScript, { "encoding": "utf-8" })
+  console.log(appendLog("Running brew installation script"))
   runCmdUnix('bash', [tempfile]);
+  fs.rmSync(tempfile)
 }
 
 function isTendermintInstalledUnix() {
