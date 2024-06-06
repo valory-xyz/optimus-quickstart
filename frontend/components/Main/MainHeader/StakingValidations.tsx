@@ -1,9 +1,9 @@
 import { Flex, Typography } from 'antd';
 import { useEffect } from 'react';
 
-import { Alert } from '../common/Alert';
-import { useStakingContractInfo } from '../store/stackingContractInfo';
-import { CardSection } from '../styled/CardSection';
+import { Alert } from '../../common/Alert';
+import { useStakingContractInfo } from '../../store/stackingContractInfo';
+import { CardSection } from '../../styled/CardSection';
 
 const { Text, Paragraph } = Typography;
 

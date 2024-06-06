@@ -15,7 +15,7 @@ import { useWallet } from '@/hooks/useWallet';
 import { ServicesService } from '@/service';
 import { WalletService } from '@/service/Wallet';
 
-import { useStakingContractInfo } from '../store/stackingContractInfo';
+import { useStakingContractInfo } from '../../store/stackingContractInfo';
 
 const { Text, Title, Paragraph } = Typography;
 
@@ -76,10 +76,28 @@ const FirstRunModal = ({
   );
 };
 
+const useSetupTrayIcon = () => {
+  const { safeBalance } = useBalance();
+  const { serviceStatus } = useServices();
+  const { setTrayIcon } = useElectronApi();
+
+  useEffect(() => {
+    if (safeBalance && safeBalance.ETH < LOW_BALANCE) {
+      setTrayIcon?.('low-gas');
+    } else if (serviceStatus === DeploymentStatus.DEPLOYED) {
+      setTrayIcon?.('running');
+    } else if (serviceStatus === DeploymentStatus.STOPPED) {
+      setTrayIcon?.('paused');
+    }
+  }, [safeBalance, serviceStatus, setTrayIcon]);
+
+  return null;
+};
+
 export const MainHeader = () => {
   const { storeState } = useStore();
   const { services, serviceStatus, setServiceStatus } = useServices();
-  const { showNotification, setTrayIcon } = useElectronApi();
+  const { showNotification } = useElectronApi();
   const { getServiceTemplates } = useServiceTemplates();
   const { wallets, masterSafeAddress } = useWallet();
   const {
@@ -93,6 +111,9 @@ export const MainHeader = () => {
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const handleModalClose = useCallback(() => setIsModalOpen(false), []);
+
+  // hook to setup tray icon
+  useSetupTrayIcon();
 
   const { minimumStakedAmountRequired } = useReward();
 
@@ -109,16 +130,6 @@ export const MainHeader = () => {
     () => getServiceTemplates()[0],
     [getServiceTemplates],
   );
-
-  useEffect(() => {
-    if (safeBalance && safeBalance.ETH < LOW_BALANCE) {
-      setTrayIcon?.('low-gas');
-    } else if (serviceStatus === DeploymentStatus.DEPLOYED) {
-      setTrayIcon?.('running');
-    } else if (serviceStatus === DeploymentStatus.STOPPED) {
-      setTrayIcon?.('paused');
-    }
-  }, [safeBalance, serviceStatus, setTrayIcon]);
 
   const agentHead = useMemo(() => {
     if (
