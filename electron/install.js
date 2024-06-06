@@ -16,7 +16,7 @@ const { BrewScript } = require("./scripts")
  * - use "" (nothing as a suffix) for latest release candidate, for example "0.1.0rc26"
  * - use "alpha" for alpha release, for example "0.1.0rc26-alpha"
  */
-const OlasMiddlewareVersion = '0.1.0rc39';
+const OlasMiddlewareVersion = '0.1.0rc40';
 const OperateDirectory = `${os.homedir()}/.operate`;
 const VenvDir = `${OperateDirectory}/venv`;
 const TempDir = `${OperateDirectory}/temp`;
@@ -129,15 +129,17 @@ async function installBrew() {
   console.log(appendLog("Fetching homebrew source"))
   let outdir = `${os.homedir()}/homebrew`
   let outfile = `${os.homedir()}/homebrew.tar`
-
+  
   // Make temporary source dir
   fs.mkdirSync(outdir)
-
+  
   // Fetch brew source
   runCmdUnix("curl", ["-L", "https://github.com/Homebrew/brew/tarball/master", "--output", outfile])
   runCmdUnix("tar", ["-xvf", outfile, "--strip-components", "1", "-C", outdir])
-
+  
+  // Check for cache and uninstall leftovers
   if (fs.existsSync("/opt/homebrew")) {
+    console.log(appendLog("Removing homebrew leftovers"))
     if (!Env.CI) {
       await runSudoUnix("rm", `-rf /opt/homebrew`)
     } else {
