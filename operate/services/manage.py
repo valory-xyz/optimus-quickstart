@@ -216,6 +216,9 @@ class ServiceManager:
                     f"required olas: {required_olas}; your balance {balance}"
                 )
 
+        info = ocm.info(token_id=service.chain_data.token)
+        service.chain_data.on_chain_state = OnChainState(info["service_state"])
+
         if service.chain_data.on_chain_state == OnChainState.NOTMINTED:
             self.logger.info("Minting service")
             service.chain_data.token = t.cast(
@@ -242,6 +245,9 @@ class ServiceManager:
             service.chain_data.on_chain_state = OnChainState.MINTED
             service.store()
 
+        info = ocm.info(token_id=service.chain_data.token)
+        service.chain_data.on_chain_state = OnChainState(info["service_state"])
+
         if service.chain_data.on_chain_state == OnChainState.MINTED:
             self.logger.info("Activating service")
             ocm.activate(
@@ -254,6 +260,9 @@ class ServiceManager:
             )
             service.chain_data.on_chain_state = OnChainState.ACTIVATED
             service.store()
+
+        info = ocm.info(token_id=service.chain_data.token)
+        service.chain_data.on_chain_state = OnChainState(info["service_state"])
 
         if service.chain_data.on_chain_state == OnChainState.ACTIVATED:
             self.logger.info("Registering service")
@@ -270,6 +279,9 @@ class ServiceManager:
             service.chain_data.on_chain_state = OnChainState.REGISTERED
             service.keys = keys
             service.store()
+
+        info = ocm.info(token_id=service.chain_data.token)
+        service.chain_data.on_chain_state = OnChainState(info["service_state"])
 
         if service.chain_data.on_chain_state == OnChainState.REGISTERED:
             self.logger.info("Deploying service")
@@ -360,6 +372,9 @@ class ServiceManager:
                     f"address: {wallet.safe}; required olas: {required_olas}; your balance: {balance}"
                 )
 
+        info = sftxb.info(token_id=service.chain_data.token)
+        service.chain_data.on_chain_state = OnChainState(info["service_state"])
+
         if service.chain_data.on_chain_state == OnChainState.NOTMINTED:
             self.logger.info("Minting service")
             receipt = (
@@ -398,6 +413,9 @@ class ServiceManager:
             service.chain_data.token = event_data["args"]["serviceId"]
             service.chain_data.on_chain_state = OnChainState.MINTED
             service.store()
+
+        info = sftxb.info(token_id=service.chain_data.token)
+        service.chain_data.on_chain_state = OnChainState(info["service_state"])
 
         if service.chain_data.on_chain_state == OnChainState.MINTED:
             cost_of_bond = user_params.cost_of_bond
@@ -447,6 +465,9 @@ class ServiceManager:
             ).settle()
             service.chain_data.on_chain_state = OnChainState.ACTIVATED
             service.store()
+
+        info = sftxb.info(token_id=service.chain_data.token)
+        service.chain_data.on_chain_state = OnChainState(info["service_state"])
 
         if service.chain_data.on_chain_state == OnChainState.ACTIVATED:
             cost_of_bond = user_params.cost_of_bond
@@ -502,6 +523,9 @@ class ServiceManager:
             service.keys = keys
             service.store()
 
+        info = sftxb.info(token_id=service.chain_data.token)
+        service.chain_data.on_chain_state = OnChainState(info["service_state"])
+
         if service.chain_data.on_chain_state == OnChainState.REGISTERED:
             self.logger.info("Deploying service")
             sftxb.new_tx().add(
@@ -532,12 +556,15 @@ class ServiceManager:
         :param hash: Service hash
         """
         service = self.create_or_load(hash=hash)
+        ocm = self.get_on_chain_manager(service=service)
+        info = ocm.info(token_id=service.chain_data.token)
+        service.chain_data.on_chain_state = OnChainState(info["service_state"])
+
         if service.chain_data.on_chain_state != OnChainState.DEPLOYED:
             self.logger.info("Cannot terminate service")
             return
 
         self.logger.info("Terminating service")
-        ocm = self.get_on_chain_manager(service=service)
         ocm.terminate(
             service_id=service.chain_data.token,
             token=(
@@ -556,12 +583,15 @@ class ServiceManager:
         :param hash: Service hash
         """
         service = self.create_or_load(hash=hash)
+        sftxb = self.get_eth_safe_tx_builder(service=service)
+        info = sftxb.info(token_id=service.chain_data.token)
+        service.chain_data.on_chain_state = OnChainState(info["service_state"])
+
         if service.chain_data.on_chain_state != OnChainState.DEPLOYED:
             self.logger.info("Cannot terminate service")
             return
 
         self.logger.info("Terminating service")
-        sftxb = self.get_eth_safe_tx_builder(service=service)
         sftxb.new_tx().add(
             sftxb.get_terminate_data(
                 service_id=service.chain_data.token,
@@ -577,12 +607,15 @@ class ServiceManager:
         :param hash: Service hash
         """
         service = self.create_or_load(hash=hash)
+        ocm = self.get_on_chain_manager(service=service)
+        info = ocm.info(token_id=service.chain_data.token)
+        service.chain_data.on_chain_state = OnChainState(info["service_state"])
+
         if service.chain_data.on_chain_state != OnChainState.TERMINATED:
             self.logger.info("Cannot unbond service")
             return
 
         self.logger.info("Unbonding service")
-        ocm = self.get_on_chain_manager(service=service)
         ocm.unbond(
             service_id=service.chain_data.token,
             token=(
@@ -601,12 +634,15 @@ class ServiceManager:
         :param hash: Service hash
         """
         service = self.create_or_load(hash=hash)
+        sftxb = self.get_eth_safe_tx_builder(service=service)
+        info = sftxb.info(token_id=service.chain_data.token)
+        service.chain_data.on_chain_state = OnChainState(info["service_state"])
+
         if service.chain_data.on_chain_state != OnChainState.TERMINATED:
             self.logger.info("Cannot unbond service")
             return
 
         self.logger.info("Unbonding service")
-        sftxb = self.get_eth_safe_tx_builder(service=service)
         sftxb.new_tx().add(
             sftxb.get_unbond_data(
                 service_id=service.chain_data.token,
@@ -626,11 +662,14 @@ class ServiceManager:
             self.logger.info("Cannot stake service, `use_staking` is set to false")
             return
 
+        ocm = self.get_on_chain_manager(service=service)
+        info = ocm.info(token_id=service.chain_data.token)
+        service.chain_data.on_chain_state = OnChainState(info["service_state"])
+
         if service.chain_data.on_chain_state != OnChainState.DEPLOYED:
             self.logger.info("Cannot stake service, it's not in deployed state")
             return
 
-        ocm = self.get_on_chain_manager(service=service)
         state = ocm.staking_status(
             service_id=service.chain_data.token,
             staking_contract=STAKING[service.ledger_config.chain],
@@ -662,11 +701,14 @@ class ServiceManager:
             self.logger.info("Cannot stake service, `use_staking` is set to false")
             return
 
+        sftxb = self.get_eth_safe_tx_builder(service=service)
+        info = sftxb.info(token_id=service.chain_data.token)
+        service.chain_data.on_chain_state = OnChainState(info["service_state"])
+
         if service.chain_data.on_chain_state != OnChainState.DEPLOYED:
             self.logger.info("Cannot stake service, it's not in deployed state")
             return
 
-        sftxb = self.get_eth_safe_tx_builder(service=service)
         state = sftxb.staking_status(
             service_id=service.chain_data.token,
             staking_contract=STAKING[service.ledger_config.chain],
