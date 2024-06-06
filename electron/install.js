@@ -137,6 +137,14 @@ async function installBrew() {
   runCmdUnix("curl", ["-L", "https://github.com/Homebrew/brew/tarball/master", "--output", outfile])
   runCmdUnix("tar", ["-xvf", outfile, "--strip-components", "1", "-C", outdir])
 
+  if (fs.existsSync("/opt/homebrew")) {
+    if (!Env.CI) {
+      await runSudoUnix("rm", `-rf /opt/homebrew`)
+    } else {
+      fs.rmSync("/opt/homebrew")
+    }
+  }
+
   console.log(appendLog("Installing homebrew"))
   if (!Env.CI) {
     await runSudoUnix("mv", `${outdir} /opt/homebrew`)
@@ -146,7 +154,6 @@ async function installBrew() {
     runCmdUnix("chown", ["-R", os.userInfo().username, "/opt/homebrew"])
   }
   runCmdUnix("brew", ["doctor"])
-
   fs.rmSync(outfile)
 }
 
@@ -190,7 +197,7 @@ async function installTendermintUnix() {
 
   // TOFIX: Install tendermint in .operate instead of globally
   if (!Env.CI) {
-    if (!fs.existsSync("/usr/local/bin")){
+    if (!fs.existsSync("/usr/local/bin")) {
       await runSudoUnix('mkdir', '/usr/local/bin')
     }
     await runSudoUnix('install', 'tendermint /usr/local/bin/tendermint');
