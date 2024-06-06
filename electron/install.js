@@ -148,7 +148,6 @@ async function installBrew() {
   runCmdUnix("brew", ["doctor"])
 
   fs.rmSync(outfile)
-  fs.rmdirSync(outdir)
 }
 
 function isTendermintInstalledUnix() {
