@@ -927,45 +927,49 @@ class ServiceManager:
         old_service = self.create_or_load(
             hash=old_hash,
         )
-        (
-            self.unstake_service_on_chain_from_safe
-            if from_safe
-            else self.unstake_service_on_chain
-        )(
-            hash=old_hash,
-        )
-        (
-            self.terminate_service_on_chain_from_safe
-            if from_safe
-            else self.terminate_service_on_chain
-        )(
-            hash=old_hash,
-        )
-        (
-            self.unbond_service_on_chain_from_safe
-            if from_safe
-            else self.unbond_service_on_chain
-        )(
-            hash=old_hash,
-        )
+        # TODO code for updating service commented until safe swap transaction is implemented
+        # This is a temporary fix that will only work for services that have not started the
+        # update flow. Services having started the update flow must need to manually change
+        # the Safe owner to the Operator.
+        # (
+        #     self.unstake_service_on_chain_from_safe
+        #     if from_safe
+        #     else self.unstake_service_on_chain
+        # )(
+        #     hash=old_hash,
+        # )
+        # (
+        #     self.terminate_service_on_chain_from_safe
+        #     if from_safe
+        #     else self.terminate_service_on_chain
+        # )(
+        #     hash=old_hash,
+        # )
+        # (
+        #     self.unbond_service_on_chain_from_safe
+        #     if from_safe
+        #     else self.unbond_service_on_chain
+        # )(
+        #     hash=old_hash,
+        # )
 
-        owner, *_ = old_service.chain_data.instances
-        if from_safe:
-            sftx = self.get_eth_safe_tx_builder(service=old_service)
-            sftx.new_tx().add(
-                sftx.get_swap_data(
-                    service_id=old_service.chain_data.token,
-                    multisig=old_service.chain_data.multisig,
-                    owner_key=str(self.keys_manager.get(key=owner).private_key),
-                )
-            ).settle()
-        else:
-            ocm = self.get_on_chain_manager(service=old_service)
-            ocm.swap(
-                service_id=old_service.chain_data.token,
-                multisig=old_service.chain_data.multisig,
-                owner_key=str(self.keys_manager.get(key=owner).private_key),
-            )
+        # owner, *_ = old_service.chain_data.instances
+        # if from_safe:
+        #     sftx = self.get_eth_safe_tx_builder(service=old_service)
+        #     sftx.new_tx().add(
+        #         sftx.get_swap_data(
+        #             service_id=old_service.chain_data.token,
+        #             multisig=old_service.chain_data.multisig,
+        #             owner_key=str(self.keys_manager.get(key=owner).private_key),
+        #         )
+        #     ).settle()
+        # else:
+        #     ocm = self.get_on_chain_manager(service=old_service)
+        #     ocm.swap(
+        #         service_id=old_service.chain_data.token,
+        #         multisig=old_service.chain_data.multisig,
+        #         owner_key=str(self.keys_manager.get(key=owner).private_key),
+        #     )
 
         new_service = self.create_or_load(
             hash=new_hash,
