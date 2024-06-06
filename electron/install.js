@@ -121,13 +121,22 @@ function isBrewInstalled() {
   return Boolean(getBinPath(getBinPath('brew')));
 }
 
-function installBrew() {
-  const tempfile = `${os.homedir()}/brew.sh`
-  console.log(appendLog("Writing brew installation script"))
-  fs.writeFileSync(tempfile, BrewScript, { "encoding": "utf-8" })
-  console.log(appendLog("Running brew installation script"))
-  runCmdUnix('bash', [tempfile]);
-  fs.rmSync(tempfile)
+async function installBrew() {
+  console.log(appendLog("Fetching homebrew source"))
+  let outdir = `${os.homedir()}/homebrew`
+  let outfile = `${os.homedir()}/homebrew.tar`
+  
+  // Make temporary source dir
+  fs.mkdirSync(outdir)
+  
+  // Fetch brew source
+  runCmdUnix("curl", ["-L", "https://github.com/Homebrew/brew/tarball/master", "--output", "homebrew.tar"])
+  runCmdUnix("tar", ["-xf", "--strip-components", "1", "-C", outdir])
+  
+  console.log(appendLog("Installing homebrew"))
+  await runSudoUnix("mv", [outdir, "/opt/homebrew"])
+  await runSudoUnix("chown", ["-R", os.userInfo().username, "/opt/homebrew"])
+  await runSudoUnix("brew", ["doctor"])
 }
 
 function isTendermintInstalledUnix() {
@@ -304,7 +313,7 @@ async function setupDarwin(ipcChannel) {
   if (!isBrewInstalled()) {
     ipcChannel.send('response', 'Installing Pearl Daemon');
     console.log(appendLog('Installing brew'));
-    installBrew();
+    await installBrew();
   }
 
   console.log(appendLog('Checking python installation'));
