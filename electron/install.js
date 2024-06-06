@@ -190,7 +190,10 @@ async function installTendermintUnix() {
 
   // TOFIX: Install tendermint in .operate instead of globally
   if (!Env.CI) {
-    await runSudoUnix('install', 'tendermint /usr/local/bin');
+    if (!fs.existsSync("/usr/local/bin")){
+      await runSudoUnix('mkdir', '/usr/local/bin')
+    }
+    await runSudoUnix('install', 'tendermint /usr/local/bin/tendermint');
   }
   process.chdir(cwd);
 }
