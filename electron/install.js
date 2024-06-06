@@ -138,7 +138,7 @@ async function installBrew() {
   runCmdUnix("tar", ["-xvf", outfile, "--strip-components", "1", "-C", outdir])
 
   console.log(appendLog("Installing homebrew"))
-  if (!env.CI) {
+  if (!Env.CI) {
     await runSudoUnix("mv", `${outdir} /opt/homebrew`)
     await runSudoUnix("chown", `-R ${os.userInfo().username} /opt/homebrew`)
   } else {
