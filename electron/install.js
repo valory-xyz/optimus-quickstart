@@ -143,7 +143,7 @@ async function installBrew() {
     if (!Env.CI) {
       await runSudoUnix("rm", `-rf /opt/homebrew`)
     } else {
-      fs.rmSync("/opt/homebrew")
+      fs.rmdirSync("/opt/homebrew")
     }
   }
 
