@@ -80,12 +80,6 @@ function runCmdUnix(command, options) {
     throw new Error(`Command ${command} not found; Path : ${Env.PATH}`);
   }
   let output = spawnSync(bin, options);
-  if (output.stdout) {
-    appendLog(output.stdout.toString());
-  }
-  if (output.stderr) {
-    appendLog(output.stdout.toString());
-  }
   if (output.error) {
     throw new Error(
       `Error running ${command} with options ${options};
@@ -107,11 +101,21 @@ function runSudoUnix(command, options) {
       `${bin} ${options}`,
       SudoOptions,
       function (error, stdout, stderr) {
-        resolve({
+        let output = {
           error: error,
           stdout: stdout,
           stderr: stderr,
-        });
+        };
+        if (output.error) {
+          throw new Error(
+            `Error running ${command} with options ${options};
+            Error: ${output.error}; Stdout: ${output.stdout}; Stderr: ${output.stderr}`,
+          );
+        }
+        console.log(appendLog(`Executed ${command} ${options} with`))
+        console.log(appendLog(`===== stdout =====  \n${output.stdout}`))
+        console.log(appendLog(`===== stderr =====  \n${output.stderr}`))
+        resolve()
       },
     );
   });
@@ -125,18 +129,26 @@ async function installBrew() {
   console.log(appendLog("Fetching homebrew source"))
   let outdir = `${os.homedir()}/homebrew`
   let outfile = `${os.homedir()}/homebrew.tar`
-  
+
   // Make temporary source dir
   fs.mkdirSync(outdir)
-  
+
   // Fetch brew source
-  runCmdUnix("curl", ["-L", "https://github.com/Homebrew/brew/tarball/master", "--output", "homebrew.tar"])
-  runCmdUnix("tar", ["-xf", "--strip-components", "1", "-C", outdir])
-  
+  runCmdUnix("curl", ["-L", "https://github.com/Homebrew/brew/tarball/master", "--output", outfile])
+  runCmdUnix("tar", ["-xvf", outfile, "--strip-components", "1", "-C", outdir])
+
   console.log(appendLog("Installing homebrew"))
-  await runSudoUnix("mv", [outdir, "/opt/homebrew"])
-  await runSudoUnix("chown", ["-R", os.userInfo().username, "/opt/homebrew"])
-  await runSudoUnix("brew", ["doctor"])
+  if (!env.CI) {
+    await runSudoUnix("mv", `${outdir} /opt/homebrew`)
+    await runSudoUnix("chown", `-R ${os.userInfo().username} /opt/homebrew`)
+  } else {
+    runCmdUnix("mv", [outdir, "/opt/homebrew"])
+    runCmdUnix("chown", ["-R", os.userInfo().username, "/opt/homebrew"])
+  }
+  runCmdUnix("brew", ["doctor"])
+
+  fs.rmSync(outfile)
+  fs.rmdirSync(outdir)
 }
 
 function isTendermintInstalledUnix() {
