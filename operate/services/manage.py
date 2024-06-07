@@ -216,9 +216,6 @@ class ServiceManager:
                     f"required olas: {required_olas}; your balance {balance}"
                 )
 
-        info = ocm.info(token_id=service.chain_data.token)
-        service.chain_data.on_chain_state = OnChainState(info["service_state"])
-
         if service.chain_data.on_chain_state == OnChainState.NOTMINTED:
             self.logger.info("Minting service")
             service.chain_data.token = t.cast(
@@ -371,9 +368,6 @@ class ServiceManager:
                     "You don't have enough olas to stake, "
                     f"address: {wallet.safe}; required olas: {required_olas}; your balance: {balance}"
                 )
-
-        info = sftxb.info(token_id=service.chain_data.token)
-        service.chain_data.on_chain_state = OnChainState(info["service_state"])
 
         if service.chain_data.on_chain_state == OnChainState.NOTMINTED:
             self.logger.info("Minting service")
