@@ -313,6 +313,13 @@ class HostDeploymentGenerator(BaseDeploymentGenerator):
         """Generate agent and tendermint configurations"""
         agent = self.service_builder.generate_agent(agent_n=0)
         agent = {key: f"{value}" for key, value in agent.items()}
+
+        # TODO: This fix prevents the error of environment variables with dots
+        # It requires that the aea-config.yaml is properly configured
+        keys_to_delete = [key for key in agent.keys() if key.startswith("SKILL_TRADER_ABCI_MODELS_PARAMS_ARGS_STRATEGIES_KWARGS")]
+        for key in keys_to_delete:
+            del agent[key]
+
         (self.build_dir / "agent.json").write_text(
             json.dumps(agent, indent=2),
             encoding="utf-8",
