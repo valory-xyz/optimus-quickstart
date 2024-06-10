@@ -313,7 +313,6 @@ class HostDeploymentGenerator(BaseDeploymentGenerator):
         """Generate agent and tendermint configurations"""
         agent = self.service_builder.generate_agent(agent_n=0)
         agent = {key: f"{value}" for key, value in agent.items()}
-
         (self.build_dir / "agent.json").write_text(
             json.dumps(agent, indent=2),
             encoding="utf-8",
