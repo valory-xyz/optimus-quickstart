@@ -763,7 +763,9 @@ class ServiceManager:
             service_id=service.chain_data.token,
             staking_contract=STAKING[service.ledger_config.chain],
         )
-        self.logger.info(f"Staking status for service {service.chain_data.token}: {state}")
+        self.logger.info(
+            f"Staking status for service {service.chain_data.token}: {state}"
+        )
         if state not in {StakingState.STAKED, StakingState.EVICTED}:
             self.logger.info("Cannot unstake service, it's not staked")
             service.chain_data.staked = False
@@ -794,7 +796,9 @@ class ServiceManager:
             service_id=service.chain_data.token,
             staking_contract=STAKING[service.ledger_config.chain],
         )
-        self.logger.info(f"Staking status for service {service.chain_data.token}: {state}")
+        self.logger.info(
+            f"Staking status for service {service.chain_data.token}: {state}"
+        )
         if state not in {StakingState.STAKED, StakingState.EVICTED}:
             self.logger.info("Cannot unstake service, it's not staked")
             service.chain_data.staked = False
