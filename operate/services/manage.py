@@ -675,6 +675,12 @@ class ServiceManager:
             service.store()
             return
 
+        if state == StakingState.EVICTED:
+            self.logger.info(f"{service.chain_data.token} has been evicted")
+            service.chain_data.staked = True
+            service.store()
+            self.unstake_service_on_chain(hash=hash)
+
         self.logger.info(f"Staking service: {service.chain_data.token}")
         ocm.stake(
             service_id=service.chain_data.token,
@@ -714,6 +720,12 @@ class ServiceManager:
             service.store()
             return
 
+        if state == StakingState.EVICTED:
+            self.logger.info(f"{service.chain_data.token} has been evicted")
+            service.chain_data.staked = True
+            service.store()
+            self.unstake_service_on_chain_from_safe(hash=hash)
+
         self.logger.info(f"Approving staking: {service.chain_data.token}")
         sftxb.new_tx().add(
             sftxb.get_staking_approval_data(
@@ -751,7 +763,8 @@ class ServiceManager:
             service_id=service.chain_data.token,
             staking_contract=STAKING[service.ledger_config.chain],
         )
-        if state != StakingState.STAKED:
+        self.logger.info(f"Staking status for service {service.chain_data.token}: {state}")
+        if state not in {StakingState.STAKED, StakingState.EVICTED}:
             self.logger.info("Cannot unstake service, it's not staked")
             service.chain_data.staked = False
             service.store()
@@ -781,8 +794,8 @@ class ServiceManager:
             service_id=service.chain_data.token,
             staking_contract=STAKING[service.ledger_config.chain],
         )
-        self.logger.info(f"Checking staking status for: {service.chain_data.token}")
-        if state != StakingState.STAKED:
+        self.logger.info(f"Staking status for service {service.chain_data.token}: {state}")
+        if state not in {StakingState.STAKED, StakingState.EVICTED}:
             self.logger.info("Cannot unstake service, it's not staked")
             service.chain_data.staked = False
             service.store()
