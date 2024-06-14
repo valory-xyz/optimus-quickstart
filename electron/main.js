@@ -330,9 +330,7 @@ async function launchDaemon() {
 
 async function launchDaemonDev() {
   const check = new Promise(function (resolve, _reject) {
-    operateDaemon = spawn('poetry', [
-      'run',
-      'operate',
+    operateDaemon = spawn(OperateCmd, [
       'daemon',
       `--port=${appConfig.ports.dev.operate}`,
       '--home=.operate',
