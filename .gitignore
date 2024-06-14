@@ -23,6 +23,7 @@ frontend/build
 # python
 .tox/
 .operate/
+.operate*/
 __pycache__/
 data/
 backend/temp/
