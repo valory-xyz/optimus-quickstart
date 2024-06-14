@@ -1,7 +1,6 @@
 // Installation helpers.
 
-const https = require('https');
-const path = require('path');
+const nfs = require('node:fs')
 const fs = require('fs');
 const os = require('os');
 const sudo = require('sudo-prompt');
@@ -10,8 +9,14 @@ const axios = require('axios');
 
 const Docker = require('dockerode');
 const { spawnSync } = require('child_process');
+const { BrewScript } = require("./scripts")
 
-const Version = '0.1.0rc45';
+/**
+ * current version of the pearl release
+ * - use "" (nothing as a suffix) for latest release candidate, for example "0.1.0rc26"
+ * - use "alpha" for alpha release, for example "0.1.0rc26-alpha"
+ */
+const OlasMiddlewareVersion = '0.1.0rc45';
 const OperateDirectory = `${os.homedir()}/.operate`;
 const VenvDir = `${OperateDirectory}/venv`;
 const TempDir = `${OperateDirectory}/temp`;
@@ -22,6 +27,7 @@ const OperateCmd = `${os.homedir()}/.operate/venv/bin/operate`;
 const Env = {
   ...process.env,
   PATH: `${process.env.PATH}:/opt/homebrew/bin:/usr/local/bin`,
+  HOMEBREW_NO_AUTO_UPDATE: '1',
 };
 const SudoOptions = {
   name: 'Pearl',
@@ -66,33 +72,23 @@ function appendLog(log) {
 }
 
 function runCmdUnix(command, options) {
-  fs.appendFileSync(
-    OperateInstallationLog,
-    `Runninng ${command} with options ${JSON.stringify(options)}`,
-    { encoding: 'utf-8' },
+  console.log(
+    appendLog(`Running ${command} with options ${JSON.stringify(options)}`),
   );
   let bin = getBinPath(command);
   if (!bin) {
     throw new Error(`Command ${command} not found; Path : ${Env.PATH}`);
   }
   let output = spawnSync(bin, options);
-  if (output.stdout) {
-    appendLog(output.stdout.toString());
-  }
-  if (output.stderr) {
-    appendLog(output.stdout.toString());
-  }
   if (output.error) {
     throw new Error(
       `Error running ${command} with options ${options};
             Error: ${output.error}; Stdout: ${output.stdout}; Stderr: ${output.stderr}`,
     );
   }
-  return {
-    error: output.error,
-    stdout: output.stdout?.toString(),
-    stderr: output.stderr?.toString(),
-  };
+  console.log(appendLog(`Executed ${command} ${options} with`))
+  console.log(appendLog(`===== stdout =====  \n${output.stdout}`))
+  console.log(appendLog(`===== stderr =====  \n${output.stderr}`))
 }
 
 function runSudoUnix(command, options) {
@@ -100,16 +96,26 @@ function runSudoUnix(command, options) {
   if (!bin) {
     throw new Error(`Command ${command} not found`);
   }
-  return new Promise(function (resolve, reject) {
+  return new Promise(function (resolve, _reject) {
     sudo.exec(
       `${bin} ${options}`,
       SudoOptions,
       function (error, stdout, stderr) {
-        resolve({
+        let output = {
           error: error,
           stdout: stdout,
           stderr: stderr,
-        });
+        };
+        if (output.error) {
+          throw new Error(
+            `Error running ${command} with options ${options};
+            Error: ${output.error}; Stdout: ${output.stdout}; Stderr: ${output.stderr}`,
+          );
+        }
+        console.log(appendLog(`Executed ${command} ${options} with`))
+        console.log(appendLog(`===== stdout =====  \n${output.stdout}`))
+        console.log(appendLog(`===== stderr =====  \n${output.stderr}`))
+        resolve()
       },
     );
   });
@@ -119,11 +125,38 @@ function isBrewInstalled() {
   return Boolean(getBinPath(getBinPath('brew')));
 }
 
-function installBrew() {
-  return runCmdUnix('bash', [
-    '-c',
-    '$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)',
-  ]);
+async function installBrew() {
+  console.log(appendLog("Fetching homebrew source"))
+  let outdir = `${os.homedir()}/homebrew`
+  let outfile = `${os.homedir()}/homebrew.tar`
+  
+  // Make temporary source dir
+  fs.mkdirSync(outdir)
+  
+  // Fetch brew source
+  runCmdUnix("curl", ["-L", "https://github.com/Homebrew/brew/tarball/master", "--output", outfile])
+  runCmdUnix("tar", ["-xvf", outfile, "--strip-components", "1", "-C", outdir])
+  
+  // Check for cache and uninstall leftovers
+  if (fs.existsSync("/opt/homebrew")) {
+    console.log(appendLog("Removing homebrew leftovers"))
+    if (!Env.CI) {
+      await runSudoUnix("rm", `-rf /opt/homebrew`)
+    } else {
+      fs.rmdirSync("/opt/homebrew")
+    }
+  }
+
+  console.log(appendLog("Installing homebrew"))
+  if (!Env.CI) {
+    await runSudoUnix("mv", `${outdir} /opt/homebrew`)
+    await runSudoUnix("chown", `-R ${os.userInfo().username} /opt/homebrew`)
+  } else {
+    runCmdUnix("mv", [outdir, "/opt/homebrew"])
+    runCmdUnix("chown", ["-R", os.userInfo().username, "/opt/homebrew"])
+  }
+  runCmdUnix("brew", ["doctor"])
+  fs.rmSync(outfile)
 }
 
 function isTendermintInstalledUnix() {
@@ -162,8 +195,15 @@ async function installTendermintUnix() {
   await downloadFile(url, `${TempDir}/tendermint.tar.gz`);
 
   console.log(appendLog(`Installing tendermint binary`));
-  await runCmdUnix('tar', ['-xvf', 'tendermint.tar.gz']);
-  await runSudoUnix('install', 'tendermint /usr/local/bin');
+  runCmdUnix('tar', ['-xvf', 'tendermint.tar.gz']);
+
+  // TOFIX: Install tendermint in .operate instead of globally
+  if (!Env.CI) {
+    if (!fs.existsSync("/usr/local/bin")) {
+      await runSudoUnix('mkdir', '/usr/local/bin')
+    }
+    await runSudoUnix('install', 'tendermint /usr/local/bin/tendermint');
+  }
   process.chdir(cwd);
 }
 
@@ -172,7 +212,7 @@ function isDockerInstalledDarwin() {
 }
 
 function installDockerDarwin() {
-  return runCmdUnix('brew', ['install', 'docker']);
+  runCmdUnix('brew', ['install', 'docker']);
 }
 
 function isDockerInstalledUbuntu() {
@@ -188,11 +228,11 @@ function isPythonInstalledDarwin() {
 }
 
 function installPythonDarwin() {
-  return runCmdUnix('brew', ['install', 'python@3.10']);
+  runCmdUnix('brew', ['install', 'python@3.10']);
 }
 
 function createVirtualEnvUnix(path) {
-  return runCmdUnix('python3.10', ['-m', 'venv', path]);
+  runCmdUnix('python3.10', ['-m', 'venv', path]);
 }
 
 function isPythonInstalledUbuntu() {
@@ -212,25 +252,25 @@ function installGitUbuntu() {
 }
 
 function createVirtualEnvUbuntu(path) {
-  return runCmdUnix('python3.10', ['-m', 'venv', path]);
+  runCmdUnix('python3.10', ['-m', 'venv', path]);
 }
 
 function installOperatePackageUnix(path) {
-  return runCmdUnix(`${path}/venv/bin/python3.10`, [
+  runCmdUnix(`${path}/venv/bin/python3.10`, [
     '-m',
     'pip',
     'install',
-    `olas-operate-middleware==${Version}`,
+    `olas-operate-middleware==${OlasMiddlewareVersion}`,
   ]);
 }
 
 function reInstallOperatePackageUnix(path) {
   console.log(appendLog('Reinstalling pearl CLI'));
-  return runCmdUnix(`${path}/venv/bin/python3.10`, [
+  runCmdUnix(`${path}/venv/bin/python3.10`, [
     '-m',
     'pip',
     'install',
-    `olas-operate-middleware==${Version}`,
+    `olas-operate-middleware==${OlasMiddlewareVersion}`,
     '--force-reinstall',
   ]);
 }
@@ -240,11 +280,11 @@ function installOperateCli(path) {
   if (fs.existsSync(installPath)) {
     fs.rmSync(installPath);
   }
-  return new Promise((resolve, reject) => {
+  return new Promise((resolve, _reject) => {
     fs.copyFile(
       `${OperateDirectory}/venv/bin/operate`,
       installPath,
-      function (error, stdout, stderr) {
+      function (error, _stdout, _stderr) {
         resolve(!error);
       },
     );
@@ -255,7 +295,7 @@ function createDirectory(path) {
   if (fs.existsSync(path)) {
     return;
   }
-  return new Promise((resolve, reject) => {
+  return new Promise((resolve, _reject) => {
     fs.mkdir(path, { recursive: true }, (error) => {
       resolve(!error);
     });
@@ -263,15 +303,15 @@ function createDirectory(path) {
 }
 
 function writeVersion() {
-  fs.writeFileSync(VersionFile, Version);
+  fs.writeFileSync(VersionFile, OlasMiddlewareVersion);
 }
 
 function versionBumpRequired() {
   if (!fs.existsSync(VersionFile)) {
     return true;
   }
-  const version = fs.readFileSync(VersionFile).toString();
-  return version != Version;
+  const olasMiddlewareVersionInFile = fs.readFileSync(VersionFile).toString();
+  return olasMiddlewareVersionInFile != OlasMiddlewareVersion;
 }
 
 function removeLogFile() {
@@ -296,7 +336,7 @@ async function setupDarwin(ipcChannel) {
   if (!isBrewInstalled()) {
     ipcChannel.send('response', 'Installing Pearl Daemon');
     console.log(appendLog('Installing brew'));
-    installBrew();
+    await installBrew();
   }
 
   console.log(appendLog('Checking python installation'));
@@ -328,7 +368,9 @@ async function setupDarwin(ipcChannel) {
 
   console.log(appendLog('Checking if upgrade is required'));
   if (versionBumpRequired()) {
-    console.log(appendLog(`Upgrading pearl daemon to ${Version}`));
+    console.log(
+      appendLog(`Upgrading pearl daemon to ${OlasMiddlewareVersion}`),
+    );
     reInstallOperatePackageUnix(OperateDirectory);
     writeVersion();
     removeLogFile();
@@ -382,7 +424,9 @@ async function setupUbuntu(ipcChannel) {
 
   console.log(appendLog('Checking if upgrade is required'));
   if (versionBumpRequired()) {
-    console.log(appendLog(`Upgrading pearl daemon to ${Version}`));
+    console.log(
+      appendLog(`Upgrading pearl daemon to ${OlasMiddlewareVersion}`),
+    );
     reInstallOperatePackageUnix(OperateDirectory);
     writeVersion();
     removeLogFile();
