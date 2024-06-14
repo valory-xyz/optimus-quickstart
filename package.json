@@ -1,5 +1,9 @@
 {
   "author": "Valory AG",
+  "main": "electron/main.js",
+  "name": "olas-operate-app",
+  "productName": "Pearl",
+  "version": "0.1.0-rc46",
   "dependencies": {
     "@ant-design/cssinjs": "^1.18.4",
     "@ant-design/icons": "^5.3.0",
@@ -38,9 +42,6 @@
     "net": "^1.0.2",
     "prettier": "^3.2.5"
   },
-  "main": "electron/main.js",
-  "name": "olas-operate-app",
-  "productName": "Pearl",
   "scripts": {
     "build:frontend": "cd frontend && yarn build && rm -rf ../electron/.next && cp -r .next ../electron/.next && rm -rf ../electron/public && cp -r public ../electron/public",
     "dev:backend": "poetry run python operate/cli.py",
@@ -54,6 +55,6 @@
     "test:frontend": "cd frontend && yarn test",
     "start": "electron .",
     "build": "rm -rf dist/ && electron-builder build"
-  },
-  "version": "0.1.0-rc41"
+  }
+  
 }

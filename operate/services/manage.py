@@ -242,6 +242,9 @@ class ServiceManager:
             service.chain_data.on_chain_state = OnChainState.MINTED
             service.store()
 
+        info = ocm.info(token_id=service.chain_data.token)
+        service.chain_data.on_chain_state = OnChainState(info["service_state"])
+
         if service.chain_data.on_chain_state == OnChainState.MINTED:
             self.logger.info("Activating service")
             ocm.activate(
@@ -254,6 +257,9 @@ class ServiceManager:
             )
             service.chain_data.on_chain_state = OnChainState.ACTIVATED
             service.store()
+
+        info = ocm.info(token_id=service.chain_data.token)
+        service.chain_data.on_chain_state = OnChainState(info["service_state"])
 
         if service.chain_data.on_chain_state == OnChainState.ACTIVATED:
             self.logger.info("Registering service")
@@ -270,6 +276,9 @@ class ServiceManager:
             service.chain_data.on_chain_state = OnChainState.REGISTERED
             service.keys = keys
             service.store()
+
+        info = ocm.info(token_id=service.chain_data.token)
+        service.chain_data.on_chain_state = OnChainState(info["service_state"])
 
         if service.chain_data.on_chain_state == OnChainState.REGISTERED:
             self.logger.info("Deploying service")
@@ -399,6 +408,9 @@ class ServiceManager:
             service.chain_data.on_chain_state = OnChainState.MINTED
             service.store()
 
+        info = sftxb.info(token_id=service.chain_data.token)
+        service.chain_data.on_chain_state = OnChainState(info["service_state"])
+
         if service.chain_data.on_chain_state == OnChainState.MINTED:
             cost_of_bond = user_params.cost_of_bond
             if user_params.use_staking:
@@ -447,6 +459,9 @@ class ServiceManager:
             ).settle()
             service.chain_data.on_chain_state = OnChainState.ACTIVATED
             service.store()
+
+        info = sftxb.info(token_id=service.chain_data.token)
+        service.chain_data.on_chain_state = OnChainState(info["service_state"])
 
         if service.chain_data.on_chain_state == OnChainState.ACTIVATED:
             cost_of_bond = user_params.cost_of_bond
@@ -502,6 +517,9 @@ class ServiceManager:
             service.keys = keys
             service.store()
 
+        info = sftxb.info(token_id=service.chain_data.token)
+        service.chain_data.on_chain_state = OnChainState(info["service_state"])
+
         if service.chain_data.on_chain_state == OnChainState.REGISTERED:
             self.logger.info("Deploying service")
             sftxb.new_tx().add(
@@ -532,12 +550,15 @@ class ServiceManager:
         :param hash: Service hash
         """
         service = self.create_or_load(hash=hash)
+        ocm = self.get_on_chain_manager(service=service)
+        info = ocm.info(token_id=service.chain_data.token)
+        service.chain_data.on_chain_state = OnChainState(info["service_state"])
+
         if service.chain_data.on_chain_state != OnChainState.DEPLOYED:
             self.logger.info("Cannot terminate service")
             return
 
         self.logger.info("Terminating service")
-        ocm = self.get_on_chain_manager(service=service)
         ocm.terminate(
             service_id=service.chain_data.token,
             token=(
@@ -556,12 +577,15 @@ class ServiceManager:
         :param hash: Service hash
         """
         service = self.create_or_load(hash=hash)
+        sftxb = self.get_eth_safe_tx_builder(service=service)
+        info = sftxb.info(token_id=service.chain_data.token)
+        service.chain_data.on_chain_state = OnChainState(info["service_state"])
+
         if service.chain_data.on_chain_state != OnChainState.DEPLOYED:
             self.logger.info("Cannot terminate service")
             return
 
         self.logger.info("Terminating service")
-        sftxb = self.get_eth_safe_tx_builder(service=service)
         sftxb.new_tx().add(
             sftxb.get_terminate_data(
                 service_id=service.chain_data.token,
@@ -577,12 +601,15 @@ class ServiceManager:
         :param hash: Service hash
         """
         service = self.create_or_load(hash=hash)
+        ocm = self.get_on_chain_manager(service=service)
+        info = ocm.info(token_id=service.chain_data.token)
+        service.chain_data.on_chain_state = OnChainState(info["service_state"])
+
         if service.chain_data.on_chain_state != OnChainState.TERMINATED:
             self.logger.info("Cannot unbond service")
             return
 
         self.logger.info("Unbonding service")
-        ocm = self.get_on_chain_manager(service=service)
         ocm.unbond(
             service_id=service.chain_data.token,
             token=(
@@ -601,12 +628,15 @@ class ServiceManager:
         :param hash: Service hash
         """
         service = self.create_or_load(hash=hash)
+        sftxb = self.get_eth_safe_tx_builder(service=service)
+        info = sftxb.info(token_id=service.chain_data.token)
+        service.chain_data.on_chain_state = OnChainState(info["service_state"])
+
         if service.chain_data.on_chain_state != OnChainState.TERMINATED:
             self.logger.info("Cannot unbond service")
             return
 
         self.logger.info("Unbonding service")
-        sftxb = self.get_eth_safe_tx_builder(service=service)
         sftxb.new_tx().add(
             sftxb.get_unbond_data(
                 service_id=service.chain_data.token,
@@ -626,11 +656,14 @@ class ServiceManager:
             self.logger.info("Cannot stake service, `use_staking` is set to false")
             return
 
+        ocm = self.get_on_chain_manager(service=service)
+        info = ocm.info(token_id=service.chain_data.token)
+        service.chain_data.on_chain_state = OnChainState(info["service_state"])
+
         if service.chain_data.on_chain_state != OnChainState.DEPLOYED:
             self.logger.info("Cannot stake service, it's not in deployed state")
             return
 
-        ocm = self.get_on_chain_manager(service=service)
         state = ocm.staking_status(
             service_id=service.chain_data.token,
             staking_contract=STAKING[service.ledger_config.chain],
@@ -641,6 +674,12 @@ class ServiceManager:
             service.chain_data.staked = True
             service.store()
             return
+
+        if state == StakingState.EVICTED:
+            self.logger.info(f"{service.chain_data.token} has been evicted")
+            service.chain_data.staked = True
+            service.store()
+            self.unstake_service_on_chain(hash=hash)
 
         self.logger.info(f"Staking service: {service.chain_data.token}")
         ocm.stake(
@@ -662,11 +701,14 @@ class ServiceManager:
             self.logger.info("Cannot stake service, `use_staking` is set to false")
             return
 
+        sftxb = self.get_eth_safe_tx_builder(service=service)
+        info = sftxb.info(token_id=service.chain_data.token)
+        service.chain_data.on_chain_state = OnChainState(info["service_state"])
+
         if service.chain_data.on_chain_state != OnChainState.DEPLOYED:
             self.logger.info("Cannot stake service, it's not in deployed state")
             return
 
-        sftxb = self.get_eth_safe_tx_builder(service=service)
         state = sftxb.staking_status(
             service_id=service.chain_data.token,
             staking_contract=STAKING[service.ledger_config.chain],
@@ -677,6 +719,12 @@ class ServiceManager:
             service.chain_data.staked = True
             service.store()
             return
+
+        if state == StakingState.EVICTED:
+            self.logger.info(f"{service.chain_data.token} has been evicted")
+            service.chain_data.staked = True
+            service.store()
+            self.unstake_service_on_chain_from_safe(hash=hash)
 
         self.logger.info(f"Approving staking: {service.chain_data.token}")
         sftxb.new_tx().add(
@@ -715,7 +763,10 @@ class ServiceManager:
             service_id=service.chain_data.token,
             staking_contract=STAKING[service.ledger_config.chain],
         )
-        if state != StakingState.STAKED:
+        self.logger.info(
+            f"Staking status for service {service.chain_data.token}: {state}"
+        )
+        if state not in {StakingState.STAKED, StakingState.EVICTED}:
             self.logger.info("Cannot unstake service, it's not staked")
             service.chain_data.staked = False
             service.store()
@@ -745,8 +796,10 @@ class ServiceManager:
             service_id=service.chain_data.token,
             staking_contract=STAKING[service.ledger_config.chain],
         )
-        self.logger.info(f"Checking staking status for: {service.chain_data.token}")
-        if state != StakingState.STAKED:
+        self.logger.info(
+            f"Staking status for service {service.chain_data.token}: {state}"
+        )
+        if state not in {StakingState.STAKED, StakingState.EVICTED}:
             self.logger.info("Cannot unstake service, it's not staked")
             service.chain_data.staked = False
             service.store()
@@ -879,51 +932,55 @@ class ServiceManager:
         new_hash: str,
         rpc: t.Optional[str] = None,
         on_chain_user_params: t.Optional[OnChainUserParams] = None,
-        from_safe: bool = True,
+        from_safe: bool = True,  # pylint: disable=unused-argument
     ) -> Service:
         """Update a service."""
         old_service = self.create_or_load(
             hash=old_hash,
         )
-        (
-            self.unstake_service_on_chain_from_safe
-            if from_safe
-            else self.unstake_service_on_chain
-        )(
-            hash=old_hash,
-        )
-        (
-            self.terminate_service_on_chain_from_safe
-            if from_safe
-            else self.terminate_service_on_chain
-        )(
-            hash=old_hash,
-        )
-        (
-            self.unbond_service_on_chain_from_safe
-            if from_safe
-            else self.unbond_service_on_chain
-        )(
-            hash=old_hash,
-        )
+        # TODO code for updating service commented until safe swap transaction is implemented
+        # This is a temporary fix that will only work for services that have not started the
+        # update flow. Services having started the update flow must need to manually change
+        # the Safe owner to the Operator.
+        # (  # noqa: E800
+        #     self.unstake_service_on_chain_from_safe  # noqa: E800
+        #     if from_safe  # noqa: E800
+        #     else self.unstake_service_on_chain  # noqa: E800
+        # )(  # noqa: E800
+        #     hash=old_hash,  # noqa: E800
+        # )  # noqa: E800
+        # (  # noqa: E800
+        #     self.terminate_service_on_chain_from_safe  # noqa: E800
+        #     if from_safe  # noqa: E800
+        #     else self.terminate_service_on_chain  # noqa: E800
+        # )(  # noqa: E800
+        #     hash=old_hash,  # noqa: E800
+        # )  # noqa: E800
+        # (  # noqa: E800
+        #     self.unbond_service_on_chain_from_safe  # noqa: E800
+        #     if from_safe  # noqa: E800
+        #     else self.unbond_service_on_chain  # noqa: E800
+        # )(  # noqa: E800
+        #     hash=old_hash,  # noqa: E800
+        # )  # noqa: E800
 
-        owner, *_ = old_service.chain_data.instances
-        if from_safe:
-            sftx = self.get_eth_safe_tx_builder(service=old_service)
-            sftx.new_tx().add(
-                sftx.get_swap_data(
-                    service_id=old_service.chain_data.token,
-                    multisig=old_service.chain_data.multisig,
-                    owner_key=str(self.keys_manager.get(key=owner).private_key),
-                )
-            ).settle()
-        else:
-            ocm = self.get_on_chain_manager(service=old_service)
-            ocm.swap(
-                service_id=old_service.chain_data.token,
-                multisig=old_service.chain_data.multisig,
-                owner_key=str(self.keys_manager.get(key=owner).private_key),
-            )
+        # owner, *_ = old_service.chain_data.instances  # noqa: E800
+        # if from_safe:  # noqa: E800
+        #     sftx = self.get_eth_safe_tx_builder(service=old_service)  # noqa: E800
+        #     sftx.new_tx().add(  # noqa: E800
+        #         sftx.get_swap_data(  # noqa: E800
+        #             service_id=old_service.chain_data.token,  # noqa: E800
+        #             multisig=old_service.chain_data.multisig,  # noqa: E800
+        #             owner_key=str(self.keys_manager.get(key=owner).private_key),  # noqa: E800
+        #         )  # noqa: E800
+        #     ).settle()  # noqa: E800
+        # else:  # noqa: E800
+        #     ocm = self.get_on_chain_manager(service=old_service)  # noqa: E800
+        #     ocm.swap(  # noqa: E800
+        #         service_id=old_service.chain_data.token,  # noqa: E800
+        #         multisig=old_service.chain_data.multisig,  # noqa: E800
+        #         owner_key=str(self.keys_manager.get(key=owner).private_key),  # noqa: E800
+        #     )  # noqa: E800
 
         new_service = self.create_or_load(
             hash=new_hash,
