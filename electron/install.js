@@ -23,7 +23,7 @@ const TempDir = `${OperateDirectory}/temp`;
 const VersionFile = `${OperateDirectory}/version.txt`;
 const LogFile = `${OperateDirectory}/logs.txt`;
 const OperateInstallationLog = `${os.homedir()}/operate.log`;
-const OperateCmd = `${os.homedir()}/dist/${os.platform()}/pearl/pearl`;
+const OperateCmd = `${os.homedir()}/dist/pearl/pearl`;
 const Env = {
   ...process.env,
   PATH: `${process.env.PATH}:/opt/homebrew/bin:/usr/local/bin`,
