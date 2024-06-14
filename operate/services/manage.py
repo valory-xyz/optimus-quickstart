@@ -942,45 +942,45 @@ class ServiceManager:
         # This is a temporary fix that will only work for services that have not started the
         # update flow. Services having started the update flow must need to manually change
         # the Safe owner to the Operator.
-        # (
-        #     self.unstake_service_on_chain_from_safe
-        #     if from_safe
-        #     else self.unstake_service_on_chain
-        # )(
-        #     hash=old_hash,
-        # )
-        # (
-        #     self.terminate_service_on_chain_from_safe
-        #     if from_safe
-        #     else self.terminate_service_on_chain
-        # )(
-        #     hash=old_hash,
-        # )
-        # (
-        #     self.unbond_service_on_chain_from_safe
-        #     if from_safe
-        #     else self.unbond_service_on_chain
-        # )(
-        #     hash=old_hash,
-        # )
+        # (  # noqa: E800
+        #     self.unstake_service_on_chain_from_safe  # noqa: E800
+        #     if from_safe  # noqa: E800
+        #     else self.unstake_service_on_chain  # noqa: E800
+        # )(  # noqa: E800
+        #     hash=old_hash,  # noqa: E800
+        # )  # noqa: E800
+        # (  # noqa: E800
+        #     self.terminate_service_on_chain_from_safe  # noqa: E800
+        #     if from_safe  # noqa: E800
+        #     else self.terminate_service_on_chain  # noqa: E800
+        # )(  # noqa: E800
+        #     hash=old_hash,  # noqa: E800
+        # )  # noqa: E800
+        # (  # noqa: E800
+        #     self.unbond_service_on_chain_from_safe  # noqa: E800
+        #     if from_safe  # noqa: E800
+        #     else self.unbond_service_on_chain  # noqa: E800
+        # )(  # noqa: E800
+        #     hash=old_hash,  # noqa: E800
+        # )  # noqa: E800
 
-        # owner, *_ = old_service.chain_data.instances
-        # if from_safe:
-        #     sftx = self.get_eth_safe_tx_builder(service=old_service)
-        #     sftx.new_tx().add(
-        #         sftx.get_swap_data(
-        #             service_id=old_service.chain_data.token,
-        #             multisig=old_service.chain_data.multisig,
-        #             owner_key=str(self.keys_manager.get(key=owner).private_key),
-        #         )
-        #     ).settle()
-        # else:
-        #     ocm = self.get_on_chain_manager(service=old_service)
-        #     ocm.swap(
-        #         service_id=old_service.chain_data.token,
-        #         multisig=old_service.chain_data.multisig,
-        #         owner_key=str(self.keys_manager.get(key=owner).private_key),
-        #     )
+        # owner, *_ = old_service.chain_data.instances  # noqa: E800
+        # if from_safe:  # noqa: E800
+        #     sftx = self.get_eth_safe_tx_builder(service=old_service)  # noqa: E800
+        #     sftx.new_tx().add(  # noqa: E800
+        #         sftx.get_swap_data(  # noqa: E800
+        #             service_id=old_service.chain_data.token,  # noqa: E800
+        #             multisig=old_service.chain_data.multisig,  # noqa: E800
+        #             owner_key=str(self.keys_manager.get(key=owner).private_key),  # noqa: E800
+        #         )  # noqa: E800
+        #     ).settle()  # noqa: E800
+        # else:  # noqa: E800
+        #     ocm = self.get_on_chain_manager(service=old_service)  # noqa: E800
+        #     ocm.swap(  # noqa: E800
+        #         service_id=old_service.chain_data.token,  # noqa: E800
+        #         multisig=old_service.chain_data.multisig,  # noqa: E800
+        #         owner_key=str(self.keys_manager.get(key=owner).private_key),  # noqa: E800
+        #     )  # noqa: E800
 
         new_service = self.create_or_load(
             hash=new_hash,
