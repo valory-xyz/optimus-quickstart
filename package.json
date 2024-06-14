@@ -56,5 +56,4 @@
     "start": "electron .",
     "build": "rm -rf dist/ && electron-builder build"
   }
-  
 }

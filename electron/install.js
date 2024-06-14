@@ -177,7 +177,7 @@ async function downloadFile(url, dest) {
       writer.on('error', reject);
     });
   } catch (err) {
-    fs.unlink(dest, () => {}); // Delete the file if there is an error
+    fs.unlink(dest, () => { }); // Delete the file if there is an error
     console.error('Error downloading the file:', err.message);
   }
 }
