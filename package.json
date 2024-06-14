@@ -55,6 +55,6 @@
     "test:frontend": "cd frontend && yarn test",
     "start": "electron .",
     "build": "rm -rf dist/ && electron-builder build"
-  },
+  }
   
 }
