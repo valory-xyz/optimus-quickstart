@@ -932,7 +932,7 @@ class ServiceManager:
         new_hash: str,
         rpc: t.Optional[str] = None,
         on_chain_user_params: t.Optional[OnChainUserParams] = None,
-        from_safe: bool = True,
+        from_safe: bool = True,  # pylint: disable=unused-argument
     ) -> Service:
         """Update a service."""
         old_service = self.create_or_load(
