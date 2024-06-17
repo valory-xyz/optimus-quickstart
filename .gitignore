@@ -43,3 +43,4 @@ leak_report
 
 *.dist
 *.build
+/electron/bins/
