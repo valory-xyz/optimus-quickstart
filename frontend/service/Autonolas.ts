@@ -83,8 +83,6 @@ const getAgentStakingRewardsInfo = async ({
     lastTsCheckpoint,
   ] = multicallResponse;
 
-  console.log('multicallResponse', multicallResponse);
-
   /**
    * struct ServiceInfo {
     // Service multisig address
