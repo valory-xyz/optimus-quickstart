@@ -83,6 +83,8 @@ const getAgentStakingRewardsInfo = async ({
     lastTsCheckpoint,
   ] = multicallResponse;
 
+  console.log('multicallResponse', multicallResponse);
+
   /**
    * struct ServiceInfo {
     // Service multisig address
@@ -100,7 +102,12 @@ const getAgentStakingRewardsInfo = async ({
    */
 
   const requiredMechRequests =
-    (Math.ceil(Math.max(livenessPeriod, Date.now() * 1000 - lastTsCheckpoint)) *
+    (Math.ceil(
+      Math.max(
+        livenessPeriod,
+        Math.round(Date.now() / 1000) - lastTsCheckpoint,
+      ),
+    ) *
       livenessRatio) /
       1e18 +
     REQUIRED_MECH_REQUESTS_SAFETY_MARGIN;
