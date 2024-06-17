@@ -385,7 +385,7 @@ def _setup_agent(working_dir: Path) -> None:
         encoding="utf-8",
     )
 
-    abin = os.getcwd() + '/dist/aea_bin/aea_bin'
+    abin = 'aea_bin'
     # Fetch agent
     _run_cmd(
         args=[
@@ -430,7 +430,7 @@ def _setup_agent(working_dir: Path) -> None:
 def _start_agent(working_dir: Path) -> None:
     """Start agent process."""
     env = json.loads((working_dir / "agent.json").read_text(encoding="utf-8"))
-    aea_bin = os.getcwd() + '/dist/aea_bin/aea_bin'
+    aea_bin = 'aea_bin'
     process = subprocess.Popen(  # pylint: disable=consider-using-with # nosec
         args=[aea_bin, "run"],
         cwd=working_dir / "agent",
@@ -450,7 +450,7 @@ def _start_agent(working_dir: Path) -> None:
 def _start_tendermint(working_dir: Path) -> None:
     """Start tendermint process."""
     env = json.loads((working_dir / "tendermint.json").read_text(encoding="utf-8"))
-    tendermint_com = os.getcwd() + "/dist/tendermint/tendermint"
+    tendermint_com = "tendermint"
     process = subprocess.Popen(  # pylint: disable=consider-using-with # nosec
         args=[tendermint_com],
         cwd=working_dir,
