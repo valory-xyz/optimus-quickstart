@@ -248,7 +248,7 @@ class StakingManager(OnChainHelper):
         """Check if service can be staked."""
         status = self.status(service_id, staking_contract)
         if status == StakingState.STAKED:
-            raise ValueError("Service already stacked")
+            raise ValueError("Service already staked")
 
         if status == StakingState.EVICTED:
             raise ValueError("Service is evicted")
@@ -328,10 +328,9 @@ class StakingManager(OnChainHelper):
         staking_contract: str,
     ) -> None:
         """Check unstaking availability"""
-        if (
-            self.status(service_id=service_id, staking_contract=staking_contract)
-            != StakingState.STAKED
-        ):
+        if self.status(
+            service_id=service_id, staking_contract=staking_contract
+        ) not in {StakingState.STAKED, StakingState.EVICTED}:
             raise ValueError("Service not staked.")
 
         ts_start = t.cast(int, self.service_info(staking_contract, service_id)[3])
