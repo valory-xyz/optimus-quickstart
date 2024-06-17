@@ -355,10 +355,10 @@ def _setup_agent(working_dir: Path) -> None:
     """Setup agent."""
     env = json.loads((working_dir / "agent.json").read_text(encoding="utf-8"))
     # Patch for trader agent
-    if "SKILL_TRADER_ABCI_MODELS_PARAMS_ARGS_POLICY_STORE_PATH" in env:
+    if "SKILL_TRADER_ABCI_MODELS_PARAMS_ARGS_STORE_PATH" in env:
         data_dir = working_dir / "data"
         data_dir.mkdir(exist_ok=True)
-        env["SKILL_TRADER_ABCI_MODELS_PARAMS_ARGS_POLICY_STORE_PATH"] = str(data_dir)
+        env["SKILL_TRADER_ABCI_MODELS_PARAMS_ARGS_STORE_PATH"] = str(data_dir)
 
     # TODO: Dynamic port allocation, backport to service builder
     env["CONNECTION_ABCI_CONFIG_HOST"] = "localhost"

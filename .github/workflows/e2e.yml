@@ -21,7 +21,7 @@ jobs:
           node-version: "20.11"
     - name: Setup
       run:  |
-        npm install
+        yarn
         # Uninstall brew
         sudo bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/uninstall.sh)"
     - name: Run Test

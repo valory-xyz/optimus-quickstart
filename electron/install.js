@@ -1,6 +1,6 @@
 // Installation helpers.
 
-const nfs = require('node:fs')
+const nfs = require('node:fs');
 const fs = require('fs');
 const os = require('os');
 const sudo = require('sudo-prompt');
@@ -9,14 +9,14 @@ const axios = require('axios');
 
 const Docker = require('dockerode');
 const { spawnSync } = require('child_process');
-const { BrewScript } = require("./scripts")
+const { BrewScript } = require('./scripts');
 
 /**
  * current version of the pearl release
  * - use "" (nothing as a suffix) for latest release candidate, for example "0.1.0rc26"
  * - use "alpha" for alpha release, for example "0.1.0rc26-alpha"
  */
-const OlasMiddlewareVersion = '0.1.0rc40';
+const OlasMiddlewareVersion = '0.1.0rc47';
 const OperateDirectory = `${os.homedir()}/.operate`;
 const VenvDir = `${OperateDirectory}/venv`;
 const TempDir = `${OperateDirectory}/temp`;
@@ -86,9 +86,9 @@ function runCmdUnix(command, options) {
             Error: ${output.error}; Stdout: ${output.stdout}; Stderr: ${output.stderr}`,
     );
   }
-  console.log(appendLog(`Executed ${command} ${options} with`))
-  console.log(appendLog(`===== stdout =====  \n${output.stdout}`))
-  console.log(appendLog(`===== stderr =====  \n${output.stderr}`))
+  console.log(appendLog(`Executed ${command} ${options} with`));
+  console.log(appendLog(`===== stdout =====  \n${output.stdout}`));
+  console.log(appendLog(`===== stderr =====  \n${output.stderr}`));
 }
 
 function runSudoUnix(command, options) {
@@ -112,10 +112,10 @@ function runSudoUnix(command, options) {
             Error: ${output.error}; Stdout: ${output.stdout}; Stderr: ${output.stderr}`,
           );
         }
-        console.log(appendLog(`Executed ${command} ${options} with`))
-        console.log(appendLog(`===== stdout =====  \n${output.stdout}`))
-        console.log(appendLog(`===== stderr =====  \n${output.stderr}`))
-        resolve()
+        console.log(appendLog(`Executed ${command} ${options} with`));
+        console.log(appendLog(`===== stdout =====  \n${output.stdout}`));
+        console.log(appendLog(`===== stderr =====  \n${output.stderr}`));
+        resolve();
       },
     );
   });
@@ -126,37 +126,42 @@ function isBrewInstalled() {
 }
 
 async function installBrew() {
-  console.log(appendLog("Fetching homebrew source"))
-  let outdir = `${os.homedir()}/homebrew`
-  let outfile = `${os.homedir()}/homebrew.tar`
-  
+  console.log(appendLog('Fetching homebrew source'));
+  let outdir = `${os.homedir()}/homebrew`;
+  let outfile = `${os.homedir()}/homebrew.tar`;
+
   // Make temporary source dir
-  fs.mkdirSync(outdir)
-  
+  fs.mkdirSync(outdir);
+
   // Fetch brew source
-  runCmdUnix("curl", ["-L", "https://github.com/Homebrew/brew/tarball/master", "--output", outfile])
-  runCmdUnix("tar", ["-xvf", outfile, "--strip-components", "1", "-C", outdir])
-  
+  runCmdUnix('curl', [
+    '-L',
+    'https://github.com/Homebrew/brew/tarball/master',
+    '--output',
+    outfile,
+  ]);
+  runCmdUnix('tar', ['-xvf', outfile, '--strip-components', '1', '-C', outdir]);
+
   // Check for cache and uninstall leftovers
-  if (fs.existsSync("/opt/homebrew")) {
-    console.log(appendLog("Removing homebrew leftovers"))
+  if (fs.existsSync('/opt/homebrew')) {
+    console.log(appendLog('Removing homebrew leftovers'));
     if (!Env.CI) {
-      await runSudoUnix("rm", `-rf /opt/homebrew`)
+      await runSudoUnix('rm', `-rf /opt/homebrew`);
     } else {
-      fs.rmdirSync("/opt/homebrew")
+      fs.rmdirSync('/opt/homebrew');
     }
   }
 
-  console.log(appendLog("Installing homebrew"))
+  console.log(appendLog('Installing homebrew'));
   if (!Env.CI) {
-    await runSudoUnix("mv", `${outdir} /opt/homebrew`)
-    await runSudoUnix("chown", `-R ${os.userInfo().username} /opt/homebrew`)
+    await runSudoUnix('mv', `${outdir} /opt/homebrew`);
+    await runSudoUnix('chown', `-R ${os.userInfo().username} /opt/homebrew`);
   } else {
-    runCmdUnix("mv", [outdir, "/opt/homebrew"])
-    runCmdUnix("chown", ["-R", os.userInfo().username, "/opt/homebrew"])
+    runCmdUnix('mv', [outdir, '/opt/homebrew']);
+    runCmdUnix('chown', ['-R', os.userInfo().username, '/opt/homebrew']);
   }
-  runCmdUnix("brew", ["doctor"])
-  fs.rmSync(outfile)
+  runCmdUnix('brew', ['doctor']);
+  fs.rmSync(outfile);
 }
 
 function isTendermintInstalledUnix() {
@@ -177,7 +182,7 @@ async function downloadFile(url, dest) {
       writer.on('error', reject);
     });
   } catch (err) {
-    fs.unlink(dest, () => { }); // Delete the file if there is an error
+    fs.unlink(dest, () => {}); // Delete the file if there is an error
     console.error('Error downloading the file:', err.message);
   }
 }
@@ -199,8 +204,8 @@ async function installTendermintUnix() {
 
   // TOFIX: Install tendermint in .operate instead of globally
   if (!Env.CI) {
-    if (!fs.existsSync("/usr/local/bin")) {
-      await runSudoUnix('mkdir', '/usr/local/bin')
+    if (!fs.existsSync('/usr/local/bin')) {
+      await runSudoUnix('mkdir', '/usr/local/bin');
     }
     await runSudoUnix('install', 'tendermint /usr/local/bin/tendermint');
   }
