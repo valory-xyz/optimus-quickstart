@@ -179,6 +179,23 @@ def create_app(  # pylint: disable=too-many-locals, unused-argument, too-many-st
         if not status:
             logger.info(f"Funding job cancellation for {service} failed")
 
+    def pause_all_services_on_startup():
+        logger.info(f"stopping services on startup")
+        services = [i["hash"] for i in operate.service_manager().json]
+
+        for service in services:
+            if not operate.service_manager().exists(service=service):
+                continue
+            logger.info(f"stopping service {service}")
+            deployment = operate.service_manager().create_or_load(service).deployment
+            deployment.stop(force=True)
+            logger.info(f"Cancelling funding job for {service}")
+            cancel_funding_job(service=service)
+        logger.info(f"stopping services on startup: done")
+
+    # on backend app started we assume there are now started agents, so we force to pause all
+    pause_all_services_on_startup()
+
     app = FastAPI()
 
     app.add_middleware(
