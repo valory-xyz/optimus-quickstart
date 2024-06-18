@@ -51,7 +51,7 @@ jobs:
               with:
                 node-version: "20.11"
             - name: Download binary
-              run: curl -L -o electron/bins/pearl https://tempfileserver.staging.autonolas.tech/pearl && chmod +x electron/bins/pearl
+              run: mkdir electron/bins && curl -L -o electron/bins/pearl https://tempfileserver.staging.autonolas.tech/pearl && chmod +x electron/bins/pearl
             - uses: snok/install-poetry@v1
               with:
                 version: "1.7.1"
