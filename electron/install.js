@@ -336,7 +336,7 @@ function removeInstallationLogFile() {
 /*******************************/
 
 async function setupDarwin(ipcChannel) {
-  // removeInstallationLogFile();
+  removeInstallationLogFile();
   // console.log(appendLog('Checking brew installation'));
   // if (!isBrewInstalled()) {
   //   ipcChannel.send('response', 'Installing Pearl Daemon');
@@ -351,16 +351,16 @@ async function setupDarwin(ipcChannel) {
   //   installPythonDarwin();
   // }
   //
-  // console.log(appendLog('Creating required directories'));
-  // await createDirectory(`${OperateDirectory}`);
-  // await createDirectory(`${OperateDirectory}/temp`);
-  //
-  // console.log(appendLog('Checking tendermint installation'));
-  // if (!isTendermintInstalledUnix()) {
-  //   ipcChannel.send('response', 'Installing Pearl Daemon');
-  //   console.log(appendLog('Installing tendermint'));
-  //   await installTendermintUnix();
-  // }
+  console.log(appendLog('Creating required directories'));
+  await createDirectory(`${OperateDirectory}`);
+  await createDirectory(`${OperateDirectory}/temp`);
+
+  console.log(appendLog('Checking tendermint installation'));
+  if (!isTendermintInstalledUnix()) {
+    ipcChannel.send('response', 'Installing Pearl Daemon');
+    console.log(appendLog('Installing tendermint'));
+    await installTendermintUnix();
+  }
   //
   // if (!fs.existsSync(VenvDir)) {
   //   ipcChannel.send('response', 'Installing Pearl Daemon');
@@ -371,15 +371,15 @@ async function setupDarwin(ipcChannel) {
   //   installOperatePackageUnix(OperateDirectory);
   // }
   //
-  // console.log(appendLog('Checking if upgrade is required'));
-  // if (versionBumpRequired()) {
-  //   console.log(
-  //     appendLog(`Upgrading pearl daemon to ${OlasMiddlewareVersion}`),
-  //   );
-  //   reInstallOperatePackageUnix(OperateDirectory);
-  //   writeVersion();
-  //   removeLogFile();
-  // }
+  console.log(appendLog('Checking if upgrade is required'));
+  if (versionBumpRequired()) {
+    console.log(
+      appendLog(`Upgrading pearl daemon to ${OlasMiddlewareVersion}`),
+    );
+    reInstallOperatePackageUnix(OperateDirectory);
+    writeVersion();
+    removeLogFile();
+  }
   //
   // if (!fs.existsSync(`${OperateDirectory}/venv/bin/operate`)) {
   //   reInstallOperatePackageUnix(OperateDirectory);
