@@ -42,7 +42,7 @@ from operate import services
 from operate.account.user import UserAccount
 from operate.constants import KEY, KEYS, OPERATE, SERVICES
 from operate.ledger import get_ledger_type_from_chain_type
-from operate.types import ChainType
+from operate.types import ChainType, DeploymentStatus
 from operate.wallet.master import MasterWalletManager
 
 
@@ -186,8 +186,10 @@ def create_app(  # pylint: disable=too-many-locals, unused-argument, too-many-st
         for service in services:
             if not operate.service_manager().exists(service=service):
                 continue
-            logger.info(f"stopping service {service}")
             deployment = operate.service_manager().create_or_load(service).deployment
+            if deployment.status == DeploymentStatus.DELETED:
+                continue
+            logger.info(f"stopping service {service}")
             deployment.stop(force=True)
             logger.info(f"Cancelling funding job for {service}")
             cancel_funding_job(service=service)
