@@ -790,9 +790,9 @@ class Deployment(LocalResource):
         self.status = DeploymentStatus.DEPLOYED
         self.store()
 
-    def stop(self, use_docker: bool = False) -> None:
+    def stop(self, use_docker: bool = False, force: bool=False) -> None:
         """Stop the deployment."""
-        if self.status != DeploymentStatus.DEPLOYED:
+        if self.status != DeploymentStatus.DEPLOYED and not force:
             return
 
         self.status = DeploymentStatus.STOPPING

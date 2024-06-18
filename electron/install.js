@@ -16,7 +16,7 @@ const { BrewScript } = require('./scripts');
  * - use "" (nothing as a suffix) for latest release candidate, for example "0.1.0rc26"
  * - use "alpha" for alpha release, for example "0.1.0rc26-alpha"
  */
-const OlasMiddlewareVersion = '0.1.0rc49';
+const OlasMiddlewareVersion = '0.1.0rc50';
 const OperateDirectory = `${os.homedir()}/.operate`;
 const VenvDir = `${OperateDirectory}/venv`;
 const TempDir = `${OperateDirectory}/temp`;
