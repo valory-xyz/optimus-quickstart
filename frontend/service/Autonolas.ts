@@ -99,13 +99,10 @@ const getAgentStakingRewardsInfo = async ({
     uint256 inactivity;}
    */
 
+  const nowInSeconds = Math.round(Date.now() / 1000);
+
   const requiredMechRequests =
-    (Math.ceil(
-      Math.max(
-        livenessPeriod,
-        Math.round(Date.now() / 1000) - lastTsCheckpoint,
-      ),
-    ) *
+    (Math.ceil(Math.max(livenessPeriod, nowInSeconds - lastTsCheckpoint)) *
       livenessRatio) /
       1e18 +
     REQUIRED_MECH_REQUESTS_SAFETY_MARGIN;
@@ -140,16 +137,22 @@ const getAgentStakingRewardsInfo = async ({
 const getAvailableRewardsForEpoch = async (): Promise<number | undefined> => {
   const contractCalls = [
     serviceStakingTokenMechUsageContract.rewardsPerSecond(),
-    serviceStakingTokenMechUsageContract.livenessPeriod(),
+    serviceStakingTokenMechUsageContract.epochLength(),
+    serviceStakingTokenMechUsageContract.tsCheckpoint(), // last checkpoint timestamp
   ];
 
   await gnosisMulticallProvider.init();
 
   const multicallResponse = await gnosisMulticallProvider.all(contractCalls);
 
-  const [rewardsPerSecond, livenessPeriod] = multicallResponse;
+  const [rewardsPerSecond, epochLength, tsCheckpoint] = multicallResponse;
 
-  return rewardsPerSecond * livenessPeriod;
+  const nowInSeconds = Math.round(Date.now() / 1000);
+
+  return Math.max(
+    rewardsPerSecond * epochLength,
+    rewardsPerSecond * (nowInSeconds - tsCheckpoint),
+  );
 };
 
 const getServiceRegistryInfo = async (
