@@ -930,7 +930,7 @@ class ServiceManager:
                     failed_health_checks += 1
                 else:
                     failed_health_checks = 0
-                if failed_health_checks >= 5:
+                if failed_health_checks >= 4:
                     self.stop_service_locally(hash=hash)
                     self.deploy_service_locally(hash=hash)
 
@@ -938,7 +938,7 @@ class ServiceManager:
                 logging.info(
                     f"Error occured while checking the service health\n{traceback.format_exc()}"
                 )
-            await asyncio.sleep(60)
+            await asyncio.sleep(30)
 
     def deploy_service_locally(self, hash: str, force: bool = True) -> Deployment:
         """
