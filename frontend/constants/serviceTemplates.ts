@@ -3,7 +3,7 @@ import { ServiceTemplate } from '@/client';
 export const SERVICE_TEMPLATES: ServiceTemplate[] = [
   {
     name: 'Trader Agent',
-    hash: 'bafybeiblmttux62rqbo2pmtyu5hwd6mcb2mj3b3tchd6lq5rsvdhotrfsq',
+    hash: 'bafybeicihxhw2djlsuoy2eji3g2tmasipfqe3rwsfvzbd2j3tvphqvp7aa',
     description: 'Trader agent for omen prediction markets',
     image:
       'https://operate.olas.network/_next/image?url=%2Fimages%2Fprediction-agent.png&w=3840&q=75',
