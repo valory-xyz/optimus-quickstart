@@ -63,7 +63,7 @@ HTTP_OK = 200
 async def check_service_health() -> bool:
     """Check the service health"""
     async with aiohttp.ClientSession() as session:
-        async with session.get("http://localhost:8000/healthcheck") as resp:
+        async with session.get("http://localhost:8716/healthcheck") as resp:
             status = resp.status
             response_json = await resp.json()
             return status == HTTP_OK and response_json.get(
