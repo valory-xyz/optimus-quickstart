@@ -99,7 +99,7 @@ const getAgentStakingRewardsInfo = async ({
     uint256 inactivity;}
    */
 
-  const nowInSeconds = Math.round(Date.now() / 1000);
+  const nowInSeconds = Math.floor(Date.now() / 1000);
 
   const requiredMechRequests =
     (Math.ceil(Math.max(livenessPeriod, nowInSeconds - lastTsCheckpoint)) *
@@ -147,7 +147,7 @@ const getAvailableRewardsForEpoch = async (): Promise<number | undefined> => {
 
   const [rewardsPerSecond, epochLength, tsCheckpoint] = multicallResponse;
 
-  const nowInSeconds = Math.round(Date.now() / 1000);
+  const nowInSeconds = Math.floor(Date.now() / 1000);
 
   return Math.max(
     rewardsPerSecond * epochLength,
