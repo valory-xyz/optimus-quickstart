@@ -280,7 +280,7 @@ async function launchDaemon() {
   // Free up backend port if already occupied
   try {
     await fetch(`http://localhost:${appConfig.ports.prod.operate}/api`);
-    console.log('Killing backend server!');
+    appendLog('Killing backend server!');
     let endpoint = fs
       .readFileSync(`${OperateDirectory}/operate.kill`)
       .toString()
@@ -288,8 +288,9 @@ async function launchDaemon() {
       .trimRight();
     await fetch(`http://localhost:${appConfig.ports.prod.operate}/${endpoint}`);
   } catch (err) {
-    console.log('Backend not running!');
+    appendLog('Backend not running!');
   }
+  appendLog(`Starting backend server! Opeate cmd: ${OperateCmd}`);
 
   const check = new Promise(function (resolve, _reject) {
     operateDaemon = spawn(
