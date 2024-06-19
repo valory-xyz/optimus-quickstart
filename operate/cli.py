@@ -198,9 +198,9 @@ def create_app(  # pylint: disable=too-many-locals, unused-argument, too-many-st
 
     def pause_all_services_on_startup():
         logger.info("Stopping services on startup...")
-        services = [i["hash"] for i in operate.service_manager().json]
+        service_hashes = [i["hash"] for i in operate.service_manager().json]
 
-        for service in services:
+        for service in service_hashes:
             if not operate.service_manager().exists(service=service):
                 continue
             deployment = operate.service_manager().create_or_load(service).deployment
