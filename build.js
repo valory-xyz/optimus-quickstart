@@ -18,6 +18,9 @@ const main = async () => {
       directories: {
         output: 'dist',
       },
+      extraFiles: [
+          "bins/"
+      ],
       cscKeyPassword: process.env.CSC_KEY_PASSWORD,
       cscLink: process.env.CSC_LINK,
       mac: {
