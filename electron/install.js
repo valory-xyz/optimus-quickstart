@@ -371,15 +371,15 @@ async function setupDarwin(ipcChannel) {
   //   installOperatePackageUnix(OperateDirectory);
   // }
   //
-  // console.log(appendLog('Checking if upgrade is required'));
-  // if (versionBumpRequired()) {
-  //   console.log(
-  //     appendLog(`Upgrading pearl daemon to ${OlasMiddlewareVersion}`),
-  //   );
-  //   // reInstallOperatePackageUnix(OperateDirectory);
-  //   writeVersion();
-  //   removeLogFile();
-  // }
+  console.log(appendLog('Checking if upgrade is required'));
+  if (versionBumpRequired()) {
+    console.log(
+      appendLog(`Upgrading pearl daemon to ${OlasMiddlewareVersion}`),
+    );
+    // reInstallOperatePackageUnix(OperateDirectory);
+    writeVersion();
+    removeLogFile();
+  }
   //
   // if (!fs.existsSync(`${OperateDirectory}/venv/bin/operate`)) {
   //   reInstallOperatePackageUnix(OperateDirectory);
