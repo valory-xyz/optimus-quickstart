@@ -479,6 +479,7 @@ module.exports = {
   OperateDirectory,
   OperateCmd,
   Env,
+  appendLog,
   dirs: {
     VersionFile,
     LogFile,

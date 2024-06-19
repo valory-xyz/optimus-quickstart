@@ -25,7 +25,7 @@ const {
   OperateCmd,
   OperateDirectory,
   Env,
-  dirs,
+  dirs, appendLog,
 } = require('./install');
 const { killProcesses } = require('./processes');
 const { isPortAvailable, findAvailablePort } = require('./ports');
@@ -409,23 +409,23 @@ async function launchNextAppDev() {
 ipcMain.on('check', async function (event, _argument) {
   // Update
   try {
-    macUpdater.checkForUpdates().then((res) => {
-      if (!res) return;
-      if (!res.downloadPromise) return;
-
-      new Notification({
-        title: 'Update Available',
-        body: 'Downloading update...',
-      }).show();
-
-      res.downloadPromise.then(() => {
-        new Notification({
-          title: 'Update Downloaded',
-          body: 'Restarting application...',
-        }).show();
-        macUpdater.quitAndInstall();
-      });
-    });
+    // macUpdater.checkForUpdates().then((res) => {
+    //   if (!res) return;
+    //   if (!res.downloadPromise) return;
+    //
+    //   new Notification({
+    //     title: 'Update Available',
+    //     body: 'Downloading update...',
+    //   }).show();
+    //
+    //   res.downloadPromise.then(() => {
+    //     new Notification({
+    //       title: 'Update Downloaded',
+    //       body: 'Restarting application...',
+    //     }).show();
+    //     macUpdater.quitAndInstall();
+    //   });
+    // });
   } catch (e) {
     console.error(e);
   }
@@ -436,6 +436,7 @@ ipcMain.on('check', async function (event, _argument) {
     if (!isDev) {
       if (platform === 'darwin') {
         await setupDarwin(event.sender);
+        appendLog('Darwin setup complete')
       } else if (platform === 'win32') {
         // TODO
       } else {
@@ -477,8 +478,9 @@ ipcMain.on('check', async function (event, _argument) {
       await launchNextAppDev();
     } else {
       event.sender.send('response', 'Starting Pearl Daemon');
+      appendLog('Launching daemon')
       await launchDaemon();
-
+      appendLog('Launched daemon')
       event.sender.send('response', 'Starting Frontend Server');
       const frontendPortAvailable = await isPortAvailable(
         appConfig.ports.prod.next,
