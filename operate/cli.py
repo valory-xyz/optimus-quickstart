@@ -196,7 +196,7 @@ def create_app(  # pylint: disable=too-many-locals, unused-argument, too-many-st
         if not status:
             logger.info(f"Funding job cancellation for {service} failed")
 
-    def pause_all_services_on_startup():
+    def pause_all_services_on_startup() -> None:
         logger.info("Stopping services on startup...")
         service_hashes = [i["hash"] for i in operate.service_manager().json]
 
