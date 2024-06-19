@@ -197,7 +197,7 @@ def create_app(  # pylint: disable=too-many-locals, unused-argument, too-many-st
             logger.info(f"Funding job cancellation for {service} failed")
 
     def pause_all_services_on_startup():
-        logger.info(f"stopping services on startup")
+        logger.info("Stopping services on startup...")
         services = [i["hash"] for i in operate.service_manager().json]
 
         for service in services:
@@ -210,7 +210,7 @@ def create_app(  # pylint: disable=too-many-locals, unused-argument, too-many-st
             deployment.stop(force=True)
             logger.info(f"Cancelling funding job for {service}")
             cancel_funding_job(service=service)
-        logger.info(f"stopping services on startup: done")
+        logger.info("Stopping services on startup done.")
 
     def cancel_healthcheck_job(service: str) -> None:
         """Cancel healthcheck job."""
