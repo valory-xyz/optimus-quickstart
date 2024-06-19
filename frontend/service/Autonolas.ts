@@ -113,8 +113,8 @@ const getAgentStakingRewardsInfo = async ({
   const isEligibleForRewards = eligibleRequests >= requiredMechRequests;
 
   const availableRewardsForEpoch = Math.max(
-    rewardsPerSecond * livenessPeriod,
-    rewardsPerSecond * (nowInSeconds - tsCheckpoint),
+    rewardsPerSecond * livenessPeriod, // expected rewards for the epoch
+    rewardsPerSecond * (nowInSeconds - tsCheckpoint), // incase of late checkpoint
   );
 
   // Minimum staked amount is double the minimum staking deposit
@@ -153,8 +153,8 @@ const getAvailableRewardsForEpoch = async (): Promise<number | undefined> => {
   const nowInSeconds = Math.floor(Date.now() / 1000);
 
   return Math.max(
-    rewardsPerSecond * livenessPeriod,
-    rewardsPerSecond * (nowInSeconds - tsCheckpoint),
+    rewardsPerSecond * livenessPeriod, // expected rewards
+    rewardsPerSecond * (nowInSeconds - tsCheckpoint), // incase of late checkpoint
   );
 };
 
