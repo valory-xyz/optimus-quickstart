@@ -1,5 +1,8 @@
 const dotenv = require('dotenv');
 
+const console = require('electron-log/main'); // Supports log levels and file logging
+console.initialize();
+
 const {
   app,
   BrowserWindow,
@@ -19,14 +22,8 @@ const http = require('http');
 const AdmZip = require('adm-zip');
 const { TRAY_ICONS, TRAY_ICONS_PATHS } = require('./icons');
 
-const {
-  setupDarwin,
-  setupUbuntu,
-  OperateCmd,
-  OperateDirectory,
-  Env,
-  dirs, appendLog,
-} = require('./install');
+const { OperateDirectory, Env, dirs } = require('./install');
+
 const { killProcesses } = require('./processes');
 const { isPortAvailable, findAvailablePort } = require('./ports');
 const { PORT_RANGE, isWindows, isMac } = require('./constants');
@@ -42,6 +39,18 @@ if (!singleInstanceLock) app.quit();
 
 const platform = os.platform();
 const isDev = process.env.NODE_ENV === 'development';
+
+const cliPaths = {
+  prod: {
+    darwin: 'bins/pearl_arm64',
+    win32: 'bins/pearl.exe',
+    linux: 'bins/pearl',
+  },
+};
+
+const cliPath = path.join(process.resourcesPath, cliPaths.prod[platform]);
+
+console.log('CLI Path:', cliPath);
 
 let appConfig = {
   ports: {
@@ -280,21 +289,20 @@ async function launchDaemon() {
   // Free up backend port if already occupied
   try {
     await fetch(`http://localhost:${appConfig.ports.prod.operate}/api`);
-    appendLog('Killing backend server!');
+    console.log('Killing backend server!');
     let endpoint = fs
       .readFileSync(`${OperateDirectory}/operate.kill`)
       .toString()
-      .trimLeft()
-      .trimRight();
+      .trim();
+
     await fetch(`http://localhost:${appConfig.ports.prod.operate}/${endpoint}`);
   } catch (err) {
-    appendLog('Backend not running!');
+    console.log('Backend not running!');
   }
-  appendLog(`Starting backend server! Opeate cmd: ${OperateCmd}`);
 
   const check = new Promise(function (resolve, _reject) {
     operateDaemon = spawn(
-      OperateCmd,
+      cliPath,
       [
         'daemon',
         `--port=${appConfig.ports.prod.operate}`,
@@ -303,13 +311,13 @@ async function launchDaemon() {
       { env: Env },
     );
     operateDaemonPid = operateDaemon.pid;
-    fs.appendFileSync(
-      `${OperateDirectory}/operate.pip`,
-      `${operateDaemon.pid}`,
-      {
-        encoding: 'utf-8',
-      },
-    );
+    // fs.appendFileSync(
+    //   `${OperateDirectory}/operate.pip`,
+    //   `${operateDaemon.pid}`,
+    //   {
+    //     encoding: 'utf-8',
+    //   },
+    // );
 
     operateDaemon.stderr.on('data', (data) => {
       if (data.toString().includes('Uvicorn running on')) {
@@ -326,12 +334,15 @@ async function launchDaemon() {
       console.log(appendLog(data.toString().trim()));
     });
   });
+
   return await check;
 }
 
 async function launchDaemonDev() {
   const check = new Promise(function (resolve, _reject) {
-    operateDaemon = spawn(OperateCmd, [
+    operateDaemon = spawn('poetry', [
+      'run',
+      'operate',
       'daemon',
       `--port=${appConfig.ports.dev.operate}`,
       '--home=.operate',
@@ -412,12 +423,10 @@ ipcMain.on('check', async function (event, _argument) {
     // macUpdater.checkForUpdates().then((res) => {
     //   if (!res) return;
     //   if (!res.downloadPromise) return;
-    //
     //   new Notification({
     //     title: 'Update Available',
     //     body: 'Downloading update...',
     //   }).show();
-    //
     //   res.downloadPromise.then(() => {
     //     new Notification({
     //       title: 'Update Downloaded',
@@ -435,12 +444,11 @@ ipcMain.on('check', async function (event, _argument) {
     event.sender.send('response', 'Checking installation');
     if (!isDev) {
       if (platform === 'darwin') {
-        await setupDarwin(event.sender);
-        appendLog('Darwin setup complete')
+        //await setupDarwin(event.sender);
       } else if (platform === 'win32') {
         // TODO
       } else {
-        await setupUbuntu(event.sender);
+        //await setupUbuntu(event.sender);
       }
     }
 
@@ -478,9 +486,8 @@ ipcMain.on('check', async function (event, _argument) {
       await launchNextAppDev();
     } else {
       event.sender.send('response', 'Starting Pearl Daemon');
-      appendLog('Launching daemon')
       await launchDaemon();
-      appendLog('Launched daemon')
+
       event.sender.send('response', 'Starting Frontend Server');
       const frontendPortAvailable = await isPortAvailable(
         appConfig.ports.prod.next,

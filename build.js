@@ -18,8 +18,12 @@ const main = async () => {
       directories: {
         output: 'dist',
       },
-      extraFiles: [
-          "bins/"
+      extraResources: [
+        {
+          from: 'electron/bins',
+          to: 'bins',
+          filter: ['**/*'],
+        },
       ],
       cscKeyPassword: process.env.CSC_KEY_PASSWORD,
       cscLink: process.env.CSC_LINK,
@@ -37,9 +41,9 @@ const main = async () => {
         gatekeeperAssess: false,
         entitlements: 'electron/entitlements.mac.plist',
         entitlementsInherit: 'electron/entitlements.mac.plist',
-        // notarize: {
-        //   teamId: process.env.APPLETEAMID,
-        // },
+        notarize: {
+          teamId: process.env.APPLETEAMID,
+        },
       },
     },
   });

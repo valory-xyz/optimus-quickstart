@@ -16,14 +16,14 @@ const { BrewScript } = require('./scripts');
  * - use "" (nothing as a suffix) for latest release candidate, for example "0.1.0rc26"
  * - use "alpha" for alpha release, for example "0.1.0rc26-alpha"
  */
-const OlasMiddlewareVersion = '0.1.0rc53';
+const OlasMiddlewareVersion = '0.1.0rc55';
 const OperateDirectory = `${os.homedir()}/.operate`;
 const VenvDir = `${OperateDirectory}/venv`;
 const TempDir = `${OperateDirectory}/temp`;
 const VersionFile = `${OperateDirectory}/version.txt`;
 const LogFile = `${OperateDirectory}/logs.txt`;
 const OperateInstallationLog = `${os.homedir()}/operate.log`;
-const OperateCmd = `${__dirname}/bins/pearl_${process.arch}`;
+const OperateCmd = `${process.env.PORTABLE_EXECUTABLE_DIR}./bins/pearl_${process.arch}`;
 const Env = {
   ...process.env,
   PATH: `${process.env.PATH}:/opt/homebrew/bin:/usr/local/bin`,
