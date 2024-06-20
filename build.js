@@ -31,7 +31,7 @@ const main = async () => {
         target: [
           {
             target: 'default',
-            arch: ['arm64'],
+            arch: ['x64', 'arm64'],
           },
         ],
         publish: publishOptions,
