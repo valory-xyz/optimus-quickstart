@@ -41,14 +41,15 @@ const platform = os.platform();
 const isDev = process.env.NODE_ENV === 'development';
 
 const cliPaths = {
-  prod: {
-    darwin: 'bins/pearl_arm64',
-    win32: 'bins/pearl.exe',
-    linux: 'bins/pearl',
-  },
+    prod: {
+        darwin: {
+            arm64: 'bins/pearl_arm64',
+            x64: 'bins/pearl_x64',
+        }
+    },
 };
 
-const cliPath = path.join(process.resourcesPath, cliPaths.prod[platform]);
+const cliPath = path.join(process.resourcesPath, cliPaths.prod[platform][process.arch.toString()]);
 
 console.log('CLI Path:', cliPath);
 
