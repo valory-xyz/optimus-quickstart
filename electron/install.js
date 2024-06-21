@@ -23,7 +23,6 @@ const TempDir = `${OperateDirectory}/temp`;
 const VersionFile = `${OperateDirectory}/version.txt`;
 const LogFile = `${OperateDirectory}/logs.txt`;
 const OperateInstallationLog = `${os.homedir()}/operate.log`;
-const OperateCmd = `${process.env.PORTABLE_EXECUTABLE_DIR}./bins/pearl_${process.arch}`;
 const Env = {
   ...process.env,
   PATH: `${process.env.PATH}:/opt/homebrew/bin:/usr/local/bin`,
@@ -354,8 +353,8 @@ async function setupDarwin(ipcChannel) {
       appendLog(`Upgrading pearl daemon to ${OlasMiddlewareVersion}`),
     );
     writeVersion();
-    removeLogF    // reInstallOperatePackageUnix(OperateDirectory);
-ile();
+    removeLogFile();
+    // reInstallOperatePackageUnix(OperateDirectory);
   }
 }
 
@@ -447,7 +446,6 @@ module.exports = {
   startDocker,
   setupUbuntu,
   OperateDirectory,
-  OperateCmd,
   Env,
   appendLog,
   dirs: {

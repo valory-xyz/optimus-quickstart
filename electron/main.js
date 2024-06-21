@@ -40,18 +40,12 @@ if (!singleInstanceLock) app.quit();
 const platform = os.platform();
 const isDev = process.env.NODE_ENV === 'development';
 
-const cliPaths = {
-    prod: {
-        darwin: {
-            arm64: 'bins/pearl_arm64',
-            x64: 'bins/pearl_x64',
-        }
-    },
+const binaryPaths = {
+  darwin: {
+    arm64: 'bins/pearl_arm64',
+    x64: 'bins/pearl_x64',
+  },
 };
-
-const cliPath = path.join(process.resourcesPath, cliPaths.prod[platform][process.arch.toString()]);
-
-console.log('CLI Path:', cliPath);
 
 let appConfig = {
   ports: {
@@ -303,7 +297,10 @@ async function launchDaemon() {
 
   const check = new Promise(function (resolve, _reject) {
     operateDaemon = spawn(
-      cliPath,
+      path.join(
+        process.resourcesPath,
+        binaryPaths.prod[platform][process.arch.toString()],
+      ),
       [
         'daemon',
         `--port=${appConfig.ports.prod.operate}`,
