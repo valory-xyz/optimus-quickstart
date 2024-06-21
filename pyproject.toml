@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "olas-operate-middleware"
-version = "0.1.0-rc57"
+version = "0.1.0-rc50"
 description = ""
 authors = ["David Vilela <dvilelaf@gmail.com>", "Viraj Patel <vptl185@gmail.com>"]
 readme = "README.md"
@@ -45,6 +45,10 @@ uvicorn = "==0.27.0"
 web3 = "==6.1.0"
 psutil = "^5.9.8"
 pyinstaller = "^6.8.0"
+aiohttp = "3.9.5"
+
+[tool.poetry.group.development.dependencies]
+tomte = {version = "0.2.15", extras = ["cli"]}
 
 [build-system]
 requires = ["poetry-core"]

@@ -337,20 +337,6 @@ function removeInstallationLogFile() {
 
 async function setupDarwin(ipcChannel) {
   removeInstallationLogFile();
-  // console.log(appendLog('Checking brew installation'));
-  // if (!isBrewInstalled()) {
-  //   ipcChannel.send('response', 'Installing Pearl Daemon');
-  //   console.log(appendLog('Installing brew'));
-  //   await installBrew();
-  // }
-  //
-  // console.log(appendLog('Checking python installation'));
-  // if (!isPythonInstalledDarwin()) {
-  //   ipcChannel.send('response', 'Installing Pearl Daemon');
-  //   console.log(appendLog('Installing python'));
-  //   installPythonDarwin();
-  // }
-  //
   console.log(appendLog('Creating required directories'));
   await createDirectory(`${OperateDirectory}`);
   await createDirectory(`${OperateDirectory}/temp`);
@@ -361,32 +347,16 @@ async function setupDarwin(ipcChannel) {
     console.log(appendLog('Installing tendermint'));
     await installTendermintUnix();
   }
-  //
-  // if (!fs.existsSync(VenvDir)) {
-  //   ipcChannel.send('response', 'Installing Pearl Daemon');
-  //   console.log(appendLog('Creating virtual environment'));
-  //   createVirtualEnvUnix(VenvDir);
-  //
-  //   console.log(appendLog('Installing pearl backend'));
-  //   installOperatePackageUnix(OperateDirectory);
-  // }
-  //
+
   console.log(appendLog('Checking if upgrade is required'));
   if (versionBumpRequired()) {
     console.log(
       appendLog(`Upgrading pearl daemon to ${OlasMiddlewareVersion}`),
     );
-    // reInstallOperatePackageUnix(OperateDirectory);
     writeVersion();
-    removeLogFile();
+    removeLogF    // reInstallOperatePackageUnix(OperateDirectory);
+ile();
   }
-  //
-  // if (!fs.existsSync(`${OperateDirectory}/venv/bin/operate`)) {
-  //   reInstallOperatePackageUnix(OperateDirectory);
-  // }
-  //
-  // console.log(appendLog('Installing pearl CLI'));
-  // await installOperateCli('/opt/homebrew/bin/operate');
 }
 
 // TODO: Add Tendermint installation
