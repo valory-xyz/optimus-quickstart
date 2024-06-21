@@ -81,6 +81,7 @@ from operate.types import (
     OnChainUserParams,
 )
 
+
 SAFE_CONTRACT_ADDRESS = "safe_contract_address"
 ALL_PARTICIPANTS = "all_participants"
 CONSENSUS_THRESHOLD = "consensus_threshold"
@@ -296,7 +297,7 @@ class HostDeploymentGenerator(BaseDeploymentGenerator):
             encoding="utf-8",
         )
         shutil.copy(
-            tendermint.__file__.replace('.pyc', '.py'),
+            tendermint.__file__.replace(".pyc", ".py"),
             self.build_dir / "tendermint.py",
         )
         return self
@@ -386,7 +387,7 @@ def _setup_agent(working_dir: Path) -> None:
         encoding="utf-8",
     )
 
-    abin = str(Path(sys._MEIPASS) / 'aea_bin')
+    abin = str(Path(sys._MEIPASS) / "aea_bin")
     # Fetch agent
     _run_cmd(
         args=[
@@ -431,7 +432,7 @@ def _setup_agent(working_dir: Path) -> None:
 def _start_agent(working_dir: Path) -> None:
     """Start agent process."""
     env = json.loads((working_dir / "agent.json").read_text(encoding="utf-8"))
-    aea_bin = str(Path(sys._MEIPASS) / 'aea_bin')
+    aea_bin = str(Path(sys._MEIPASS) / "aea_bin")
     process = subprocess.Popen(  # pylint: disable=consider-using-with # nosec
         args=[aea_bin, "run"],
         cwd=working_dir / "agent",

@@ -639,7 +639,7 @@ def create_server() -> Any:
     return flask_app
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     # Start the Flask server programmatically
     app = create_server()
-    app.run(host='localhost', port=8080)
+    app.run(host="localhost", port=8080)
