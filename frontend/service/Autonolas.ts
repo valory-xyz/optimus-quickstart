@@ -140,7 +140,7 @@ const getAgentStakingRewardsInfo = async ({
 const getAvailableRewardsForEpoch = async (): Promise<number | undefined> => {
   const contractCalls = [
     serviceStakingTokenMechUsageContract.rewardsPerSecond(),
-    serviceStakingTokenMechUsageContract.livenessPeriod(), // epoch length?
+    serviceStakingTokenMechUsageContract.livenessPeriod(), // epoch length
     serviceStakingTokenMechUsageContract.tsCheckpoint(), // last checkpoint timestamp
   ];
 
