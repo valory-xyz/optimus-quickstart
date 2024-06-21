@@ -299,7 +299,7 @@ async function launchDaemon() {
     operateDaemon = spawn(
       path.join(
         process.resourcesPath,
-        binaryPaths.prod[platform][process.arch.toString()],
+        binaryPaths[platform][process.arch.toString()],
       ),
       [
         'daemon',
