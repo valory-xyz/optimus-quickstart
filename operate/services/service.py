@@ -387,7 +387,7 @@ def _setup_agent(working_dir: Path) -> None:
         encoding="utf-8",
     )
 
-    abin = str(Path(sys._MEIPASS) / "aea_bin")
+    abin = str(Path(sys._MEIPASS) / "aea_bin")  # type: ignore # pylint: disable=protected-access
     # Fetch agent
     _run_cmd(
         args=[
@@ -432,7 +432,7 @@ def _setup_agent(working_dir: Path) -> None:
 def _start_agent(working_dir: Path) -> None:
     """Start agent process."""
     env = json.loads((working_dir / "agent.json").read_text(encoding="utf-8"))
-    aea_bin = str(Path(sys._MEIPASS) / "aea_bin")
+    aea_bin = str(Path(sys._MEIPASS) / "aea_bin")  # type: ignore  # pylint: disable=protected-access
     process = subprocess.Popen(  # pylint: disable=consider-using-with # nosec
         args=[aea_bin, "run"],
         cwd=working_dir / "agent",
@@ -452,7 +452,7 @@ def _start_agent(working_dir: Path) -> None:
 def _start_tendermint(working_dir: Path) -> None:
     """Start tendermint process."""
     env = json.loads((working_dir / "tendermint.json").read_text(encoding="utf-8"))
-    tendermint_com = str(Path(sys._MEIPASS) / "tendermint")
+    tendermint_com = str(Path(sys._MEIPASS) / "tendermint")  # type: ignore  # pylint: disable=protected-access
     process = subprocess.Popen(  # pylint: disable=consider-using-with # nosec
         args=[tendermint_com],
         cwd=working_dir,
@@ -549,6 +549,7 @@ class Deployment(LocalResource):
         Create a new deployment
 
         :param path: Path to service
+        :return: Deployment object
         """
         deployment = Deployment(
             status=DeploymentStatus.CREATED,
@@ -761,6 +762,7 @@ class Deployment(LocalResource):
         """
         Build a deployment
 
+        :param use_docker: Use docker deployment
         :param force: Remove existing deployment and build a new one
         :return: Deployment object
         """
