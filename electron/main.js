@@ -1,3 +1,4 @@
+// @ts-check
 const dotenv = require('dotenv');
 
 const console = require('electron-log/main'); // Supports log levels and file logging
@@ -299,7 +300,7 @@ async function launchDaemon() {
     operateDaemon = spawn(
       path.join(
         process.resourcesPath,
-        binaryPaths.prod[platform][process.arch.toString()],
+        binaryPaths[platform][process.arch.toString()],
       ),
       [
         'daemon',
