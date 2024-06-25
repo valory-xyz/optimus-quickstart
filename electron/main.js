@@ -652,11 +652,11 @@ ipcMain.handle('save-logs', async (_, data) => {
   }
 
   // Remove temporary files
-  fs.unlinkSync(logFile);
-  fs.unlinkSync(installationLog);
-  fs.unlinkSync(osInfoFilePath);
-  if (storeFilePath) fs.unlinkSync(storeFilePath);
-  if (debugDataFilePath) fs.unlinkSync(debugDataFilePath);
+  logFile && fs.unlinkSync(logFile);
+  installationLog && fs.unlinkSync(installationLog);
+  osInfo && fs.unlinkSync(osInfoFilePath);
+  storeFilePath && fs.unlinkSync(storeFilePath);
+  debugDataFilePath && fs.unlinkSync(debugDataFilePath);
 
   return result;
 });
