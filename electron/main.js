@@ -22,7 +22,7 @@ const http = require('http');
 const AdmZip = require('adm-zip');
 const { TRAY_ICONS, TRAY_ICONS_PATHS } = require('./icons');
 
-const { OperateDirectory, Env, dirs } = require('./install');
+const { paths, Env } = require('./install');
 
 const { killProcesses } = require('./processes');
 const { isPortAvailable, findAvailablePort } = require('./ports');
@@ -275,9 +275,13 @@ const createMainWindow = () => {
 
 async function launchDaemon() {
   function appendLog(data) {
-    fs.appendFileSync(`${OperateDirectory}/logs.txt`, data.trim() + '\n', {
-      encoding: 'utf-8',
-    });
+    fs.appendFileSync(
+      `${paths.OperateDirectory}/logs.txt`,
+      data.trim() + '\n',
+      {
+        encoding: 'utf-8',
+      },
+    );
     return data;
   }
 
@@ -286,7 +290,7 @@ async function launchDaemon() {
     await fetch(`http://localhost:${appConfig.ports.prod.operate}/api`);
     console.log('Killing backend server!');
     let endpoint = fs
-      .readFileSync(`${OperateDirectory}/operate.kill`)
+      .readFileSync(`${paths.OperateDirectory}/operate.kill`)
       .toString()
       .trim();
 
@@ -304,13 +308,13 @@ async function launchDaemon() {
       [
         'daemon',
         `--port=${appConfig.ports.prod.operate}`,
-        `--home=${OperateDirectory}`,
+        `--home=${paths.OperateDirectory}`,
       ],
       { env: Env },
     );
     operateDaemonPid = operateDaemon.pid;
     // fs.appendFileSync(
-    //   `${OperateDirectory}/operate.pip`,
+    //   `${paths.OperateDirectory}/operate.pip`,
     //   `${operateDaemon.pid}`,
     //   {
     //     encoding: 'utf-8',
@@ -561,6 +565,8 @@ ipcMain.on('open-path', (_, filePath) => {
 });
 
 function getSanitizedLogs({ name, filePath, data }) {
+  if (filePath && !fs.existsSync(filePath)) return null;
+
   const logs = filePath ? fs.readFileSync(filePath, 'utf-8') : data;
   const tempDir = os.tmpdir();
 
@@ -576,13 +582,17 @@ function getSanitizedLogs({ name, filePath, data }) {
 // EXPORT LOGS
 ipcMain.handle('save-logs', async (_, data) => {
   // version.txt
-  const versionFile = dirs.VersionFile;
+  const versionFile = paths.VersionFile;
   // logs.txt
-  const logFile = getSanitizedLogs({ name: 'log.txt', filePath: dirs.LogFile });
+  const logFile = getSanitizedLogs({
+    name: 'log.txt',
+    filePath: paths.LogFile,
+  });
+
   // operate.log
   const installationLog = getSanitizedLogs({
     name: 'installation_log.txt',
-    filePath: dirs.OperateInstallationLog,
+    filePath: paths.OperateInstallationLog,
   });
 
   const tempDir = os.tmpdir();
@@ -617,12 +627,12 @@ ipcMain.handle('save-logs', async (_, data) => {
 
   // Create a zip archive
   const zip = new AdmZip();
-  zip.addLocalFile(versionFile);
-  zip.addLocalFile(logFile);
-  zip.addLocalFile(installationLog);
-  zip.addLocalFile(osInfoFilePath);
-  zip.addLocalFile(storeFilePath);
-  zip.addLocalFile(debugDataFilePath);
+  fs.existsSync(versionFile) && zip.addLocalFile(versionFile);
+  fs.existsSync(logFile) && zip.addLocalFile(logFile);
+  fs.existsSync(installationLog) && zip.addLocalFile(installationLog);
+  fs.existsSync(osInfoFilePath) && zip.addLocalFile(osInfoFilePath);
+  fs.existsSync(storeFilePath) && zip.addLocalFile(storeFilePath);
+  fs.existsSync(debugDataFilePath) && zip.addLocalFile(debugDataFilePath);
 
   // Show save dialog
   const { filePath } = await dialog.showSaveDialog({
@@ -642,11 +652,11 @@ ipcMain.handle('save-logs', async (_, data) => {
   }
 
   // Remove temporary files
-  fs.unlinkSync(logFile);
-  fs.unlinkSync(installationLog);
-  fs.unlinkSync(osInfoFilePath);
-  if (storeFilePath) fs.unlinkSync(storeFilePath);
-  if (debugDataFilePath) fs.unlinkSync(debugDataFilePath);
+  fs.existsSync(logFile) && fs.unlinkSync(logFile);
+  fs.existsSync(installationLog) && fs.unlinkSync(installationLog);
+  fs.existsSync(osInfo) && fs.unlinkSync(osInfoFilePath);
+  fs.existsSync(storeFilePath) && fs.unlinkSync(storeFilePath);
+  fs.existsSync(debugDataFilePath) && fs.unlinkSync(debugDataFilePath);
 
   return result;
 });

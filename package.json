@@ -13,7 +13,6 @@
     "axios": "^1.7.2",
     "child_process": "^1.0.2",
     "cross-env": "^7.0.3",
-    "dockerode": "^4.0.2",
     "dotenv": "^16.4.5",
     "electron-log": "^5.1.4",
     "electron-store": "^9.0.0",
