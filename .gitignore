@@ -23,6 +23,7 @@ frontend/build
 # python
 .tox/
 .operate/
+.operate*/
 __pycache__/
 data/
 backend/temp/
@@ -32,8 +33,14 @@ tmp/
 temp/
 
 !operate/data
-dist/
 electron/.next
+
+dist/
+build/
 
 cache
 leak_report
+
+*.dist
+*.build
+/electron/bins/

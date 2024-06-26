@@ -3,12 +3,12 @@ import { ServiceTemplate } from '@/client';
 export const SERVICE_TEMPLATES: ServiceTemplate[] = [
   {
     name: 'Trader Agent',
-    hash: 'bafybeiha6dxygx2ntgjxhs6zzymgqk3s5biy3ozeqw6zuhr6yxgjlebfmq',
+    hash: 'bafybeid2bg4ypzwqrd3etfwmwlvopyh2muuflbgp3ji6nzz2lzbmmytgty',
     description: 'Trader agent for omen prediction markets',
     image:
       'https://operate.olas.network/_next/image?url=%2Fimages%2Fprediction-agent.png&w=3840&q=75',
     configuration: {
-      nft: 'bafybeig64atqaladigoc3ds4arltdu63wkdrk3gesjfvnfdmz35amv7faq',
+      nft: 'bafybeiei7wb5jvrn7e7fss2t6ajnkjakgf7uaz42fvvlkolhpnez2dlfsy',
       agent_id: 14,
       threshold: 1,
       use_staking: true,

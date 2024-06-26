@@ -248,7 +248,7 @@ class StakingManager(OnChainHelper):
         """Check if service can be staked."""
         status = self.status(service_id, staking_contract)
         if status == StakingState.STAKED:
-            raise ValueError("Service already stacked")
+            raise ValueError("Service already staked")
 
         if status == StakingState.EVICTED:
             raise ValueError("Service is evicted")
@@ -328,10 +328,9 @@ class StakingManager(OnChainHelper):
         staking_contract: str,
     ) -> None:
         """Check unstaking availability"""
-        if (
-            self.status(service_id=service_id, staking_contract=staking_contract)
-            != StakingState.STAKED
-        ):
+        if self.status(
+            service_id=service_id, staking_contract=staking_contract
+        ) not in {StakingState.STAKED, StakingState.EVICTED}:
             raise ValueError("Service not staked.")
 
         ts_start = t.cast(int, self.service_info(staking_contract, service_id)[3])
@@ -680,7 +679,7 @@ class OnChainManager(_ChainUtil):
             key_file = Path(temp_dir, "key.txt")
             key_file.write_text(owner_key, encoding="utf-8")
             owner_crypto = EthereumCrypto(private_key_path=str(key_file))
-        owner_cryptos: list[EthereumCrypto] = [owner_crypto]
+        owner_cryptos: t.List[EthereumCrypto] = [owner_crypto]
         owners = [
             manager.ledger_api.api.to_checksum_address(owner_crypto.address)
             for owner_crypto in owner_cryptos

@@ -1,6 +1,6 @@
 const dotenv = require('dotenv');
 const build = require('electron-builder').build;
-const {publishOptions} = require('./electron/constants/publishOptions');
+const { publishOptions } = require('./electron/constants/publishOptions');
 
 dotenv.config();
 
@@ -18,13 +18,20 @@ const main = async () => {
       directories: {
         output: 'dist',
       },
+      extraResources: [
+        {
+          from: 'electron/bins',
+          to: 'bins',
+          filter: ['**/*'],
+        },
+      ],
       cscKeyPassword: process.env.CSC_KEY_PASSWORD,
       cscLink: process.env.CSC_LINK,
       mac: {
         target: [
           {
             target: 'default',
-            arch: ['x64','arm64'],
+            arch: ['x64', 'arm64'],
           },
         ],
         publish: publishOptions,
@@ -35,7 +42,7 @@ const main = async () => {
         entitlements: 'electron/entitlements.mac.plist',
         entitlementsInherit: 'electron/entitlements.mac.plist',
         notarize: {
-          teamId: process.env.APPLETEAMID
+          teamId: process.env.APPLETEAMID,
         },
       },
     },

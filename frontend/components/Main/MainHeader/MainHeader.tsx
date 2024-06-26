@@ -20,7 +20,8 @@ import { useStakingContractInfo } from '../../store/stackingContractInfo';
 const { Text, Title, Paragraph } = Typography;
 
 const LOADING_MESSAGE =
-  "It may take a while to start your agent, so feel free to close the app. We'll notify you once your agent is running.";
+  'Starting the agent may take a while, so feel free to minimize the app. We’ll notify you once it’s running. Please, don’t quit the app.';
+
 enum ServiceButtonLoadingState {
   Starting,
   Pausing,
