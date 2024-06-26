@@ -9,13 +9,17 @@ const initialState = {
   canStartAgent: false,
 };
 
-export const useStakingContractInfo = create<{
+type StakingContractInfoStore = {
   isStakingContractInfoLoading: boolean;
   isRewardsAvailable: boolean;
   hasEnoughServiceSlots: boolean;
   canStartAgent: boolean;
   fetchStakingContractInfo: () => Promise<void>;
-}>((set) => {
+};
+
+export const useStakingContractInfo = create<StakingContractInfoStore>()((
+  set,
+) => {
   return {
     ...initialState,
     isStakingContractInfoLoading: true,
@@ -27,9 +31,9 @@ export const useStakingContractInfo = create<{
 
         if (!info) return;
 
-        const { availableRewards, maxNumServices, getServiceIds } = info;
+        const { availableRewards, maxNumServices, serviceIds } = info;
         const isRewardsAvailable = availableRewards > 0;
-        const hasEnoughServiceSlots = getServiceIds.length < maxNumServices;
+        const hasEnoughServiceSlots = serviceIds.length < maxNumServices;
         const canStartAgent = isRewardsAvailable && hasEnoughServiceSlots;
 
         set({

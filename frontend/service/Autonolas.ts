@@ -179,13 +179,13 @@ const getStakingContractInfo = async (): Promise<
   const availableRewards = parseFloat(
     ethers.utils.formatUnits(availableRewardsInBN, 18),
   );
-  const getServiceIds = getServiceIdsInBN.map((id: BigNumber) => id.toNumber());
+  const serviceIds = getServiceIdsInBN.map((id: BigNumber) => id.toNumber());
   const maxNumServices = maxNumServicesInBN.toNumber();
 
   return {
     availableRewards,
     maxNumServices,
-    getServiceIds,
+    serviceIds,
   };
 };
 

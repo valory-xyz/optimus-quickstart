@@ -13,5 +13,5 @@ export type StakingRewardsInfo = {
 export type StakingContractInfo = {
   availableRewards: number;
   maxNumServices: number;
-  getServiceIds: number[];
+  serviceIds: number[];
 };
