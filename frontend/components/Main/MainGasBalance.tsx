@@ -77,7 +77,7 @@ export const MainGasBalance = () => {
       padding="16px 24px"
     >
       <Text type="secondary">
-        Gas and trading balance&nbsp;
+        Trading balance&nbsp;
         {masterSafeAddress && (
           <Tooltip
             title={
