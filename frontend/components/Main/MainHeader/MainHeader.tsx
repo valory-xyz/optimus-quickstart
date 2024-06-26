@@ -1,11 +1,25 @@
 import { InfoCircleOutlined } from '@ant-design/icons';
-import { Badge, Button, Flex, Modal, Popover, Typography } from 'antd';
+import {
+  Badge,
+  Button,
+  Flex,
+  Modal,
+  Popover,
+  PopoverProps,
+  Typography,
+} from 'antd';
 import { formatUnits } from 'ethers/lib/utils';
 import Image from 'next/image';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
 import { Chain, DeploymentStatus } from '@/client';
-import { COLOR, LOW_BALANCE, SERVICE_TEMPLATES } from '@/constants';
+import {
+  COLOR,
+  LOW_BALANCE,
+  SERVICE_TEMPLATES,
+  SUPPORT_URL,
+} from '@/constants';
+import { UNICODE_SYMBOLS } from '@/constants/unicode';
 import { useBalance, useServiceTemplates } from '@/hooks';
 import { useElectronApi } from '@/hooks/useElectronApi';
 import { useReward } from '@/hooks/useReward';
@@ -77,6 +91,61 @@ const FirstRunModal = ({
   );
 };
 
+const cannotStartAgentText = (
+  <Text style={{ color: COLOR.RED }}>
+    Cannot start agent&nbsp;
+    <InfoCircleOutlined />
+  </Text>
+);
+
+const otherPopoverProps: PopoverProps = {
+  arrow: false,
+  placement: 'bottomRight',
+};
+
+const JoinOlasCommunity = () => (
+  <div style={{ maxWidth: 340 }}>
+    <Paragraph>
+      Join the Olas community Discord server to report or stay up to date on the
+      issue.
+    </Paragraph>
+
+    <a href={SUPPORT_URL} target="_blank" rel="noreferrer">
+      Olas community Discord server {UNICODE_SYMBOLS.EXTERNAL_LINK}
+    </a>
+  </div>
+);
+
+const NoRewardsAvailablePopover = () => (
+  <Popover
+    {...otherPopoverProps}
+    content={<JoinOlasCommunity />}
+    title="No rewards available"
+  >
+    {cannotStartAgentText}
+  </Popover>
+);
+
+const NoJobsAvailablePopover = () => (
+  <Popover
+    {...otherPopoverProps}
+    content={<JoinOlasCommunity />}
+    title="No jobs available"
+  >
+    {cannotStartAgentText}
+  </Popover>
+);
+
+const AgentEvictedPopover = () => (
+  <Popover
+    {...otherPopoverProps}
+    content="You didn't run your agent enough and it missed its targets multiple times. Please wait a few days and try to run your agent again."
+    title="Your agent was evicted"
+  >
+    {cannotStartAgentText}
+  </Popover>
+);
+
 const useSetupTrayIcon = () => {
   const { safeBalance } = useBalance();
   const { serviceStatus } = useServices();
@@ -117,6 +186,18 @@ export const MainHeader = () => {
   useSetupTrayIcon();
 
   const { minimumStakedAmountRequired } = useReward();
+
+  const {
+    isStakingContractInfoLoading,
+    hasEnoughServiceSlots,
+    isRewardsAvailable,
+    isAgentEvicted,
+    fetchStakingContractInfo,
+  } = useStakingContractInfo();
+
+  useEffect(() => {
+    fetchStakingContractInfo();
+  }, [fetchStakingContractInfo]);
 
   const safeOlasBalanceWithStaked = useMemo(() => {
     if (safeBalance?.OLAS === undefined) return;
@@ -363,10 +444,19 @@ export const MainHeader = () => {
     canStartAgent,
   ]);
 
+  const cannotStartAgent = useMemo(() => {
+    if (!isRewardsAvailable) return <NoRewardsAvailablePopover />;
+    if (!hasEnoughServiceSlots) return <NoJobsAvailablePopover />;
+    if (isAgentEvicted) return <AgentEvictedPopover />;
+    throw new Error('Cannot start agent, please contact support');
+  }, [isRewardsAvailable, isAgentEvicted, hasEnoughServiceSlots]);
+
   return (
     <Flex justify="start" align="center" gap={10}>
       {agentHead}
-      {serviceToggleButton}
+      {isStakingContractInfoLoading ? null : (
+        <>{canStartAgent ? serviceToggleButton : cannotStartAgent}</>
+      )}
       <FirstRunModal open={isModalOpen} onClose={handleModalClose} />
     </Flex>
   );
