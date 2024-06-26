@@ -136,10 +136,12 @@ const NoJobsAvailablePopover = () => (
   </Popover>
 );
 
+const evictedDescription =
+  "You didn't run your agent enough and it missed its targets multiple times. Please wait a few days and try to run your agent again.";
 const AgentEvictedPopover = () => (
   <Popover
     {...otherPopoverProps}
-    content="You didn't run your agent enough and it missed its targets multiple times. Please wait a few days and try to run your agent again."
+    content={<div style={{ maxWidth: 340 }}>{evictedDescription}</div>}
     title="Your agent was evicted"
   >
     {cannotStartAgentText}
