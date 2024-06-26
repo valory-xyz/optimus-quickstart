@@ -67,9 +67,12 @@ const CurrentBalance = () => {
         value: balanceFormat(accruedServiceStakingRewards ?? 0, 2),
       },
       {
+        // Unused funds should only be ‘free-floating’ OLAS that is neither unclaimed nor staked.
         title: 'Unused funds',
         value: balanceFormat(
-          (totalOlasBalance ?? 0) - (totalOlasStakedBalance ?? 0),
+          (totalOlasBalance ?? 0) -
+            (totalOlasStakedBalance ?? 0) -
+            (accruedServiceStakingRewards ?? 0),
           2,
         ),
       },
