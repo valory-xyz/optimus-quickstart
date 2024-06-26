@@ -1,25 +1,9 @@
-import { InfoCircleOutlined } from '@ant-design/icons';
-import {
-  Badge,
-  Button,
-  Flex,
-  Modal,
-  Popover,
-  PopoverProps,
-  Typography,
-} from 'antd';
-import { formatUnits } from 'ethers/lib/utils';
+import { Badge, Button, Flex, Modal, Typography } from 'antd';
 import Image from 'next/image';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
 import { Chain, DeploymentStatus } from '@/client';
-import {
-  COLOR,
-  LOW_BALANCE,
-  SERVICE_TEMPLATES,
-  SUPPORT_URL,
-} from '@/constants';
-import { UNICODE_SYMBOLS } from '@/constants/unicode';
+import { LOW_BALANCE } from '@/constants';
 import { useBalance, useServiceTemplates } from '@/hooks';
 import { useElectronApi } from '@/hooks/useElectronApi';
 import { useReward } from '@/hooks/useReward';
@@ -30,11 +14,16 @@ import { ServicesService } from '@/service';
 import { WalletService } from '@/service/Wallet';
 
 import { useStakingContractInfo } from '../../store/stackingContractInfo';
+import {
+  AgentEvictedPopover,
+  NoJobsAvailablePopover,
+  NoRewardsAvailablePopover,
+  requiredGas,
+  requiredOlas,
+  StartingButtonPopover,
+} from './utils';
 
-const { Text, Title, Paragraph } = Typography;
-
-const LOADING_MESSAGE =
-  'Starting the agent may take a while, so feel free to minimize the app. We’ll notify you once it’s running. Please, don’t quit the app.';
+const { Title, Paragraph } = Typography;
 
 enum ServiceButtonLoadingState {
   Starting,
@@ -90,63 +79,6 @@ const FirstRunModal = ({
     </Modal>
   );
 };
-
-const cannotStartAgentText = (
-  <Text style={{ color: COLOR.RED }}>
-    Cannot start agent&nbsp;
-    <InfoCircleOutlined />
-  </Text>
-);
-
-const otherPopoverProps: PopoverProps = {
-  arrow: false,
-  placement: 'bottomRight',
-};
-
-const JoinOlasCommunity = () => (
-  <div style={{ maxWidth: 340 }}>
-    <Paragraph>
-      Join the Olas community Discord server to report or stay up to date on the
-      issue.
-    </Paragraph>
-
-    <a href={SUPPORT_URL} target="_blank" rel="noreferrer">
-      Olas community Discord server {UNICODE_SYMBOLS.EXTERNAL_LINK}
-    </a>
-  </div>
-);
-
-const NoRewardsAvailablePopover = () => (
-  <Popover
-    {...otherPopoverProps}
-    content={<JoinOlasCommunity />}
-    title="No rewards available"
-  >
-    {cannotStartAgentText}
-  </Popover>
-);
-
-const NoJobsAvailablePopover = () => (
-  <Popover
-    {...otherPopoverProps}
-    content={<JoinOlasCommunity />}
-    title="No jobs available"
-  >
-    {cannotStartAgentText}
-  </Popover>
-);
-
-const evictedDescription =
-  "You didn't run your agent enough and it missed its targets multiple times. Please wait a few days and try to run your agent again.";
-const AgentEvictedPopover = () => (
-  <Popover
-    {...otherPopoverProps}
-    content={<div style={{ maxWidth: 340 }}>{evictedDescription}</div>}
-    title="Your agent was evicted"
-  >
-    {cannotStartAgentText}
-  </Popover>
-);
 
 const useSetupTrayIcon = () => {
   const { safeBalance } = useBalance();
@@ -324,25 +256,7 @@ export const MainHeader = () => {
     }
 
     if (serviceButtonState === ServiceButtonLoadingState.Starting) {
-      return (
-        <Popover
-          trigger={['hover', 'click']}
-          placement="bottomLeft"
-          showArrow={false}
-          content={
-            <Flex vertical={false} gap={8} style={{ maxWidth: 260 }}>
-              <Text>
-                <InfoCircleOutlined style={{ color: COLOR.BLUE }} />
-              </Text>
-              <Text>{LOADING_MESSAGE}</Text>
-            </Flex>
-          }
-        >
-          <Button type="default" size="large" ghost disabled loading>
-            Starting...
-          </Button>
-        </Popover>
-      );
+      return <StartingButtonPopover />;
     }
 
     if (serviceStatus === DeploymentStatus.DEPLOYED) {
@@ -368,29 +282,6 @@ export const MainHeader = () => {
         </Button>
       );
     }
-
-    const olasCostOfBond = Number(
-      formatUnits(
-        `${SERVICE_TEMPLATES[0].configuration.olas_cost_of_bond}`,
-        18,
-      ),
-    );
-
-    const olasRequiredToStake = Number(
-      formatUnits(
-        `${SERVICE_TEMPLATES[0].configuration.olas_required_to_stake}`,
-        18,
-      ),
-    );
-
-    const requiredOlas = olasCostOfBond + olasRequiredToStake;
-
-    const requiredGas = Number(
-      formatUnits(
-        `${SERVICE_TEMPLATES[0].configuration.monthly_gas_estimate}`,
-        18,
-      ),
-    );
 
     const isDeployable = (() => {
       // case where required values are undefined (not fetched from the server)
@@ -447,8 +338,8 @@ export const MainHeader = () => {
   ]);
 
   const cannotStartAgent = useMemo(() => {
-    if (!isRewardsAvailable) return <NoRewardsAvailablePopover />;
     if (!hasEnoughServiceSlots) return <NoJobsAvailablePopover />;
+    if (!isRewardsAvailable) return <NoRewardsAvailablePopover />;
     if (isAgentEvicted) return <AgentEvictedPopover />;
     throw new Error('Cannot start agent, please contact support');
   }, [isRewardsAvailable, isAgentEvicted, hasEnoughServiceSlots]);
