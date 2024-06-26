@@ -25,6 +25,8 @@ const DisplayRewards = () => {
   const { availableRewardsForEpochEth, isEligibleForRewards } = useReward();
   const { isBalanceLoaded } = useBalance();
 
+  const reward = balanceFormat(availableRewardsForEpochEth, 2);
+
   return (
     <CardSection vertical gap={8} padding="16px 24px" align="start">
       <Text type="secondary">
@@ -44,7 +46,7 @@ const DisplayRewards = () => {
       {isBalanceLoaded ? (
         <Flex align="center" gap={12}>
           <Text className="text-xl font-weight-600">
-            {balanceFormat(availableRewardsForEpochEth, 2)} OLAS&nbsp;
+            {reward === '--' ? '--' : `~${reward}`} OLAS&nbsp;
           </Text>
           {isEligibleForRewards ? (
             <Tag color="success">Earned</Tag>
