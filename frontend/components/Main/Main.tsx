@@ -9,7 +9,6 @@ import { KeepAgentRunning } from './KeepAgentRunning';
 import { MainAddFunds } from './MainAddFunds';
 import { MainGasBalance } from './MainGasBalance';
 import { MainHeader } from './MainHeader/MainHeader';
-import { StakingValidations } from './MainHeader/StakingValidations';
 import { MainNeedsFunds } from './MainNeedsFunds';
 import { MainOlasBalance } from './MainOlasBalance';
 import { MainRewards } from './MainRewards';
@@ -48,7 +47,6 @@ export const Main = () => {
       style={{ borderTopColor: 'transparent' }}
     >
       <Flex vertical>
-        <StakingValidations />
         <MainOlasBalance />
         <MainRewards />
         <KeepAgentRunning />
