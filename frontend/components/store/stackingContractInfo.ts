@@ -6,6 +6,7 @@ const initialState = {
   isStakingContractInfoLoading: true,
   isRewardsAvailable: false,
   hasEnoughServiceSlots: false,
+  isAgentEvicted: false, // TODO: Implement this
   canStartAgent: false,
 };
 
@@ -13,6 +14,7 @@ type StakingContractInfoStore = {
   isStakingContractInfoLoading: boolean;
   isRewardsAvailable: boolean;
   hasEnoughServiceSlots: boolean;
+  isAgentEvicted: boolean; // TODO: Implement this
   canStartAgent: boolean;
   fetchStakingContractInfo: () => Promise<void>;
 };
