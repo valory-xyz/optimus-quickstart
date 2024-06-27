@@ -1,29 +1,10 @@
 import { InfoCircleOutlined } from '@ant-design/icons';
 import { Button, Flex, Popover, PopoverProps, Typography } from 'antd';
-import { formatUnits } from 'ethers/lib/utils';
 
-import { COLOR, SERVICE_TEMPLATES, SUPPORT_URL } from '@/constants';
+import { COLOR, SUPPORT_URL } from '@/constants';
 import { UNICODE_SYMBOLS } from '@/constants/unicode';
 
 const { Paragraph, Text } = Typography;
-
-export const LOADING_MESSAGE =
-  'Starting the agent may take a while, so feel free to minimize the app. We’ll notify you once it’s running. Please, don’t quit the app.';
-
-const olasCostOfBond = Number(
-  formatUnits(`${SERVICE_TEMPLATES[0].configuration.olas_cost_of_bond}`, 18),
-);
-const olasRequiredToStake = Number(
-  formatUnits(
-    `${SERVICE_TEMPLATES[0].configuration.olas_required_to_stake}`,
-    18,
-  ),
-);
-
-export const requiredOlas = olasCostOfBond + olasRequiredToStake;
-export const requiredGas = Number(
-  formatUnits(`${SERVICE_TEMPLATES[0].configuration.monthly_gas_estimate}`, 18),
-);
 
 const CannotStartAgentText = () => (
   <Text style={{ color: COLOR.RED }}>
@@ -82,6 +63,8 @@ export const AgentEvictedPopover = () => (
   </Popover>
 );
 
+const LOADING_MESSAGE =
+  'Starting the agent may take a while, so feel free to minimize the app. We’ll notify you once it’s running. Please, don’t quit the app.';
 export const StartingButtonPopover = () => (
   <Popover
     trigger={['hover', 'click']}

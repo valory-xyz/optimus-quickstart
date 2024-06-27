@@ -14,15 +14,14 @@ import { ServicesService } from '@/service';
 import { WalletService } from '@/service/Wallet';
 import { useStakingContractInfo } from '@/store/useStakingContractInfo';
 
-import { FirstRunModal } from './FirstRunModal';
 import {
   AgentEvictedPopover,
   NoJobsAvailablePopover,
   NoRewardsAvailablePopover,
-  requiredGas,
-  requiredOlas,
   StartingButtonPopover,
-} from './utils';
+} from './components';
+import { requiredGas, requiredOlas } from './constants';
+import { FirstRunModal } from './FirstRunModal';
 
 enum ServiceButtonLoadingState {
   Starting,
