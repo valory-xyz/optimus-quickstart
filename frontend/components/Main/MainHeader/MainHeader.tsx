@@ -12,8 +12,8 @@ import { useStore } from '@/hooks/useStore';
 import { useWallet } from '@/hooks/useWallet';
 import { ServicesService } from '@/service';
 import { WalletService } from '@/service/Wallet';
+import { useStakingContractInfo } from '@/store/useStakingContractInfo';
 
-import { useStakingContractInfo } from '../../store/stackingContractInfo';
 import { FirstRunModal } from './FirstRunModal';
 import {
   AgentEvictedPopover,
