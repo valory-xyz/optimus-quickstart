@@ -25,7 +25,7 @@ export const requiredGas = Number(
   formatUnits(`${SERVICE_TEMPLATES[0].configuration.monthly_gas_estimate}`, 18),
 );
 
-export const cannotStartAgentText = (
+const CannotStartAgentText = () => (
   <Text style={{ color: COLOR.RED }}>
     Cannot start agent&nbsp;
     <InfoCircleOutlined />
@@ -56,7 +56,7 @@ export const NoRewardsAvailablePopover = () => (
     content={<JoinOlasCommunity />}
     title="No rewards available"
   >
-    {cannotStartAgentText}
+    <CannotStartAgentText />
   </Popover>
 );
 
@@ -66,7 +66,7 @@ export const NoJobsAvailablePopover = () => (
     content={<JoinOlasCommunity />}
     title="No jobs available"
   >
-    {cannotStartAgentText}
+    <CannotStartAgentText />
   </Popover>
 );
 
@@ -78,7 +78,7 @@ export const AgentEvictedPopover = () => (
     content={<div style={{ maxWidth: 340 }}>{evictedDescription}</div>}
     title="Your agent was evicted"
   >
-    {cannotStartAgentText}
+    <CannotStartAgentText />
   </Popover>
 );
 
