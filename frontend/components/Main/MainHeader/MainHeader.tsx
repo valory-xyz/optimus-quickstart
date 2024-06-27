@@ -288,11 +288,17 @@ export const MainHeader = () => {
   ]);
 
   const cannotStartAgent = useMemo(() => {
+    if (canStartAgent) return null;
     if (!hasEnoughServiceSlots) return <NoJobsAvailablePopover />;
     if (!isRewardsAvailable) return <NoRewardsAvailablePopover />;
     if (isAgentEvicted) return <AgentEvictedPopover />;
     throw new Error('Cannot start agent, please contact support');
-  }, [isRewardsAvailable, isAgentEvicted, hasEnoughServiceSlots]);
+  }, [
+    canStartAgent,
+    isRewardsAvailable,
+    isAgentEvicted,
+    hasEnoughServiceSlots,
+  ]);
 
   return (
     <Flex justify="start" align="center" gap={10}>
