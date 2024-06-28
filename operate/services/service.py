@@ -85,7 +85,7 @@ from operate.types import (
 SAFE_CONTRACT_ADDRESS = "safe_contract_address"
 ALL_PARTICIPANTS = "all_participants"
 CONSENSUS_THRESHOLD = "consensus_threshold"
-
+DELETE_PREFIX = "delete_"
 
 # pylint: disable=no-member,redefined-builtin,too-many-instance-attributes
 
@@ -902,4 +902,7 @@ class Service(LocalResource):
 
     def delete(self) -> None:
         """Delete a service."""
-        shutil.rmtree(self.path)
+        parent_directory = self.path.parent
+        new_path = parent_directory / f"{DELETE_PREFIX}{self.path.name}"
+        shutil.move(self.path, new_path)
+        shutil.rmtree(new_path)

@@ -21,6 +21,7 @@
 
 import asyncio
 import logging
+import shutil
 import traceback
 import typing as t
 from concurrent.futures import ThreadPoolExecutor
@@ -36,6 +37,7 @@ from operate.ledger import PUBLIC_RPCS
 from operate.ledger.profiles import CONTRACTS, OLAS, STAKING
 from operate.services.protocol import EthSafeTxBuilder, OnChainManager, StakingState
 from operate.services.service import (
+    DELETE_PREFIX,
     Deployment,
     OnChainData,
     OnChainState,
@@ -103,6 +105,9 @@ class ServiceManager:
         """Returns the list of available services."""
         data = []
         for path in self.path.iterdir():
+            if path.name.startswith(DELETE_PREFIX):
+                shutil.rmtree(path)
+                continue
             if not path.name.startswith("bafybei"):
                 continue
             service = Service.load(path=path)
@@ -1037,5 +1042,15 @@ class ServiceManager:
         new_service.ledger_config = old_service.ledger_config
         new_service.chain_data.on_chain_state = OnChainState.NOTMINTED
         new_service.store()
-        old_service.delete()
+
+        # The following logging has been added to identify OS issues when
+        # deleting old service folder
+        try:
+            old_service.delete()
+        except Exception as e:  # pylint: disable=broad-except
+            self.logger.error(
+                f"An error occurred while trying to delete {old_service.path}: {e}"
+            )
+            self.logger.error(traceback.format_exc())
+
         return new_service
