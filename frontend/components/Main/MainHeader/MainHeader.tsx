@@ -9,11 +9,11 @@ import { useBalance, useServiceTemplates } from '@/hooks';
 import { useElectronApi } from '@/hooks/useElectronApi';
 import { useReward } from '@/hooks/useReward';
 import { useServices } from '@/hooks/useServices';
+import { useStakingContractInfo } from '@/hooks/useStakingContractInfo';
 import { useStore } from '@/hooks/useStore';
 import { useWallet } from '@/hooks/useWallet';
 import { ServicesService } from '@/service';
 import { WalletService } from '@/service/Wallet';
-import { useStakingContractInfo } from '@/store/useStakingContractInfo';
 
 import { CannotStartAgent } from './CannotStartAgent';
 import { requiredGas, requiredOlas } from './constants';
@@ -86,18 +86,11 @@ export const MainHeader = () => {
 
   const { minimumStakedAmountRequired } = useReward();
 
-  const {
-    isStakingContractInfoLoading,
-    canStartAgent,
-    fetchStakingContractInfo,
-  } = useStakingContractInfo();
+  const { isStakingContractInfoLoading, canStartAgent } =
+    useStakingContractInfo();
 
   // hook to setup tray icon
   useSetupTrayIcon();
-
-  useEffect(() => {
-    fetchStakingContractInfo();
-  }, [fetchStakingContractInfo]);
 
   const safeOlasBalanceWithStaked = useMemo(() => {
     if (safeBalance?.OLAS === undefined) return;

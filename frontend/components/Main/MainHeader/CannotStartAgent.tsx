@@ -3,7 +3,7 @@ import { Popover, PopoverProps, Typography } from 'antd';
 
 import { COLOR, SUPPORT_URL } from '@/constants';
 import { UNICODE_SYMBOLS } from '@/constants/unicode';
-import { useStakingContractInfo } from '@/store/useStakingContractInfo';
+import { useStakingContractInfo } from '@/hooks/useStakingContractInfo';
 
 const { Paragraph, Text } = Typography;
 
