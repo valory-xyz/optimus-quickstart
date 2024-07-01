@@ -7,23 +7,23 @@ import { useStakingContractInfo } from '@/hooks/useStakingContractInfo';
 
 const { Paragraph, Text } = Typography;
 
-const evictedDescription =
-  "You didn't run your agent enough and it missed its targets multiple times. Please wait a few days and try to run your agent again.";
-const AgentEvictedPopover = () => (
-  <Popover
-    {...otherPopoverProps}
-    content={<div style={{ maxWidth: 340 }}>{evictedDescription}</div>}
-    title="Your agent was evicted"
-  >
-    <CannotStartAgentText />
-  </Popover>
-);
-
 const CannotStartAgentText = () => (
   <Text style={{ color: COLOR.RED }}>
     Cannot start agent&nbsp;
     <InfoCircleOutlined />
   </Text>
+);
+
+const evictedDescription =
+  "You didn't run your agent enough and it missed its targets multiple times. Please wait a few days and try to run your agent again.";
+const AgentEvictedPopover = () => (
+  <Popover
+    {...otherPopoverProps}
+    title="Your agent was evicted"
+    content={<div style={{ maxWidth: 340 }}>{evictedDescription}</div>}
+  >
+    <CannotStartAgentText />
+  </Popover>
 );
 
 const otherPopoverProps: PopoverProps = {
@@ -47,8 +47,8 @@ const JoinOlasCommunity = () => (
 const NoRewardsAvailablePopover = () => (
   <Popover
     {...otherPopoverProps}
-    content={<JoinOlasCommunity />}
     title="No rewards available"
+    content={<JoinOlasCommunity />}
   >
     <CannotStartAgentText />
   </Popover>
@@ -57,8 +57,8 @@ const NoRewardsAvailablePopover = () => (
 const NoJobsAvailablePopover = () => (
   <Popover
     {...otherPopoverProps}
-    content={<JoinOlasCommunity />}
     title="No jobs available"
+    content={<JoinOlasCommunity />}
   >
     <CannotStartAgentText />
   </Popover>
