@@ -7,7 +7,7 @@ import { useStakingContractInfo } from '@/hooks/useStakingContractInfo';
 
 const { Paragraph, Text } = Typography;
 
-const CannotStartAgentText = () => (
+const cannotStartAgentText = (
   <Text style={{ color: COLOR.RED }}>
     Cannot start agent&nbsp;
     <InfoCircleOutlined />
@@ -22,7 +22,7 @@ const AgentEvictedPopover = () => (
     title="Your agent was evicted"
     content={<div style={{ maxWidth: 340 }}>{evictedDescription}</div>}
   >
-    <CannotStartAgentText />
+    {cannotStartAgentText}
   </Popover>
 );
 
@@ -50,7 +50,7 @@ const NoRewardsAvailablePopover = () => (
     title="No rewards available"
     content={<JoinOlasCommunity />}
   >
-    <CannotStartAgentText />
+    {cannotStartAgentText}
   </Popover>
 );
 
@@ -60,7 +60,7 @@ const NoJobsAvailablePopover = () => (
     title="No jobs available"
     content={<JoinOlasCommunity />}
   >
-    <CannotStartAgentText />
+    {cannotStartAgentText}
   </Popover>
 );
 
