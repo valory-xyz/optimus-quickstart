@@ -1,9 +1,10 @@
-import { Badge, Button, Flex, Typography } from 'antd';
+import { InfoCircleOutlined } from '@ant-design/icons';
+import { Badge, Button, Flex, Popover, Typography } from 'antd';
 import Image from 'next/image';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
 import { Chain, DeploymentStatus } from '@/client';
-import { LOW_BALANCE } from '@/constants';
+import { COLOR, LOW_BALANCE } from '@/constants';
 import { useBalance, useServiceTemplates } from '@/hooks';
 import { useElectronApi } from '@/hooks/useElectronApi';
 import { useReward } from '@/hooks/useReward';
@@ -14,14 +15,33 @@ import { ServicesService } from '@/service';
 import { WalletService } from '@/service/Wallet';
 import { useStakingContractInfo } from '@/store/useStakingContractInfo';
 
-import {
-  AgentEvictedPopover,
-  NoJobsAvailablePopover,
-  NoRewardsAvailablePopover,
-  StartingButtonPopover,
-} from './components';
+import { CannotStartAgent } from './CannotStartAgent';
 import { requiredGas, requiredOlas } from './constants';
 import { FirstRunModal } from './FirstRunModal';
+
+const { Text } = Typography;
+
+const LOADING_MESSAGE =
+  'Starting the agent may take a while, so feel free to minimize the app. We’ll notify you once it’s running. Please, don’t quit the app.';
+const StartingButtonPopover = () => (
+  <Popover
+    trigger={['hover', 'click']}
+    placement="bottomLeft"
+    showArrow={false}
+    content={
+      <Flex vertical={false} gap={8} style={{ maxWidth: 260 }}>
+        <Text>
+          <InfoCircleOutlined style={{ color: COLOR.BLUE }} />
+        </Text>
+        <Text>{LOADING_MESSAGE}</Text>
+      </Flex>
+    }
+  >
+    <Button type="default" size="large" ghost disabled loading>
+      Starting...
+    </Button>
+  </Popover>
+);
 
 enum ServiceButtonLoadingState {
   Starting,
@@ -60,23 +80,20 @@ export const MainHeader = () => {
     isBalanceLoaded,
     setIsPaused: setIsBalancePollingPaused,
   } = useBalance();
-  const { canStartAgent } = useStakingContractInfo();
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const handleModalClose = useCallback(() => setIsModalOpen(false), []);
-
-  // hook to setup tray icon
-  useSetupTrayIcon();
 
   const { minimumStakedAmountRequired } = useReward();
 
   const {
     isStakingContractInfoLoading,
-    hasEnoughServiceSlots,
-    isRewardsAvailable,
-    isAgentEvicted,
+    canStartAgent,
     fetchStakingContractInfo,
   } = useStakingContractInfo();
+
+  // hook to setup tray icon
+  useSetupTrayIcon();
 
   useEffect(() => {
     fetchStakingContractInfo();
@@ -286,24 +303,11 @@ export const MainHeader = () => {
     canStartAgent,
   ]);
 
-  const cannotStartAgent = useMemo(() => {
-    if (canStartAgent) return null;
-    if (!hasEnoughServiceSlots) return <NoJobsAvailablePopover />;
-    if (!isRewardsAvailable) return <NoRewardsAvailablePopover />;
-    if (isAgentEvicted) return <AgentEvictedPopover />;
-    throw new Error('Cannot start agent, please contact support');
-  }, [
-    canStartAgent,
-    isRewardsAvailable,
-    isAgentEvicted,
-    hasEnoughServiceSlots,
-  ]);
-
   return (
     <Flex justify="start" align="center" gap={10}>
       {agentHead}
       {isStakingContractInfoLoading ? null : (
-        <>{canStartAgent ? serviceToggleButton : cannotStartAgent}</>
+        <>{canStartAgent ? serviceToggleButton : <CannotStartAgent />}</>
       )}
       <FirstRunModal open={isModalOpen} onClose={handleModalClose} />
     </Flex>
