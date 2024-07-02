@@ -48,6 +48,7 @@ export const SetupBackupSigner = () => {
           <Button type="primary" size="large" htmlType="submit">
             Add backup wallet and continue
           </Button>
+          {/* Commented to protect users from skipping backup wallet setup during Alpha testing          
           <Button
             type="link"
             size="large"
@@ -58,7 +59,8 @@ export const SetupBackupSigner = () => {
           <Typography.Text type="secondary" className="text-sm">
             Note that in the current version of the app, you will not be able to
             set up a backup wallet afterward. This functionality is coming soon.
-          </Typography.Text>
+          </Typography.Text> 
+          */}
         </FormFlex>
       </Flex>
     </CardFlex>
