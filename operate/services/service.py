@@ -21,18 +21,13 @@
 
 import json
 import os
-import platform
 import shutil
-import signal
 import subprocess  # nosec
-import sys
-import time
 import typing as t
 from copy import copy, deepcopy
 from dataclasses import dataclass
 from pathlib import Path
 
-import psutil
 from aea.configurations.constants import (
     DEFAULT_LEDGER,
     LEDGER,
@@ -543,15 +538,16 @@ class Deployment(LocalResource):
             )
 
         except Exception as e:
-            shutil.rmtree(build)
+            if build.exists():
+                shutil.rmtree(build)
             raise e
 
         # Mech price patch.
         agent_vars = json.loads(Path(build, "agent.json").read_text(encoding="utf-8"))
         if "SKILL_TRADER_ABCI_MODELS_PARAMS_ARGS_MECH_REQUEST_PRICE" in agent_vars:
-            agent_vars["SKILL_TRADER_ABCI_MODELS_PARAMS_ARGS_MECH_REQUEST_PRICE"] = (
-                "10000000000000000"
-            )
+            agent_vars[
+                "SKILL_TRADER_ABCI_MODELS_PARAMS_ARGS_MECH_REQUEST_PRICE"
+            ] = "10000000000000000"
             Path(build, "agent.json").write_text(
                 json.dumps(agent_vars, indent=4),
                 encoding="utf-8",
