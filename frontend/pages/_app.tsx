@@ -12,7 +12,7 @@ import { MasterSafeProvider } from '@/context/MasterSafeProvider';
 import { OnlineStatusProvider } from '@/context/OnlineStatusProvider';
 import { RewardProvider } from '@/context/RewardProvider';
 import { SettingsProvider } from '@/context/SettingsProvider';
-import { StakingContractInfoProviderProvider } from '@/context/StakingContractInfoProvider';
+import { StakingContractInfoProvider } from '@/context/StakingContractInfoProvider';
 import { StoreProvider } from '@/context/StoreProvider';
 import { WalletProvider } from '@/context/WalletProvider';
 import { mainTheme } from '@/theme';
@@ -39,7 +39,7 @@ export default function App({ Component, pageProps }: AppProps) {
                     <BalanceProvider>
                       <SetupProvider>
                         <SettingsProvider>
-                          <StakingContractInfoProviderProvider>
+                          <StakingContractInfoProvider>
                             {isMounted ? (
                               <ConfigProvider theme={mainTheme}>
                                 <Layout>
@@ -47,7 +47,7 @@ export default function App({ Component, pageProps }: AppProps) {
                                 </Layout>
                               </ConfigProvider>
                             ) : null}
-                          </StakingContractInfoProviderProvider>
+                          </StakingContractInfoProvider>
                         </SettingsProvider>
                       </SetupProvider>
                     </BalanceProvider>

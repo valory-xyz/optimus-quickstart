@@ -1,6 +1,6 @@
 import { useContext } from 'react';
 
-import { StakingContractInfoProviderContext } from '@/context/StakingContractInfoProvider';
+import { StakingContractInfoContext } from '@/context/StakingContractInfoProvider';
 
 export const useStakingContractInfo = () => {
   const {
@@ -9,7 +9,7 @@ export const useStakingContractInfo = () => {
     isAgentEvicted,
     isRewardsAvailable,
     isStakingContractInfoLoading,
-  } = useContext(StakingContractInfoProviderContext);
+  } = useContext(StakingContractInfoContext);
 
   return {
     canStartAgent,

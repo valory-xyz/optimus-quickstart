@@ -2,7 +2,7 @@ import { createContext, PropsWithChildren, useEffect, useState } from 'react';
 
 import { AutonolasService } from '@/service/Autonolas';
 
-type StakingContractInfoProviderContextType = {
+type StakingContractInfoContextProps = {
   isStakingContractInfoLoading: boolean;
   isRewardsAvailable: boolean;
   hasEnoughServiceSlots: boolean;
@@ -10,8 +10,8 @@ type StakingContractInfoProviderContextType = {
   canStartAgent: boolean;
 };
 
-export const StakingContractInfoProviderContext =
-  createContext<StakingContractInfoProviderContextType>({
+export const StakingContractInfoContext =
+  createContext<StakingContractInfoContextProps>({
     isStakingContractInfoLoading: true,
     isRewardsAvailable: false,
     hasEnoughServiceSlots: false,
@@ -19,7 +19,7 @@ export const StakingContractInfoProviderContext =
     canStartAgent: false,
   });
 
-export const StakingContractInfoProviderProvider = ({
+export const StakingContractInfoProvider = ({
   children,
 }: PropsWithChildren) => {
   const [isStakingContractInfoLoading, setIsStakingContractInfoLoading] =
@@ -55,7 +55,7 @@ export const StakingContractInfoProviderProvider = ({
   }, []);
 
   return (
-    <StakingContractInfoProviderContext.Provider
+    <StakingContractInfoContext.Provider
       value={{
         isStakingContractInfoLoading,
         isRewardsAvailable,
@@ -65,6 +65,6 @@ export const StakingContractInfoProviderProvider = ({
       }}
     >
       {children}
-    </StakingContractInfoProviderContext.Provider>
+    </StakingContractInfoContext.Provider>
   );
 };
