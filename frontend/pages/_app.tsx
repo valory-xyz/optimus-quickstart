@@ -12,6 +12,7 @@ import { MasterSafeProvider } from '@/context/MasterSafeProvider';
 import { OnlineStatusProvider } from '@/context/OnlineStatusProvider';
 import { RewardProvider } from '@/context/RewardProvider';
 import { SettingsProvider } from '@/context/SettingsProvider';
+import { StakingContractInfoProvider } from '@/context/StakingContractInfoProvider';
 import { StoreProvider } from '@/context/StoreProvider';
 import { WalletProvider } from '@/context/WalletProvider';
 import { mainTheme } from '@/theme';
@@ -38,13 +39,15 @@ export default function App({ Component, pageProps }: AppProps) {
                     <BalanceProvider>
                       <SetupProvider>
                         <SettingsProvider>
-                          {isMounted ? (
-                            <ConfigProvider theme={mainTheme}>
-                              <Layout>
-                                <Component {...pageProps} />
-                              </Layout>
-                            </ConfigProvider>
-                          ) : null}
+                          <StakingContractInfoProvider>
+                            {isMounted ? (
+                              <ConfigProvider theme={mainTheme}>
+                                <Layout>
+                                  <Component {...pageProps} />
+                                </Layout>
+                              </ConfigProvider>
+                            ) : null}
+                          </StakingContractInfoProvider>
                         </SettingsProvider>
                       </SetupProvider>
                     </BalanceProvider>
