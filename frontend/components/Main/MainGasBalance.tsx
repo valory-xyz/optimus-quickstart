@@ -82,8 +82,7 @@ export const MainGasBalance = () => {
           <Tooltip
             title={
               <TooltipContent>
-                Your agent uses this balance to pay for transactions and other
-                trading activity on-chain.
+                Your agent uses this balance to fund trading activity on-chain.
                 <br />
                 <a
                   href={'https://gnosisscan.io/address/' + masterSafeAddress}
