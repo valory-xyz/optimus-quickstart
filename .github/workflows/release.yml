@@ -36,7 +36,7 @@ jobs:
 
         - name: Get trader bin
           run: |
-            python -c "import yaml; config = yaml.safe_load(open('templates/trader.yaml')); trader_version = config['configuration']['trader_version']; print(f'::set-output name=trader_version::{trader_version}')"
+            poetry run python -c "import yaml; config = yaml.safe_load(open('templates/trader.yaml')); trader_version = config['configuration']['trader_version']; print(f'::set-output name=trader_version::{trader_version}')"
             mkdir dist && curl -L -o dist/aea_bin https://github.com/valory-xyz/trader/releases/download/${{ steps.extract.outputs.trader_version }}/trader_bin_${{ matrix.arch }}
 
         - name: Build with PyInstaller
