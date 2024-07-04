@@ -27,7 +27,8 @@
     "sass": "^1.72.0",
     "styled-components": "^6.1.8",
     "sudo-prompt": "9.2.1",
-    "usehooks-ts": "^2.14.0"
+    "usehooks-ts": "^2.14.0",
+    "winston": "^3.13.0"
   },
   "devDependencies": {
     "@electron/notarize": "^2.3.0",
