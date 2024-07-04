@@ -1048,7 +1048,7 @@ class ServiceManager:
         # deleting old service folder
         try:
             self._log_directories()
-            self.logger.info("Trying delete old service")
+            self.logger.info("Trying to delete old service")
             old_service.delete()
         except Exception as e:  # pylint: disable=broad-except
             self.logger.error(
