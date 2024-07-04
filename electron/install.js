@@ -25,8 +25,6 @@ const paths = {
   VenvDir: path.join(OperateDirectory, '.operate', 'venv'),
   TempDir: path.join(OperateDirectory, '.operate', 'temp'),
   VersionFile: path.join(OperateDirectory, '.operate', 'version.txt'),
-  LogFile: path.join(OperateDirectory, '.operate', 'logs.txt'),
-  OperateInstallationLog: path.join(os.homedir(), 'operate.log'),
 };
 
 const Env = {
