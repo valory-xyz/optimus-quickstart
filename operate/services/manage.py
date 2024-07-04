@@ -95,6 +95,7 @@ class ServiceManager:
         self.keys_manager = keys_manager
         self.wallet_manager = wallet_manager
         self.logger = logger or setup_logger(name="operate.manager")
+        self._log_directories()
 
     def setup(self) -> None:
         """Setup service manager."""
@@ -1046,6 +1047,8 @@ class ServiceManager:
         # The following logging has been added to identify OS issues when
         # deleting old service folder
         try:
+            self._log_directories()
+            self.logger.info("Trying to delete old service")
             old_service.delete()
         except Exception as e:  # pylint: disable=broad-except
             self.logger.error(
@@ -1053,4 +1056,9 @@ class ServiceManager:
             )
             self.logger.error(traceback.format_exc())
 
+        self._log_directories()
         return new_service
+
+    def _log_directories(self) -> None:
+        directories = [str(p) for p in self.path.iterdir() if p.is_dir()]
+        self.logger.info(f"Directories in {self.path}: {', '.join(directories)}")
