@@ -570,17 +570,6 @@ function getSanitizedLogs({ name, filePath, data }) {
 ipcMain.handle('save-logs', async (_, data) => {
   // version.txt
   const versionFile = paths.VersionFile;
-  // logs.txt
-  const logFile = getSanitizedLogs({
-    name: 'log.txt',
-    filePath: paths.LogFile,
-  });
-
-  // // operate.log
-  // const installationLog = getSanitizedLogs({
-  //   name: 'installation_log.txt',
-  //   filePath: paths.OperateInstallationLog,
-  // });
 
   // winston logs
   const cliLogFile = getSanitizedLogs({
@@ -629,7 +618,6 @@ ipcMain.handle('save-logs', async (_, data) => {
   // Create a zip archive
   const zip = new AdmZip();
   fs.existsSync(versionFile) && zip.addLocalFile(versionFile);
-  fs.existsSync(logFile) && zip.addLocalFile(logFile);
   fs.existsSync(cliLogFile) && zip.addLocalFile(cliLogFile);
   fs.existsSync(electronLogFile) && zip.addLocalFile(electronLogFile);
   fs.existsSync(nextLogFile) && zip.addLocalFile(nextLogFile);
@@ -655,7 +643,6 @@ ipcMain.handle('save-logs', async (_, data) => {
   }
 
   // Remove temporary files
-  fs.existsSync(logFile) && fs.unlinkSync(logFile);
   fs.existsSync(cliLogFile) && fs.unlinkSync(cliLogFile);
   fs.existsSync(electronLogFile) && fs.unlinkSync(electronLogFile);
   fs.existsSync(nextLogFile) && fs.unlinkSync(nextLogFile);
