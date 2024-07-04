@@ -1,8 +1,5 @@
 const dotenv = require('dotenv');
 
-const console = require('electron-log/main'); // Supports log levels and file logging
-console.initialize();
-
 const {
   app,
   BrowserWindow,
@@ -29,6 +26,7 @@ const { isPortAvailable, findAvailablePort } = require('./ports');
 const { PORT_RANGE, isWindows, isMac } = require('./constants');
 const { macUpdater } = require('./update');
 const { setupStoreIpc } = require('./store');
+const { logger } = require('./logger');
 
 // Configure environment variables
 dotenv.config();
@@ -77,7 +75,7 @@ async function beforeQuit() {
     try {
       await killProcesses(operateDaemonPid);
     } catch (e) {
-      console.error(e);
+      logger.electron(e);
     }
   }
 
@@ -85,7 +83,7 @@ async function beforeQuit() {
     try {
       await killProcesses(nextAppProcessPid);
     } catch (e) {
-      console.error(e);
+      logger.electron(e);
     }
   }
 
@@ -274,21 +272,10 @@ const createMainWindow = () => {
 };
 
 async function launchDaemon() {
-  function appendLog(data) {
-    fs.appendFileSync(
-      `${paths.OperateDirectory}/logs.txt`,
-      data.trim() + '\n',
-      {
-        encoding: 'utf-8',
-      },
-    );
-    return data;
-  }
-
   // Free up backend port if already occupied
   try {
     await fetch(`http://localhost:${appConfig.ports.prod.operate}/api`);
-    console.log('Killing backend server!');
+    logger.electron('Killing backend server!');
     let endpoint = fs
       .readFileSync(`${paths.OperateDirectory}/operate.kill`)
       .toString()
@@ -296,7 +283,7 @@ async function launchDaemon() {
 
     await fetch(`http://localhost:${appConfig.ports.prod.operate}/${endpoint}`);
   } catch (err) {
-    console.log('Backend not running!');
+    logger.electron('Backend not running!');
   }
 
   const check = new Promise(function (resolve, _reject) {
@@ -330,10 +317,10 @@ async function launchDaemon() {
       ) {
         resolve({ running: false, error: 'Port already in use' });
       }
-      console.log(appendLog(data.toString().trim()));
+      logger.cli(data.toString().trim());
     });
     operateDaemon.stdout.on('data', (data) => {
-      console.log(appendLog(data.toString().trim()));
+      logger.cli(data.toString().trim());
     });
   });
 
@@ -359,10 +346,10 @@ async function launchDaemonDev() {
       ) {
         resolve({ running: false, error: 'Port already in use' });
       }
-      console.log(data.toString().trim());
+      logger.cli(data.toString().trim());
     });
     operateDaemon.stdout.on('data', (data) => {
-      console.log(data.toString().trim());
+      logger.cli(data.toString().trim());
     });
   });
   return await check;
@@ -392,7 +379,7 @@ async function launchNextApp() {
   });
   server.listen(appConfig.ports.prod.next, (err) => {
     if (err) throw err;
-    console.log(
+    logger.next(
       `> Next server running on http://localhost:${appConfig.ports.prod.next}`,
     );
   });
@@ -413,7 +400,7 @@ async function launchNextAppDev() {
     );
     nextAppProcessPid = nextAppProcess.pid;
     nextAppProcess.stdout.on('data', (data) => {
-      console.log(data.toString().trim());
+      logger.next(data.toString().trim());
       resolve();
     });
   });
@@ -438,7 +425,7 @@ ipcMain.on('check', async function (event, _argument) {
     //   });
     // });
   } catch (e) {
-    console.error(e);
+    logger.electron(e);
   }
 
   // Setup
@@ -508,7 +495,7 @@ ipcMain.on('check', async function (event, _argument) {
     createTray();
     splashWindow.destroy();
   } catch (e) {
-    console.log(e);
+    logger.electron(e);
     new Notification({
       title: 'Error',
       body: e,
@@ -543,7 +530,7 @@ macUpdater.on('update-downloaded', () => {
 
 // PROCESS SPECIFIC EVENTS (HANDLES NON-GRACEFUL TERMINATION)
 process.on('uncaughtException', (error) => {
-  console.error('Uncaught Exception:', error);
+  logger.electron('Uncaught Exception:', error);
   // Clean up your child processes here
   beforeQuit().then(() => {
     process.exit(1); // Exit with a failure code
@@ -552,7 +539,7 @@ process.on('uncaughtException', (error) => {
 
 ['SIGINT', 'SIGTERM'].forEach((signal) => {
   process.on(signal, () => {
-    console.log(`Received ${signal}. Cleaning up...`);
+    logger.electron(`Received ${signal}. Cleaning up...`);
     beforeQuit().then(() => {
       process.exit(0);
     });
@@ -589,10 +576,24 @@ ipcMain.handle('save-logs', async (_, data) => {
     filePath: paths.LogFile,
   });
 
-  // operate.log
-  const installationLog = getSanitizedLogs({
-    name: 'installation_log.txt',
-    filePath: paths.OperateInstallationLog,
+  // // operate.log
+  // const installationLog = getSanitizedLogs({
+  //   name: 'installation_log.txt',
+  //   filePath: paths.OperateInstallationLog,
+  // });
+
+  // winston logs
+  const cliLogFile = getSanitizedLogs({
+    name: 'cli.log',
+    filePath: 'cli.log',
+  });
+  const nextLogFile = getSanitizedLogs({
+    name: 'next.log',
+    filePath: 'next.log',
+  });
+  const electronLogFile = getSanitizedLogs({
+    name: 'electron.log',
+    filePath: 'electron.log',
   });
 
   const tempDir = os.tmpdir();
@@ -629,7 +630,9 @@ ipcMain.handle('save-logs', async (_, data) => {
   const zip = new AdmZip();
   fs.existsSync(versionFile) && zip.addLocalFile(versionFile);
   fs.existsSync(logFile) && zip.addLocalFile(logFile);
-  fs.existsSync(installationLog) && zip.addLocalFile(installationLog);
+  fs.existsSync(cliLogFile) && zip.addLocalFile(cliLogFile);
+  fs.existsSync(electronLogFile) && zip.addLocalFile(electronLogFile);
+  fs.existsSync(nextLogFile) && zip.addLocalFile(nextLogFile);
   fs.existsSync(osInfoFilePath) && zip.addLocalFile(osInfoFilePath);
   fs.existsSync(storeFilePath) && zip.addLocalFile(storeFilePath);
   fs.existsSync(debugDataFilePath) && zip.addLocalFile(debugDataFilePath);
@@ -653,7 +656,9 @@ ipcMain.handle('save-logs', async (_, data) => {
 
   // Remove temporary files
   fs.existsSync(logFile) && fs.unlinkSync(logFile);
-  fs.existsSync(installationLog) && fs.unlinkSync(installationLog);
+  fs.existsSync(cliLogFile) && fs.unlinkSync(cliLogFile);
+  fs.existsSync(electronLogFile) && fs.unlinkSync(electronLogFile);
+  fs.existsSync(nextLogFile) && fs.unlinkSync(nextLogFile);
   fs.existsSync(osInfo) && fs.unlinkSync(osInfoFilePath);
   fs.existsSync(storeFilePath) && fs.unlinkSync(storeFilePath);
   fs.existsSync(debugDataFilePath) && fs.unlinkSync(debugDataFilePath);
