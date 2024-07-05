@@ -611,19 +611,18 @@ ipcMain.handle('save-logs', async (_, data) => {
   fs.writeFileSync(osInfoFilePath, osInfo);
 
   // Persistent store
-  let storeFile;
-  if (data.store) {
-    storeFile = path.join(paths.osPearlTempDir, 'store.txt');
-    fs.writeFileSync(storeFile, JSON.stringify(data.store, null, 2));
-  }
+  if (data.store)
+    sanitizeLogs({
+      name: 'store.txt',
+      data: JSON.stringify(data.store, null, 2),
+    });
 
   // Other debug data: balances, addresses, etc.
-  if (data.debugData) {
+  if (data.debugData)
     sanitizeLogs({
       name: 'debug_data.txt',
       data: JSON.stringify(data.debugData, null, 2),
     });
-  }
 
   // Agent logs
   try {
@@ -667,7 +666,6 @@ ipcMain.handle('save-logs', async (_, data) => {
   });
 
   let result;
-
   if (filePath) {
     // Write the zip file to the selected path
     zip.writeZip(filePath);
