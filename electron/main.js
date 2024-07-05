@@ -19,8 +19,9 @@ const http = require('http');
 const AdmZip = require('adm-zip');
 const { TRAY_ICONS, TRAY_ICONS_PATHS } = require('./icons');
 
-const { paths, Env } = require('./install');
+const { Env } = require('./install');
 
+const { paths } = require('./constants/paths');
 const { killProcesses } = require('./processes');
 const { isPortAvailable, findAvailablePort } = require('./ports');
 const { PORT_RANGE, isWindows, isMac } = require('./constants');
@@ -277,7 +278,7 @@ async function launchDaemon() {
     await fetch(`http://localhost:${appConfig.ports.prod.operate}/api`);
     logger.electron('Killing backend server!');
     let endpoint = fs
-      .readFileSync(`${paths.OperateDirectory}/operate.kill`)
+      .readFileSync(`${paths.dotOperateDirectory}/operate.kill`)
       .toString()
       .trim();
 
@@ -295,7 +296,7 @@ async function launchDaemon() {
       [
         'daemon',
         `--port=${appConfig.ports.prod.operate}`,
-        `--home=${paths.OperateDirectory}`,
+        `--home=${paths.dotOperateDirectory}`,
       ],
       { env: Env },
     );
@@ -551,16 +552,30 @@ ipcMain.on('open-path', (_, filePath) => {
   shell.openPath(filePath);
 });
 
-function getSanitizedLogs({ name, filePath, data }) {
+/**
+ * Sanitizes logs by replacing usernames in the log data with asterisks.
+ * If a file path is provided, it reads the log data from the file and sanitizes it.
+ * If the file path does not exist, it returns null.
+ * If no file path is provided, it sanitizes the provided data directly.
+ * The sanitized log data is then written to a file in the temporary directory.
+ * @param {Object} options - The options for sanitizing logs.
+ * @param {string} options.name - The name of the log file.
+ * @param {string} [options.filePath] - The file path to read the log data from.
+ * @param {string} [options.data] - The log data to sanitize if no file path is provided.
+ * @returns {string|null} - The file path of the sanitized log data, or null if the file path does not exist.
+ */
+function sanitizeLogs({ name, filePath, data }) {
   if (filePath && !fs.existsSync(filePath)) return null;
 
   const logs = filePath ? fs.readFileSync(filePath, 'utf-8') : data;
-  const tempDir = os.tmpdir();
 
   const usernameRegex = /\/Users\/([^/]+)/g;
   const sanitizedData = logs.replace(usernameRegex, '/Users/*****');
 
-  const sanitizedLogsFilePath = path.join(tempDir, name);
+  const sanitizedLogsFilePath = path.join(paths.osPearlTempDir, name);
+
+  if (!fs.existsSync(paths.osPearlTempDir)) fs.mkdirSync(paths.osPearlTempDir);
+
   fs.writeFileSync(sanitizedLogsFilePath, sanitizedData);
 
   return sanitizedLogsFilePath;
@@ -568,24 +583,20 @@ function getSanitizedLogs({ name, filePath, data }) {
 
 // EXPORT LOGS
 ipcMain.handle('save-logs', async (_, data) => {
-  // version.txt
-  const versionFile = paths.VersionFile;
-
-  // winston logs
-  const cliLogFile = getSanitizedLogs({
+  sanitizeLogs({
     name: 'cli.log',
-    filePath: path.join(paths.OperateDirectory, 'cli.log'),
-  });
-  const nextLogFile = getSanitizedLogs({
-    name: 'next.log',
-    filePath: path.join(paths.OperateDirectory, 'next.log'),
-  });
-  const electronLogFile = getSanitizedLogs({
-    name: 'electron.log',
-    filePath: path.join(paths.OperateDirectory, 'electron.log'),
+    filePath: paths.cliLogFile,
   });
 
-  const tempDir = os.tmpdir();
+  sanitizeLogs({
+    name: 'next.log',
+    filePath: paths.nextLogFile,
+  });
+
+  sanitizeLogs({
+    name: 'electron.log',
+    filePath: paths.electronLogFile,
+  });
 
   // OS info
   const osInfo = `
@@ -596,34 +607,57 @@ ipcMain.handle('save-logs', async (_, data) => {
     Total Memory: ${os.totalmem()}
     Free Memory: ${os.freemem()}
   `;
-  const osInfoFilePath = path.join(tempDir, 'os_info.txt');
+  const osInfoFilePath = path.join(paths.osPearlTempDir, 'os_info.txt');
   fs.writeFileSync(osInfoFilePath, osInfo);
 
   // Persistent store
-  let storeFilePath;
+  let storeFile;
   if (data.store) {
-    storeFilePath = path.join(tempDir, 'store.txt');
-    fs.writeFileSync(storeFilePath, JSON.stringify(data.store, null, 2));
+    storeFile = path.join(paths.osPearlTempDir, 'store.txt');
+    fs.writeFileSync(storeFile, JSON.stringify(data.store, null, 2));
   }
 
   // Other debug data: balances, addresses, etc.
-  let debugDataFilePath;
   if (data.debugData) {
-    debugDataFilePath = getSanitizedLogs({
+    sanitizeLogs({
       name: 'debug_data.txt',
       data: JSON.stringify(data.debugData, null, 2),
     });
   }
 
+  // Agent logs
+  try {
+    fs.readdirSync(paths.servicesDir).map((serviceDirName) => {
+      const servicePath = path.join(paths.servicesDir, serviceDirName);
+      if (!fs.existsSync(servicePath)) return;
+      if (!fs.statSync(servicePath).isDirectory()) return;
+
+      const agentLogFilePath = path.join(
+        servicePath,
+        'deployment',
+        'agent',
+        'log.txt',
+      );
+      if (!fs.existsSync(agentLogFilePath)) return;
+
+      return sanitizeLogs({
+        name: `${serviceDirName}_agent.log`,
+        filePath: agentLogFilePath,
+      });
+    });
+  } catch (e) {
+    logger.electron(e);
+  }
+
   // Create a zip archive
   const zip = new AdmZip();
-  fs.existsSync(versionFile) && zip.addLocalFile(versionFile);
-  fs.existsSync(cliLogFile) && zip.addLocalFile(cliLogFile);
-  fs.existsSync(electronLogFile) && zip.addLocalFile(electronLogFile);
-  fs.existsSync(nextLogFile) && zip.addLocalFile(nextLogFile);
-  fs.existsSync(osInfoFilePath) && zip.addLocalFile(osInfoFilePath);
-  fs.existsSync(storeFilePath) && zip.addLocalFile(storeFilePath);
-  fs.existsSync(debugDataFilePath) && zip.addLocalFile(debugDataFilePath);
+  fs.readdirSync(paths.osPearlTempDir).forEach((file) => {
+    const filePath = path.join(paths.osPearlTempDir, file);
+    if (!fs.existsSync(filePath)) return;
+    if (fs.statSync(filePath).isDirectory()) return;
+
+    zip.addLocalFile(filePath);
+  });
 
   // Show save dialog
   const { filePath } = await dialog.showSaveDialog({
@@ -643,12 +677,11 @@ ipcMain.handle('save-logs', async (_, data) => {
   }
 
   // Remove temporary files
-  fs.existsSync(cliLogFile) && fs.unlinkSync(cliLogFile);
-  fs.existsSync(electronLogFile) && fs.unlinkSync(electronLogFile);
-  fs.existsSync(nextLogFile) && fs.unlinkSync(nextLogFile);
-  fs.existsSync(osInfo) && fs.unlinkSync(osInfoFilePath);
-  fs.existsSync(storeFilePath) && fs.unlinkSync(storeFilePath);
-  fs.existsSync(debugDataFilePath) && fs.unlinkSync(debugDataFilePath);
+  fs.existsSync(paths.osPearlTempDir) &&
+    fs.rmSync(paths.osPearlTempDir, {
+      recursive: true,
+      force: true,
+    });
 
   return result;
 });
