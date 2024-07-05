@@ -560,21 +560,26 @@ ipcMain.on('open-path', (_, filePath) => {
  * The sanitized log data is then written to a file in the temporary directory.
  * @param {Object} options - The options for sanitizing logs.
  * @param {string} options.name - The name of the log file.
- * @param {string} [options.filePath] - The file path to read the log data from.
- * @param {string} [options.data] - The log data to sanitize if no file path is provided.
+ * @param {string} options.filePath - The file path to read the log data from.
+ * @param {string} options.data - The log data to sanitize if no file path is provided.
+ * @param {string} options.destPath - The destination path where the logs should be stored after sanitization.
  * @returns {string|null} - The file path of the sanitized log data, or null if the file path does not exist.
  */
-function sanitizeLogs({ name, filePath, data }) {
+function sanitizeLogs({
+  name,
+  filePath,
+  data,
+  destPath = paths.osPearlTempDir,
+}) {
   if (filePath && !fs.existsSync(filePath)) return null;
 
   const logs = filePath ? fs.readFileSync(filePath, 'utf-8') : data;
 
   const usernameRegex = /\/Users\/([^/]+)/g;
   const sanitizedData = logs.replace(usernameRegex, '/Users/*****');
+  const sanitizedLogsFilePath = path.join(destPath, name);
 
-  const sanitizedLogsFilePath = path.join(paths.osPearlTempDir, name);
-
-  if (!fs.existsSync(paths.osPearlTempDir)) fs.mkdirSync(paths.osPearlTempDir);
+  if (!fs.existsSync(destPath)) fs.mkdirSync(destPath);
 
   fs.writeFileSync(sanitizedLogsFilePath, sanitizedData);
 
