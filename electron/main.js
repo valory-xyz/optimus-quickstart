@@ -574,15 +574,15 @@ ipcMain.handle('save-logs', async (_, data) => {
   // winston logs
   const cliLogFile = getSanitizedLogs({
     name: 'cli.log',
-    filePath: 'cli.log',
+    filePath: path.join(paths.OperateDirectory, 'cli.log'),
   });
   const nextLogFile = getSanitizedLogs({
     name: 'next.log',
-    filePath: 'next.log',
+    filePath: path.join(paths.OperateDirectory, 'next.log'),
   });
   const electronLogFile = getSanitizedLogs({
     name: 'electron.log',
-    filePath: 'electron.log',
+    filePath: path.join(paths.OperateDirectory, 'electron.log'),
   });
 
   const tempDir = os.tmpdir();
