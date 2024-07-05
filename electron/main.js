@@ -575,8 +575,8 @@ function sanitizeLogs({
 
   const logs = filePath ? fs.readFileSync(filePath, 'utf-8') : data;
 
-  const usernameRegex = /\/Users\/([^/]+)/g;
-  const sanitizedData = logs.replace(usernameRegex, '/Users/*****');
+  const usernameRegex = /\/(Users|home)\/([^/]+)/g;
+  const sanitizedData = logs.replace(usernameRegex, '/$1/*****');
   const sanitizedLogsFilePath = path.join(destPath, name);
 
   if (!fs.existsSync(destPath)) fs.mkdirSync(destPath);
@@ -666,7 +666,10 @@ ipcMain.handle('save-logs', async (_, data) => {
   // Show save dialog
   const { filePath } = await dialog.showSaveDialog({
     title: 'Save Logs',
-    defaultPath: path.join(os.homedir(), 'pearl_logs.zip'),
+    defaultPath: path.join(
+      os.homedir(),
+      `pearl_logs_${new Date(Date.now()).toISOString()}-${app.getVersion()}.zip`,
+    ),
     filters: [{ name: 'Zip Files', extensions: ['zip'] }],
   });
 
