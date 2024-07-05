@@ -1,5 +1,3 @@
-const { isDev } = require('./constants');
-
 // Installation helpers.
 const fs = require('fs');
 const os = require('os');
@@ -15,9 +13,10 @@ const { spawnSync } = require('child_process');
  * - use "alpha" for alpha release, for example "0.1.0rc26-alpha"
  */
 const OlasMiddlewareVersion = '0.1.0rc60';
-const OperateDirectory = isDev
-  ? '.operate'
-  : path.join(os.homedir(), '.operate');
+const OperateDirectory =
+  process.env.NODE_ENV === 'production'
+    ? path.join(os.homedir(), '.operate')
+    : '.operate';
 
 // Create operate directory if it doesn't exist
 if (!fs.existsSync(OperateDirectory)) {

@@ -1,7 +1,6 @@
 const winston = require('winston');
 const { format } = require('logform');
-
-const { OperateDirectory } = require('./constants/paths');
+const { paths } = require('./install');
 
 const { combine, timestamp, printf } = format;
 const logFormat = printf(({ level, message, timestamp }) => {
@@ -42,7 +41,7 @@ const logger = winston.createLogger({
     }),
     new winston.transports.File({
       filename: 'cli.log',
-      dirname: OperateDirectory,
+      dirname: paths.OperateDirectory,
       level: 'cli',
       format: combine(levelFilter('cli'), timestamp(), logFormat),
       maxFiles: 1,
@@ -50,7 +49,7 @@ const logger = winston.createLogger({
     }),
     new winston.transports.File({
       filename: 'electron.log',
-      dirname: OperateDirectory,
+      dirname: paths.OperateDirectory,
       level: 'electron',
       format: combine(levelFilter('electron'), timestamp(), logFormat),
       maxFiles: 1,
@@ -58,7 +57,7 @@ const logger = winston.createLogger({
     }),
     new winston.transports.File({
       filename: 'next.log',
-      dirname: OperateDirectory,
+      dirname: paths.OperateDirectory,
       level: 'next',
       format: combine(levelFilter('next'), timestamp(), logFormat),
       maxFiles: 1,
