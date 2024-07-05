@@ -37,7 +37,7 @@ const logger = winston.createLogger({
   levels: customLevels.levels,
   transports: [
     new winston.transports.Console({
-      level: 'electron',
+      level: 'electron', // Set to the highest level so it captures everything.
       format: combine(winston.format.colorize(), timestamp(), logFormat),
     }),
     new winston.transports.File({
