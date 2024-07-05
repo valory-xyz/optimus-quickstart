@@ -25,9 +25,9 @@ if (!fs.existsSync(OperateDirectory)) {
 
 const paths = {
   OperateDirectory,
-  VenvDir: path.join(OperateDirectory, '.operate', 'venv'),
-  TempDir: path.join(OperateDirectory, '.operate', 'temp'),
-  VersionFile: path.join(OperateDirectory, '.operate', 'version.txt'),
+  VenvDir: path.join(OperateDirectory, 'venv'),
+  TempDir: path.join(OperateDirectory, 'temp'),
+  VersionFile: path.join(OperateDirectory, 'version.txt'),
 };
 
 const Env = {
