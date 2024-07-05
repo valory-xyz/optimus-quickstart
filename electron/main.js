@@ -557,7 +557,7 @@ ipcMain.on('open-path', (_, filePath) => {
  * If a file path is provided, it reads the log data from the file and sanitizes it.
  * If the file path does not exist, it returns null.
  * If no file path is provided, it sanitizes the provided data directly.
- * The sanitized log data is then written to a file in the temporary directory.
+ * The sanitized log data is then written to the destination path.
  * @param {Object} options - The options for sanitizing logs.
  * @param {string} options.name - The name of the log file.
  * @param {string} options.filePath - The file path to read the log data from.
