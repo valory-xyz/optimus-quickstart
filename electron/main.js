@@ -1,8 +1,5 @@
 const dotenv = require('dotenv');
 
-const console = require('electron-log/main'); // Supports log levels and file logging
-console.initialize();
-
 const {
   app,
   BrowserWindow,
@@ -22,13 +19,15 @@ const http = require('http');
 const AdmZip = require('adm-zip');
 const { TRAY_ICONS, TRAY_ICONS_PATHS } = require('./icons');
 
-const { paths, Env } = require('./install');
+const { Env } = require('./install');
 
+const { paths } = require('./constants/paths');
 const { killProcesses } = require('./processes');
 const { isPortAvailable, findAvailablePort } = require('./ports');
 const { PORT_RANGE, isWindows, isMac } = require('./constants');
 const { macUpdater } = require('./update');
 const { setupStoreIpc } = require('./store');
+const { logger } = require('./logger');
 
 // Configure environment variables
 dotenv.config();
@@ -77,7 +76,7 @@ async function beforeQuit() {
     try {
       await killProcesses(operateDaemonPid);
     } catch (e) {
-      console.error(e);
+      logger.electron(e);
     }
   }
 
@@ -85,7 +84,7 @@ async function beforeQuit() {
     try {
       await killProcesses(nextAppProcessPid);
     } catch (e) {
-      console.error(e);
+      logger.electron(e);
     }
   }
 
@@ -274,29 +273,18 @@ const createMainWindow = () => {
 };
 
 async function launchDaemon() {
-  function appendLog(data) {
-    fs.appendFileSync(
-      `${paths.OperateDirectory}/logs.txt`,
-      data.trim() + '\n',
-      {
-        encoding: 'utf-8',
-      },
-    );
-    return data;
-  }
-
   // Free up backend port if already occupied
   try {
     await fetch(`http://localhost:${appConfig.ports.prod.operate}/api`);
-    console.log('Killing backend server!');
+    logger.electron('Killing backend server!');
     let endpoint = fs
-      .readFileSync(`${paths.OperateDirectory}/operate.kill`)
+      .readFileSync(`${paths.dotOperateDirectory}/operate.kill`)
       .toString()
       .trim();
 
     await fetch(`http://localhost:${appConfig.ports.prod.operate}/${endpoint}`);
   } catch (err) {
-    console.log('Backend not running!');
+    logger.electron('Backend not running!');
   }
 
   const check = new Promise(function (resolve, _reject) {
@@ -308,7 +296,7 @@ async function launchDaemon() {
       [
         'daemon',
         `--port=${appConfig.ports.prod.operate}`,
-        `--home=${paths.OperateDirectory}`,
+        `--home=${paths.dotOperateDirectory}`,
       ],
       { env: Env },
     );
@@ -330,10 +318,10 @@ async function launchDaemon() {
       ) {
         resolve({ running: false, error: 'Port already in use' });
       }
-      console.log(appendLog(data.toString().trim()));
+      logger.cli(data.toString().trim());
     });
     operateDaemon.stdout.on('data', (data) => {
-      console.log(appendLog(data.toString().trim()));
+      logger.cli(data.toString().trim());
     });
   });
 
@@ -359,10 +347,10 @@ async function launchDaemonDev() {
       ) {
         resolve({ running: false, error: 'Port already in use' });
       }
-      console.log(data.toString().trim());
+      logger.cli(data.toString().trim());
     });
     operateDaemon.stdout.on('data', (data) => {
-      console.log(data.toString().trim());
+      logger.cli(data.toString().trim());
     });
   });
   return await check;
@@ -392,7 +380,7 @@ async function launchNextApp() {
   });
   server.listen(appConfig.ports.prod.next, (err) => {
     if (err) throw err;
-    console.log(
+    logger.next(
       `> Next server running on http://localhost:${appConfig.ports.prod.next}`,
     );
   });
@@ -413,7 +401,7 @@ async function launchNextAppDev() {
     );
     nextAppProcessPid = nextAppProcess.pid;
     nextAppProcess.stdout.on('data', (data) => {
-      console.log(data.toString().trim());
+      logger.next(data.toString().trim());
       resolve();
     });
   });
@@ -438,7 +426,7 @@ ipcMain.on('check', async function (event, _argument) {
     //   });
     // });
   } catch (e) {
-    console.error(e);
+    logger.electron(e);
   }
 
   // Setup
@@ -508,7 +496,7 @@ ipcMain.on('check', async function (event, _argument) {
     createTray();
     splashWindow.destroy();
   } catch (e) {
-    console.log(e);
+    logger.electron(e);
     new Notification({
       title: 'Error',
       body: e,
@@ -543,7 +531,7 @@ macUpdater.on('update-downloaded', () => {
 
 // PROCESS SPECIFIC EVENTS (HANDLES NON-GRACEFUL TERMINATION)
 process.on('uncaughtException', (error) => {
-  console.error('Uncaught Exception:', error);
+  logger.electron('Uncaught Exception:', error);
   // Clean up your child processes here
   beforeQuit().then(() => {
     process.exit(1); // Exit with a failure code
@@ -552,7 +540,7 @@ process.on('uncaughtException', (error) => {
 
 ['SIGINT', 'SIGTERM'].forEach((signal) => {
   process.on(signal, () => {
-    console.log(`Received ${signal}. Cleaning up...`);
+    logger.electron(`Received ${signal}. Cleaning up...`);
     beforeQuit().then(() => {
       process.exit(0);
     });
@@ -564,16 +552,35 @@ ipcMain.on('open-path', (_, filePath) => {
   shell.openPath(filePath);
 });
 
-function getSanitizedLogs({ name, filePath, data }) {
+/**
+ * Sanitizes logs by replacing usernames in the log data with asterisks.
+ * If a file path is provided, it reads the log data from the file and sanitizes it.
+ * If the file path does not exist, it returns null.
+ * If no file path is provided, it sanitizes the provided data directly.
+ * The sanitized log data is then written to the destination path.
+ * @param {Object} options - The options for sanitizing logs.
+ * @param {string} options.name - The name of the log file.
+ * @param {string} options.filePath - The file path to read the log data from.
+ * @param {string} options.data - The log data to sanitize if no file path is provided.
+ * @param {string} options.destPath - The destination path where the logs should be stored after sanitization.
+ * @returns {string|null} - The file path of the sanitized log data, or null if the file path does not exist.
+ */
+function sanitizeLogs({
+  name,
+  filePath,
+  data,
+  destPath = paths.osPearlTempDir,
+}) {
   if (filePath && !fs.existsSync(filePath)) return null;
 
   const logs = filePath ? fs.readFileSync(filePath, 'utf-8') : data;
-  const tempDir = os.tmpdir();
 
-  const usernameRegex = /\/Users\/([^/]+)/g;
-  const sanitizedData = logs.replace(usernameRegex, '/Users/*****');
+  const usernameRegex = /\/(Users|home)\/([^/]+)/g;
+  const sanitizedData = logs.replace(usernameRegex, '/$1/*****');
+  const sanitizedLogsFilePath = path.join(destPath, name);
 
-  const sanitizedLogsFilePath = path.join(tempDir, name);
+  if (!fs.existsSync(destPath)) fs.mkdirSync(destPath);
+
   fs.writeFileSync(sanitizedLogsFilePath, sanitizedData);
 
   return sanitizedLogsFilePath;
@@ -581,21 +588,20 @@ function getSanitizedLogs({ name, filePath, data }) {
 
 // EXPORT LOGS
 ipcMain.handle('save-logs', async (_, data) => {
-  // version.txt
-  const versionFile = paths.VersionFile;
-  // logs.txt
-  const logFile = getSanitizedLogs({
-    name: 'log.txt',
-    filePath: paths.LogFile,
+  sanitizeLogs({
+    name: 'cli.log',
+    filePath: paths.cliLogFile,
   });
 
-  // operate.log
-  const installationLog = getSanitizedLogs({
-    name: 'installation_log.txt',
-    filePath: paths.OperateInstallationLog,
+  sanitizeLogs({
+    name: 'next.log',
+    filePath: paths.nextLogFile,
   });
 
-  const tempDir = os.tmpdir();
+  sanitizeLogs({
+    name: 'electron.log',
+    filePath: paths.electronLogFile,
+  });
 
   // OS info
   const osInfo = `
@@ -606,43 +612,68 @@ ipcMain.handle('save-logs', async (_, data) => {
     Total Memory: ${os.totalmem()}
     Free Memory: ${os.freemem()}
   `;
-  const osInfoFilePath = path.join(tempDir, 'os_info.txt');
+  const osInfoFilePath = path.join(paths.osPearlTempDir, 'os_info.txt');
   fs.writeFileSync(osInfoFilePath, osInfo);
 
   // Persistent store
-  let storeFilePath;
-  if (data.store) {
-    storeFilePath = path.join(tempDir, 'store.txt');
-    fs.writeFileSync(storeFilePath, JSON.stringify(data.store, null, 2));
-  }
+  if (data.store)
+    sanitizeLogs({
+      name: 'store.txt',
+      data: JSON.stringify(data.store, null, 2),
+    });
 
   // Other debug data: balances, addresses, etc.
-  let debugDataFilePath;
-  if (data.debugData) {
-    debugDataFilePath = getSanitizedLogs({
+  if (data.debugData)
+    sanitizeLogs({
       name: 'debug_data.txt',
       data: JSON.stringify(data.debugData, null, 2),
     });
+
+  // Agent logs
+  try {
+    fs.readdirSync(paths.servicesDir).map((serviceDirName) => {
+      const servicePath = path.join(paths.servicesDir, serviceDirName);
+      if (!fs.existsSync(servicePath)) return;
+      if (!fs.statSync(servicePath).isDirectory()) return;
+
+      const agentLogFilePath = path.join(
+        servicePath,
+        'deployment',
+        'agent',
+        'log.txt',
+      );
+      if (!fs.existsSync(agentLogFilePath)) return;
+
+      return sanitizeLogs({
+        name: `${serviceDirName}_agent.log`,
+        filePath: agentLogFilePath,
+      });
+    });
+  } catch (e) {
+    logger.electron(e);
   }
 
   // Create a zip archive
   const zip = new AdmZip();
-  fs.existsSync(versionFile) && zip.addLocalFile(versionFile);
-  fs.existsSync(logFile) && zip.addLocalFile(logFile);
-  fs.existsSync(installationLog) && zip.addLocalFile(installationLog);
-  fs.existsSync(osInfoFilePath) && zip.addLocalFile(osInfoFilePath);
-  fs.existsSync(storeFilePath) && zip.addLocalFile(storeFilePath);
-  fs.existsSync(debugDataFilePath) && zip.addLocalFile(debugDataFilePath);
+  fs.readdirSync(paths.osPearlTempDir).forEach((file) => {
+    const filePath = path.join(paths.osPearlTempDir, file);
+    if (!fs.existsSync(filePath)) return;
+    if (fs.statSync(filePath).isDirectory()) return;
+
+    zip.addLocalFile(filePath);
+  });
 
   // Show save dialog
   const { filePath } = await dialog.showSaveDialog({
     title: 'Save Logs',
-    defaultPath: path.join(os.homedir(), 'pearl_logs.zip'),
+    defaultPath: path.join(
+      os.homedir(),
+      `pearl_logs_${new Date(Date.now()).toISOString()}-${app.getVersion()}.zip`,
+    ),
     filters: [{ name: 'Zip Files', extensions: ['zip'] }],
   });
 
   let result;
-
   if (filePath) {
     // Write the zip file to the selected path
     zip.writeZip(filePath);
@@ -652,11 +683,11 @@ ipcMain.handle('save-logs', async (_, data) => {
   }
 
   // Remove temporary files
-  fs.existsSync(logFile) && fs.unlinkSync(logFile);
-  fs.existsSync(installationLog) && fs.unlinkSync(installationLog);
-  fs.existsSync(osInfo) && fs.unlinkSync(osInfoFilePath);
-  fs.existsSync(storeFilePath) && fs.unlinkSync(storeFilePath);
-  fs.existsSync(debugDataFilePath) && fs.unlinkSync(debugDataFilePath);
+  fs.existsSync(paths.osPearlTempDir) &&
+    fs.rmSync(paths.osPearlTempDir, {
+      recursive: true,
+      force: true,
+    });
 
   return result;
 });
