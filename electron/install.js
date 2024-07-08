@@ -1,18 +1,18 @@
 // Installation helpers.
 const fs = require('fs');
 const os = require('os');
-const path = require('path');
 const sudo = require('sudo-prompt');
 const process = require('process');
 const axios = require('axios');
 const { spawnSync } = require('child_process');
+
+const { paths } = require('./constants/paths');
 
 /**
  * current version of the pearl release
  * - use "" (nothing as a suffix) for latest release candidate, for example "0.1.0rc26"
  * - use "alpha" for alpha release, for example "0.1.0rc26-alpha"
  */
-const OlasMiddlewareVersion = '0.1.0rc66';
 const OperateDirectory = path.join(os.homedir(), '.operate');
 
 // Create operate directory if it doesn't exist
@@ -20,14 +20,7 @@ if (!fs.existsSync(OperateDirectory)) {
   fs.mkdirSync(OperateDirectory);
 }
 
-const paths = {
-  OperateDirectory,
-  VenvDir: path.join(OperateDirectory, '.operate', 'venv'),
-  TempDir: path.join(OperateDirectory, '.operate', 'temp'),
-  VersionFile: path.join(OperateDirectory, '.operate', 'version.txt'),
-  LogFile: path.join(OperateDirectory, '.operate', 'logs.txt'),
-  OperateInstallationLog: path.join(os.homedir(), 'operate.log'),
-};
+const OlasMiddlewareVersion = '0.1.0rc66';
 
 const Env = {
   ...process.env,
@@ -152,7 +145,7 @@ async function downloadFile(url, dest) {
 
 async function installTendermintUnix() {
   const cwd = process.cwd();
-  process.chdir(paths.TempDir);
+  process.chdir(paths.tempDir);
 
   console.log(
     appendInstallationLog(
@@ -164,7 +157,7 @@ async function installTendermintUnix() {
   console.log(
     appendInstallationLog(`Downloading ${url}, might take a while...`),
   );
-  await downloadFile(url, `${paths.TempDir}/tendermint.tar.gz`);
+  await downloadFile(url, `${paths.tempDir}/tendermint.tar.gz`);
 
   console.log(appendInstallationLog(`Installing tendermint binary`));
   runCmdUnix('tar', ['-xvf', 'tendermint.tar.gz']);
@@ -226,7 +219,7 @@ function installOperateCli(path) {
   }
   return new Promise((resolve, _reject) => {
     fs.copyFile(
-      `${OperateDirectory}/venv/bin/operate`,
+      `${paths.dotOperateDirectory}/venv/bin/operate`,
       installPath,
       function (error, _stdout, _stderr) {
         resolve(!error);
@@ -247,15 +240,15 @@ function createDirectory(path) {
 }
 
 function writeVersion() {
-  fs.writeFileSync(paths.VersionFile, OlasMiddlewareVersion);
+  fs.writeFileSync(paths.versionFile, OlasMiddlewareVersion);
 }
 
 function versionBumpRequired() {
-  if (!fs.existsSync(paths.VersionFile)) {
+  if (!fs.existsSync(paths.versionFile)) {
     return true;
   }
   const olasMiddlewareVersionInFile = fs
-    .readFileSync(paths.VersionFile)
+    .readFileSync(paths.versionFile)
     .toString();
   return olasMiddlewareVersionInFile != OlasMiddlewareVersion;
 }
@@ -279,8 +272,8 @@ function removeInstallationLogFile() {
 async function setupDarwin(ipcChannel) {
   removeInstallationLogFile();
   console.log(appendInstallationLog('Creating required directories'));
-  await createDirectory(`${OperateDirectory}`);
-  await createDirectory(`${OperateDirectory}/temp`);
+  await createDirectory(`${paths.dotOperateDirectory}`);
+  await createDirectory(`${paths.dotOperateDirectory}/temp`);
 
   console.log(appendInstallationLog('Checking tendermint installation'));
   if (!isTendermintInstalledUnix()) {
@@ -310,19 +303,19 @@ async function setupUbuntu(ipcChannel) {
   if (!isPythonInstalledUbuntu()) {
     ipcChannel.send('response', 'Installing Pearl Daemon');
     console.log(appendInstallationLog('Installing Python'));
-    await installPythonUbuntu(OperateDirectory);
+    await installPythonUbuntu(paths.dotOperateDirectory);
   }
 
   console.log(appendInstallationLog('Checking git installation'));
   if (!isGitInstalledUbuntu()) {
     ipcChannel.send('response', 'Installing Pearl Daemon');
     console.log(appendInstallationLog('Installing git'));
-    await installGitUbuntu(OperateDirectory);
+    await installGitUbuntu(paths.dotOperateDirectory);
   }
 
   console.log(appendInstallationLog('Creating required directories'));
-  await createDirectory(`${OperateDirectory}`);
-  await createDirectory(`${OperateDirectory}/temp`);
+  await createDirectory(`${paths.dotOperateDirectory}`);
+  await createDirectory(`${paths.dotOperateDirectory}/temp`);
 
   console.log(appendInstallationLog('Checking tendermint installation'));
   if (!isTendermintInstalledUnix()) {
@@ -331,13 +324,13 @@ async function setupUbuntu(ipcChannel) {
     await installTendermintUnix();
   }
 
-  if (!fs.existsSync(paths.VenvDir)) {
+  if (!fs.existsSync(paths.venvDir)) {
     ipcChannel.send('response', 'Installing Pearl Daemon');
     console.log(appendInstallationLog('Creating virtual environment'));
-    createVirtualEnvUnix(paths.VenvDir);
+    createVirtualEnvUnix(paths.venvDir);
 
     console.log(appendInstallationLog('Installing pearl backend'));
-    installOperatePackageUnix(OperateDirectory);
+    installOperatePackageUnix(paths.dotOperateDirectory);
   }
 
   console.log(appendInstallationLog('Checking if upgrade is required'));
@@ -347,13 +340,13 @@ async function setupUbuntu(ipcChannel) {
         `Upgrading pearl daemon to ${OlasMiddlewareVersion}`,
       ),
     );
-    reInstallOperatePackageUnix(OperateDirectory);
+    reInstallOperatePackageUnix(paths.dotOperateDirectory);
     writeVersion();
     removeLogFile();
   }
 
-  if (!fs.existsSync(`${OperateDirectory}/venv/bin/operate`)) {
-    reInstallOperatePackageUnix(OperateDirectory);
+  if (!fs.existsSync(`${paths.dotOperateDirectory}/venv/bin/operate`)) {
+    reInstallOperatePackageUnix(paths.dotOperateDirectory);
   }
 
   console.log(appendInstallationLog('Installing pearl CLI'));
@@ -364,5 +357,4 @@ module.exports = {
   setupDarwin,
   setupUbuntu,
   Env,
-  paths,
 };
