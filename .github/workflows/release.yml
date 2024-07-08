@@ -73,6 +73,8 @@ jobs:
               with:
                 name: pearl_arm64
                 path: electron/bins/
+            - name: Add exec permissions
+              run: chmod +x electron/bins/pearl_x64 && chmod +x electron/bins/pearl_arm64
             - uses: snok/install-poetry@v1
               with:
                 version: "1.7.1"
