@@ -18,19 +18,22 @@
 # ------------------------------------------------------------------------------
 
 """File used for pyinstaller to create a single executable file."""
+# pylint: disable=all
+# mypy: ignore-errors
+# flake8: noqa
+
 import os
 import sys
 from pathlib import Path
+
 import aea.configurations.validation as validation_module
+
 
 # patch for the _CUR_DIR value
 validation_module._CUR_DIR = Path(sys._MEIPASS) / validation_module._CUR_DIR
 validation_module._SCHEMAS_DIR = os.path.join(validation_module._CUR_DIR, "schemas")
 
 
-# pylint: disable=all
-# mypy: ignore-errors
-# flake8: noqa
 from aea.crypto.registries.base import *
 from aea.mail.base_pb2 import DESCRIPTOR
 from aea_ledger_cosmos.cosmos import *  # noqa
