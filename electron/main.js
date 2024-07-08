@@ -28,6 +28,7 @@ const { PORT_RANGE, isWindows, isMac } = require('./constants');
 const { macUpdater } = require('./update');
 const { setupStoreIpc } = require('./store');
 const { logger } = require('./logger');
+const { isDev } = require('./constants');
 
 // Configure environment variables
 dotenv.config();
@@ -37,7 +38,6 @@ const singleInstanceLock = app.requestSingleInstanceLock();
 if (!singleInstanceLock) app.quit();
 
 const platform = os.platform();
-const isDev = process.env.NODE_ENV === 'development';
 
 const binaryPaths = {
   darwin: {

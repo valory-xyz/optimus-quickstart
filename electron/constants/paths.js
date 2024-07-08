@@ -1,11 +1,11 @@
 const os = require('os');
 const path = require('path');
 const fs = require('fs');
+const { isProd } = require('../constants');
 
-const dotOperateDirectory =
-  process.env.NODE_ENV === 'production'
-    ? path.join(os.homedir(), '.operate')
-    : '.operate';
+const dotOperateDirectory = isProd
+  ? path.join(os.homedir(), '.operate')
+  : '.operate';
 
 // Create operate directory if it doesn't exist
 if (!fs.existsSync(dotOperateDirectory)) {
