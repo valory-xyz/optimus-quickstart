@@ -6,7 +6,7 @@ const process = require('process');
 const axios = require('axios');
 const { spawnSync } = require('child_process');
 
-const { paths } = require('./constants/paths');
+const { paths } = require('./constants');
 
 /**
  * current version of the pearl release

@@ -1,4 +1,4 @@
-const { publishOptions } = require('./constants/publishOptions');
+const { publishOptions } = require('./constants');
 const electronUpdater = require('electron-updater');
 const logger = require('./logger');
 
