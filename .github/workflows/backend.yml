@@ -13,8 +13,8 @@ jobs:
             # Node.js (for package scripts)
             -   uses: actions/setup-node@v4
                 with:
-                    node-version: lts
-
+                    node-version: lts/*
+                    
             # Python
             -   uses: actions/setup-python@v4
                 with:
