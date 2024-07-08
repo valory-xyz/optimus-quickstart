@@ -1,5 +1,6 @@
 const os = require('os');
 const path = require('path');
+require('dotenv').config();
 
 const PORT_RANGE = { startPort: 39152, endPort: 65535 };
 const ERROR_ADDRESS_IN_USE = 'EADDRINUSE';
@@ -10,8 +11,8 @@ const isMac = process.platform === 'darwin';
 const isLinux = process.platform === 'linux';
 
 // Environment specific constants
-const isProd = process.env.NODE_ENV === 'production';
-const isDev = !isProd;
+const isDev = process.env.NODE_ENV === 'development';
+const isProd = !isDev;
 
 // Paths
 const dotOperateDirectory = isProd
