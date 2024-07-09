@@ -15,21 +15,22 @@ import {
 import { useInterval } from 'usehooks-ts';
 
 import { Wallet } from '@/client';
+import { FIVE_SECONDS_INTERVAL } from '@/constants/intervals';
 import { TOKENS } from '@/constants/tokens';
 import { ServiceRegistryL2ServiceState } from '@/enums/ServiceRegistryL2ServiceState';
 import { Token } from '@/enums/Token';
-import { EthersService } from '@/service';
 import { AutonolasService } from '@/service/Autonolas';
+import { EthersService } from '@/service/Ethers';
 import MulticallService from '@/service/Multicall';
+import { Address } from '@/types/Address';
 import {
-  Address,
   AddressNumberRecord,
   WalletAddressNumberRecord,
-} from '@/types';
+} from '@/types/Records';
 
-import { ServicesContext } from '.';
 import { OnlineStatusContext } from './OnlineStatusProvider';
 import { RewardContext } from './RewardProvider';
+import { ServicesContext } from './ServicesProvider';
 import { WalletContext } from './WalletProvider';
 
 export const BalanceContext = createContext<{
@@ -199,7 +200,7 @@ export const BalanceProvider = ({ children }: PropsWithChildren) => {
     () => {
       updateBalances();
     },
-    isPaused || !isOnline ? null : 5000,
+    isPaused || !isOnline ? null : FIVE_SECONDS_INTERVAL,
   );
 
   return (
@@ -268,7 +269,7 @@ export const getWalletAddresses = (
   }
 
   for (const serviceAddress of serviceAddresses) {
-    if (serviceAddress && isAddress(serviceAddress)) {
+    if (serviceAddress && isAddress(`${serviceAddress}`)) {
       walletsToCheck.push(serviceAddress);
     }
   }

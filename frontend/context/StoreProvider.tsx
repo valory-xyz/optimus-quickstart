@@ -7,7 +7,7 @@ import {
   useState,
 } from 'react';
 
-import type { ElectronStore } from '@/types';
+import type { ElectronStore } from '@/types/ElectronApi';
 
 import { ElectronApiContext } from './ElectronApiProvider';
 
@@ -21,7 +21,7 @@ export const StoreProvider = ({ children }: PropsWithChildren) => {
 
   const setupStore = useCallback(async () => {
     const tempStore = await store?.store?.();
-    setStoreState(tempStore);
+    if (tempStore) setStoreState(tempStore);
     ipcRenderer?.on?.('store-changed', (_event: unknown, data: unknown) => {
       setStoreState(data as ElectronStore);
     });

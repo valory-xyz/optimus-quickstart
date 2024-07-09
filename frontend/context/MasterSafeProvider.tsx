@@ -1,7 +1,3 @@
-/**
- * placeholder incase required, currently not used
- */
-
 import {
   createContext,
   PropsWithChildren,
@@ -11,8 +7,9 @@ import {
 } from 'react';
 import { useInterval } from 'usehooks-ts';
 
+import { FIVE_SECONDS_INTERVAL } from '@/constants/intervals';
 import { GnosisSafeService } from '@/service/GnosisSafe';
-import { Address } from '@/types';
+import { Address } from '@/types/Address';
 
 import { OnlineStatusContext } from './OnlineStatusProvider';
 import { WalletContext } from './WalletProvider';
@@ -70,7 +67,7 @@ export const MasterSafeProvider = ({ children }: PropsWithChildren) => {
     updateMasterSafeOwners,
     (masterSafeOwners && masterSafeOwners.length >= 2) || !isOnline
       ? null
-      : 5000,
+      : FIVE_SECONDS_INTERVAL,
   );
 
   return (

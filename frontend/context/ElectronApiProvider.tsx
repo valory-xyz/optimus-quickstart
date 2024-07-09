@@ -1,7 +1,7 @@
 import { get } from 'lodash';
 import { createContext, PropsWithChildren } from 'react';
 
-import { ElectronStore, ElectronTrayIconStatus } from '@/types';
+import { ElectronStore, ElectronTrayIconStatus } from '@/types/ElectronApi';
 
 type ElectronApiContextProps = {
   closeApp?: () => void;

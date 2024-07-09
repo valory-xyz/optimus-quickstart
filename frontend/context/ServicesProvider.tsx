@@ -12,8 +12,9 @@ import {
 import { useInterval } from 'usehooks-ts';
 
 import { DeploymentStatus, Service } from '@/client';
-import { ServicesService } from '@/service';
-import { Address } from '@/types';
+import { FIVE_SECONDS_INTERVAL } from '@/constants/intervals';
+import { ServicesService } from '@/service/Services';
+import { Address } from '@/types/Address';
 
 import { OnlineStatusContext } from './OnlineStatusProvider';
 
@@ -91,7 +92,7 @@ export const ServicesProvider = ({ children }: PropsWithChildren) => {
       updateServicesState()
         .then(() => updateServiceStatus())
         .catch((e) => message.error(e.message)),
-    isOnline ? 5000 : null,
+    isOnline ? FIVE_SECONDS_INTERVAL : null,
   );
 
   return (

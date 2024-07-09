@@ -1,6 +1,7 @@
 import { createContext, PropsWithChildren, useCallback, useState } from 'react';
 import { useInterval } from 'usehooks-ts';
 
+import { FIVE_SECONDS_INTERVAL } from '@/constants/intervals';
 import { AutonolasService } from '@/service/Autonolas';
 
 type StakingContractInfoContextProps = {
@@ -54,7 +55,7 @@ export const StakingContractInfoProvider = ({
     }
   }, []);
 
-  useInterval(updateStakingContractInfo, 5000);
+  useInterval(updateStakingContractInfo, FIVE_SECONDS_INTERVAL);
 
   return (
     <StakingContractInfoContext.Provider
