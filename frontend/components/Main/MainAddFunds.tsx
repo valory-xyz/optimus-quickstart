@@ -15,13 +15,14 @@ import Link from 'next/link';
 import { useCallback, useMemo, useState } from 'react';
 import styled from 'styled-components';
 
-import { copyToClipboard, truncateAddress } from '@/common-util';
-import { COW_SWAP_GNOSIS_XDAI_OLAS_URL } from '@/constants';
-import { UNICODE_SYMBOLS } from '@/constants/unicode';
+import { UNICODE_SYMBOLS } from '@/constants/symbols';
+import { COW_SWAP_GNOSIS_XDAI_OLAS_URL } from '@/constants/urls';
 import { useWallet } from '@/hooks/useWallet';
-import { Address } from '@/types';
+import { Address } from '@/types/Address';
+import { copyToClipboard } from '@/utils/copyToClipboard';
+import { truncateAddress } from '@/utils/truncate';
 
-import { Alert } from '../common/Alert';
+import { Alert } from '../Alert';
 import { CardSection } from '../styled/CardSection';
 
 const { Text } = Typography;

@@ -2,8 +2,8 @@ import { Button, Checkbox, Form, Input, message, Typography } from 'antd';
 import { useState } from 'react';
 
 import { Chain } from '@/client';
-import { SetupScreen } from '@/enums';
-import { useSetup } from '@/hooks';
+import { SetupScreen } from '@/enums/SetupScreen';
+import { useSetup } from '@/hooks/useSetup';
 import { AccountService } from '@/service/Account';
 import { WalletService } from '@/service/Wallet';
 

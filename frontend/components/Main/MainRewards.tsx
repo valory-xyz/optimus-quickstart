@@ -3,13 +3,13 @@ import { Button, Flex, Modal, Skeleton, Tag, Tooltip, Typography } from 'antd';
 import Image from 'next/image';
 import { useCallback, useEffect, useState } from 'react';
 
-import { balanceFormat } from '@/common-util';
-import { useBalance } from '@/hooks';
+import { useBalance } from '@/hooks/useBalance';
 import { useElectronApi } from '@/hooks/useElectronApi';
 import { useReward } from '@/hooks/useReward';
 import { useStore } from '@/hooks/useStore';
+import { balanceFormat } from '@/utils/numberFormatters';
 
-import { ConfettiAnimation } from '../common/ConfettiAnimation';
+import { ConfettiAnimation } from '../Confetti/ConfettiAnimation';
 import { CardSection } from '../styled/CardSection';
 
 const { Text, Title, Paragraph } = Typography;

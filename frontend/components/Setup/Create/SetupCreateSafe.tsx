@@ -4,10 +4,11 @@ import { useEffect, useState } from 'react';
 
 import { Chain } from '@/client';
 import { CardSection } from '@/components/styled/CardSection';
-import { SUPPORT_URL } from '@/constants';
-import { UNICODE_SYMBOLS } from '@/constants/unicode';
-import { PageState } from '@/enums';
-import { usePageState, useSetup } from '@/hooks';
+import { UNICODE_SYMBOLS } from '@/constants/symbols';
+import { SUPPORT_URL } from '@/constants/urls';
+import { PageState } from '@/enums/PageState';
+import { usePageState } from '@/hooks/usePageState';
+import { useSetup } from '@/hooks/useSetup';
 import { useWallet } from '@/hooks/useWallet';
 import { WalletService } from '@/service/Wallet';
 

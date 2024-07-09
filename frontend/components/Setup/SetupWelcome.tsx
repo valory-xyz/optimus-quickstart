@@ -12,9 +12,12 @@ import Image from 'next/image';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
 import { AccountIsSetup } from '@/client';
-import { PageState, SetupScreen } from '@/enums';
-import { useBalance, usePageState, useSetup } from '@/hooks';
+import { PageState } from '@/enums/PageState';
+import { SetupScreen } from '@/enums/SetupScreen';
+import { useBalance } from '@/hooks/useBalance';
 import { useElectronApi } from '@/hooks/useElectronApi';
+import { usePageState } from '@/hooks/usePageState';
+import { useSetup } from '@/hooks/useSetup';
 import { useWallet } from '@/hooks/useWallet';
 import { AccountService } from '@/service/Account';
 
@@ -24,17 +27,17 @@ const { Title } = Typography;
 
 export const SetupWelcome = () => {
   const electronApi = useElectronApi();
-  const [isSetup, setIsSetup] = useState<AccountIsSetup>(
-    AccountIsSetup.Loading,
-  );
+  const [isSetup, setIsSetup] = useState<AccountIsSetup | null>(null);
 
   useEffect(() => {
+    if (isSetup !== null) return;
+    setIsSetup(AccountIsSetup.Loading);
+
     AccountService.getAccount()
       .then((res) => {
         switch (res.is_setup) {
           case true:
             setIsSetup(AccountIsSetup.True);
-
             break;
           case false:
             // Reset persistent state
@@ -51,7 +54,7 @@ export const SetupWelcome = () => {
         console.error(e);
         setIsSetup(AccountIsSetup.Error);
       });
-  }, []);
+  }, [electronApi.store, isSetup]);
 
   const welcomeScreen = useMemo(() => {
     switch (isSetup) {
@@ -59,8 +62,20 @@ export const SetupWelcome = () => {
         return <SetupWelcomeLogin />;
       case AccountIsSetup.False:
         return <SetupWelcomeCreate />;
+      case AccountIsSetup.Loading:
+        return (
+          <Flex justify="center">
+            <Spin />
+          </Flex>
+        );
       default:
-        return <Spin />;
+        return (
+          <Flex justify="center">
+            <Typography.Text>
+              Error determining account setup state.
+            </Typography.Text>
+          </Flex>
+        );
     }
   }, [isSetup]);
 
