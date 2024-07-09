@@ -1,13 +1,11 @@
 import { BigNumber, ethers } from 'ethers';
 import { Contract as MulticallContract } from 'ethers-multicall';
 
-import {
-  AGENT_MECH_ABI,
-  MECH_ACTIVITY_CHECKER_ABI,
-  SERVICE_REGISTRY_L2_ABI,
-  SERVICE_REGISTRY_TOKEN_UTILITY_ABI,
-  SERVICE_STAKING_TOKEN_MECH_USAGE_ABI,
-} from '@/abi';
+import { AGENT_MECH_ABI } from '@/abis/agentMech';
+import { MECH_ACTIVITY_CHECKER_ABI } from '@/abis/mechActivityChecker';
+import { SERVICE_REGISTRY_L2_ABI } from '@/abis/serviceRegistryL2';
+import { SERVICE_REGISTRY_TOKEN_UTILITY_ABI } from '@/abis/serviceRegistryTokenUtility';
+import { SERVICE_STAKING_TOKEN_MECH_USAGE_ABI } from '@/abis/serviceStakingTokenMechUsage';
 import { Chain } from '@/client';
 import {
   AGENT_MECH_CONTRACT_ADDRESS,
@@ -15,10 +13,11 @@ import {
   SERVICE_REGISTRY_L2_CONTRACT_ADDRESS,
   SERVICE_REGISTRY_TOKEN_UTILITY_CONTRACT_ADDRESS,
   SERVICE_STAKING_TOKEN_MECH_USAGE_CONTRACT_ADDRESS,
-} from '@/constants';
+} from '@/constants/contractAddresses';
 import { gnosisMulticallProvider } from '@/constants/providers';
-import { ServiceRegistryL2ServiceState } from '@/enums';
-import { Address, StakingContractInfo, StakingRewardsInfo } from '@/types';
+import { ServiceRegistryL2ServiceState } from '@/enums/ServiceRegistryL2ServiceState';
+import { Address } from '@/types/Address';
+import { StakingContractInfo, StakingRewardsInfo } from '@/types/Autonolas';
 
 const REQUIRED_MECH_REQUESTS_SAFETY_MARGIN = 1;
 
