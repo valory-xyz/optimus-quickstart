@@ -1,4 +1,4 @@
-import { Address } from '@/types';
+import { Address } from '@/types/Address';
 
 import { Chain, DeploymentStatus, Ledger } from './enums';
 
