@@ -1,5 +1,5 @@
 import { Chain } from '@/client';
-import { Address } from '@/types';
+import { Address } from '@/types/Address';
 
 export const MULTICALL_CONTRACT_ADDRESS: Address =
   '0xcA11bde05977b3631167028862bE2a173976CA11'; // https://github.com/mds1/multicall, https://www.multicall3.com/

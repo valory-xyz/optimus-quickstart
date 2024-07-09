@@ -1,4 +1,4 @@
-import { Address } from '@/types';
+import { Address } from '@/types/Address';
 
 export const TOKENS: { [chain: string]: { [token: string]: Address } } = {
   gnosis: {
