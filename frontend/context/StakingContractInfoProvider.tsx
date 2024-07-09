@@ -1,8 +1,10 @@
-import { createContext, PropsWithChildren, useEffect, useState } from 'react';
+import { createContext, PropsWithChildren, useCallback, useState } from 'react';
+import { useInterval } from 'usehooks-ts';
 
 import { AutonolasService } from '@/service/Autonolas';
 
 type StakingContractInfoContextProps = {
+  updateStakingContractInfo: () => Promise<void>;
   isStakingContractInfoLoading: boolean;
   isRewardsAvailable: boolean;
   hasEnoughServiceSlots: boolean;
@@ -12,6 +14,7 @@ type StakingContractInfoContextProps = {
 
 export const StakingContractInfoContext =
   createContext<StakingContractInfoContextProps>({
+    updateStakingContractInfo: async () => {},
     isStakingContractInfoLoading: true,
     isRewardsAvailable: false,
     hasEnoughServiceSlots: false,
@@ -29,34 +32,34 @@ export const StakingContractInfoProvider = ({
   const [isAgentEvicted, setIsAgentEvicted] = useState(false);
   const [canStartAgent, setCanStartAgent] = useState(false);
 
-  useEffect(() => {
-    (async () => {
-      try {
-        setIsStakingContractInfoLoading(true);
+  const updateStakingContractInfo = useCallback(async () => {
+    setIsStakingContractInfoLoading(true);
+    try {
+      const info = await AutonolasService.getStakingContractInfo();
+      if (!info) return;
 
-        const info = await AutonolasService.getStakingContractInfo();
-        if (!info) return;
+      const { availableRewards, maxNumServices, serviceIds } = info;
+      const isRewardsAvailable = availableRewards > 0;
+      const hasEnoughServiceSlots = serviceIds.length < maxNumServices;
+      const canStartAgent = isRewardsAvailable && hasEnoughServiceSlots;
 
-        const { availableRewards, maxNumServices, serviceIds } = info;
-        const isRewardsAvailable = availableRewards > 0;
-        const hasEnoughServiceSlots = serviceIds.length < maxNumServices;
-        const canStartAgent = isRewardsAvailable && hasEnoughServiceSlots;
-
-        setIsRewardsAvailable(isRewardsAvailable);
-        setHasEnoughServiceSlots(hasEnoughServiceSlots);
-        setCanStartAgent(canStartAgent);
-        setIsAgentEvicted(false); // TODO: Implement this
-      } catch (error) {
-        console.error('Failed to fetch staking contract info', error);
-      } finally {
-        setIsStakingContractInfoLoading(false);
-      }
-    })();
+      setIsRewardsAvailable(isRewardsAvailable);
+      setHasEnoughServiceSlots(hasEnoughServiceSlots);
+      setCanStartAgent(canStartAgent);
+      setIsAgentEvicted(false); // TODO: Implement this
+    } catch (error) {
+      console.error('Failed to fetch staking contract info', error);
+    } finally {
+      setIsStakingContractInfoLoading(false);
+    }
   }, []);
+
+  useInterval(updateStakingContractInfo, 5000);
 
   return (
     <StakingContractInfoContext.Provider
       value={{
+        updateStakingContractInfo,
         isStakingContractInfoLoading,
         isRewardsAvailable,
         hasEnoughServiceSlots,
