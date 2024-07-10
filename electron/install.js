@@ -6,14 +6,14 @@ const process = require('process');
 const axios = require('axios');
 const { spawnSync } = require('child_process');
 
-const { paths } = require('./constants/paths');
+const { paths } = require('./constants');
 
 /**
  * current version of the pearl release
  * - use "" (nothing as a suffix) for latest release candidate, for example "0.1.0rc26"
  * - use "alpha" for alpha release, for example "0.1.0rc26-alpha"
  */
-const OlasMiddlewareVersion = '0.1.0rc64';
+const OlasMiddlewareVersion = '0.1.0rc70';
 
 const Env = {
   ...process.env,

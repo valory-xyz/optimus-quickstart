@@ -1,10 +1,14 @@
 import { useEffect, useMemo } from 'react';
 
-import { HelpAndSupport, Settings, Setup } from '@/components';
-import { Main } from '@/components/Main/Main';
-import { DEFAULT_HEIGHT, PageState } from '@/enums';
-import { usePageState } from '@/hooks';
+import { HelpAndSupport } from '@/components/HelpAndSupport';
+import { Main } from '@/components/Main';
+import { Settings } from '@/components/Settings';
+import { Setup } from '@/components/Setup';
+import { PageState } from '@/enums/PageState';
 import { useElectronApi } from '@/hooks/useElectronApi';
+import { usePageState } from '@/hooks/usePageState';
+
+const DEFAULT_APP_HEIGHT = 700;
 
 export default function Home() {
   const { pageState } = usePageState();
@@ -15,7 +19,7 @@ export default function Home() {
       const bodyElement = document.querySelector('body');
       if (bodyElement) {
         const scrollHeight = bodyElement.scrollHeight;
-        electronApi?.setAppHeight?.(Math.min(DEFAULT_HEIGHT, scrollHeight));
+        electronApi?.setAppHeight?.(Math.min(DEFAULT_APP_HEIGHT, scrollHeight));
       }
     }
 

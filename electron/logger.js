@@ -1,6 +1,6 @@
 const winston = require('winston');
 const { format } = require('logform');
-const { paths } = require('./constants/paths');
+const { paths } = require('./constants');
 
 const { combine, timestamp, printf } = format;
 

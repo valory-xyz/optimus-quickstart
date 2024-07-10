@@ -8,6 +8,7 @@ export const SERVICE_TEMPLATES: ServiceTemplate[] = [
     image:
       'https://operate.olas.network/_next/image?url=%2Fimages%2Fprediction-agent.png&w=3840&q=75',
     configuration: {
+      trader_version: 'v0.16.4',
       nft: 'bafybeiei7wb5jvrn7e7fss2t6ajnkjakgf7uaz42fvvlkolhpnez2dlfsy',
       agent_id: 14,
       threshold: 1,

@@ -2,9 +2,9 @@ import { Button, Flex, Form, Input, Typography } from 'antd';
 
 import { CardFlex } from '@/components/styled/CardFlex';
 import { FormFlex } from '@/components/styled/FormFlex';
-import { SetupScreen } from '@/enums';
-import { useSetup } from '@/hooks';
-import { Address } from '@/types';
+import { SetupScreen } from '@/enums/SetupScreen';
+import { useSetup } from '@/hooks/useSetup';
+import { Address } from '@/types/Address';
 
 import { SetupCreateHeader } from './SetupCreateHeader';
 

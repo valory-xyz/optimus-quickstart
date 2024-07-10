@@ -1,5 +1,3 @@
-const dotenv = require('dotenv');
-
 const {
   app,
   BrowserWindow,
@@ -21,23 +19,20 @@ const { TRAY_ICONS, TRAY_ICONS_PATHS } = require('./icons');
 
 const { Env } = require('./install');
 
-const { paths } = require('./constants/paths');
+const { paths } = require('./constants');
 const { killProcesses } = require('./processes');
 const { isPortAvailable, findAvailablePort } = require('./ports');
 const { PORT_RANGE, isWindows, isMac } = require('./constants');
 const { macUpdater } = require('./update');
 const { setupStoreIpc } = require('./store');
 const { logger } = require('./logger');
-
-// Configure environment variables
-dotenv.config();
+const { isDev } = require('./constants');
 
 // Attempt to acquire the single instance lock
 const singleInstanceLock = app.requestSingleInstanceLock();
 if (!singleInstanceLock) app.quit();
 
 const platform = os.platform();
-const isDev = process.env.NODE_ENV === 'development';
 
 const binaryPaths = {
   darwin: {
@@ -568,7 +563,7 @@ ipcMain.on('open-path', (_, filePath) => {
 function sanitizeLogs({
   name,
   filePath,
-  data,
+  data = '',
   destPath = paths.osPearlTempDir,
 }) {
   if (filePath && !fs.existsSync(filePath)) return null;

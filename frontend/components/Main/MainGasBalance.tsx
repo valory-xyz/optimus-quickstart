@@ -3,8 +3,9 @@ import { Skeleton, Tooltip, Typography } from 'antd';
 import { useMemo } from 'react';
 import styled from 'styled-components';
 
-import { COLOR, LOW_BALANCE } from '@/constants';
-import { useBalance } from '@/hooks';
+import { COLOR } from '@/constants/colors';
+import { LOW_BALANCE } from '@/constants/thresholds';
+import { useBalance } from '@/hooks/useBalance';
 import { useWallet } from '@/hooks/useWallet';
 
 import { CardSection } from '../styled/CardSection';

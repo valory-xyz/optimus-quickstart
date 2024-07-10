@@ -10,48 +10,71 @@ on:
             - 'v*.*.*'
 
 jobs:
-    release-middleware:
-        runs-on: "ubuntu-latest"
+    build-macos-pyinstaller:
+      runs-on: macos-latest
+      strategy:
+        matrix:
+          arch: [ x64, arm64 ]
+
+      steps:
+        - uses: actions/checkout@v3
+        - uses: actions/setup-python@v4
+          with:
+            python-version: '3.10'
+
+        - name: Install and configure Poetry
+          uses: snok/install-poetry@v1
+          with:
+            version: '1.4.0'
+            virtualenvs-create: true
+            virtualenvs-in-project: false
+            virtualenvs-path: ~/my-custom-path
+            installer-parallel: true
+
+        - name: Install dependencies
+          run: poetry install
+
+        - name: Get trader bin
+          run: |
+            trader_version=$(poetry run python -c "import yaml; config = yaml.safe_load(open('templates/trader.yaml')); print(config['configuration']['trader_version'])")
+            echo $trader_version
+            mkdir dist && curl -L -o dist/aea_bin "https://github.com/valory-xyz/trader/releases/download/${trader_version}/trader_bin_${{ matrix.arch }}"
+
+        - name: Build with PyInstaller
+          run: |
+             poetry run pyinstaller operate/services/utils/tendermint.py --onefile
+             poetry run pyinstaller --collect-data eth_account --collect-all aea --collect-all autonomy --collect-all operate --collect-all aea_ledger_ethereum --collect-all aea_ledger_cosmos --collect-all aea_ledger_ethereum_flashbots --hidden-import aea_ledger_ethereum --hidden-import aea_ledger_cosmos --hidden-import aea_ledger_ethereum_flashbots operate/pearl.py --add-binary dist/aea_bin:.  --add-binary dist/tendermint:. --onefile --name pearl_${{ matrix.arch }}
+
+        - name: Upload Release Assets
+          uses: actions/upload-artifact@v2
+          with:
+            name: pearl_${{ matrix.arch }}
+            path: dist/pearl_${{ matrix.arch }}
+
+    release-operate:
+        runs-on: macos-latest
+        needs:
+          - "build-macos-pyinstaller"
         steps:
             - uses: actions/checkout@v2
             - uses: actions/setup-python@v4
               with:
                 python-version: "3.10"
-            - uses: actions/checkout@master
-            - uses: actions/setup-python@v3
+            - uses: actions/setup-node@v4
               with:
-                python-version: "3.10"
-            - name: Install dependencies
-              run: |
-                sudo apt-get update
-                sudo apt-get autoremove
-                sudo apt-get autoclean
-                python -m pip install --upgrade pip
-                pip install poetry twine
-            - name: Build wheels and source tarball
-              run: |
-                poetry build
-            - name: Publish Olas Operate Middleware
-              uses: pypa/gh-action-pypi-publish@release/v1
+                node-version: lts/*
+            - name: Download artifacts
+              uses: actions/download-artifact@v2
               with:
-                user: __token__
-                password: ${{ secrets.PYPI_TOKEN }}
-                skip-existing: true
-                packages-dir: dist/
-    release-operate:
-        runs-on: macos-latest
-        needs:
-          - "release-middleware"
-        steps:           
-            - uses: actions/checkout@v2
-            - uses: actions/setup-python@v4
+                name: pearl_x64
+                path: electron/bins/
+            - name: Download artifacts
+              uses: actions/download-artifact@v2
               with:
-                python-version: "3.10"
-            - uses: actions/setup-node@v1
-              with:
-                node-version: "20.11"
-            - name: Download binary
-              run: mkdir electron/bins && curl -L -o electron/bins/pearl_arm64 https://tempfileserver.staging.autonolas.tech/pearl_arm64 && chmod +x electron/bins/pearl_arm64 && curl -L -o electron/bins/pearl_x64 https://tempfileserver.staging.autonolas.tech/pearl_arm64 && chmod +x electron/bins/pearl_x64
+                name: pearl_arm64
+                path: electron/bins/
+            - name: Add exec permissions
+              run: chmod +x electron/bins/pearl_x64 && chmod +x electron/bins/pearl_arm64
             - uses: snok/install-poetry@v1
               with:
                 version: "1.7.1"

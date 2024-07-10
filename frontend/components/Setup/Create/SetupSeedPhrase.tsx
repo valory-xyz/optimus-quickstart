@@ -1,9 +1,9 @@
 import { CopyOutlined } from '@ant-design/icons';
 import { Button, Flex, message, Tag, Typography } from 'antd';
 
-import { copyToClipboard } from '@/common-util';
-import { SetupScreen } from '@/enums';
-import { useSetup } from '@/hooks';
+import { SetupScreen } from '@/enums/SetupScreen';
+import { useSetup } from '@/hooks/useSetup';
+import { copyToClipboard } from '@/utils/copyToClipboard';
 
 import { CardFlex } from '../../styled/CardFlex';
 import { SetupCreateHeader } from './SetupCreateHeader';
@@ -24,7 +24,7 @@ export const SetupSeedPhrase = () => {
         password.
       </Typography.Text>
       <Flex gap={10} wrap="wrap">
-        {mnemonic.map((word) => (
+        {mnemonic.map((word: string) => (
           <Tag key={word}>{word}</Tag>
         ))}
       </Flex>

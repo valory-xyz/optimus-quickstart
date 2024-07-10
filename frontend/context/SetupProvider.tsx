@@ -7,7 +7,7 @@ import {
 } from 'react';
 
 import { SetupScreen } from '@/enums/SetupScreen';
-import { Address } from '@/types';
+import { Address } from '@/types/Address';
 
 type SetupObjectType = {
   state: SetupScreen;

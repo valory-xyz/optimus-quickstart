@@ -1,4 +1,4 @@
-import { BACKEND_URL } from '@/constants';
+import { BACKEND_URL } from '@/constants/urls';
 
 /**
  * Gets account status "is_setup"
