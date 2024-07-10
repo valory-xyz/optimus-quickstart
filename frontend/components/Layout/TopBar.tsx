@@ -1,7 +1,7 @@
 import { Typography } from 'antd';
 import styled from 'styled-components';
 
-import { COLOR } from '@/constants';
+import { COLOR } from '@/constants/colors';
 import { useElectronApi } from '@/hooks/useElectronApi';
 import { useStore } from '@/hooks/useStore';
 

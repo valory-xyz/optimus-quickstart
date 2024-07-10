@@ -13,13 +13,16 @@ import {
 import { useCallback, useMemo, useState } from 'react';
 import styled from 'styled-components';
 
-import { balanceFormat, copyToClipboard, truncateAddress } from '@/common-util';
-import { COLOR } from '@/constants';
-import { UNICODE_SYMBOLS } from '@/constants/unicode';
-import { Token } from '@/enums';
-import { useBalance, useServices } from '@/hooks';
+import { COLOR } from '@/constants/colors';
+import { UNICODE_SYMBOLS } from '@/constants/symbols';
+import { Token } from '@/enums/Token';
+import { useBalance } from '@/hooks/useBalance';
+import { useServices } from '@/hooks/useServices';
 import { useWallet } from '@/hooks/useWallet';
-import { WalletAddressNumberRecord } from '@/types';
+import { WalletAddressNumberRecord } from '@/types/Records';
+import { copyToClipboard } from '@/utils/copyToClipboard';
+import { balanceFormat } from '@/utils/numberFormatters';
+import { truncateAddress } from '@/utils/truncate';
 
 import { CardSection } from '../styled/CardSection';
 

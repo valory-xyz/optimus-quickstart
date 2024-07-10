@@ -1,8 +1,9 @@
 import { InfoCircleOutlined } from '@ant-design/icons';
 import { Popover, PopoverProps, Typography } from 'antd';
 
-import { COLOR, SUPPORT_URL } from '@/constants';
-import { UNICODE_SYMBOLS } from '@/constants/unicode';
+import { COLOR } from '@/constants/colors';
+import { UNICODE_SYMBOLS } from '@/constants/symbols';
+import { SUPPORT_URL } from '@/constants/urls';
 import { useStakingContractInfo } from '@/hooks/useStakingContractInfo';
 
 const { Paragraph, Text } = Typography;

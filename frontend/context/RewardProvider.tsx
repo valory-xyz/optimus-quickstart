@@ -10,6 +10,7 @@ import {
 } from 'react';
 import { useInterval } from 'usehooks-ts';
 
+import { FIVE_SECONDS_INTERVAL } from '@/constants/intervals';
 import { useElectronApi } from '@/hooks/useElectronApi';
 import { useStore } from '@/hooks/useStore';
 import { AutonolasService } from '@/service/Autonolas';
@@ -100,7 +101,10 @@ export const RewardProvider = ({ children }: PropsWithChildren) => {
     storeState?.firstStakingRewardAchieved,
   ]);
 
-  useInterval(async () => updateRewards(), isOnline ? 5000 : null);
+  useInterval(
+    async () => updateRewards(),
+    isOnline ? FIVE_SECONDS_INTERVAL : null,
+  );
 
   return (
     <RewardContext.Provider

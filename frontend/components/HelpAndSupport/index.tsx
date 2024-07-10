@@ -2,13 +2,14 @@ import { CloseOutlined, QuestionCircleOutlined } from '@ant-design/icons';
 import { Button, Card, Flex, message, Typography } from 'antd';
 import { useCallback, useEffect, useState } from 'react';
 
-import { FAQ_URL, SUPPORT_URL } from '@/constants';
-import { UNICODE_SYMBOLS } from '@/constants/unicode';
-import { PageState } from '@/enums';
-import { useLogs, usePageState } from '@/hooks';
+import { UNICODE_SYMBOLS } from '@/constants/symbols';
+import { FAQ_URL, SUPPORT_URL } from '@/constants/urls';
+import { PageState } from '@/enums/PageState';
 import { useElectronApi } from '@/hooks/useElectronApi';
+import { useLogs } from '@/hooks/useLogs';
+import { usePageState } from '@/hooks/usePageState';
 
-import { CardTitle } from '../common/CardTitle';
+import { CardTitle } from '../Card/CardTitle';
 import { CardSection } from '../styled/CardSection';
 
 const { Title, Paragraph } = Typography;

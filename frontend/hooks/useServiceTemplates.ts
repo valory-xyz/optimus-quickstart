@@ -1,5 +1,5 @@
 import { ServiceTemplate } from '@/client/types';
-import { SERVICE_TEMPLATES } from '@/constants';
+import { SERVICE_TEMPLATES } from '@/constants/serviceTemplates';
 
 export const useServiceTemplates = () => {
   const getServiceTemplates = (): ServiceTemplate[] => SERVICE_TEMPLATES;

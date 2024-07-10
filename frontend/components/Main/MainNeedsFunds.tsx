@@ -2,13 +2,13 @@ import { Flex, Typography } from 'antd';
 import { formatUnits } from 'ethers/lib/utils';
 import { ReactNode, useEffect, useMemo } from 'react';
 
-import { SERVICE_TEMPLATES } from '@/constants';
-import { UNICODE_SYMBOLS } from '@/constants/unicode';
-import { useBalance } from '@/hooks';
+import { SERVICE_TEMPLATES } from '@/constants/serviceTemplates';
+import { UNICODE_SYMBOLS } from '@/constants/symbols';
+import { useBalance } from '@/hooks/useBalance';
 import { useElectronApi } from '@/hooks/useElectronApi';
 import { useStore } from '@/hooks/useStore';
 
-import { Alert } from '../common/Alert';
+import { Alert } from '../Alert';
 import { CardSection } from '../styled/CardSection';
 
 const { Text, Paragraph } = Typography;

@@ -2,8 +2,9 @@ import { createContext, PropsWithChildren, useContext, useState } from 'react';
 import { useInterval } from 'usehooks-ts';
 
 import { Wallet } from '@/client';
+import { FIVE_SECONDS_INTERVAL } from '@/constants/intervals';
 import { WalletService } from '@/service/Wallet';
-import { Address } from '@/types';
+import { Address } from '@/types/Address';
 
 import { OnlineStatusContext } from './OnlineStatusProvider';
 
@@ -33,7 +34,7 @@ export const WalletProvider = ({ children }: PropsWithChildren) => {
     setWallets(wallets);
   };
 
-  useInterval(updateWallets, isOnline ? 5000 : null);
+  useInterval(updateWallets, isOnline ? FIVE_SECONDS_INTERVAL : null);
 
   return (
     <WalletContext.Provider

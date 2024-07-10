@@ -2,13 +2,15 @@ import { QuestionCircleOutlined, SettingOutlined } from '@ant-design/icons';
 import { Button, Card, Flex } from 'antd';
 import { useEffect } from 'react';
 
-import { PageState } from '@/enums';
-import { useBalance, usePageState, useServices } from '@/hooks';
+import { PageState } from '@/enums/PageState';
+import { useBalance } from '@/hooks/useBalance';
+import { usePageState } from '@/hooks/usePageState';
+import { useServices } from '@/hooks/useServices';
 
 import { KeepAgentRunning } from './KeepAgentRunning';
 import { MainAddFunds } from './MainAddFunds';
 import { MainGasBalance } from './MainGasBalance';
-import { MainHeader } from './MainHeader/MainHeader';
+import { MainHeader } from './MainHeader';
 import { MainNeedsFunds } from './MainNeedsFunds';
 import { MainOlasBalance } from './MainOlasBalance';
 import { MainRewards } from './MainRewards';

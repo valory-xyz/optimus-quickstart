@@ -1,6 +1,6 @@
 import { createContext, PropsWithChildren, useState } from 'react';
 
-import { SettingsScreen } from '@/enums';
+import { SettingsScreen } from '@/enums/SettingsScreen';
 
 export const SettingsContext = createContext<{
   screen: SettingsScreen;

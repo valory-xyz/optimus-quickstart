@@ -3,12 +3,12 @@ import { Button, Form, Input, Typography } from 'antd';
 import { useMemo } from 'react';
 
 import { Chain } from '@/client';
-import { MIN_ETH_BALANCE_THRESHOLDS } from '@/constants';
-import { SettingsScreen } from '@/enums';
-import { useBalance } from '@/hooks';
+import { MIN_ETH_BALANCE_THRESHOLDS } from '@/constants/thresholds';
+import { SettingsScreen } from '@/enums/SettingsScreen';
+import { useBalance } from '@/hooks/useBalance';
 import { useSettings } from '@/hooks/useSettings';
 
-import { CardTitle } from '../common/CardTitle';
+import { CardTitle } from '../Card/CardTitle';
 import { CardFlex } from '../styled/CardFlex';
 
 export const SettingsAddBackupWallet = () => {

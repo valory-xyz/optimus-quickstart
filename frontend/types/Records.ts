@@ -1,6 +1,6 @@
-import { Token } from '@/enums';
+import { Token } from '@/enums/Token';
 
-import { Address } from '.';
+import { Address } from './Address';
 
 export type AddressNumberRecord = Record<Address, number>;
 export type AddressBooleanRecord = Record<Address, boolean>;

@@ -4,18 +4,19 @@ import Image from 'next/image';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
 import { Chain, DeploymentStatus } from '@/client';
-import { COLOR, LOW_BALANCE } from '@/constants';
-import { useBalance, useServiceTemplates } from '@/hooks';
+import { COLOR } from '@/constants/colors';
+import { LOW_BALANCE } from '@/constants/thresholds';
+import { useBalance } from '@/hooks/useBalance';
 import { useElectronApi } from '@/hooks/useElectronApi';
 import { useReward } from '@/hooks/useReward';
 import { useServices } from '@/hooks/useServices';
+import { useServiceTemplates } from '@/hooks/useServiceTemplates';
 import { useStakingContractInfo } from '@/hooks/useStakingContractInfo';
 import { useStore } from '@/hooks/useStore';
 import { useWallet } from '@/hooks/useWallet';
-import { ServicesService } from '@/service';
+import { ServicesService } from '@/service/Services';
 import { WalletService } from '@/service/Wallet';
 
-import { CannotStartAgent } from './CannotStartAgent';
 import { requiredGas, requiredOlas } from './constants';
 import { FirstRunModal } from './FirstRunModal';
 
@@ -86,8 +87,7 @@ export const MainHeader = () => {
 
   const { minimumStakedAmountRequired } = useReward();
 
-  const { isStakingContractInfoLoading, canStartAgent } =
-    useStakingContractInfo();
+  const { canStartAgent } = useStakingContractInfo();
 
   // hook to setup tray icon
   useSetupTrayIcon();
@@ -299,9 +299,7 @@ export const MainHeader = () => {
   return (
     <Flex justify="start" align="center" gap={10}>
       {agentHead}
-      {isStakingContractInfoLoading ? null : (
-        <>{canStartAgent ? serviceToggleButton : <CannotStartAgent />}</>
-      )}
+      {serviceToggleButton}
       <FirstRunModal open={isModalOpen} onClose={handleModalClose} />
     </Flex>
   );
