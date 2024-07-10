@@ -1,7 +1,7 @@
 import { ContractInterface, ethers, providers, utils } from 'ethers';
 
 import { gnosisProvider } from '@/constants/providers';
-import { Address } from '@/types';
+import { Address } from '@/types/Address';
 
 /**
  * Returns native balance of the given address

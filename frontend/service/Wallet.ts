@@ -1,5 +1,5 @@
 import { Chain } from '@/client';
-import { BACKEND_URL } from '@/constants';
+import { BACKEND_URL } from '@/constants/urls';
 
 /**
  * Returns a list of available wallets

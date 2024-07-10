@@ -1,10 +1,10 @@
 import { Flex, Typography } from 'antd';
 
 import { DeploymentStatus } from '@/client';
-import { useServices } from '@/hooks';
+import { useServices } from '@/hooks/useServices';
 import { useStore } from '@/hooks/useStore';
 
-import { Alert } from '../common/Alert';
+import { Alert } from '../Alert';
 import { CardSection } from '../styled/CardSection';
 
 const { Text } = Typography;

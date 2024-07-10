@@ -5,8 +5,8 @@ import { memo, useMemo, useState } from 'react';
 
 import { CardFlex } from '@/components/styled/CardFlex';
 import { CardSection } from '@/components/styled/CardSection';
-import { SetupScreen } from '@/enums';
-import { useSetup } from '@/hooks';
+import { SetupScreen } from '@/enums/SetupScreen';
+import { useSetup } from '@/hooks/useSetup';
 
 const ExitButton = memo(function ExitButton() {
   const { goto } = useSetup();

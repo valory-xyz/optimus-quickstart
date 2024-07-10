@@ -1,7 +1,7 @@
 import { useContext, useMemo } from 'react';
 
-import { SetupContext } from '@/context';
-import { SetupScreen } from '@/enums';
+import { SetupContext } from '@/context/SetupProvider';
+import { SetupScreen } from '@/enums/SetupScreen';
 
 import { SetupBackupSigner } from './Create/SetupBackupSigner';
 import { SetupCreateSafe } from './Create/SetupCreateSafe';

@@ -1,8 +1,8 @@
 import { ethers } from 'ethers';
 
-import { GNOSIS_SAFE_ABI } from '@/abi/gnosisSafe';
+import { GNOSIS_SAFE_ABI } from '@/abis/gnosisSafe';
 import { gnosisProvider } from '@/constants/providers';
-import { Address } from '@/types';
+import { Address } from '@/types/Address';
 
 const getOwners = async ({
   address,

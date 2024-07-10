@@ -6,7 +6,7 @@ import {
   useState,
 } from 'react';
 
-import { PageState } from '@/enums';
+import { PageState } from '@/enums/PageState';
 
 type PageStateContextType = {
   pageState: PageState;

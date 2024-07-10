@@ -43,7 +43,7 @@
   "productName": "Pearl",
   "description": "An all-in-one application designed to streamline your entry into the world of autonomous agents and earning OLAS through staking.",
   "scripts": {
-    "build": "rm -rf dist/ && electron-builder build",
+    "build": "rm -rf dist/ && node build.tester.js",
     "build:frontend": "cd frontend && yarn build && rm -rf ../electron/.next && cp -r .next ../electron/.next && rm -rf ../electron/public && cp -r public ../electron/public",
     "dev:backend": "poetry run python operate/cli.py",
     "dev:frontend": "cd frontend && yarn dev",
@@ -56,5 +56,5 @@
     "start:frontend": "cd frontend && yarn start",
     "test:frontend": "cd frontend && yarn test"
   },
-  "version": "0.1.0-rc69"
+  "version": "0.1.0-rc70"
 }

@@ -13,7 +13,7 @@ const { paths } = require('./constants');
  * - use "" (nothing as a suffix) for latest release candidate, for example "0.1.0rc26"
  * - use "alpha" for alpha release, for example "0.1.0rc26-alpha"
  */
-const OlasMiddlewareVersion = '0.1.0rc69';
+const OlasMiddlewareVersion = '0.1.0rc70';
 
 const Env = {
   ...process.env,

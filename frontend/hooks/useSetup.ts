@@ -1,8 +1,8 @@
 import { useContext } from 'react';
 
-import { SetupContext } from '@/context';
-import { SetupScreen } from '@/enums';
-import { Address } from '@/types';
+import { SetupContext } from '@/context/SetupProvider';
+import { SetupScreen } from '@/enums/SetupScreen';
+import { Address } from '@/types/Address';
 
 export const useSetup = () => {
   const { setupObject, setSetupObject } = useContext(SetupContext);

@@ -3,7 +3,7 @@ import { message } from 'antd';
 import { PropsWithChildren, useContext, useEffect } from 'react';
 import styled, { css } from 'styled-components';
 
-import { COLOR } from '@/constants';
+import { COLOR } from '@/constants/colors';
 import { OnlineStatusContext } from '@/context/OnlineStatusProvider';
 
 import { TopBar } from './TopBar';

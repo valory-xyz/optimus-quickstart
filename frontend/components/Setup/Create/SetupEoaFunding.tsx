@@ -15,18 +15,17 @@ import { useEffect, useMemo } from 'react';
 import styled from 'styled-components';
 
 import { Chain } from '@/client';
-import { copyToClipboard } from '@/common-util';
-import { Alert } from '@/components/common/Alert';
+import { Alert } from '@/components/Alert';
 import { CardFlex } from '@/components/styled/CardFlex';
 import { CardSection } from '@/components/styled/CardSection';
-import {
-  COW_SWAP_GNOSIS_XDAI_OLAS_URL,
-  MIN_ETH_BALANCE_THRESHOLDS,
-} from '@/constants';
-import { UNICODE_SYMBOLS } from '@/constants/unicode';
-import { SetupScreen } from '@/enums';
-import { useBalance, useSetup } from '@/hooks';
+import { UNICODE_SYMBOLS } from '@/constants/symbols';
+import { MIN_ETH_BALANCE_THRESHOLDS } from '@/constants/thresholds';
+import { COW_SWAP_GNOSIS_XDAI_OLAS_URL } from '@/constants/urls';
+import { SetupScreen } from '@/enums/SetupScreen';
+import { useBalance } from '@/hooks/useBalance';
+import { useSetup } from '@/hooks/useSetup';
 import { useWallet } from '@/hooks/useWallet';
+import { copyToClipboard } from '@/utils/copyToClipboard';
 
 import { SetupCreateHeader } from './SetupCreateHeader';
 

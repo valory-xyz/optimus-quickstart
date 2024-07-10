@@ -1,7 +1,7 @@
 import { Flex, FlexProps } from 'antd';
 import styled from 'styled-components';
 
-import { COLOR } from '@/constants';
+import { COLOR } from '@/constants/colors';
 
 type CardSectionProps = FlexProps & {
   bordertop?: 'true' | 'false';

@@ -3,15 +3,16 @@ import { Button, Card, Flex, Typography } from 'antd';
 import Link from 'next/link';
 import { useMemo } from 'react';
 
-import { truncateAddress } from '@/common-util';
-import { UNICODE_SYMBOLS } from '@/constants/unicode';
-import { PageState, SettingsScreen } from '@/enums';
-import { usePageState } from '@/hooks';
+import { UNICODE_SYMBOLS } from '@/constants/symbols';
+import { PageState } from '@/enums/PageState';
+import { SettingsScreen } from '@/enums/SettingsScreen';
 import { useMasterSafe } from '@/hooks/useMasterSafe';
+import { usePageState } from '@/hooks/usePageState';
 import { useSettings } from '@/hooks/useSettings';
+import { truncateAddress } from '@/utils/truncate';
 
-import { Alert } from '../common/Alert';
-import { CardTitle } from '../common/CardTitle';
+import { Alert } from '../Alert';
+import { CardTitle } from '../Card/CardTitle';
 import { CardSection } from '../styled/CardSection';
 import { DebugInfoCard } from './DebugInfoCard';
 import { SettingsAddBackupWallet } from './SettingsAddBackupWallet';

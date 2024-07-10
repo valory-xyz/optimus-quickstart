@@ -1,6 +1,6 @@
 import { formatUnits } from 'ethers/lib/utils';
 
-import { SERVICE_TEMPLATES } from '@/constants';
+import { SERVICE_TEMPLATES } from '@/constants/serviceTemplates';
 
 const olasCostOfBond = Number(
   formatUnits(`${SERVICE_TEMPLATES[0].configuration.olas_cost_of_bond}`, 18),

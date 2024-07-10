@@ -3,8 +3,8 @@ import { Button, Col, Flex, Row } from 'antd';
 import Image from 'next/image';
 import { memo } from 'react';
 
-import { SetupScreen } from '@/enums';
-import { useSetup } from '@/hooks';
+import { SetupScreen } from '@/enums/SetupScreen';
+import { useSetup } from '@/hooks/useSetup';
 
 export const SetupCreateHeader = memo(function SetupCreateHeader({
   prev,

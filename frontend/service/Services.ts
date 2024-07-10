@@ -1,5 +1,5 @@
 import { Deployment, Service, ServiceHash, ServiceTemplate } from '@/client';
-import { BACKEND_URL } from '@/constants';
+import { BACKEND_URL } from '@/constants/urls';
 
 /**
  * Get a single service from the backend

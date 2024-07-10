@@ -7,7 +7,7 @@ import {
   useState,
 } from 'react';
 
-import type { ElectronStore } from '@/types';
+import type { ElectronStore } from '@/types/ElectronApi';
 
 import { ElectronApiContext } from './ElectronApiProvider';
 
