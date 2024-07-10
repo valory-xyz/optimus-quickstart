@@ -42,6 +42,7 @@ export type ServiceTemplate = {
 
 export type ConfigurationTemplate = {
   nft: string;
+  trader_version: string;
   rpc?: string; // added by user
   agent_id: number;
   threshold: number;
