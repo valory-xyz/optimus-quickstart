@@ -135,7 +135,7 @@ class ServiceManager:
             contracts=CONTRACTS[service.ledger_config.chain],
         )
 
-    def create_or_load(
+    def load_or_create(
         self,
         hash: str,
         rpc: t.Optional[str] = None,
@@ -163,13 +163,22 @@ class ServiceManager:
                 "On-chain user parameters cannot be None when creating a new service"
             )
 
-        return Service.new(
+        service = Service.new(
             hash=hash,
             keys=keys or [],
             rpc=rpc,
             storage=self.path,
             on_chain_user_params=on_chain_user_params,
         )
+
+        if not service.keys:
+            service.keys = [
+                self.keys_manager.get(self.keys_manager.create())
+                for _ in range(service.helper.config.number_of_agents)
+            ]
+            service.store()
+
+        return service
 
     def deploy_service_onchain(  # pylint: disable=too-many-statements
         self,
@@ -183,12 +192,9 @@ class ServiceManager:
         :param update: Update the existing deployment
         """
         self.logger.info("Loading service")
-        service = self.create_or_load(hash=hash)
+        service = self.load_or_create(hash=hash)
         user_params = service.chain_data.user_params
-        keys = service.keys or [
-            self.keys_manager.get(self.keys_manager.create())
-            for _ in range(service.helper.config.number_of_agents)
-        ]
+        keys = service.keys
         instances = [key.address for key in keys]
         ocm = self.get_on_chain_manager(service=service)
         if user_params.use_staking and not ocm.staking_slots_available(
@@ -296,7 +302,6 @@ class ServiceManager:
                 ),
             )
             service.chain_data.on_chain_state = OnChainState.REGISTERED
-            service.keys = keys
             service.store()
 
         info = ocm.info(token_id=service.chain_data.token)
@@ -317,7 +322,6 @@ class ServiceManager:
             service.store()
 
         info = ocm.info(token_id=service.chain_data.token)
-        service.keys = keys
         service.chain_data = OnChainData(
             token=service.chain_data.token,
             instances=info["instances"],
@@ -340,12 +344,9 @@ class ServiceManager:
         :param update: Update the existing deployment
         """
         self.logger.info("Loading service")
-        service = self.create_or_load(hash=hash)
+        service = self.load_or_create(hash=hash)
         user_params = service.chain_data.user_params
-        keys = service.keys or [
-            self.keys_manager.get(self.keys_manager.create())
-            for _ in range(service.helper.config.number_of_agents)
-        ]
+        keys = service.keys
         instances = [key.address for key in keys]
         wallet = self.wallet_manager.load(service.ledger_config.type)
         sftxb = self.get_eth_safe_tx_builder(service=service)
@@ -536,7 +537,6 @@ class ServiceManager:
                 )
             ).settle()
             service.chain_data.on_chain_state = OnChainState.REGISTERED
-            service.keys = keys
             service.store()
 
         info = sftxb.info(token_id=service.chain_data.token)
@@ -554,7 +554,6 @@ class ServiceManager:
             service.store()
 
         info = sftxb.info(token_id=service.chain_data.token)
-        service.keys = keys
         service.chain_data = OnChainData(
             token=service.chain_data.token,
             instances=info["instances"],
@@ -571,7 +570,7 @@ class ServiceManager:
 
         :param hash: Service hash
         """
-        service = self.create_or_load(hash=hash)
+        service = self.load_or_create(hash=hash)
         ocm = self.get_on_chain_manager(service=service)
         info = ocm.info(token_id=service.chain_data.token)
         service.chain_data.on_chain_state = OnChainState(info["service_state"])
@@ -598,7 +597,7 @@ class ServiceManager:
 
         :param hash: Service hash
         """
-        service = self.create_or_load(hash=hash)
+        service = self.load_or_create(hash=hash)
         sftxb = self.get_eth_safe_tx_builder(service=service)
         info = sftxb.info(token_id=service.chain_data.token)
         service.chain_data.on_chain_state = OnChainState(info["service_state"])
@@ -622,7 +621,7 @@ class ServiceManager:
 
         :param hash: Service hash
         """
-        service = self.create_or_load(hash=hash)
+        service = self.load_or_create(hash=hash)
         ocm = self.get_on_chain_manager(service=service)
         info = ocm.info(token_id=service.chain_data.token)
         service.chain_data.on_chain_state = OnChainState(info["service_state"])
@@ -649,7 +648,7 @@ class ServiceManager:
 
         :param hash: Service hash
         """
-        service = self.create_or_load(hash=hash)
+        service = self.load_or_create(hash=hash)
         sftxb = self.get_eth_safe_tx_builder(service=service)
         info = sftxb.info(token_id=service.chain_data.token)
         service.chain_data.on_chain_state = OnChainState(info["service_state"])
@@ -673,7 +672,7 @@ class ServiceManager:
 
         :param hash: Service hash
         """
-        service = self.create_or_load(hash=hash)
+        service = self.load_or_create(hash=hash)
         if not service.chain_data.user_params.use_staking:
             self.logger.info("Cannot stake service, `use_staking` is set to false")
             return
@@ -718,7 +717,7 @@ class ServiceManager:
 
         :param hash: Service hash
         """
-        service = self.create_or_load(hash=hash)
+        service = self.load_or_create(hash=hash)
         if not service.chain_data.user_params.use_staking:
             self.logger.info("Cannot stake service, `use_staking` is set to false")
             return
@@ -775,7 +774,7 @@ class ServiceManager:
 
         :param hash: Service hash
         """
-        service = self.create_or_load(hash=hash)
+        service = self.load_or_create(hash=hash)
         if not service.chain_data.user_params.use_staking:
             self.logger.info("Cannot unstake service, `use_staking` is set to false")
             return
@@ -808,7 +807,7 @@ class ServiceManager:
 
         :param hash: Service hash
         """
-        service = self.create_or_load(hash=hash)
+        service = self.load_or_create(hash=hash)
         if not service.chain_data.user_params.use_staking:
             self.logger.info("Cannot unstake service, `use_staking` is set to false")
             return
@@ -848,7 +847,7 @@ class ServiceManager:
         from_safe: bool = True,
     ) -> None:
         """Fund service if required."""
-        service = self.create_or_load(hash=hash)
+        service = self.load_or_create(hash=hash)
         wallet = self.wallet_manager.load(ledger_type=service.ledger_config.type)
         ledger_api = wallet.ledger_api(chain_type=service.ledger_config.chain, rpc=rpc)
         agent_fund_threshold = (
@@ -902,7 +901,7 @@ class ServiceManager:
     ) -> None:
         """Start a background funding job."""
         loop = loop or asyncio.get_event_loop()
-        service = self.create_or_load(hash=hash)
+        service = self.load_or_create(hash=hash)
         with ThreadPoolExecutor() as executor:
             while True:
                 try:
@@ -957,7 +956,7 @@ class ServiceManager:
         :param force: Remove previous deployment and start a new one.
         :return: Deployment instance
         """
-        deployment = self.create_or_load(hash=hash).deployment
+        deployment = self.load_or_create(hash=hash).deployment
         deployment.build(force=force)
         deployment.start()
         return deployment
@@ -970,7 +969,7 @@ class ServiceManager:
         :param delete: Delete local deployment.
         :return: Deployment instance
         """
-        deployment = self.create_or_load(hash=hash).deployment
+        deployment = self.load_or_create(hash=hash).deployment
         deployment.stop()
         if delete:
             deployment.delete()
@@ -985,7 +984,7 @@ class ServiceManager:
         from_safe: bool = True,  # pylint: disable=unused-argument
     ) -> Service:
         """Update a service."""
-        old_service = self.create_or_load(
+        old_service = self.load_or_create(
             hash=old_hash,
         )
         # TODO code for updating service commented until safe swap transaction is implemented
@@ -1032,7 +1031,7 @@ class ServiceManager:
         #         owner_key=str(self.keys_manager.get(key=owner).private_key),  # noqa: E800
         #     )  # noqa: E800
 
-        new_service = self.create_or_load(
+        new_service = self.load_or_create(
             hash=new_hash,
             rpc=rpc or old_service.ledger_config.rpc,
             on_chain_user_params=on_chain_user_params
