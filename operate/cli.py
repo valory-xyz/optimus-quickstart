@@ -203,7 +203,7 @@ def create_app(  # pylint: disable=too-many-locals, unused-argument, too-many-st
         for service in service_hashes:
             if not operate.service_manager().exists(service=service):
                 continue
-            deployment = operate.service_manager().create_or_load(service).deployment
+            deployment = operate.service_manager().load_or_create(service).deployment
             if deployment.status == DeploymentStatus.DELETED:
                 continue
             logger.info(f"stopping service {service}")
@@ -515,7 +515,7 @@ def create_app(  # pylint: disable=too-many-locals, unused-argument, too-many-st
             old_hash = manager.json[0]["hash"]
             if old_hash == template["hash"]:
                 logger.info(f'Loading service {template["hash"]}')
-                service = manager.create_or_load(
+                service = manager.load_or_create(
                     hash=template["hash"],
                     rpc=template["configuration"]["rpc"],
                     on_chain_user_params=services.manage.OnChainUserParams.from_json(
@@ -536,7 +536,7 @@ def create_app(  # pylint: disable=too-many-locals, unused-argument, too-many-st
                 update = True
         else:
             logger.info(f'Creating service {template["hash"]}')
-            service = manager.create_or_load(
+            service = manager.load_or_create(
                 hash=template["hash"],
                 rpc=template["configuration"]["rpc"],
                 on_chain_user_params=services.manage.OnChainUserParams.from_json(
@@ -553,7 +553,7 @@ def create_app(  # pylint: disable=too-many-locals, unused-argument, too-many-st
             schedule_healthcheck_job(service=service.hash)
 
         return JSONResponse(
-            content=operate.service_manager().create_or_load(hash=service.hash).json
+            content=operate.service_manager().load_or_create(hash=service.hash).json
         )
 
     @app.put("/api/services")
@@ -587,7 +587,7 @@ def create_app(  # pylint: disable=too-many-locals, unused-argument, too-many-st
         return JSONResponse(
             content=(
                 operate.service_manager()
-                .create_or_load(
+                .load_or_create(
                     hash=request.path_params["service"],
                 )
                 .json
@@ -611,7 +611,7 @@ def create_app(  # pylint: disable=too-many-locals, unused-argument, too-many-st
         return JSONResponse(
             content=(
                 operate.service_manager()
-                .create_or_load(hash=request.path_params["service"])
+                .load_or_create(hash=request.path_params["service"])
                 .json
             )
         )
@@ -636,7 +636,7 @@ def create_app(  # pylint: disable=too-many-locals, unused-argument, too-many-st
         return JSONResponse(
             content=(
                 operate.service_manager()
-                .create_or_load(hash=request.path_params["service"])
+                .load_or_create(hash=request.path_params["service"])
                 .json
             )
         )
@@ -649,7 +649,7 @@ def create_app(  # pylint: disable=too-many-locals, unused-argument, too-many-st
             return service_not_found_error(service=request.path_params["service"])
         return JSONResponse(
             content=operate.service_manager()
-            .create_or_load(
+            .load_or_create(
                 request.path_params["service"],
             )
             .deployment.json
@@ -663,7 +663,7 @@ def create_app(  # pylint: disable=too-many-locals, unused-argument, too-many-st
             return service_not_found_error(service=request.path_params["service"])
         deployment = (
             operate.service_manager()
-            .create_or_load(
+            .load_or_create(
                 request.path_params["service"],
             )
             .deployment
@@ -685,7 +685,7 @@ def create_app(  # pylint: disable=too-many-locals, unused-argument, too-many-st
         manager.deploy_service_locally(hash=service, force=True)
         schedule_funding_job(service=service)
         schedule_healthcheck_job(service=service.hash)
-        return JSONResponse(content=manager.create_or_load(service).deployment)
+        return JSONResponse(content=manager.load_or_create(service).deployment)
 
     @app.post("/api/services/{service}/deployment/stop")
     @with_retries
@@ -694,7 +694,7 @@ def create_app(  # pylint: disable=too-many-locals, unused-argument, too-many-st
         if not operate.service_manager().exists(service=request.path_params["service"]):
             return service_not_found_error(service=request.path_params["service"])
         service = request.path_params["service"]
-        deployment = operate.service_manager().create_or_load(service).deployment
+        deployment = operate.service_manager().load_or_create(service).deployment
         deployment.stop()
         logger.info(f"Cancelling funding job for {service}")
         cancel_funding_job(service=service)
@@ -709,7 +709,7 @@ def create_app(  # pylint: disable=too-many-locals, unused-argument, too-many-st
         # TODO: Drain safe before deleting service
         deployment = (
             operate.service_manager()
-            .create_or_load(
+            .load_or_create(
                 request.path_params["service"],
             )
             .deployment
