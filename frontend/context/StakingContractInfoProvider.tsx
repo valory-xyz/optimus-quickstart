@@ -1,8 +1,17 @@
-import { createContext, PropsWithChildren, useCallback, useState } from 'react';
+import {
+  createContext,
+  PropsWithChildren,
+  useCallback,
+  useContext,
+  useMemo,
+  useState,
+} from 'react';
 import { useInterval } from 'usehooks-ts';
 
 import { FIVE_SECONDS_INTERVAL } from '@/constants/intervals';
 import { AutonolasService } from '@/service/Autonolas';
+
+import { ServicesContext } from './ServicesProvider';
 
 type StakingContractInfoContextProps = {
   updateStakingContractInfo: () => Promise<void>;
@@ -26,6 +35,9 @@ export const StakingContractInfoContext =
 export const StakingContractInfoProvider = ({
   children,
 }: PropsWithChildren) => {
+  const { services } = useContext(ServicesContext);
+  const serviceId = useMemo(() => services?.[0]?.chain_data?.token, [services]);
+
   const [isStakingContractInfoLoading, setIsStakingContractInfoLoading] =
     useState(true);
   const [isRewardsAvailable, setIsRewardsAvailable] = useState(false);
@@ -36,24 +48,58 @@ export const StakingContractInfoProvider = ({
   const updateStakingContractInfo = useCallback(async () => {
     setIsStakingContractInfoLoading(true);
     try {
-      const info = await AutonolasService.getStakingContractInfo();
+      if (!serviceId) return;
+
+      const info = await AutonolasService.getStakingContractInfo(serviceId);
+
       if (!info) return;
 
-      const { availableRewards, maxNumServices, serviceIds } = info;
+      const {
+        availableRewards,
+        maxNumServices,
+        serviceIds,
+        serviceStakingTime,
+        serviceStakingState,
+        minStakingDuration,
+      } = info;
       const isRewardsAvailable = availableRewards > 0;
       const hasEnoughServiceSlots = serviceIds.length < maxNumServices;
-      const canStartAgent = isRewardsAvailable && hasEnoughServiceSlots;
+      const hasEnoughRewardsAndSlots =
+        isRewardsAvailable && hasEnoughServiceSlots;
+
+      const isAgentEvicted = serviceStakingState === 2;
+
+      /**
+       * For example: minStakingDuration = 3 days
+       *
+       * Service starts staking 1st June 00:01
+       * Service stops being active on 1st June 02:01 (after 2 hours)
+       * Contract will evict the service at 3rd June 02:02
+       * Now, cannot unstake the service until 4th June 00:01, because it hasn’t met the minStakingDuration of 3 days.
+       * Important: Between 3rd June 02:02 and 4th June 00:01 the service is EVICTED and without the possibility of unstake and re-stake
+       * That is, user should not be able to run/start your agent if this condition is met.
+       *
+       */
+      const isServiceStakedForMinimumDuration =
+        Number(Date.now() / 1000) - serviceStakingTime >= minStakingDuration;
+
+      // If agent is evicted and service is staked for minimum duration,
+      // then user can restart the agent
+      const canRestartAgentAfterEviction =
+        isAgentEvicted && isServiceStakedForMinimumDuration;
 
       setIsRewardsAvailable(isRewardsAvailable);
       setHasEnoughServiceSlots(hasEnoughServiceSlots);
-      setCanStartAgent(canStartAgent);
-      setIsAgentEvicted(false); // TODO: Implement this
+      setCanStartAgent(
+        hasEnoughRewardsAndSlots || canRestartAgentAfterEviction,
+      );
+      setIsAgentEvicted(isAgentEvicted);
     } catch (error) {
       console.error('Failed to fetch staking contract info', error);
     } finally {
       setIsStakingContractInfoLoading(false);
     }
-  }, []);
+  }, [serviceId]);
 
   useInterval(updateStakingContractInfo, FIVE_SECONDS_INTERVAL);
 
