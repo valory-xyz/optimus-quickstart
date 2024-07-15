@@ -88,11 +88,16 @@ export const StakingContractInfoProvider = ({
       const canRestartAgentAfterEviction =
         isAgentEvicted && isServiceStakedForMinimumDuration;
 
+      // user can start the agent iff,
+      // - rewards are available
+      // - service has enough slots
+      // - agent is not evicted
+      const canStartAgent =
+        hasEnoughRewardsAndSlots && canRestartAgentAfterEviction;
+
       setIsRewardsAvailable(isRewardsAvailable);
       setHasEnoughServiceSlots(hasEnoughServiceSlots);
-      setCanStartAgent(
-        hasEnoughRewardsAndSlots || canRestartAgentAfterEviction,
-      );
+      setCanStartAgent(canStartAgent);
       setIsAgentEvicted(isAgentEvicted);
     } catch (error) {
       console.error('Failed to fetch staking contract info', error);
