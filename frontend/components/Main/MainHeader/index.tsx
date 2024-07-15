@@ -19,6 +19,7 @@ import { WalletService } from '@/service/Wallet';
 
 import { requiredGas, requiredOlas } from './constants';
 import { FirstRunModal } from './FirstRunModal';
+import { useEviction } from './useEviction';
 
 const { Text } = Typography;
 
@@ -81,6 +82,7 @@ export const MainHeader = () => {
     isBalanceLoaded,
     setIsPaused: setIsBalancePollingPaused,
   } = useBalance();
+  const { isEvicted, component } = useEviction();
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const handleModalClose = useCallback(() => setIsModalOpen(false), []);
@@ -206,6 +208,8 @@ export const MainHeader = () => {
   }, [services, setServiceStatus]);
 
   const serviceToggleButton = useMemo(() => {
+    if (isEvicted) return component;
+
     if (serviceButtonState === ServiceButtonLoadingState.Pausing) {
       return (
         <Button type="default" size="large" ghost disabled loading>
@@ -294,6 +298,8 @@ export const MainHeader = () => {
     storeState?.isInitialFunded,
     totalEthBalance,
     canStartAgent,
+    isEvicted,
+    component,
   ]);
 
   return (
