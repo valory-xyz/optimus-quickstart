@@ -14,8 +14,9 @@ export type StakingContractInfo = {
   availableRewards: number;
   maxNumServices: number;
   serviceIds: number[];
+  /** minimum staking duration (in seconds) */
   minStakingDuration: number;
-  /** time when service was staked */
+  /** time when service was staked (in seconds) */
   serviceStakingTime: number;
   /** 0: not staked, 1: staked, 2: unstaked - current state of the service */
   serviceStakingState: number;
