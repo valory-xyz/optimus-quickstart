@@ -2,11 +2,12 @@ import { Flex, Typography } from 'antd';
 import { formatUnits } from 'ethers/lib/utils';
 import { ReactNode, useEffect, useMemo } from 'react';
 
-import { SERVICE_TEMPLATES } from '@/constants/serviceTemplates';
 import { UNICODE_SYMBOLS } from '@/constants/symbols';
 import { useBalance } from '@/hooks/useBalance';
 import { useElectronApi } from '@/hooks/useElectronApi';
+import { useServiceTemplates } from '@/hooks/useServiceTemplates';
 import { useStore } from '@/hooks/useStore';
+import { getMinimumStakedAmountRequired } from '@/utils/service';
 
 import { Alert } from '../Alert';
 import { CardSection } from '../styled/CardSection';
@@ -15,7 +16,9 @@ const { Text, Paragraph } = Typography;
 const COVER_PREV_BLOCK_BORDER_STYLE = { marginTop: '-1px' };
 
 const useNeedsFunds = () => {
-  const serviceTemplate = SERVICE_TEMPLATES[0];
+  const { getServiceTemplates } = useServiceTemplates();
+  const serviceTemplate = useMemo(() => getServiceTemplates()[0], []);
+
   const { storeState } = useStore();
   const { safeBalance, totalOlasStakedBalance } = useBalance();
 
@@ -25,24 +28,15 @@ const useNeedsFunds = () => {
     const monthlyGasEstimate = Number(
       formatUnits(`${serviceTemplate.configuration.monthly_gas_estimate}`, 18),
     );
-    const olasCostOfBond = Number(
-      formatUnits(`${serviceTemplate.configuration.olas_cost_of_bond}`, 18),
-    );
-    const olasRequiredToStake = Number(
-      formatUnits(
-        `${serviceTemplate.configuration.olas_required_to_stake}`,
-        18,
-      ),
-    );
+
+    const minimumStakedAmountRequired =
+      getMinimumStakedAmountRequired(serviceTemplate);
+
     return {
       eth: monthlyGasEstimate,
-      olas: olasCostOfBond + olasRequiredToStake,
+      olas: minimumStakedAmountRequired,
     };
-  }, [
-    serviceTemplate.configuration.monthly_gas_estimate,
-    serviceTemplate.configuration.olas_cost_of_bond,
-    serviceTemplate.configuration.olas_required_to_stake,
-  ]);
+  }, [serviceTemplate]);
 
   const hasEnoughEthForInitialFunding = useMemo(
     () => (safeBalance?.ETH || 0) >= (serviceFundRequirements?.eth || 0),
