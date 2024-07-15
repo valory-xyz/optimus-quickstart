@@ -17,9 +17,9 @@ import { useWallet } from '@/hooks/useWallet';
 import { ServicesService } from '@/service/Services';
 import { WalletService } from '@/service/Wallet';
 
+import { CannotStartAgent } from './CannotStartAgent';
 import { requiredGas, requiredOlas } from './constants';
 import { FirstRunModal } from './FirstRunModal';
-import { useEviction } from './useEviction';
 
 const { Text } = Typography;
 
@@ -82,14 +82,13 @@ export const MainHeader = () => {
     isBalanceLoaded,
     setIsPaused: setIsBalancePollingPaused,
   } = useBalance();
-  const { isEvicted, component } = useEviction();
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const handleModalClose = useCallback(() => setIsModalOpen(false), []);
 
   const { minimumStakedAmountRequired } = useReward();
 
-  const { canStartAgent } = useStakingContractInfo();
+  const { canStartAgent, isAgentEvicted } = useStakingContractInfo();
 
   // hook to setup tray icon
   useSetupTrayIcon();
@@ -207,8 +206,19 @@ export const MainHeader = () => {
     });
   }, [services, setServiceStatus]);
 
+  // TODO: Implement handleUnstakeAndStart
+  const handleUnstakeAndStart = useCallback(() => {}, []);
+
   const serviceToggleButton = useMemo(() => {
-    if (isEvicted) return component;
+    if (!canStartAgent) return <CannotStartAgent />;
+
+    if (canStartAgent && isAgentEvicted) {
+      return (
+        <Button type="primary" size="large" onClick={handleUnstakeAndStart}>
+          Unstake and start agent
+        </Button>
+      );
+    }
 
     if (serviceButtonState === ServiceButtonLoadingState.Pausing) {
       return (
@@ -298,8 +308,8 @@ export const MainHeader = () => {
     storeState?.isInitialFunded,
     totalEthBalance,
     canStartAgent,
-    isEvicted,
-    component,
+    isAgentEvicted,
+    handleUnstakeAndStart,
   ]);
 
   return (
