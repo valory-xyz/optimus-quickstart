@@ -42,6 +42,7 @@ from operate import services
 from operate.account.user import UserAccount
 from operate.constants import KEY, KEYS, OPERATE, SERVICES
 from operate.ledger import get_ledger_type_from_chain_type
+from operate.services.health_checker import HealthChecker
 from operate.types import ChainType, DeploymentStatus
 from operate.wallet.master import MasterWalletManager
 
@@ -145,8 +146,7 @@ def create_app(  # pylint: disable=too-many-locals, unused-argument, too-many-st
     logger = setup_logger(name="operate")
     operate = OperateApp(home=home, logger=logger)
     funding_jobs: t.Dict[str, asyncio.Task] = {}
-    healthcheck_jobs: t.Dict[str, asyncio.Task] = {}
-
+    health_checker = HealthChecker(operate.service_manager())
     # Create shutdown endpoint
     shutdown_endpoint = uuid.uuid4().hex
     (operate._path / "operate.kill").write_text(  # pylint: disable=protected-access
@@ -176,17 +176,7 @@ def create_app(  # pylint: disable=too-many-locals, unused-argument, too-many-st
         service: str,
     ) -> None:
         """Schedule a healthcheck job."""
-        logger.info(f"Starting healthcheck job for {service}")
-        if service in healthcheck_jobs:
-            logger.info(f"Cancelling existing healthcheck_jobs job for {service}")
-            cancel_healthcheck_job(service=service)
-
-        loop = asyncio.get_running_loop()
-        healthcheck_jobs[service] = loop.create_task(
-            operate.service_manager().healthcheck_job(
-                hash=service,
-            )
-        )
+        health_checker.start_for_service(service)
 
     def cancel_funding_job(service: str) -> None:
         """Cancel funding job."""
@@ -210,15 +200,8 @@ def create_app(  # pylint: disable=too-many-locals, unused-argument, too-many-st
             deployment.stop(force=True)
             logger.info(f"Cancelling funding job for {service}")
             cancel_funding_job(service=service)
+            health_checker.stop_for_service(service=service)
         logger.info("Stopping services on startup done.")
-
-    def cancel_healthcheck_job(service: str) -> None:
-        """Cancel healthcheck job."""
-        if service not in healthcheck_jobs:
-            return
-        status = healthcheck_jobs[service].cancel()
-        if not status:
-            logger.info(f"Healthcheck job cancellation for {service} failed")
 
     # on backend app started we assume there are now started agents, so we force to pause all
     pause_all_services_on_startup()
@@ -695,6 +678,7 @@ def create_app(  # pylint: disable=too-many-locals, unused-argument, too-many-st
             return service_not_found_error(service=request.path_params["service"])
         service = request.path_params["service"]
         deployment = operate.service_manager().load_or_create(service).deployment
+        health_checker.stop_for_service(service=service)
         deployment.stop()
         logger.info(f"Cancelling funding job for {service}")
         cancel_funding_job(service=service)
