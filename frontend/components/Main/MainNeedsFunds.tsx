@@ -17,7 +17,11 @@ const COVER_PREV_BLOCK_BORDER_STYLE = { marginTop: '-1px' };
 
 const useNeedsFunds = () => {
   const { getServiceTemplates } = useServiceTemplates();
-  const serviceTemplate = useMemo(() => getServiceTemplates()[0], []);
+
+  const serviceTemplate = useMemo(
+    () => getServiceTemplates()[0],
+    [getServiceTemplates],
+  );
 
   const { storeState } = useStore();
   const { safeBalance, totalOlasStakedBalance } = useBalance();
