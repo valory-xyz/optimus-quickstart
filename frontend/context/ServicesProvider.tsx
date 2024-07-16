@@ -16,6 +16,7 @@ import { FIVE_SECONDS_INTERVAL } from '@/constants/intervals';
 import { ServicesService } from '@/service/Services';
 import { Address } from '@/types/Address';
 
+import { dummyServices } from './mocks';
 import { OnlineStatusContext } from './OnlineStatusProvider';
 
 type ServicesContextProps = {
@@ -71,7 +72,9 @@ export const ServicesProvider = ({ children }: PropsWithChildren) => {
       ServicesService.getServices()
         .then((data: Service[]) => {
           if (!Array.isArray(data)) return;
-          setServices(data);
+          setServices(dummyServices);
+          // setServices(data);
+          // console.log(data);
           setHasInitialLoaded(true);
         })
         .catch((e) => {
@@ -94,6 +97,8 @@ export const ServicesProvider = ({ children }: PropsWithChildren) => {
         .catch((e) => message.error(e.message)),
     isOnline ? FIVE_SECONDS_INTERVAL : null,
   );
+
+  console.log({ services });
 
   return (
     <ServicesContext.Provider

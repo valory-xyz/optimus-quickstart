@@ -6,7 +6,7 @@ import {
   useMemo,
   useState,
 } from 'react';
-import { useInterval } from 'usehooks-ts';
+import { useTimeout } from 'usehooks-ts';
 
 import { FIVE_SECONDS_INTERVAL } from '@/constants/intervals';
 import { AutonolasService } from '@/service/Autonolas';
@@ -57,9 +57,9 @@ export const StakingContractInfoProvider = ({
         availableRewards,
         maxNumServices,
         serviceIds,
-        serviceStakingTime,
+        serviceStakingStartTime,
         serviceStakingState,
-        minStakingDuration,
+        minimumStakingDuration,
       } = info;
       const isRewardsAvailable = availableRewards > 0;
       const hasEnoughServiceSlots = serviceIds.length < maxNumServices;
@@ -80,7 +80,7 @@ export const StakingContractInfoProvider = ({
        *
        */
       const isServiceStakedForMinimumDuration =
-        Number(Date.now() / 1000) - serviceStakingTime >= minStakingDuration;
+        Math.round(Date.now() / 1000) - serviceStakingStartTime >= minimumStakingDuration;
 
       /**
        * user can start the agent iff,
@@ -91,6 +91,16 @@ export const StakingContractInfoProvider = ({
       const canStartAgent =
         hasEnoughRewardsAndSlots &&
         (isAgentEvicted ? isServiceStakedForMinimumDuration : true);
+
+      console.log({
+        serviceIds,
+        serviceStakingStartTime,
+        serviceStakingState,
+        minimumStakingDuration,
+        isAgentEvicted,
+        isServiceStakedForMinimumDuration,
+        canStartAgent,
+      });
 
       setIsRewardsAvailable(isRewardsAvailable);
       setHasEnoughServiceSlots(hasEnoughServiceSlots);
@@ -103,7 +113,8 @@ export const StakingContractInfoProvider = ({
     }
   }, [serviceId]);
 
-  useInterval(updateStakingContractInfo, FIVE_SECONDS_INTERVAL);
+  useTimeout(updateStakingContractInfo, FIVE_SECONDS_INTERVAL / 2);
+  // useInterval(updateStakingContractInfo, FIVE_SECONDS_INTERVAL);
 
   return (
     <StakingContractInfoContext.Provider

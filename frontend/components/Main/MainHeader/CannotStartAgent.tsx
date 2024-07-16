@@ -73,6 +73,13 @@ export const CannotStartAgent = () => {
     isAgentEvicted,
   } = useStakingContractInfo();
 
+  // console.log('canStartAgent', {
+  //   canStartAgent,
+  //   hasEnoughServiceSlots,
+  //   isRewardsAvailable,
+  //   isAgentEvicted,
+  // });
+
   if (canStartAgent) return null;
   if (!hasEnoughServiceSlots) return <NoJobsAvailablePopover />;
   if (!isRewardsAvailable) return <NoRewardsAvailablePopover />;
