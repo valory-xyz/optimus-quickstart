@@ -186,14 +186,6 @@ const getStakingContractInfo = async (
     serviceStakingState,
   ] = multicallResponse;
 
-  console.log('getStakingContractInfo:', {
-    serviceId,
-    serviceInfo,
-    minimumStakingDuration: minStakingDurationInBN.toNumber(),
-    serviceStakingStartTime: serviceInfo.tsStart.toNumber(),
-    serviceStakingState,
-  });
-
   const availableRewards = parseFloat(
     ethers.utils.formatUnits(availableRewardsInBN, 18),
   );
@@ -206,7 +198,7 @@ const getStakingContractInfo = async (
     serviceIds,
     minimumStakingDuration: minStakingDurationInBN.toNumber(),
     serviceStakingStartTime: serviceInfo.tsStart.toNumber(),
-    serviceStakingState: 2,
+    serviceStakingState,
   };
 };
 
