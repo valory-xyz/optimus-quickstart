@@ -212,7 +212,7 @@ export const MainHeader = () => {
     if (canStartAgent && isAgentEvicted) {
       return (
         <Button type="primary" size="large" onClick={handleStart}>
-          Unstake and start agent
+          Start agent
         </Button>
       );
     }
