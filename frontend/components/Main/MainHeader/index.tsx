@@ -206,15 +206,12 @@ export const MainHeader = () => {
     });
   }, [services, setServiceStatus]);
 
-  // TODO: Implement handleUnstakeAndStart
-  const handleUnstakeAndStart = useCallback(() => {}, []);
-
   const serviceToggleButton = useMemo(() => {
     if (!canStartAgent) return <CannotStartAgent />;
 
     if (canStartAgent && isAgentEvicted) {
       return (
-        <Button type="primary" size="large" onClick={handleUnstakeAndStart}>
+        <Button type="primary" size="large" onClick={handleStart}>
           Unstake and start agent
         </Button>
       );
@@ -309,7 +306,6 @@ export const MainHeader = () => {
     totalEthBalance,
     canStartAgent,
     isAgentEvicted,
-    handleUnstakeAndStart,
   ]);
 
   return (
