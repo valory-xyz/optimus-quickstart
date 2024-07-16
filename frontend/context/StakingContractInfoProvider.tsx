@@ -83,17 +83,13 @@ export const StakingContractInfoProvider = ({
       const isServiceStakedForMinimumDuration =
         Number(Date.now() / 1000) - serviceStakingTime >= minStakingDuration;
 
-      // If agent is evicted and service is staked for minimum duration,
-      // then user can restart the agent
-      const canRestartAgentAfterEviction =
-        isAgentEvicted && isServiceStakedForMinimumDuration;
-
       // user can start the agent iff,
       // - rewards are available
       // - service has enough slots
-      // - agent is not evicted
+      // - if agent is evicted, then service should be staked for minimum duration
       const canStartAgent =
-        hasEnoughRewardsAndSlots && canRestartAgentAfterEviction;
+        hasEnoughRewardsAndSlots &&
+        (isAgentEvicted ? isServiceStakedForMinimumDuration : true);
 
       setIsRewardsAvailable(isRewardsAvailable);
       setHasEnoughServiceSlots(hasEnoughServiceSlots);
