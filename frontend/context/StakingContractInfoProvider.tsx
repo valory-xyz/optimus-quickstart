@@ -15,7 +15,7 @@ import { ServicesContext } from './ServicesProvider';
 
 type StakingContractInfoContextProps = {
   updateStakingContractInfo: () => Promise<void>;
-  isStakingContractInfoLoading: boolean;
+  isInitialStakingLoad: boolean;
   isRewardsAvailable: boolean;
   hasEnoughServiceSlots: boolean;
   isAgentEvicted: boolean; // TODO: Implement this
@@ -25,7 +25,7 @@ type StakingContractInfoContextProps = {
 export const StakingContractInfoContext =
   createContext<StakingContractInfoContextProps>({
     updateStakingContractInfo: async () => {},
-    isStakingContractInfoLoading: true,
+    isInitialStakingLoad: true,
     isRewardsAvailable: false,
     hasEnoughServiceSlots: false,
     isAgentEvicted: false,
@@ -38,15 +38,13 @@ export const StakingContractInfoProvider = ({
   const { services } = useContext(ServicesContext);
   const serviceId = useMemo(() => services?.[0]?.chain_data?.token, [services]);
 
-  const [isStakingContractInfoLoading, setIsStakingContractInfoLoading] =
-    useState(true);
+  const [stakingLoadCount, setStakingLoadCount] = useState(0);
   const [isRewardsAvailable, setIsRewardsAvailable] = useState(false);
   const [hasEnoughServiceSlots, setHasEnoughServiceSlots] = useState(false);
   const [isAgentEvicted, setIsAgentEvicted] = useState(false);
   const [canStartAgent, setCanStartAgent] = useState(false);
 
   const updateStakingContractInfo = useCallback(async () => {
-    setIsStakingContractInfoLoading(true);
     try {
       if (!serviceId) return;
 
@@ -97,10 +95,9 @@ export const StakingContractInfoProvider = ({
       setHasEnoughServiceSlots(hasEnoughServiceSlots);
       setCanStartAgent(canStartAgent);
       setIsAgentEvicted(isAgentEvicted);
+      setStakingLoadCount((prev) => prev + 1);
     } catch (error) {
       console.error('Failed to fetch staking contract info', error);
-    } finally {
-      setIsStakingContractInfoLoading(false);
     }
   }, [serviceId]);
 
@@ -110,7 +107,7 @@ export const StakingContractInfoProvider = ({
     <StakingContractInfoContext.Provider
       value={{
         updateStakingContractInfo,
-        isStakingContractInfoLoading,
+        isInitialStakingLoad: stakingLoadCount === 0,
         isRewardsAvailable,
         hasEnoughServiceSlots,
         isAgentEvicted,

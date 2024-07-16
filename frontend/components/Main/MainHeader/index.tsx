@@ -1,5 +1,5 @@
 import { InfoCircleOutlined } from '@ant-design/icons';
-import { Badge, Button, Flex, Popover, Typography } from 'antd';
+import { Badge, Button, Flex, Popover, Skeleton, Typography } from 'antd';
 import Image from 'next/image';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
@@ -88,7 +88,8 @@ export const MainHeader = () => {
 
   const { minimumStakedAmountRequired } = useReward();
 
-  const { canStartAgent, isAgentEvicted } = useStakingContractInfo();
+  const { isInitialStakingLoad, isAgentEvicted, canStartAgent } =
+    useStakingContractInfo();
 
   // hook to setup tray icon
   useSetupTrayIcon();
@@ -311,7 +312,11 @@ export const MainHeader = () => {
   return (
     <Flex justify="start" align="center" gap={10}>
       {agentHead}
-      {serviceToggleButton}
+      {isInitialStakingLoad ? (
+        <Skeleton.Input style={{ width: 80 }} active />
+      ) : (
+        serviceToggleButton
+      )}
       <FirstRunModal open={isModalOpen} onClose={handleModalClose} />
     </Flex>
   );
