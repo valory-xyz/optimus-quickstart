@@ -1,7 +1,7 @@
 import { InfoCircleOutlined } from '@ant-design/icons';
 import { Button, Flex, Modal, Skeleton, Tag, Tooltip, Typography } from 'antd';
 import Image from 'next/image';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { useBalance } from '@/hooks/useBalance';
 import { useElectronApi } from '@/hooks/useElectronApi';
@@ -73,6 +73,8 @@ const NotifyRewards = () => {
 
   const [canShowNotification, setCanShowNotification] = useState(false);
 
+  const firstRewardRef = useRef<number>();
+
   // hook to set the flag to show the notification
   useEffect(() => {
     if (!isEligibleForRewards) return;
@@ -80,13 +82,9 @@ const NotifyRewards = () => {
     if (storeState?.firstRewardNotificationShown) return;
     if (!availableRewardsForEpochEth) return;
 
+    firstRewardRef.current = availableRewardsForEpochEth;
     setCanShowNotification(true);
-  }, [
-    isEligibleForRewards,
-    availableRewardsForEpochEth,
-    showNotification,
-    storeState,
-  ]);
+  }, [isEligibleForRewards, availableRewardsForEpochEth, storeState]);
 
   // hook to show desktop app notification
   useEffect(() => {
@@ -94,9 +92,9 @@ const NotifyRewards = () => {
 
     showNotification?.(
       'Your agent earned its first staking rewards!',
-      `Congratulations! Your agent just got the first reward for you! Your current balance: ${availableRewardsForEpochEth} OLAS`,
+      `Congratulations! Your agent just got the first reward for you! Your current balance: ${firstRewardRef.current} OLAS`,
     );
-  }, [canShowNotification, availableRewardsForEpochEth, showNotification]);
+  }, [canShowNotification, showNotification]);
 
   const closeNotificationModal = useCallback(() => {
     setCanShowNotification(false);

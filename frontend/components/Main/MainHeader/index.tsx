@@ -8,7 +8,6 @@ import { COLOR } from '@/constants/colors';
 import { LOW_BALANCE } from '@/constants/thresholds';
 import { useBalance } from '@/hooks/useBalance';
 import { useElectronApi } from '@/hooks/useElectronApi';
-import { useReward } from '@/hooks/useReward';
 import { useServices } from '@/hooks/useServices';
 import { useServiceTemplates } from '@/hooks/useServiceTemplates';
 import { useStakingContractInfo } from '@/hooks/useStakingContractInfo';
@@ -16,6 +15,7 @@ import { useStore } from '@/hooks/useStore';
 import { useWallet } from '@/hooks/useWallet';
 import { ServicesService } from '@/service/Services';
 import { WalletService } from '@/service/Wallet';
+import { getMinimumStakedAmountRequired } from '@/utils/service';
 
 import { CannotStartAgent } from './CannotStartAgent';
 import { requiredGas, requiredOlas } from './constants';
@@ -85,8 +85,6 @@ export const MainHeader = () => {
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const handleModalClose = useCallback(() => setIsModalOpen(false), []);
-
-  const { minimumStakedAmountRequired } = useReward();
 
   const { isInitialStakingLoad, isAgentEvicted, canStartAgent } =
     useStakingContractInfo();
@@ -172,6 +170,9 @@ export const MainHeader = () => {
           if (serviceExists) {
             showNotification?.('Your agent is now running!');
           } else {
+            const minimumStakedAmountRequired =
+              getMinimumStakedAmountRequired(serviceTemplate);
+
             showNotification?.(
               `Your agent is running and you've staked ${minimumStakedAmountRequired} OLAS!`,
             );
@@ -188,7 +189,6 @@ export const MainHeader = () => {
     }
   }, [
     masterSafeAddress,
-    minimumStakedAmountRequired,
     serviceTemplate,
     services,
     setIsBalancePollingPaused,
