@@ -386,9 +386,6 @@ class ServiceManager:
         wallet = self.wallet_manager.load(service.ledger_config.type)
         sftxb = self.get_eth_safe_tx_builder(service=service)
 
-
-
-
         if user_params.use_staking and not sftxb.staking_slots_available(
             staking_contract=STAKING[service.ledger_config.chain]
         ):
@@ -432,21 +429,23 @@ class ServiceManager:
                 )
 
 
-
-
         on_chain_hash = self._get_on_chain_hash(service)
         is_first_mint = self._get_on_chain_state(service) == OnChainState.NON_EXISTENT
-        is_update = (not is_first_mint) and on_chain_hash and (on_chain_hash != service.hash)
+        is_update = (not is_first_mint) and (on_chain_hash is not None) and (on_chain_hash != service.hash)
 
         self.logger.info(f"{on_chain_hash=}")
         self.logger.info(f"{is_first_mint=}")
         self.logger.info(f"{is_update=}")
 
         if is_update:
-            #TERMINATE SERVICE
+            self.terminate_service_on_chain_from_safe(hash=hash)
 
         if is_first_mint or (is_update and self._get_on_chain_state(service) == OnChainState.PRE_REGISTRATION):
-            self.logger.info("Minting the on-chain service")
+            if not is_update:
+                self.logger.info("Minting the on-chain service")
+            else:
+                self.logger.info("Updating the on-chain service")
+
             receipt = (
                 sftxb.new_tx()
                 .add(
@@ -597,13 +596,15 @@ class ServiceManager:
             service.chain_data.on_chain_state = OnChainState.DEPLOYED
             service.store()
 
+
+        # Update local Service
         info = sftxb.info(token_id=service.chain_data.token)
         service.chain_data = OnChainData(
             token=service.chain_data.token,
             instances=info["instances"],
             multisig=info["multisig"],
             staked=False,
-            on_chain_state=service.chain_data.on_chain_state,
+            on_chain_state=OnChainState(info["service_state"]),
             user_params=service.chain_data.user_params,
         )
         service.store()
@@ -641,23 +642,44 @@ class ServiceManager:
 
         :param hash: Service hash
         """
+
         service = self.load_or_create(hash=hash)
         sftxb = self.get_eth_safe_tx_builder(service=service)
         info = sftxb.info(token_id=service.chain_data.token)
         service.chain_data.on_chain_state = OnChainState(info["service_state"])
 
-        if service.chain_data.on_chain_state != OnChainState.DEPLOYED:
-            self.logger.info("Cannot terminate service")
+        if service.chain_data.user_params.use_staking and not self._can_unstake_service(hash=hash):
             return
 
-        self.logger.info("Terminating service")
-        sftxb.new_tx().add(
-            sftxb.get_terminate_data(
-                service_id=service.chain_data.token,
-            )
-        ).settle()
-        service.chain_data.on_chain_state = OnChainState.TERMINATED_BONDED
-        service.store()
+        self.unstake_service_on_chain(hash=hash)
+
+        if self._get_on_chain_state(service) in (OnChainState.ACTIVE_REGISTRATION, OnChainState.FINISHED_REGISTRATION, OnChainState.DEPLOYED):
+            self.logger.info("Terminating service")
+            sftxb.new_tx().add(
+                sftxb.get_terminate_data(
+                    service_id=service.chain_data.token,
+                )
+            ).settle()
+
+        if self._get_on_chain_state(service) == OnChainState.TERMINATED_BONDED:
+            self.logger.info("Unbonding service")
+            sftxb.new_tx().add(
+                sftxb.get_unbond_data(
+                    service_id=service.chain_data.token,
+                )
+            ).settle()
+
+
+        if [[ "$current_safe_owners" == "['$agent_address']" ]]:
+            sftx = self.get_eth_safe_tx_builder(service=old_service)  # noqa: E800
+            sftx.swap(  # noqa: E800
+                service_id=old_service.chain_data.token,  # noqa: E800
+                multisig=old_service.chain_data.multisig,  # noqa: E800
+                owner_key=str(
+                    self.keys_manager.get(key=owner).private_key
+                ),  # noqa: E800
+            )  # noqa: E800
+
 
     def unbond_service_on_chain(self, hash: str) -> None:
         """
@@ -684,30 +706,6 @@ class ServiceManager:
             ),
         )
         service.chain_data.on_chain_state = OnChainState.UNBONDED
-        service.store()
-
-    def unbond_service_on_chain_from_safe(self, hash: str) -> None:
-        """
-        Terminate service on-chain
-
-        :param hash: Service hash
-        """
-        service = self.load_or_create(hash=hash)
-        sftxb = self.get_eth_safe_tx_builder(service=service)
-        info = sftxb.info(token_id=service.chain_data.token)
-        service.chain_data.on_chain_state = OnChainState(info["service_state"])
-
-        if service.chain_data.on_chain_state != OnChainState.TERMINATED_BONDED:
-            self.logger.info("Cannot unbond service")
-            return
-
-        self.logger.info("Unbonding service")
-        sftxb.new_tx().add(
-            sftxb.get_unbond_data(
-                service_id=service.chain_data.token,
-            )
-        ).settle()
-        service.chain_data.on_chain_state = OnChainState.TERMINATED_BONDED
         service.store()
 
     def stake_service_on_chain(self, hash: str) -> None:
@@ -1061,14 +1059,7 @@ class ServiceManager:
 
         # owner, *_ = old_service.chain_data.instances  # noqa: E800
         # if from_safe:  # noqa: E800
-        #     sftx = self.get_eth_safe_tx_builder(service=old_service)  # noqa: E800
-        #     sftx.swap(  # noqa: E800
-        #         service_id=old_service.chain_data.token,  # noqa: E800
-        #         multisig=old_service.chain_data.multisig,  # noqa: E800
-        #         owner_key=str(
-        #             self.keys_manager.get(key=owner).private_key
-        #         ),  # noqa: E800
-        #     )  # noqa: E800
+
         # else:  # noqa: E800
         #     ocm = self.get_on_chain_manager(service=old_service)  # noqa: E800
         #     ocm.swap(  # noqa: E800
