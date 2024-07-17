@@ -130,16 +130,17 @@ class DeploymentStatus(enum.IntEnum):
     DELETED = 6
 
 
+# TODO defined in aea.chain.base.OnChainState
 class OnChainState(enum.IntEnum):
     """On-chain state."""
 
-    NOTMINTED = 0
-    MINTED = 1
-    ACTIVATED = 2
-    REGISTERED = 3
+    NON_EXISTENT = 0
+    PRE_REGISTRATION = 1
+    ACTIVE_REGISTRATION = 2
+    FINISHED_REGISTRATION = 3
     DEPLOYED = 4
-    TERMINATED = 5
-    UNBONDED = 6
+    TERMINATED_BONDED = 5
+    UNBONDED = 6  # TODO this is not an on-chain state https://github.com/valory-xyz/autonolas-registries/blob/main/contracts/ServiceRegistryL2.sol
 
 
 class ContractAddresses(TypedDict):

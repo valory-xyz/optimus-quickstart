@@ -86,6 +86,7 @@ DELETE_PREFIX = "delete_"
 # pylint: disable=no-member,redefined-builtin,too-many-instance-attributes
 
 DUMMY_MULTISIG = "0xm"
+NON_EXISTENT_TOKEN = -1
 
 
 def mkdirs(build_dir: Path) -> None:
@@ -690,10 +691,10 @@ class Service(LocalResource):
             ),
             chain_data=OnChainData(
                 instances=[],
-                token=-1,
+                token=NON_EXISTENT_TOKEN,
                 multisig=DUMMY_MULTISIG,
                 staked=False,
-                on_chain_state=OnChainState.NOTMINTED,
+                on_chain_state=OnChainState.NON_EXISTENT,
                 user_params=on_chain_user_params,
             ),
             path=service_path.parent,
