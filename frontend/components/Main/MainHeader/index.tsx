@@ -1,5 +1,13 @@
 import { InfoCircleOutlined } from '@ant-design/icons';
-import { Badge, Button, Flex, Popover, Skeleton, Typography } from 'antd';
+import {
+  Badge,
+  Button,
+  ButtonProps,
+  Flex,
+  Popover,
+  Skeleton,
+  Typography,
+} from 'antd';
 import Image from 'next/image';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
@@ -210,14 +218,6 @@ export const MainHeader = () => {
   const serviceToggleButton = useMemo(() => {
     if (!canStartAgent) return <CannotStartAgent />;
 
-    if (canStartAgent && isAgentEvicted) {
-      return (
-        <Button type="primary" size="large" onClick={handleStart}>
-          Start agent
-        </Button>
-      );
-    }
-
     if (serviceButtonState === ServiceButtonLoadingState.Pausing) {
       return (
         <Button type="default" size="large" ghost disabled loading>
@@ -274,27 +274,20 @@ export const MainHeader = () => {
         totalEthBalance > requiredGas
       );
     })();
-
     const serviceExists = !!services?.[0];
 
-    if (!isDeployable) {
-      return (
-        <Button type="default" size="large" disabled>
-          Start agent {!serviceExists && '& stake'}
-        </Button>
-      );
-    }
+    const canActivateAgent = canStartAgent && (isAgentEvicted || isDeployable);
 
-    return (
-      <Button
-        type="primary"
-        size="large"
-        disabled={!canStartAgent}
-        onClick={handleStart}
-      >
-        Start agent {!serviceExists && '& stake'}
-      </Button>
-    );
+    const buttonProps: ButtonProps = {
+      type: canActivateAgent ? 'primary' : 'default',
+      size: 'large',
+      disabled: !canStartAgent || !isDeployable,
+      onClick: canActivateAgent ? handleStart : undefined,
+    };
+
+    const buttonText = `Start agent ${!serviceExists ? '& stake' : ''}`;
+
+    return <Button {...buttonProps}>{buttonText}</Button>;
   }, [
     handlePause,
     handleStart,
