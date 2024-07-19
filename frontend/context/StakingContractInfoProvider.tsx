@@ -18,8 +18,9 @@ type StakingContractInfoContextProps = {
   isInitialStakingLoad: boolean;
   isRewardsAvailable: boolean;
   hasEnoughServiceSlots: boolean;
-  isAgentEvicted: boolean; // TODO: Implement this
-  canStartAgent: boolean;
+  isAgentEvicted: boolean;
+  isEligibleForStakingAction: boolean;
+  canStartEvictedAgent: boolean;
 };
 
 export const StakingContractInfoContext =
@@ -29,7 +30,8 @@ export const StakingContractInfoContext =
     isRewardsAvailable: false,
     hasEnoughServiceSlots: false,
     isAgentEvicted: false,
-    canStartAgent: false,
+    isEligibleForStakingAction: false,
+    canStartEvictedAgent: false,
   });
 
 export const StakingContractInfoProvider = ({
@@ -42,7 +44,7 @@ export const StakingContractInfoProvider = ({
   const [isRewardsAvailable, setIsRewardsAvailable] = useState(false);
   const [hasEnoughServiceSlots, setHasEnoughServiceSlots] = useState(false);
   const [isAgentEvicted, setIsAgentEvicted] = useState(false);
-  const [canStartAgent, setCanStartAgent] = useState(false);
+  const [isEligibleForStakingAction, setCanStartAgent] = useState(false);
 
   const updateStakingContractInfo = useCallback(async () => {
     try {
@@ -87,13 +89,13 @@ export const StakingContractInfoProvider = ({
        * - service has enough slots
        * - if agent is evicted, then service should be staked for minimum duration
        */
-      const canStartAgent =
+      const isEligibleForStakingAction =
         hasEnoughRewardsAndSlots &&
         (isAgentEvicted ? isServiceStakedForMinimumDuration : true);
 
       setIsRewardsAvailable(isRewardsAvailable);
       setHasEnoughServiceSlots(hasEnoughServiceSlots);
-      setCanStartAgent(canStartAgent);
+      setCanStartAgent(isEligibleForStakingAction);
       setIsAgentEvicted(isAgentEvicted);
       setStakingLoadCount((prev) => prev + 1);
     } catch (error) {
@@ -111,7 +113,8 @@ export const StakingContractInfoProvider = ({
         isRewardsAvailable,
         hasEnoughServiceSlots,
         isAgentEvicted,
-        canStartAgent,
+        isEligibleForStakingAction,
+        canStartEvictedAgent: isEligibleForStakingAction && isAgentEvicted,
       }}
     >
       {children}

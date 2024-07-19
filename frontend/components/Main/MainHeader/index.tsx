@@ -94,8 +94,11 @@ export const MainHeader = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const handleModalClose = useCallback(() => setIsModalOpen(false), []);
 
-  const { isInitialStakingLoad, isAgentEvicted, canStartAgent } =
-    useStakingContractInfo();
+  const {
+    isInitialStakingLoad,
+    isEligibleForStakingAction,
+    canStartEvictedAgent,
+  } = useStakingContractInfo();
 
   // hook to setup tray icon
   useSetupTrayIcon();
@@ -216,7 +219,7 @@ export const MainHeader = () => {
   }, [services, setServiceStatus]);
 
   const serviceToggleButton = useMemo(() => {
-    if (!canStartAgent) return <CannotStartAgent />;
+    if (!isEligibleForStakingAction) return <CannotStartAgent />;
 
     if (serviceButtonState === ServiceButtonLoadingState.Pausing) {
       return (
@@ -276,15 +279,12 @@ export const MainHeader = () => {
     })();
     const serviceExists = !!services?.[0];
 
-    const canActivateAgent = canStartAgent && (isAgentEvicted || isDeployable);
-
     const buttonProps: ButtonProps = {
-      type: canActivateAgent ? 'primary' : 'default',
+      type: 'primary',
       size: 'large',
-      disabled: !canStartAgent || !isDeployable,
-      onClick: canActivateAgent ? handleStart : undefined,
+      disabled: !isEligibleForStakingAction || !isDeployable,
+      onClick: canStartEvictedAgent || isDeployable ? handleStart : undefined,
     };
-
     const buttonText = `Start agent ${!serviceExists ? '& stake' : ''}`;
 
     return <Button {...buttonProps}>{buttonText}</Button>;
@@ -298,8 +298,8 @@ export const MainHeader = () => {
     services,
     storeState?.isInitialFunded,
     totalEthBalance,
-    canStartAgent,
-    isAgentEvicted,
+    isEligibleForStakingAction,
+    canStartEvictedAgent,
   ]);
 
   return (
