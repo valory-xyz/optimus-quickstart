@@ -288,7 +288,7 @@ export const MainHeader = () => {
       disabled: !isDeployable,
       onClick: isDeployable ? handleStart : undefined,
     };
-    const buttonText = `Start agent ${!serviceExists ? '& stake' : ''}`;
+    const buttonText = `Start agent ${serviceExists ? '' : '& stake'}`;
 
     return <Button {...buttonProps}>{buttonText}</Button>;
   }, [
