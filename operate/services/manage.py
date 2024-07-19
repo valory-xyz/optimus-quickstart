@@ -374,7 +374,6 @@ class ServiceManager:
         Deploy as service on-chain
 
         :param hash: Service hash
-        :param update: Update the existing deployment
         """
         self.logger.info("DEPLOY SERVICE ONCHAIN FROM SAFE ====================")
 
