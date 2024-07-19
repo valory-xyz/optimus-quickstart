@@ -219,8 +219,6 @@ export const MainHeader = () => {
   }, [services, setServiceStatus]);
 
   const serviceToggleButton = useMemo(() => {
-    if (!isEligibleForStakingAction) return <CannotStartAgent />;
-
     if (serviceButtonState === ServiceButtonLoadingState.Pausing) {
       return (
         <Button type="default" size="large" ghost disabled loading>
@@ -249,6 +247,8 @@ export const MainHeader = () => {
       );
     }
 
+    if (!isEligibleForStakingAction) return <CannotStartAgent />;
+
     if (!isBalanceLoaded) {
       return (
         <Button type="primary" size="large" disabled>
@@ -272,6 +272,9 @@ export const MainHeader = () => {
       if (services[0] && storeState?.isInitialFunded)
         return safeOlasBalanceWithStaked >= requiredOlas; // at present agent will always require staked/bonded OLAS (or the ability to stake/bond)
 
+      // case if agent is evicted and user has met the staking criteria
+      if (canStartEvictedAgent) return true;
+
       return (
         safeOlasBalanceWithStaked >= requiredOlas &&
         totalEthBalance > requiredGas
@@ -282,8 +285,8 @@ export const MainHeader = () => {
     const buttonProps: ButtonProps = {
       type: 'primary',
       size: 'large',
-      disabled: !isEligibleForStakingAction || !isDeployable,
-      onClick: canStartEvictedAgent || isDeployable ? handleStart : undefined,
+      disabled: !isDeployable,
+      onClick: isDeployable ? handleStart : undefined,
     };
     const buttonText = `Start agent ${!serviceExists ? '& stake' : ''}`;
 
