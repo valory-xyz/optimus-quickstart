@@ -1,5 +1,13 @@
 import { InfoCircleOutlined } from '@ant-design/icons';
-import { Badge, Button, Flex, Popover, Skeleton, Typography } from 'antd';
+import {
+  Badge,
+  Button,
+  ButtonProps,
+  Flex,
+  Popover,
+  Skeleton,
+  Typography,
+} from 'antd';
 import Image from 'next/image';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
@@ -86,8 +94,11 @@ export const MainHeader = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const handleModalClose = useCallback(() => setIsModalOpen(false), []);
 
-  const { isInitialStakingLoad, isAgentEvicted, canStartAgent } =
-    useStakingContractInfo();
+  const {
+    isInitialStakingLoad,
+    isEligibleForStakingAction,
+    canStartEvictedAgent,
+  } = useStakingContractInfo();
 
   // hook to setup tray icon
   useSetupTrayIcon();
@@ -208,16 +219,6 @@ export const MainHeader = () => {
   }, [services, setServiceStatus]);
 
   const serviceToggleButton = useMemo(() => {
-    if (!canStartAgent) return <CannotStartAgent />;
-
-    if (canStartAgent && isAgentEvicted) {
-      return (
-        <Button type="primary" size="large" onClick={handleStart}>
-          Start agent
-        </Button>
-      );
-    }
-
     if (serviceButtonState === ServiceButtonLoadingState.Pausing) {
       return (
         <Button type="default" size="large" ghost disabled loading>
@@ -246,6 +247,8 @@ export const MainHeader = () => {
       );
     }
 
+    if (!isEligibleForStakingAction) return <CannotStartAgent />;
+
     if (!isBalanceLoaded) {
       return (
         <Button type="primary" size="large" disabled>
@@ -269,32 +272,25 @@ export const MainHeader = () => {
       if (services[0] && storeState?.isInitialFunded)
         return safeOlasBalanceWithStaked >= requiredOlas; // at present agent will always require staked/bonded OLAS (or the ability to stake/bond)
 
+      // case if agent is evicted and user has met the staking criteria
+      if (canStartEvictedAgent) return true;
+
       return (
         safeOlasBalanceWithStaked >= requiredOlas &&
         totalEthBalance > requiredGas
       );
     })();
-
     const serviceExists = !!services?.[0];
 
-    if (!isDeployable) {
-      return (
-        <Button type="default" size="large" disabled>
-          Start agent {!serviceExists && '& stake'}
-        </Button>
-      );
-    }
+    const buttonProps: ButtonProps = {
+      type: 'primary',
+      size: 'large',
+      disabled: !isDeployable,
+      onClick: isDeployable ? handleStart : undefined,
+    };
+    const buttonText = `Start agent ${serviceExists ? '' : '& stake'}`;
 
-    return (
-      <Button
-        type="primary"
-        size="large"
-        disabled={!canStartAgent}
-        onClick={handleStart}
-      >
-        Start agent {!serviceExists && '& stake'}
-      </Button>
-    );
+    return <Button {...buttonProps}>{buttonText}</Button>;
   }, [
     handlePause,
     handleStart,
@@ -305,8 +301,8 @@ export const MainHeader = () => {
     services,
     storeState?.isInitialFunded,
     totalEthBalance,
-    canStartAgent,
-    isAgentEvicted,
+    isEligibleForStakingAction,
+    canStartEvictedAgent,
   ]);
 
   return (
