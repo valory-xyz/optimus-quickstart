@@ -20,7 +20,7 @@ const evictedDescription =
 const AgentEvictedPopover = () => (
   <Popover
     {...otherPopoverProps}
-    title="Your agent was evicted"
+    title="Your agent was banned from work"
     content={<div style={{ maxWidth: 340 }}>{evictedDescription}</div>}
   >
     {cannotStartAgentText}
