@@ -20,6 +20,7 @@
 """Operate app CLI module."""
 
 import asyncio
+from concurrent.futures import ThreadPoolExecutor
 import logging
 import os
 import signal
@@ -152,6 +153,17 @@ def create_app(  # pylint: disable=too-many-locals, unused-argument, too-many-st
     (operate._path / "operate.kill").write_text(  # pylint: disable=protected-access
         shutdown_endpoint
     )
+
+    thread_pool_executor = ThreadPoolExecutor()
+
+    async def run_in_executor(fn, *args):
+        loop = asyncio.get_event_loop()
+        future = loop.run_in_executor(thread_pool_executor, fn, *args)
+        res = await future
+        exception = future.exception()
+        if exception is not None:
+            raise exception
+        return res
 
     def schedule_funding_job(
         service: str,
@@ -528,10 +540,12 @@ def create_app(  # pylint: disable=too-many-locals, unused-argument, too-many-st
             )
 
         if template.get("deploy", False):
-            manager.deploy_service_onchain_from_safe(hash=service.hash, update=update)
-            manager.stake_service_on_chain_from_safe(hash=service.hash)
-            manager.fund_service(hash=service.hash)
-            manager.deploy_service_locally(hash=service.hash)
+            def _fn():
+                manager.deploy_service_onchain_from_safe(hash=service.hash, update=update)
+                manager.stake_service_on_chain_from_safe(hash=service.hash)
+                manager.fund_service(hash=service.hash)
+                manager.deploy_service_locally(hash=service.hash)
+            await run_in_executor(_fn)
             schedule_funding_job(service=service.hash)
             schedule_healthcheck_job(service=service.hash)
 
@@ -651,7 +665,11 @@ def create_app(  # pylint: disable=too-many-locals, unused-argument, too-many-st
             )
             .deployment
         )
-        deployment.build(force=True)
+
+        def _fn():
+            deployment.build(force=True)
+
+        await run_in_executor(_fn)
         return JSONResponse(content=deployment.json)
 
     @app.post("/api/services/{service}/deployment/start")
@@ -662,10 +680,14 @@ def create_app(  # pylint: disable=too-many-locals, unused-argument, too-many-st
             return service_not_found_error(service=request.path_params["service"])
         service = request.path_params["service"]
         manager = operate.service_manager()
-        manager.deploy_service_onchain(hash=service)
-        manager.stake_service_on_chain(hash=service)
-        manager.fund_service(hash=service)
-        manager.deploy_service_locally(hash=service, force=True)
+
+        def _fn():
+            manager.deploy_service_onchain(hash=service)
+            manager.stake_service_on_chain(hash=service)
+            manager.fund_service(hash=service)
+            manager.deploy_service_locally(hash=service, force=True)
+
+        await run_in_executor(_fn)
         schedule_funding_job(service=service)
         schedule_healthcheck_job(service=service.hash)
         return JSONResponse(content=manager.load_or_create(service).deployment)
@@ -679,7 +701,8 @@ def create_app(  # pylint: disable=too-many-locals, unused-argument, too-many-st
         service = request.path_params["service"]
         deployment = operate.service_manager().load_or_create(service).deployment
         health_checker.stop_for_service(service=service)
-        deployment.stop()
+
+        await run_in_executor(deployment.stop)
         logger.info(f"Cancelling funding job for {service}")
         cancel_funding_job(service=service)
         return JSONResponse(content=deployment.json)
