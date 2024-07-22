@@ -429,11 +429,11 @@ ipcMain.on('check', async function (event, _argument) {
     event.sender.send('response', 'Checking installation');
     if (!isDev) {
       if (platform === 'darwin') {
-        //await setupDarwin(event.sender);
+        await setupDarwin(event.sender);
       } else if (platform === 'win32') {
         // TODO
       } else {
-        //await setupUbuntu(event.sender);
+        await setupUbuntu(event.sender);
       }
     }
 

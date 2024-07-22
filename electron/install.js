@@ -264,9 +264,9 @@ function removeInstallationLogFile() {
 
 async function setupDarwin(ipcChannel) {
   removeInstallationLogFile();
-  console.log(appendInstallationLog('Creating required directories'));
-  await createDirectory(`${paths.dotOperateDirectory}`);
-  await createDirectory(`${paths.dotOperateDirectory}/temp`);
+  // console.log(appendInstallationLog('Creating required directories'));
+  // await createDirectory(`${paths.dotOperateDirectory}`);
+  // await createDirectory(`${paths.dotOperateDirectory}/temp`);
 
   console.log(appendInstallationLog('Checking tendermint installation'));
   if (!isTendermintInstalledUnix()) {
@@ -275,40 +275,40 @@ async function setupDarwin(ipcChannel) {
     await installTendermintUnix();
   }
 
-  console.log(appendInstallationLog('Checking if upgrade is required'));
-  if (versionBumpRequired()) {
-    console.log(
-      appendInstallationLog(
-        `Upgrading pearl daemon to ${OlasMiddlewareVersion}`,
-      ),
-    );
-    writeVersion();
-    removeLogFile();
-    // reInstallOperatePackageUnix(OperateDirectory);
-  }
+  // console.log(appendInstallationLog('Checking if upgrade is required'));
+  // if (versionBumpRequired()) {
+  //   console.log(
+  //     appendInstallationLog(
+  //       `Upgrading pearl daemon to ${OlasMiddlewareVersion}`,
+  //     ),
+  //   );
+  //   writeVersion();
+  //   removeLogFile();
+  //   // reInstallOperatePackageUnix(OperateDirectory);
+  // }
 }
 
 // TODO: Add Tendermint installation
 async function setupUbuntu(ipcChannel) {
   removeInstallationLogFile();
 
-  console.log(appendInstallationLog('Checking python installation'));
-  if (!isPythonInstalledUbuntu()) {
-    ipcChannel.send('response', 'Installing Pearl Daemon');
-    console.log(appendInstallationLog('Installing Python'));
-    await installPythonUbuntu(paths.dotOperateDirectory);
-  }
+  // console.log(appendInstallationLog('Checking python installation'));
+  // if (!isPythonInstalledUbuntu()) {
+  //   ipcChannel.send('response', 'Installing Pearl Daemon');
+  //   console.log(appendInstallationLog('Installing Python'));
+  //   await installPythonUbuntu(paths.dotOperateDirectory);
+  // }
 
-  console.log(appendInstallationLog('Checking git installation'));
-  if (!isGitInstalledUbuntu()) {
-    ipcChannel.send('response', 'Installing Pearl Daemon');
-    console.log(appendInstallationLog('Installing git'));
-    await installGitUbuntu(paths.dotOperateDirectory);
-  }
+  // console.log(appendInstallationLog('Checking git installation'));
+  // if (!isGitInstalledUbuntu()) {
+  //   ipcChannel.send('response', 'Installing Pearl Daemon');
+  //   console.log(appendInstallationLog('Installing git'));
+  //   await installGitUbuntu(paths.dotOperateDirectory);
+  // }
 
-  console.log(appendInstallationLog('Creating required directories'));
-  await createDirectory(`${paths.dotOperateDirectory}`);
-  await createDirectory(`${paths.dotOperateDirectory}/temp`);
+  // console.log(appendInstallationLog('Creating required directories'));
+  // await createDirectory(`${paths.dotOperateDirectory}`);
+  // await createDirectory(`${paths.dotOperateDirectory}/temp`);
 
   console.log(appendInstallationLog('Checking tendermint installation'));
   if (!isTendermintInstalledUnix()) {
@@ -317,33 +317,33 @@ async function setupUbuntu(ipcChannel) {
     await installTendermintUnix();
   }
 
-  if (!fs.existsSync(paths.venvDir)) {
-    ipcChannel.send('response', 'Installing Pearl Daemon');
-    console.log(appendInstallationLog('Creating virtual environment'));
-    createVirtualEnvUnix(paths.venvDir);
+  // if (!fs.existsSync(paths.venvDir)) {
+  //   ipcChannel.send('response', 'Installing Pearl Daemon');
+  //   console.log(appendInstallationLog('Creating virtual environment'));
+  //   createVirtualEnvUnix(paths.venvDir);
 
-    console.log(appendInstallationLog('Installing pearl backend'));
-    installOperatePackageUnix(paths.dotOperateDirectory);
-  }
+  //   console.log(appendInstallationLog('Installing pearl backend'));
+  //   installOperatePackageUnix(paths.dotOperateDirectory);
+  // }
 
-  console.log(appendInstallationLog('Checking if upgrade is required'));
-  if (versionBumpRequired()) {
-    console.log(
-      appendInstallationLog(
-        `Upgrading pearl daemon to ${OlasMiddlewareVersion}`,
-      ),
-    );
-    reInstallOperatePackageUnix(paths.dotOperateDirectory);
-    writeVersion();
-    removeLogFile();
-  }
+  // console.log(appendInstallationLog('Checking if upgrade is required'));
+  // if (versionBumpRequired()) {
+  //   console.log(
+  //     appendInstallationLog(
+  //       `Upgrading pearl daemon to ${OlasMiddlewareVersion}`,
+  //     ),
+  //   );
+  //   reInstallOperatePackageUnix(paths.dotOperateDirectory);
+  //   writeVersion();
+  //   removeLogFile();
+  // }
 
-  if (!fs.existsSync(`${paths.dotOperateDirectory}/venv/bin/operate`)) {
-    reInstallOperatePackageUnix(paths.dotOperateDirectory);
-  }
+  // if (!fs.existsSync(`${paths.dotOperateDirectory}/venv/bin/operate`)) {
+  //   reInstallOperatePackageUnix(paths.dotOperateDirectory);
+  // }
 
-  console.log(appendInstallationLog('Installing pearl CLI'));
-  await installOperateCli('/usr/local/bin');
+  // console.log(appendInstallationLog('Installing pearl CLI'));
+  // await installOperateCli('/usr/local/bin');
 }
 
 module.exports = {
