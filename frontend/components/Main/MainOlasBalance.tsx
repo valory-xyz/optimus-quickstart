@@ -106,70 +106,69 @@ const CurrentBalance = () => {
   );
 };
 
-// const AvoidSuspensionAlert = styled(Alert)`
-//   .anticon.ant-alert-icon {
-//     height: 20px;
-//     width: 20px;
-//     svg {
-//       width: 100%;
-//       height: 100%;
-//     }
-//   }
-// `;
+const AvoidSuspensionAlertContainer = styled.div`
+  .ant-alert-info {
+    margin-bottom: 8px;
+    .anticon.ant-alert-icon {
+      height: 20px;
+      width: 20px;
+      svg {
+        width: 100%;
+        height: 100%;
+      }
+    }
+  }
+`;
+
 const AvoidSuspensionAlert = () => {
   const { store } = useElectronApi();
 
   return (
-    <Alert
-      fullWidth
-      type="info"
-      showIcon
-      message={
-        <Flex vertical gap={8} align="flex-start">
-          <Title level={5} style={{ margin: 0 }}>
-            Avoid suspension!
-          </Title>
-          <Text>
-            Run your agent for at least half an hour a day to make sure it hits
-            its targets. If it misses its targets 2 days in a row, it’ll be
-            suspended. You won’t be able to run it or earn rewards for several
-            days.
-          </Text>
-          <Button
-            type="primary"
-            ghost
-            onClick={() => store?.set?.('agentEvictionAlertShown', true)}
-            style={{ marginTop: 4 }}
-          >
-            Understood
-          </Button>
-        </Flex>
-      }
-      style={{ marginBottom: 8 }}
-    />
+    <AvoidSuspensionAlertContainer>
+      <Alert
+        fullWidth
+        type="info"
+        showIcon
+        message={
+          <Flex vertical gap={8} align="flex-start">
+            <Title level={5} style={{ margin: 0 }}>
+              Avoid suspension!
+            </Title>
+            <Text>
+              Run your agent for at least half an hour a day to make sure it
+              hits its targets. If it misses its targets 2 days in a row, it’ll
+              be suspended. You won’t be able to run it or earn rewards for
+              several days.
+            </Text>
+            <Button
+              type="primary"
+              ghost
+              onClick={() => store?.set?.('agentEvictionAlertShown', true)}
+              style={{ marginTop: 4 }}
+            >
+              Understood
+            </Button>
+          </Flex>
+        }
+      />
+    </AvoidSuspensionAlertContainer>
   );
 };
 
-const AvoidSuspension = () => {
+export const MainOlasBalance = () => {
   const { storeState } = useStore();
-
-  // console.log(storeState);
+  const { isBalanceLoaded, totalOlasBalance } = useBalance();
 
   // If first reward notification is shown BUT
-  // agent eviction alert is not shown, show this alert
-  const isAvoidSuspensionAlertShown =
-    storeState?.firstRewardNotificationShown &&
-    !storeState?.agentEvictionAlertShown;
+  // agent eviction alert is NOT yet shown, show this alert.
+  const canShowAvoidSuspensionAlert = useMemo(() => {
+    if (!storeState) return false;
 
-  if (!isAvoidSuspensionAlertShown) {
-    return <AvoidSuspensionAlert />;
-  }
-
-  return null;
-};
-
-export const MainOlasBalance = () => {
-  const { isBalanceLoaded, totalOlasBalance } = useBalance();
+    return (
+      storeState.firstRewardNotificationShown &&
+      !storeState.agentEvictionAlertShown
+    );
+  }, [storeState]);
 
   const balance = useMemo(() => {
     if (totalOlasBalance === undefined) return '--';
@@ -178,17 +177,15 @@ export const MainOlasBalance = () => {
 
   return (
     <CardSection vertical gap={8} bordertop="true" borderbottom="true">
-      <AvoidSuspension />
+      {canShowAvoidSuspensionAlert ? <AvoidSuspensionAlert /> : null}
       {isBalanceLoaded ? (
         <>
-          <div>
-            <CurrentBalance />
-            <Flex align="end">
-              <span className="balance-symbol">{UNICODE_SYMBOLS.OLAS}</span>
-              <Balance className="balance">{balance}</Balance>
-              <span className="balance-currency">OLAS</span>
-            </Flex>
-          </div>
+          <CurrentBalance />
+          <Flex align="end">
+            <span className="balance-symbol">{UNICODE_SYMBOLS.OLAS}</span>
+            <Balance className="balance">{balance}</Balance>
+            <span className="balance-currency">OLAS</span>
+          </Flex>
         </>
       ) : (
         <Skeleton.Input active size="large" style={{ margin: '4px 0' }} />
