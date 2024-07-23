@@ -67,7 +67,7 @@ const NoJobsAvailablePopover = () => (
 
 export const CannotStartAgent = () => {
   const {
-    isEligibleForStakingAction,
+    isEligibleForStaking: isEligibleForStakingAction,
     hasEnoughServiceSlots,
     isRewardsAvailable,
     isAgentEvicted,

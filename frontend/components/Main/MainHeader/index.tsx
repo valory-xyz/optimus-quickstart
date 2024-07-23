@@ -94,11 +94,8 @@ export const MainHeader = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const handleModalClose = useCallback(() => setIsModalOpen(false), []);
 
-  const {
-    isInitialStakingLoad,
-    isEligibleForStakingAction,
-    canStartEvictedAgent,
-  } = useStakingContractInfo();
+  const { isInitialStakingLoad, isEligibleForStaking, canStartEvictedAgent } =
+    useStakingContractInfo();
 
   // hook to setup tray icon
   useSetupTrayIcon();
@@ -247,7 +244,7 @@ export const MainHeader = () => {
       );
     }
 
-    if (!isEligibleForStakingAction) return <CannotStartAgent />;
+    if (!isEligibleForStaking) return <CannotStartAgent />;
 
     if (!isBalanceLoaded) {
       return (
@@ -301,7 +298,7 @@ export const MainHeader = () => {
     services,
     storeState?.isInitialFunded,
     totalEthBalance,
-    isEligibleForStakingAction,
+    isEligibleForStaking,
     canStartEvictedAgent,
   ]);
 
