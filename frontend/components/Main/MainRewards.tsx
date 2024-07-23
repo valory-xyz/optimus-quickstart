@@ -101,6 +101,9 @@ const NotifyRewardsModal = () => {
 
     // once the notification is closed, set the flag to true
     store?.set?.('firstRewardNotificationShown', true);
+
+    // and show the eviction educate information to the user
+    // store?.set?.('agentEvictionAlertShown', true);
   }, [store]);
 
   const onTwitterShare = useCallback(() => {

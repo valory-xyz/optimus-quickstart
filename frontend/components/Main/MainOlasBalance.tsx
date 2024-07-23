@@ -1,17 +1,20 @@
 import { InfoCircleOutlined } from '@ant-design/icons';
-import { Flex, Skeleton, Tooltip, Typography } from 'antd';
+import { Button, Flex, Skeleton, Tooltip, Typography } from 'antd';
 import { useMemo } from 'react';
 import styled from 'styled-components';
 
+import { Alert } from '@/components/Alert';
 import { COLOR } from '@/constants/colors';
 import { UNICODE_SYMBOLS } from '@/constants/symbols';
 import { useBalance } from '@/hooks/useBalance';
+import { useElectronApi } from '@/hooks/useElectronApi';
 import { useReward } from '@/hooks/useReward';
+import { useStore } from '@/hooks/useStore';
 import { balanceFormat } from '@/utils/numberFormatters';
 
 import { CardSection } from '../styled/CardSection';
 
-const { Text } = Typography;
+const { Text, Title } = Typography;
 const Balance = styled.span`
   letter-spacing: -2px;
   margin-right: 4px;
@@ -103,6 +106,68 @@ const CurrentBalance = () => {
   );
 };
 
+// const AvoidSuspensionAlert = styled(Alert)`
+//   .anticon.ant-alert-icon {
+//     height: 20px;
+//     width: 20px;
+//     svg {
+//       width: 100%;
+//       height: 100%;
+//     }
+//   }
+// `;
+const AvoidSuspensionAlert = () => {
+  const { store } = useElectronApi();
+
+  return (
+    <Alert
+      fullWidth
+      type="info"
+      showIcon
+      message={
+        <Flex vertical gap={8} align="flex-start">
+          <Title level={5} style={{ margin: 0 }}>
+            Avoid suspension!
+          </Title>
+          <Text>
+            Run your agent for at least half an hour a day to make sure it hits
+            its targets. If it misses its targets 2 days in a row, it’ll be
+            suspended. You won’t be able to run it or earn rewards for several
+            days.
+          </Text>
+          <Button
+            type="primary"
+            ghost
+            onClick={() => store?.set?.('agentEvictionAlertShown', true)}
+            style={{ marginTop: 4 }}
+          >
+            Understood
+          </Button>
+        </Flex>
+      }
+      style={{ marginBottom: 8 }}
+    />
+  );
+};
+
+const AvoidSuspension = () => {
+  const { storeState } = useStore();
+
+  // console.log(storeState);
+
+  // If first reward notification is shown BUT
+  // agent eviction alert is not shown, show this alert
+  const isAvoidSuspensionAlertShown =
+    storeState?.firstRewardNotificationShown &&
+    !storeState?.agentEvictionAlertShown;
+
+  if (!isAvoidSuspensionAlertShown) {
+    return <AvoidSuspensionAlert />;
+  }
+
+  return null;
+};
+
 export const MainOlasBalance = () => {
   const { isBalanceLoaded, totalOlasBalance } = useBalance();
 
@@ -113,14 +178,17 @@ export const MainOlasBalance = () => {
 
   return (
     <CardSection vertical gap={8} bordertop="true" borderbottom="true">
+      <AvoidSuspension />
       {isBalanceLoaded ? (
         <>
-          <CurrentBalance />
-          <Flex align="end">
-            <span className="balance-symbol">{UNICODE_SYMBOLS.OLAS}</span>
-            <Balance className="balance">{balance}</Balance>
-            <span className="balance-currency">OLAS</span>
-          </Flex>
+          <div>
+            <CurrentBalance />
+            <Flex align="end">
+              <span className="balance-symbol">{UNICODE_SYMBOLS.OLAS}</span>
+              <Balance className="balance">{balance}</Balance>
+              <span className="balance-currency">OLAS</span>
+            </Flex>
+          </div>
         </>
       ) : (
         <Skeleton.Input active size="large" style={{ margin: '4px 0' }} />
