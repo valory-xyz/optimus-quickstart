@@ -111,8 +111,14 @@ class ServiceManager:
                 continue
             if not path.name.startswith("bafybei"):
                 continue
-            service = Service.load(path=path)
-            data.append(service.json)
+            try:
+                service = Service.load(path=path)
+                data.append(service.json)
+            except Exception as e:
+                self.logger.warning(f"Failed to load service: {path.name}. Exception: {e}")
+                # delete the invalid path
+                shutil.rmtree(path)
+                self.logger.info(f"Deleted invalid service: {path.name}")
         return data
 
     def exists(self, service: str) -> bool:
