@@ -306,9 +306,9 @@ async function setupUbuntu(ipcChannel) {
   //   await installGitUbuntu(paths.dotOperateDirectory);
   // }
 
-  // console.log(appendInstallationLog('Creating required directories'));
-  // await createDirectory(`${paths.dotOperateDirectory}`);
-  // await createDirectory(`${paths.dotOperateDirectory}/temp`);
+  console.log(appendInstallationLog('Creating required directories'));
+  await createDirectory(`${paths.dotOperateDirectory}`);
+  await createDirectory(`${paths.tempDir}`);
 
   console.log(appendInstallationLog('Checking tendermint installation'));
   if (!isTendermintInstalledUnix()) {
