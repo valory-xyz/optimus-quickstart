@@ -17,7 +17,7 @@ const http = require('http');
 const AdmZip = require('adm-zip');
 const { TRAY_ICONS, TRAY_ICONS_PATHS } = require('./icons');
 
-const {setupDarwin, setupUbuntu, Env } = require('./install');
+const { setupDarwin, setupUbuntu, Env } = require('./install');
 
 const { paths } = require('./constants');
 const { killProcesses } = require('./processes');
