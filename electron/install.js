@@ -264,9 +264,9 @@ function removeInstallationLogFile() {
 
 async function setupDarwin(ipcChannel) {
   removeInstallationLogFile();
-  // console.log(appendInstallationLog('Creating required directories'));
-  // await createDirectory(`${paths.dotOperateDirectory}`);
-  // await createDirectory(`${paths.dotOperateDirectory}/temp`);
+  console.log(appendInstallationLog('Creating required directories'));
+  await createDirectory(`${paths.dotOperateDirectory}`);
+  await createDirectory(`${paths.tempDir}`);
 
   console.log(appendInstallationLog('Checking tendermint installation'));
   if (!isTendermintInstalledUnix()) {
