@@ -263,7 +263,15 @@ export const MainHeader = () => {
       if (safeOlasBalanceWithStaked === undefined) return false;
       if (!services) return false;
 
-      if (!safeBalance || safeBalance.ETH < LOW_BALANCE) return false;
+      // if the agent is NOT running and the balance is too low,
+      // user should not be able to start the agent
+      if (
+        serviceButtonState === ServiceButtonLoadingState.NotLoading &&
+        safeBalance &&
+        safeBalance.ETH < LOW_BALANCE
+      ) {
+        return false;
+      }
 
       // deployment statuses where agent should not be deployed
       // if (serviceStatus === DeploymentStatus.DEPLOYED) return false; // condition already checked above
