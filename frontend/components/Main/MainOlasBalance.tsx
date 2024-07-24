@@ -3,15 +3,17 @@ import { Flex, Skeleton, Tooltip, Typography } from 'antd';
 import { useMemo } from 'react';
 import styled from 'styled-components';
 
+import { Alert } from '@/components/Alert';
 import { COLOR } from '@/constants/colors';
 import { UNICODE_SYMBOLS } from '@/constants/symbols';
+import { LOW_BALANCE } from '@/constants/thresholds';
 import { useBalance } from '@/hooks/useBalance';
 import { useReward } from '@/hooks/useReward';
 import { balanceFormat } from '@/utils/numberFormatters';
 
 import { CardSection } from '../styled/CardSection';
 
-const { Text } = Typography;
+const { Text, Title } = Typography;
 const Balance = styled.span`
   letter-spacing: -2px;
   margin-right: 4px;
@@ -103,6 +105,46 @@ const CurrentBalance = () => {
   );
 };
 
+const LowTradingBalanceAlertContainer = styled.div`
+  .ant-alert {
+    margin-bottom: 8px;
+    .anticon.ant-alert-icon {
+      height: 20px;
+      width: 20px;
+      svg {
+        width: 100%;
+        height: 100%;
+      }
+    }
+  }
+`;
+
+const LowTradingBalanceAlert = () => {
+  return (
+    <LowTradingBalanceAlertContainer>
+      <Alert
+        fullWidth
+        type="error"
+        showIcon
+        message={
+          <Flex vertical gap={8} align="flex-start">
+            <Title level={5} style={{ margin: 0 }}>
+              Trading balance is too low
+            </Title>
+            <Text>
+              {`To run your agent, add at least $${LOW_BALANCE - 0.5} XDAI to your account.`}
+            </Text>
+            <Text>
+              Do it quickly to avoid your agent missing its targets and getting
+              suspended!
+            </Text>
+          </Flex>
+        }
+      />
+    </LowTradingBalanceAlertContainer>
+  );
+};
+
 export const MainOlasBalance = () => {
   const { isBalanceLoaded, totalOlasBalance } = useBalance();
 
@@ -113,6 +155,7 @@ export const MainOlasBalance = () => {
 
   return (
     <CardSection vertical gap={8} bordertop="true" borderbottom="true">
+      <LowTradingBalanceAlert />
       {isBalanceLoaded ? (
         <>
           <CurrentBalance />
