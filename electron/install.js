@@ -10,7 +10,7 @@ const { logger } = require('./logger');
 const { paths } = require('./constants');
 
 /** @deprecated PyPi is not used any more, this OlasMiddlewareVersion will be removed in the future */
-const OlasMiddlewareVersion = '0.1.0rc83';
+const OlasMiddlewareVersion = '0.1.0rc87';
 
 const Env = {
   ...process.env,
