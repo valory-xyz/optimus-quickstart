@@ -80,6 +80,7 @@ export const useServices = () => {
     setServices((prev) => prev?.filter((s) => s.hash !== serviceHash));
 
   return {
+    service: services?.[0],
     services,
     serviceStatus,
     setServiceStatus,
