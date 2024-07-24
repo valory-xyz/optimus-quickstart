@@ -1,11 +1,12 @@
 import { ArrowUpOutlined, InfoCircleOutlined } from '@ant-design/icons';
 import { Skeleton, Tooltip, Typography } from 'antd';
-import { useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import styled from 'styled-components';
 
 import { COLOR } from '@/constants/colors';
 import { LOW_BALANCE } from '@/constants/thresholds';
 import { useBalance } from '@/hooks/useBalance';
+import { useElectronApi } from '@/hooks/useElectronApi';
 import { useWallet } from '@/hooks/useWallet';
 
 import { CardSection } from '../styled/CardSection';
@@ -32,7 +33,34 @@ const FineDot = styled(Dot)`
 `;
 
 const BalanceStatus = () => {
-  const { safeBalance } = useBalance();
+  const { isBalanceLoaded, safeBalance } = useBalance();
+  const { showNotification } = useElectronApi();
+
+  const [isLowBalanceNotificationShown, setIsLowBalanceNotificationShown] =
+    useState(false);
+
+  // show notification if balance is too low
+  useEffect(() => {
+    if (!isBalanceLoaded) return;
+    if (!safeBalance) return;
+    if (!showNotification) return;
+
+    if (safeBalance.ETH < LOW_BALANCE && !isLowBalanceNotificationShown) {
+      showNotification('Trading balance is too low');
+      setIsLowBalanceNotificationShown(true);
+    }
+
+    // if already shown and the balance has increased,
+    // can show the notification again if it goes below the threshold
+    if (safeBalance.ETH >= LOW_BALANCE && isLowBalanceNotificationShown) {
+      setIsLowBalanceNotificationShown(false);
+    }
+  }, [
+    isBalanceLoaded,
+    isLowBalanceNotificationShown,
+    safeBalance,
+    showNotification,
+  ]);
 
   const status = useMemo(() => {
     if (!safeBalance || safeBalance.ETH < LOW_BALANCE) {
