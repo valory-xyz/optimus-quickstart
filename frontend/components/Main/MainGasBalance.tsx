@@ -39,7 +39,7 @@ const BalanceStatus = () => {
 
   const status = useMemo(() => {
     if (!safeBalance || safeBalance.ETH === 0) {
-      return { statusName: 'Empty', StatusComponent: EmptyDot };
+      return { statusName: 'Too low', StatusComponent: EmptyDot };
     }
 
     if (safeBalance.ETH < LOW_BALANCE) {
