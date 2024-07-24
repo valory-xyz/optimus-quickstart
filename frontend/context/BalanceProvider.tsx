@@ -16,7 +16,6 @@ import { useInterval } from 'usehooks-ts';
 
 import { Wallet } from '@/client';
 import { FIVE_SECONDS_INTERVAL } from '@/constants/intervals';
-import { LOW_BALANCE } from '@/constants/thresholds';
 import { TOKENS } from '@/constants/tokens';
 import { ServiceRegistryL2ServiceState } from '@/enums/ServiceRegistryL2ServiceState';
 import { Token } from '@/enums/Token';
@@ -42,8 +41,6 @@ export const BalanceContext = createContext<{
   olasDepositBalance?: number;
   eoaBalance?: ValueOf<WalletAddressNumberRecord>;
   safeBalance?: ValueOf<WalletAddressNumberRecord>;
-  /** If the safe balance is below the threshold (LOW_BALANCE) */
-  isSafeBalanceBelowThreshold: boolean;
   totalEthBalance?: number;
   totalOlasBalance?: number;
   wallets?: Wallet[];
@@ -59,7 +56,6 @@ export const BalanceContext = createContext<{
   olasDepositBalance: undefined,
   eoaBalance: undefined,
   safeBalance: undefined,
-  isSafeBalanceBelowThreshold: true,
   totalEthBalance: undefined,
   totalOlasBalance: undefined,
   wallets: undefined,
@@ -199,9 +195,6 @@ export const BalanceProvider = ({ children }: PropsWithChildren) => {
     () => masterSafeAddress && walletBalances[masterSafeAddress],
     [masterSafeAddress, walletBalances],
   );
-  const isSafeBalanceBelowThreshold = safeBalance
-    ? safeBalance.ETH < LOW_BALANCE
-    : false;
 
   useInterval(
     () => {
@@ -220,7 +213,6 @@ export const BalanceProvider = ({ children }: PropsWithChildren) => {
         olasDepositBalance,
         eoaBalance,
         safeBalance,
-        isSafeBalanceBelowThreshold,
         totalEthBalance,
         totalOlasBalance,
         wallets,
