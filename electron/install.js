@@ -119,10 +119,10 @@ async function downloadFile(url, dest) {
 }
 
 async function installTendermintUnix() {
+  logger.electron(`Installing tendermint for ${os.platform()}-${process.arch}`);
   const cwd = process.cwd();
   process.chdir(paths.tempDir);
 
-  logger.electron(`Installing tendermint for ${os.platform()}-${process.arch}`);
   const url = TendermintUrls[os.platform()][process.arch];
 
   logger.electron(`Downloading ${url}, might take a while...`);
@@ -136,7 +136,7 @@ async function installTendermintUnix() {
     if (!fs.existsSync('/usr/local/bin')) {
       await runSudoUnix('mkdir', '/usr/local/bin');
     }
-    await runSudoUnix('install', 'tendermint /usr/local/bin/tendermint');
+    await runSudoUnix('install', `${paths.tempDir}/tendermint /usr/local/bin/tendermint`);
   }
   process.chdir(cwd);
 }
