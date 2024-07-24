@@ -263,6 +263,8 @@ export const MainHeader = () => {
       if (safeOlasBalanceWithStaked === undefined) return false;
       if (!services) return false;
 
+      if (!safeBalance || safeBalance.ETH < LOW_BALANCE) return false;
+
       // deployment statuses where agent should not be deployed
       // if (serviceStatus === DeploymentStatus.DEPLOYED) return false; // condition already checked above
       if (serviceStatus === DeploymentStatus.DEPLOYING) return false;
@@ -303,6 +305,7 @@ export const MainHeader = () => {
     totalEthBalance,
     isEligibleForStakingAction,
     canStartEvictedAgent,
+    safeBalance,
   ]);
 
   return (

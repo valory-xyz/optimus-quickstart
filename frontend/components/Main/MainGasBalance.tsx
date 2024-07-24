@@ -30,20 +30,13 @@ const EmptyDot = styled(Dot)`
 const FineDot = styled(Dot)`
   background-color: ${COLOR.GREEN_2};
 `;
-const LowDot = styled(Dot)`
-  background-color: ${COLOR.ORANGE};
-`;
 
 const BalanceStatus = () => {
   const { safeBalance } = useBalance();
 
   const status = useMemo(() => {
-    if (!safeBalance || safeBalance.ETH === 0) {
+    if (!safeBalance || safeBalance.ETH < LOW_BALANCE) {
       return { statusName: 'Too low', StatusComponent: EmptyDot };
-    }
-
-    if (safeBalance.ETH < LOW_BALANCE) {
-      return { statusName: 'Low', StatusComponent: LowDot };
     }
 
     return { statusName: 'Fine', StatusComponent: FineDot };

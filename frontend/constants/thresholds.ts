@@ -7,4 +7,4 @@ export const MIN_ETH_BALANCE_THRESHOLDS = {
   },
 };
 
-export const LOW_BALANCE = 3;
+export const LOW_BALANCE = 2;

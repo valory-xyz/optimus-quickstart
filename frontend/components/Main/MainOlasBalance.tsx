@@ -132,7 +132,7 @@ const LowTradingBalanceAlert = () => {
               Trading balance is too low
             </Title>
             <Text>
-              {`To run your agent, add at least $${LOW_BALANCE - 0.5} XDAI to your account.`}
+              {`To run your agent, add at least $${LOW_BALANCE} XDAI to your account.`}
             </Text>
             <Text>
               Do it quickly to avoid your agent missing its targets and getting
