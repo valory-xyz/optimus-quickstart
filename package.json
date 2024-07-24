@@ -51,7 +51,8 @@
     "install:backend": "poetry install --no-root",
     "install:frontend": "cd frontend && yarn",
     "lint:frontend": "cd frontend && yarn lint",
-    "start": "dotenv -e .env -- yarn electron .",
+    "start": "yarn electron .",
+    "dev": "dotenv -e .env -- yarn start",
     "start:frontend": "cd frontend && yarn start",
     "test:frontend": "cd frontend && yarn test",
     "download-binaries": "sh download_binaries.sh x64"
