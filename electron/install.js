@@ -9,7 +9,11 @@ const { logger } = require('./logger');
 
 const { paths } = require('./constants');
 
-/** @deprecated PyPi is not used any more, this OlasMiddlewareVersion will be removed in the future */
+/**
+ * current version of the pearl release
+ * - use "" (nothing as a suffix) for latest release candidate, for example "0.1.0rc26"
+ * - use "alpha" for alpha release, for example "0.1.0rc26-alpha"
+ */
 const OlasMiddlewareVersion = '0.1.0rc87';
 
 const Env = {
