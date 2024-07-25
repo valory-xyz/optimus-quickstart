@@ -129,7 +129,7 @@ async function installTendermintUnix() {
 
   const url = TendermintUrls[os.platform()][process.arch];
 
-  logger.electron(`Downloading ${url}, might take a while...`);
+  logger.electron(`Downloading ${url} to ${paths.tempDir}. This might take a while...`);
   await downloadFile(url, `${paths.tempDir}/tendermint.tar.gz`);
 
   logger.electron(`Installing tendermint binary`);
