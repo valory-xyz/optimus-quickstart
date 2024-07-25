@@ -56,7 +56,10 @@ const AgentRunningButton = () => {
 
   const handlePause = useCallback(async () => {
     if (!service) return;
+    // Paused to stop overlapping service poll while waiting for response
     setIsServicePollingPaused(true);
+
+    // Optimistically update service status
     setServiceStatus(DeploymentStatus.STOPPING);
     try {
       await ServicesService.stopDeployment(service.hash);
@@ -64,6 +67,7 @@ const AgentRunningButton = () => {
       console.error(error);
       showNotification?.('Error while stopping service');
     } finally {
+      // Resumt polling, will update to correct status regardless of success
       setIsServicePollingPaused(false);
     }
   }, [service, setIsServicePollingPaused, setServiceStatus, showNotification]);
