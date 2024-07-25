@@ -46,12 +46,12 @@ const BalanceStatus = () => {
     if (!showNotification) return;
 
     if (safeBalance.ETH < LOW_BALANCE && !isLowBalanceNotificationShown) {
-      showNotification('Trading balance is too low');
+      showNotification('Trading balance is too low.');
       setIsLowBalanceNotificationShown(true);
     }
 
-    // if already shown and the balance has increased,
-    // can show the notification again if it goes below the threshold
+    // If it has already been shown and the balance has increased,
+    // should show the notification again if it goes below the threshold.
     if (safeBalance.ETH >= LOW_BALANCE && isLowBalanceNotificationShown) {
       setIsLowBalanceNotificationShown(false);
     }
