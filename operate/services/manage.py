@@ -114,8 +114,10 @@ class ServiceManager:
             try:
                 service = Service.load(path=path)
                 data.append(service.json)
-            except Exception as e:
-                self.logger.warning(f"Failed to load service: {path.name}. Exception: {e}")
+            except Exception as e:  # pylint: disable=broad-except
+                self.logger.warning(
+                    f"Failed to load service: {path.name}. Exception: {e}"
+                )
                 # delete the invalid path
                 shutil.rmtree(path)
                 self.logger.info(f"Deleted invalid service: {path.name}")
