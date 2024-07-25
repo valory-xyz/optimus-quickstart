@@ -120,6 +120,12 @@ const LowTradingBalanceAlertContainer = styled.div`
 `;
 
 const LowTradingBalanceAlert = () => {
+  const { isBalanceLoaded, safeBalance } = useBalance();
+
+  if (!isBalanceLoaded) return null;
+  if (!safeBalance) return null;
+  if (safeBalance.ETH >= LOW_BALANCE) return null;
+
   return (
     <LowTradingBalanceAlertContainer>
       <Alert
