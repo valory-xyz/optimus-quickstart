@@ -47,6 +47,7 @@ export const useServices = () => {
     serviceStatus,
     setServiceStatus,
     updateServiceStatus,
+    setIsPaused,
   } = useContext(ServicesContext);
 
   // STATE METHODS
@@ -92,5 +93,6 @@ export const useServices = () => {
     updateServiceStatus,
     deleteServiceState,
     hasInitialLoaded,
+    setIsServicePollingPaused: setIsPaused,
   };
 };
