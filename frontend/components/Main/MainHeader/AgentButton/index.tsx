@@ -50,12 +50,23 @@ const AgentStoppingButton = () => (
 );
 
 const AgentRunningButton = () => {
-  const { service } = useServices();
+  const { showNotification } = useElectronApi();
+  const { service, setIsServicePollingPaused, setServiceStatus } =
+    useServices();
 
   const handlePause = useCallback(async () => {
     if (!service) return;
-    ServicesService.stopDeployment(service.hash);
-  }, [service]);
+    setIsServicePollingPaused(true);
+    setServiceStatus(DeploymentStatus.STOPPING);
+    try {
+      await ServicesService.stopDeployment(service.hash);
+    } catch (error) {
+      console.error(error);
+      showNotification?.('Error while stopping service');
+    } finally {
+      setIsServicePollingPaused(false);
+    }
+  }, [service, setIsServicePollingPaused, setServiceStatus, showNotification]);
 
   return (
     <Flex gap={10} align="center">
@@ -71,7 +82,12 @@ const AgentRunningButton = () => {
 
 const AgentNotRunningButton = () => {
   const { wallets, masterSafeAddress } = useWallet();
-  const { service, serviceStatus } = useServices();
+  const {
+    service,
+    serviceStatus,
+    setServiceStatus,
+    setIsServicePollingPaused,
+  } = useServices();
   const { serviceTemplate } = useServiceTemplates();
   const { showNotification } = useElectronApi();
   const {
@@ -90,21 +106,49 @@ const AgentNotRunningButton = () => {
       : safeOlasBalance + totalOlasStakedBalance;
 
   const handleStart = useCallback(async () => {
+    // Must have a wallet to start the agent
     if (!wallets?.[0]) return;
+
+    // Paused to stop overlapping service poll while wallet is created or service is built
+    setIsServicePollingPaused(true);
 
     // Paused to stop confusing balance transitions while starting the agent
     setIsBalancePollingPaused(true);
 
+    // Mock "DEPLOYING" status (service polling will update this once resumed)
+    setServiceStatus(DeploymentStatus.DEPLOYING);
+
+    // Create master safe if it doesn't exist
     try {
       if (!masterSafeAddress) {
         await WalletService.createSafe(Chain.GNOSIS);
       }
+    } catch (error) {
+      console.error(error);
+      setServiceStatus(undefined);
+      showNotification?.('Error while creating safe');
+      setIsServicePollingPaused(false);
+      setIsBalancePollingPaused(false);
+      return;
+    }
 
+    // Then create / deploy the service
+    try {
       await ServicesService.createService({
         serviceTemplate,
         deploy: true,
       });
+    } catch (error) {
+      console.error(error);
+      setServiceStatus(undefined);
+      showNotification?.('Error while deploying service');
+      setIsServicePollingPaused(false);
+      setIsBalancePollingPaused(false);
+      return;
+    }
 
+    // Show success notification based on whether there was a service prior to starting
+    try {
       if (!service) {
         showNotification?.('Your agent is now running!');
       } else {
@@ -114,21 +158,26 @@ const AgentNotRunningButton = () => {
         showNotification?.(
           `Your agent is running and you've staked ${minimumStakedAmountRequired} OLAS!`,
         );
-
-        // setIsModalOpen(true);
       }
     } catch (error) {
       console.error(error);
-    } finally {
-      setIsBalancePollingPaused(false);
+      showNotification?.('Error while showing "running" notification');
     }
+
+    // Can assume successful deployment
+    // resume polling, optimistically update service status (poll will update, if needed)
+    setIsServicePollingPaused(false);
+    setIsBalancePollingPaused(false);
+    setServiceStatus(DeploymentStatus.DEPLOYED);
   }, [
+    wallets,
+    setIsServicePollingPaused,
+    setIsBalancePollingPaused,
+    setServiceStatus,
     masterSafeAddress,
+    showNotification,
     serviceTemplate,
     service,
-    setIsBalancePollingPaused,
-    showNotification,
-    wallets,
   ]);
 
   const isDeployable = useMemo(() => {
