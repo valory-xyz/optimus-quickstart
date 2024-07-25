@@ -5,6 +5,7 @@ import type { AppProps } from 'next/app';
 import { useEffect, useRef, useState } from 'react';
 
 import { Layout } from '@/components/Layout';
+import Loading from '@/components/Loading';
 import { BalanceProvider } from '@/context/BalanceProvider';
 import { ElectronApiProvider } from '@/context/ElectronApiProvider';
 import { MasterSafeProvider } from '@/context/MasterSafeProvider';
@@ -18,11 +19,10 @@ import { StakingContractInfoProvider } from '@/context/StakingContractInfoProvid
 import { StoreProvider } from '@/context/StoreProvider';
 import { WalletProvider } from '@/context/WalletProvider';
 import { mainTheme } from '@/theme';
-import Loading from '@/components/Loading';
 
 export default function App({ Component, pageProps }: AppProps) {
   const isMounted = useRef(false);
-   const [isLoaded, setIsLoaded] = useState(false);
+  const [isLoaded, setIsLoaded] = useState(false);
   const [loadingTimeReached, setLoadingTimeReached] = useState(false);
 
   useEffect(() => {
@@ -31,14 +31,14 @@ export default function App({ Component, pageProps }: AppProps) {
     const handleLoad = () => {
       setIsLoaded(true);
     };
- const checkStylesLoaded = () => {
+    const checkStylesLoaded = () => {
       const styles = document.querySelectorAll('link[rel="stylesheet"]');
       if (styles.length > 0) {
         handleLoad();
       }
     };
 
-      const timer = setTimeout(() => {
+    const timer = setTimeout(() => {
       setLoadingTimeReached(true);
     }, 1000);
 
@@ -51,7 +51,7 @@ export default function App({ Component, pageProps }: AppProps) {
     };
   }, []);
 
- if (!loadingTimeReached || !isLoaded) {
+  if (!loadingTimeReached || !isLoaded) {
     return <Loading />;
   }
   return (
