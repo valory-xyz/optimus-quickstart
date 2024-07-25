@@ -17,7 +17,7 @@ const isProd = !isDev;
 // Paths
 const dotOperateDirectory = isProd
   ? path.join(os.homedir(), '.operate')
-  : '.operate';
+  : path.join(process.cwd(), '.operate');
 
 const paths = {
   dotOperateDirectory,
