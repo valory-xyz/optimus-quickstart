@@ -20,13 +20,13 @@
 """Operate app CLI module."""
 
 import asyncio
-from concurrent.futures import ThreadPoolExecutor
 import logging
 import os
 import signal
 import traceback
 import typing as t
 import uuid
+from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
 from aea.helpers.logging import setup_logger
@@ -156,7 +156,7 @@ def create_app(  # pylint: disable=too-many-locals, unused-argument, too-many-st
 
     thread_pool_executor = ThreadPoolExecutor()
 
-    async def run_in_executor(fn, *args):
+    async def run_in_executor(fn: t.Callable, *args: t.Any) -> t.Any:
         loop = asyncio.get_event_loop()
         future = loop.run_in_executor(thread_pool_executor, fn, *args)
         res = await future
@@ -540,11 +540,15 @@ def create_app(  # pylint: disable=too-many-locals, unused-argument, too-many-st
             )
 
         if template.get("deploy", False):
-            def _fn():
-                manager.deploy_service_onchain_from_safe(hash=service.hash, update=update)
+
+            def _fn() -> None:
+                manager.deploy_service_onchain_from_safe(
+                    hash=service.hash, update=update
+                )
                 manager.stake_service_on_chain_from_safe(hash=service.hash)
                 manager.fund_service(hash=service.hash)
                 manager.deploy_service_locally(hash=service.hash)
+
             await run_in_executor(_fn)
             schedule_funding_job(service=service.hash)
             schedule_healthcheck_job(service=service.hash)
@@ -666,7 +670,7 @@ def create_app(  # pylint: disable=too-many-locals, unused-argument, too-many-st
             .deployment
         )
 
-        def _fn():
+        def _fn() -> None:
             deployment.build(force=True)
 
         await run_in_executor(_fn)
@@ -681,7 +685,7 @@ def create_app(  # pylint: disable=too-many-locals, unused-argument, too-many-st
         service = request.path_params["service"]
         manager = operate.service_manager()
 
-        def _fn():
+        def _fn() -> None:
             manager.deploy_service_onchain(hash=service)
             manager.stake_service_on_chain(hash=service)
             manager.fund_service(hash=service)
