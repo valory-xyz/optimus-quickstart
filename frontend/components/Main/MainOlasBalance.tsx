@@ -1,5 +1,5 @@
 import { InfoCircleOutlined } from '@ant-design/icons';
-import { Flex, Skeleton, Tooltip, Typography } from 'antd';
+import { Button, Flex, Skeleton, Tooltip, Typography } from 'antd';
 import { useMemo } from 'react';
 import styled from 'styled-components';
 
@@ -8,7 +8,9 @@ import { COLOR } from '@/constants/colors';
 import { UNICODE_SYMBOLS } from '@/constants/symbols';
 import { LOW_BALANCE } from '@/constants/thresholds';
 import { useBalance } from '@/hooks/useBalance';
+import { useElectronApi } from '@/hooks/useElectronApi';
 import { useReward } from '@/hooks/useReward';
+import { useStore } from '@/hooks/useStore';
 import { balanceFormat } from '@/utils/numberFormatters';
 
 import { CardSection } from '../styled/CardSection';
@@ -105,7 +107,7 @@ const CurrentBalance = () => {
   );
 };
 
-const LowTradingBalanceAlertContainer = styled.div`
+const MainOlasBalanceAlert = styled.div`
   .ant-alert {
     margin-bottom: 8px;
     .anticon.ant-alert-icon {
@@ -127,7 +129,7 @@ const LowTradingBalanceAlert = () => {
   if (safeBalance.ETH >= LOW_BALANCE) return null;
 
   return (
-    <LowTradingBalanceAlertContainer>
+    <MainOlasBalanceAlert>
       <Alert
         fullWidth
         type="error"
@@ -147,12 +149,59 @@ const LowTradingBalanceAlert = () => {
           </Flex>
         }
       />
-    </LowTradingBalanceAlertContainer>
+    </MainOlasBalanceAlert>
+  );
+};
+
+const AvoidSuspensionAlert = () => {
+  const { store } = useElectronApi();
+
+  return (
+    <MainOlasBalanceAlert>
+      <Alert
+        fullWidth
+        type="info"
+        showIcon
+        message={
+          <Flex vertical gap={8} align="flex-start">
+            <Title level={5} style={{ margin: 0 }}>
+              Avoid suspension!
+            </Title>
+            <Text>
+              Run your agent for at least half an hour a day to make sure it
+              hits its targets. If it misses its targets 2 days in a row, it’ll
+              be suspended. You won’t be able to run it or earn rewards for
+              several days.
+            </Text>
+            <Button
+              type="primary"
+              ghost
+              onClick={() => store?.set?.('agentEvictionAlertShown', true)}
+              style={{ marginTop: 4 }}
+            >
+              Understood
+            </Button>
+          </Flex>
+        }
+      />
+    </MainOlasBalanceAlert>
   );
 };
 
 export const MainOlasBalance = () => {
+  const { storeState } = useStore();
   const { isBalanceLoaded, totalOlasBalance } = useBalance();
+
+  // If first reward notification is shown BUT
+  // agent eviction alert is NOT yet shown, show this alert.
+  const canShowAvoidSuspensionAlert = useMemo(() => {
+    if (!storeState) return false;
+
+    return (
+      storeState.firstRewardNotificationShown &&
+      !storeState.agentEvictionAlertShown
+    );
+  }, [storeState]);
 
   const balance = useMemo(() => {
     if (totalOlasBalance === undefined) return '--';
@@ -161,6 +210,7 @@ export const MainOlasBalance = () => {
 
   return (
     <CardSection vertical gap={8} bordertop="true" borderbottom="true">
+      {canShowAvoidSuspensionAlert ? <AvoidSuspensionAlert /> : null}
       <LowTradingBalanceAlert />
       {isBalanceLoaded ? (
         <>
