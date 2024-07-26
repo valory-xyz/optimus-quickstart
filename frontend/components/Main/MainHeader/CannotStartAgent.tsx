@@ -20,7 +20,7 @@ const evictedDescription =
 const AgentEvictedPopover = () => (
   <Popover
     {...otherPopoverProps}
-    title="Your agent was evicted"
+    title="Your agent is suspended from work"
     content={<div style={{ maxWidth: 340 }}>{evictedDescription}</div>}
   >
     {cannotStartAgentText}
@@ -67,13 +67,13 @@ const NoJobsAvailablePopover = () => (
 
 export const CannotStartAgent = () => {
   const {
-    canStartAgent,
+    isEligibleForStakingAction,
     hasEnoughServiceSlots,
     isRewardsAvailable,
     isAgentEvicted,
   } = useStakingContractInfo();
 
-  if (canStartAgent) return null;
+  if (isEligibleForStakingAction) return null;
   if (!hasEnoughServiceSlots) return <NoJobsAvailablePopover />;
   if (!isRewardsAvailable) return <NoRewardsAvailablePopover />;
   if (isAgentEvicted) return <AgentEvictedPopover />;

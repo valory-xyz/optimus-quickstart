@@ -1,5 +1,13 @@
 import { InfoCircleOutlined } from '@ant-design/icons';
-import { Badge, Button, Flex, Popover, Typography } from 'antd';
+import {
+  Badge,
+  Button,
+  ButtonProps,
+  Flex,
+  Popover,
+  Skeleton,
+  Typography,
+} from 'antd';
 import Image from 'next/image';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
@@ -8,7 +16,6 @@ import { COLOR } from '@/constants/colors';
 import { LOW_BALANCE } from '@/constants/thresholds';
 import { useBalance } from '@/hooks/useBalance';
 import { useElectronApi } from '@/hooks/useElectronApi';
-import { useReward } from '@/hooks/useReward';
 import { useServices } from '@/hooks/useServices';
 import { useServiceTemplates } from '@/hooks/useServiceTemplates';
 import { useStakingContractInfo } from '@/hooks/useStakingContractInfo';
@@ -16,7 +23,9 @@ import { useStore } from '@/hooks/useStore';
 import { useWallet } from '@/hooks/useWallet';
 import { ServicesService } from '@/service/Services';
 import { WalletService } from '@/service/Wallet';
+import { getMinimumStakedAmountRequired } from '@/utils/service';
 
+import { CannotStartAgent } from './CannotStartAgent';
 import { requiredGas, requiredOlas } from './constants';
 import { FirstRunModal } from './FirstRunModal';
 
@@ -85,9 +94,11 @@ export const MainHeader = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const handleModalClose = useCallback(() => setIsModalOpen(false), []);
 
-  const { minimumStakedAmountRequired } = useReward();
-
-  const { canStartAgent } = useStakingContractInfo();
+  const {
+    isInitialStakingLoad,
+    isEligibleForStakingAction,
+    canStartEvictedAgent,
+  } = useStakingContractInfo();
 
   // hook to setup tray icon
   useSetupTrayIcon();
@@ -170,6 +181,9 @@ export const MainHeader = () => {
           if (serviceExists) {
             showNotification?.('Your agent is now running!');
           } else {
+            const minimumStakedAmountRequired =
+              getMinimumStakedAmountRequired(serviceTemplate);
+
             showNotification?.(
               `Your agent is running and you've staked ${minimumStakedAmountRequired} OLAS!`,
             );
@@ -186,7 +200,6 @@ export const MainHeader = () => {
     }
   }, [
     masterSafeAddress,
-    minimumStakedAmountRequired,
     serviceTemplate,
     services,
     setIsBalancePollingPaused,
@@ -234,6 +247,8 @@ export const MainHeader = () => {
       );
     }
 
+    if (!isEligibleForStakingAction) return <CannotStartAgent />;
+
     if (!isBalanceLoaded) {
       return (
         <Button type="primary" size="large" disabled>
@@ -257,32 +272,25 @@ export const MainHeader = () => {
       if (services[0] && storeState?.isInitialFunded)
         return safeOlasBalanceWithStaked >= requiredOlas; // at present agent will always require staked/bonded OLAS (or the ability to stake/bond)
 
+      // case if agent is evicted and user has met the staking criteria
+      if (canStartEvictedAgent) return true;
+
       return (
         safeOlasBalanceWithStaked >= requiredOlas &&
         totalEthBalance > requiredGas
       );
     })();
-
     const serviceExists = !!services?.[0];
 
-    if (!isDeployable) {
-      return (
-        <Button type="default" size="large" disabled>
-          Start agent {!serviceExists && '& stake'}
-        </Button>
-      );
-    }
+    const buttonProps: ButtonProps = {
+      type: 'primary',
+      size: 'large',
+      disabled: !isDeployable,
+      onClick: isDeployable ? handleStart : undefined,
+    };
+    const buttonText = `Start agent ${serviceExists ? '' : '& stake'}`;
 
-    return (
-      <Button
-        type="primary"
-        size="large"
-        disabled={!canStartAgent}
-        onClick={handleStart}
-      >
-        Start agent {!serviceExists && '& stake'}
-      </Button>
-    );
+    return <Button {...buttonProps}>{buttonText}</Button>;
   }, [
     handlePause,
     handleStart,
@@ -293,13 +301,18 @@ export const MainHeader = () => {
     services,
     storeState?.isInitialFunded,
     totalEthBalance,
-    canStartAgent,
+    isEligibleForStakingAction,
+    canStartEvictedAgent,
   ]);
 
   return (
     <Flex justify="start" align="center" gap={10}>
       {agentHead}
-      {serviceToggleButton}
+      {isInitialStakingLoad ? (
+        <Skeleton.Input style={{ width: 80 }} active />
+      ) : (
+        serviceToggleButton
+      )}
       <FirstRunModal open={isModalOpen} onClose={handleModalClose} />
     </Flex>
   );
