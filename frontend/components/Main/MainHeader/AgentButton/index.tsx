@@ -67,7 +67,7 @@ const AgentRunningButton = () => {
       console.error(error);
       showNotification?.('Error while stopping agent');
     } finally {
-      // Resumt polling, will update to correct status regardless of success
+      // Resume polling, will update to correct status regardless of success
       setIsServicePollingPaused(false);
     }
   }, [service, setIsServicePollingPaused, setServiceStatus, showNotification]);
