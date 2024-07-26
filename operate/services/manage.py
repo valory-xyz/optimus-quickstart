@@ -369,6 +369,7 @@ class ServiceManager:
     def deploy_service_onchain_from_safe(  # pylint: disable=too-many-statements,too-many-locals
         self,
         hash: str,
+        update: bool = False,
     ) -> None:
         """
         Deploy as service on-chain
@@ -427,7 +428,6 @@ class ServiceManager:
                     f"address: {wallet.safe}; required olas: {required_olas}; your balance: {balance}"
                 )
 
-
         on_chain_hash = self._get_on_chain_hash(service)
         is_first_mint = self._get_on_chain_state(service) == OnChainState.NON_EXISTENT
         is_update = (not is_first_mint) and (on_chain_hash is not None) and (on_chain_hash != service.hash)
@@ -436,15 +436,17 @@ class ServiceManager:
         self.logger.info(f"{is_first_mint=}")
         self.logger.info(f"{is_update=}")
 
-        if is_update:
-            self.terminate_service_on_chain_from_safe(hash=hash)
+        is_update = update  # TODO fix
+        # if is_update:
+        #     self.terminate_service_on_chain_from_safe(hash=hash)
 
-        if is_first_mint or (is_update and self._get_on_chain_state(service) == OnChainState.PRE_REGISTRATION):
-            if not is_update:
-                self.logger.info("Minting the on-chain service")
-            else:
-                self.logger.info("Updating the on-chain service")
+        # if is_first_mint or (is_update and self._get_on_chain_state(service) == OnChainState.PRE_REGISTRATION):
+        #     if not is_update:
+        #         self.logger.info("Minting the on-chain service")
+        #     else:
+        #         self.logger.info("Updating the on-chain service")
 
+        if is_first_mint:
             receipt = (
                 sftxb.new_tx()
                 .add(

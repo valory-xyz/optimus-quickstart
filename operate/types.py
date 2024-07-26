@@ -166,17 +166,6 @@ class LedgerConfig(LocalResource):
 LedgerConfigs = t.List[LedgerConfig]
 
 
-class ServiceState(enum.IntEnum):
-    """Service state"""
-
-    NON_EXISTENT = 0
-    PRE_REGISTRATION = 1
-    ACTIVE_REGISTRATION = 2
-    FINISHED_REGISTRATION = 3
-    DEPLOYED = 4
-    TERMINATED_BONDED = 5
-
-
 class DeploymentConfig(TypedDict):
     """Deployments template."""
 
