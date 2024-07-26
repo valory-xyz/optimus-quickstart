@@ -38,6 +38,8 @@ from operate.ledger import PUBLIC_RPCS
 from operate.ledger.profiles import CONTRACTS, OLAS, STAKING
 from operate.services.protocol import EthSafeTxBuilder, OnChainManager, StakingState
 from operate.services.service import (
+    ChainConfig,
+    ChainConfigs,
     DELETE_PREFIX,
     Deployment,
     NON_EXISTENT_TOKEN,
@@ -142,8 +144,7 @@ class ServiceManager:
     def load_or_create(
         self,
         hash: str,
-        rpc: t.Optional[str] = None,
-        on_chain_user_params: t.Optional[OnChainUserParams] = None,
+        chain_configs: t.Optional[ChainConfigs] = None,
         keys: t.Optional[t.List[Key]] = None,
     ) -> Service:
         """
@@ -151,7 +152,7 @@ class ServiceManager:
 
         :param hash: Service hash
         :param rpc: RPC string
-        :param on_chain_user_params: On-chain user parameters
+        :param chain_configs: Chain configurations
         :param keys: Keys
         :return: Service instance
         """
@@ -159,20 +160,19 @@ class ServiceManager:
         if path.exists():
             return Service.load(path=path)
 
-        if rpc is None:
-            raise ValueError("RPC cannot be None when creating a new service")
+        # if rpc is None:
+        #     raise ValueError("RPC cannot be None when creating a new service")
 
-        if on_chain_user_params is None:
+        if chain_configs is None:
             raise ValueError(
-                "On-chain user parameters cannot be None when creating a new service"
+                "Chain configurations cannot be None when creating a new service"
             )
 
         service = Service.new(
             hash=hash,
             keys=keys or [],
-            rpc=rpc,
             storage=self.path,
-            on_chain_user_params=on_chain_user_params,
+            chain_configs=chain_configs,
         )
 
         if not service.keys:

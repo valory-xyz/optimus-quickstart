@@ -163,9 +163,6 @@ class LedgerConfig(LocalResource):
     chain: ChainType
 
 
-LedgerConfigs = t.List[LedgerConfig]
-
-
 class DeploymentConfig(TypedDict):
     """Deployments template."""
 
@@ -193,6 +190,9 @@ class ConfigurationTemplate(TypedDict):
     fund_requirements: FundRequirementsTemplate
 
 
+ConfigurationTemplates = t.List[ConfigurationTemplate]
+
+
 class ServiceTemplate(TypedDict):
     """Service template."""
 
@@ -200,7 +200,7 @@ class ServiceTemplate(TypedDict):
     hash: str
     image: str
     description: str
-    configuration: ConfigurationTemplate
+    configurations: ConfigurationTemplates
 
 
 @dataclass
@@ -248,3 +248,19 @@ class OnChainData(LocalResource):
     staked: bool
     on_chain_state: OnChainState
     user_params: OnChainUserParams
+
+
+@dataclass
+class ChainConfig(LocalResource):
+    """Chain config."""
+
+    ledger_config: LedgerConfig
+    chain_data: OnChainData
+
+    @classmethod
+    def from_json(cls, obj: t.Dict) -> "ChainConfig":
+        """Load the chain config."""
+        return super().from_json(obj)  # type: ignore
+
+
+ChainConfigs = t.List[ChainConfig]

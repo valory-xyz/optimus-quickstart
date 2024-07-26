@@ -67,6 +67,8 @@ from operate.services.deployment_runner import run_host_deployment, stop_host_de
 from operate.services.utils import tendermint
 from operate.types import (
     ChainType,
+    ChainConfig,
+    ChainConfigs,
     DeployedNodes,
     DeploymentConfig,
     DeploymentStatus,
@@ -625,8 +627,7 @@ class Service(LocalResource):
 
     hash: str
     keys: Keys
-    ledger_config: LedgerConfig
-    chain_data: OnChainData
+    chain_configs: ChainConfigs
 
     path: Path
     service_path: Path
@@ -663,8 +664,7 @@ class Service(LocalResource):
     def new(
         hash: str,
         keys: Keys,
-        rpc: str,
-        on_chain_user_params: OnChainUserParams,
+        chain_configs: ChainConfigs,
         storage: Path,
     ) -> "Service":
         """Create a new service."""
@@ -680,6 +680,8 @@ class Service(LocalResource):
             config, *_ = yaml_load_all(fp)
 
         ledger_config = ServiceHelper(path=service_path).ledger_config()
+
+        ledger_config.chain
         service = Service(
             name=config["author"] + "/" + config["name"],
             hash=hash,
