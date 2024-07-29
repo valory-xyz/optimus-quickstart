@@ -67,13 +67,13 @@ const NoJobsAvailablePopover = () => (
 
 export const CannotStartAgent = () => {
   const {
-    isEligibleForStakingAction,
+    isEligibleForStaking,
     hasEnoughServiceSlots,
     isRewardsAvailable,
     isAgentEvicted,
   } = useStakingContractInfo();
 
-  if (isEligibleForStakingAction) return null;
+  if (isEligibleForStaking) return null;
   if (!hasEnoughServiceSlots) return <NoJobsAvailablePopover />;
   if (!isRewardsAvailable) return <NoRewardsAvailablePopover />;
   if (isAgentEvicted) return <AgentEvictedPopover />;
