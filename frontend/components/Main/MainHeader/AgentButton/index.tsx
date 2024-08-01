@@ -4,6 +4,7 @@ import { useCallback, useMemo } from 'react';
 
 import { Chain, DeploymentStatus } from '@/client';
 import { COLOR } from '@/constants/colors';
+import { SUPPORT_URL } from '@/constants/urls';
 import { useBalance } from '@/hooks/useBalance';
 import { useElectronApi } from '@/hooks/useElectronApi';
 import { useServices } from '@/hooks/useServices';
@@ -259,8 +260,12 @@ export const AgentButton = () => {
     }
 
     return (
-      <Button type="primary" size="large" disabled>
-        Error, contact us!
+      <Button
+        type="primary"
+        size="large"
+        onClick={() => window.open(SUPPORT_URL, '_blank')}
+      >
+        Seek help in Discord
       </Button>
     );
   }, [
