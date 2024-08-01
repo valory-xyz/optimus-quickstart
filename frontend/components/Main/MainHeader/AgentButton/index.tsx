@@ -4,6 +4,7 @@ import { useCallback, useMemo } from 'react';
 
 import { Chain, DeploymentStatus } from '@/client';
 import { COLOR } from '@/constants/colors';
+import { UNICODE_SYMBOLS } from '@/constants/symbols';
 import { SUPPORT_URL } from '@/constants/urls';
 import { useBalance } from '@/hooks/useBalance';
 import { useElectronApi } from '@/hooks/useElectronApi';
@@ -265,7 +266,7 @@ export const AgentButton = () => {
         size="large"
         onClick={() => window.open(SUPPORT_URL, '_blank')}
       >
-        Seek help in Discord
+        Seek help in Discord {UNICODE_SYMBOLS.EXTERNAL_LINK}
       </Button>
     );
   }, [
