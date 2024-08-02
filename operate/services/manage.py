@@ -48,6 +48,7 @@ from operate.services.service import (
     OnChainUserParams,
     Service,
 )
+from operate.types import ServiceTemplate
 from operate.wallet.master import MasterWalletManager
 
 
@@ -144,15 +145,14 @@ class ServiceManager:
     def load_or_create(
         self,
         hash: str,
-        chain_configs: t.Optional[ChainConfigs] = None,
+        service_template: t.Optional[ServiceTemplate] = None,
         keys: t.Optional[t.List[Key]] = None,
     ) -> Service:
         """
         Create or load a service
 
         :param hash: Service hash
-        :param rpc: RPC string
-        :param chain_configs: Chain configurations
+        :param service_template: Service template
         :param keys: Keys
         :return: Service instance
         """
@@ -160,19 +160,16 @@ class ServiceManager:
         if path.exists():
             return Service.load(path=path)
 
-        # if rpc is None:
-        #     raise ValueError("RPC cannot be None when creating a new service")
-
-        if chain_configs is None:
+        if service_template is None:
             raise ValueError(
-                "Chain configurations cannot be None when creating a new service"
+                "'service_template' cannot be None when creating a new service"
             )
 
         service = Service.new(
             hash=hash,
             keys=keys or [],
             storage=self.path,
-            chain_configs=chain_configs,
+            service_template=service_template,
         )
 
         if not service.keys:
@@ -197,7 +194,6 @@ class ServiceManager:
         service.chain_data.on_chain_state = service_state
         service.store()
         return service_state
-
 
     def _get_on_chain_hash(self, service: Service) -> t.Optional[str]:
         if service.chain_data.token == NON_EXISTENT_TOKEN:
@@ -366,10 +362,25 @@ class ServiceManager:
         )
         service.store()
 
+
     def deploy_service_onchain_from_safe(  # pylint: disable=too-many-statements,too-many-locals
         self,
         hash: str,
         update: bool = False,
+    ) -> None:
+        service = self.load_or_create(hash=hash)
+        for chain_id in service.chain_configs.keys():
+            self._deploy_service_onchain_from_safe(
+                hash=hash,
+                update=update,
+                chain_id=chain_id,
+            )
+
+    def _deploy_service_onchain_from_safe(  # pylint: disable=too-many-statements,too-many-locals
+        self,
+        hash: str,
+        update: bool,
+        chain_id: int,
     ) -> None:
         """
         Deploy as service on-chain
@@ -380,36 +391,39 @@ class ServiceManager:
 
         self.logger.info("Loading service")
         service = self.load_or_create(hash=hash)
-        user_params = service.chain_data.user_params
+        chain_config = service.chain_configs[chain_id]
+        ledger_config = chain_config.ledger_config
+        chain_data = chain_config.chain_data
+        user_params = chain_config.chain_data.user_params
         keys = service.keys
         instances = [key.address for key in keys]
-        wallet = self.wallet_manager.load(service.ledger_config.type)
+        wallet = self.wallet_manager.load(ledger_config.type)
         sftxb = self.get_eth_safe_tx_builder(service=service)
 
         if user_params.use_staking and not sftxb.staking_slots_available(
-            staking_contract=STAKING[service.ledger_config.chain]
+            staking_contract=STAKING[ledger_config.chain]
         ):
             raise ValueError("No staking slots available")
 
-        if service.chain_data.token > -1:
+        if chain_data.token > -1:
             self.logger.info("Syncing service state")
-            info = sftxb.info(token_id=service.chain_data.token)
-            service.chain_data.on_chain_state = OnChainState(info["service_state"])
-            service.chain_data.instances = info["instances"]
-            service.chain_data.multisig = info["multisig"]
+            info = sftxb.info(token_id=chain_data.token)
+            chain_data.on_chain_state = OnChainState(info["service_state"])
+            chain_data.instances = info["instances"]
+            chain_data.multisig = info["multisig"]
             service.store()
         self.logger.info(f"Service state: {service.chain_data.on_chain_state.name}")
 
         if user_params.use_staking:
             self.logger.info("Checking staking compatibility")
-            if service.chain_data.on_chain_state in (
+            if chain_data.on_chain_state in (
                 OnChainState.NON_EXISTENT,
                 OnChainState.PRE_REGISTRATION,
             ):
                 required_olas = (
                     user_params.olas_cost_of_bond + user_params.olas_required_to_stake
                 )
-            elif service.chain_data.on_chain_state == OnChainState.ACTIVE_REGISTRATION:
+            elif chain_data.on_chain_state == OnChainState.ACTIVE_REGISTRATION:
                 required_olas = user_params.olas_required_to_stake
             else:
                 required_olas = 0
@@ -417,7 +431,7 @@ class ServiceManager:
             balance = (
                 registry_contracts.erc20.get_instance(
                     ledger_api=sftxb.ledger_api,
-                    contract_address=OLAS[service.ledger_config.chain],
+                    contract_address=OLAS[ledger_config.chain],
                 )
                 .functions.balanceOf(wallet.safe)
                 .call()
@@ -430,7 +444,11 @@ class ServiceManager:
 
         on_chain_hash = self._get_on_chain_hash(service)
         is_first_mint = self._get_on_chain_state(service) == OnChainState.NON_EXISTENT
-        is_update = (not is_first_mint) and (on_chain_hash is not None) and (on_chain_hash != service.hash)
+        is_update = (
+            (not is_first_mint)
+            and (on_chain_hash is not None)
+            and (on_chain_hash != service.hash)
+        )
 
         self.logger.info(f"{on_chain_hash=}")
         self.logger.info(f"{is_first_mint=}")
@@ -446,7 +464,7 @@ class ServiceManager:
         #     else:
         #         self.logger.info("Updating the on-chain service")
 
-        if is_first_mint:
+        if self._get_on_chain_state(service) == OnChainState.NON_EXISTENT:
             receipt = (
                 sftxb.new_tx()
                 .add(
@@ -461,9 +479,9 @@ class ServiceManager:
                         ),
                         threshold=user_params.threshold,
                         nft=IPFSHash(user_params.nft),
-                        update_token=service.chain_data.token if is_update else None,
+                        update_token=chain_data.token if update else None,
                         token=(
-                            OLAS[service.ledger_config.chain]
+                            OLAS[ledger_config.chain]
                             if user_params.use_staking
                             else None
                         ),
@@ -480,10 +498,12 @@ class ServiceManager:
                     receipt=receipt,
                 ).get("events"),
             )
-            service.chain_data.token = event_data["args"]["serviceId"]
-            service.chain_data.on_chain_state = OnChainState.PRE_REGISTRATION
+            chain_data.token = event_data["args"]["serviceId"]
+            chain_data.on_chain_state = OnChainState.PRE_REGISTRATION
             service.store()
 
+
+        print("!!!!!!!!!!!!!!!!!!!!!")
         if self._get_on_chain_state(service) == OnChainState.PRE_REGISTRATION:
             cost_of_bond = user_params.cost_of_bond
             if user_params.use_staking:
@@ -597,7 +617,6 @@ class ServiceManager:
             service.chain_data.on_chain_state = OnChainState.DEPLOYED
             service.store()
 
-
         # Update local Service
         info = sftxb.info(token_id=service.chain_data.token)
         service.chain_data = OnChainData(
@@ -649,12 +668,19 @@ class ServiceManager:
         info = sftxb.info(token_id=service.chain_data.token)
         service.chain_data.on_chain_state = OnChainState(info["service_state"])
 
-        if service.chain_data.user_params.use_staking and not self._can_unstake_service(hash=hash):
+        if (
+            service.chain_data.user_params.use_staking
+            and not self._can_unstake_service(hash=hash)
+        ):
             return
 
         self.unstake_service_on_chain(hash=hash)
 
-        if self._get_on_chain_state(service) in (OnChainState.ACTIVE_REGISTRATION, OnChainState.FINISHED_REGISTRATION, OnChainState.DEPLOYED):
+        if self._get_on_chain_state(service) in (
+            OnChainState.ACTIVE_REGISTRATION,
+            OnChainState.FINISHED_REGISTRATION,
+            OnChainState.DEPLOYED,
+        ):
             self.logger.info("Terminating service")
             sftxb.new_tx().add(
                 sftxb.get_terminate_data(
@@ -670,8 +696,7 @@ class ServiceManager:
                 )
             ).settle()
 
-
-        if [[ "$current_safe_owners" == "['$agent_address']" ]]:
+        if [["$current_safe_owners" == "['$agent_address']"]]:
             sftx = self.get_eth_safe_tx_builder(service=old_service)  # noqa: E800
             sftx.swap(  # noqa: E800
                 service_id=old_service.chain_data.token,  # noqa: E800
@@ -680,7 +705,6 @@ class ServiceManager:
                     self.keys_manager.get(key=owner).private_key
                 ),  # noqa: E800
             )  # noqa: E800
-
 
     def unbond_service_on_chain(self, hash: str) -> None:
         """

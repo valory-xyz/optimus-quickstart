@@ -163,6 +163,9 @@ class LedgerConfig(LocalResource):
     chain: ChainType
 
 
+LedgerConfigs = t.Dict[str, LedgerConfig]
+
+
 class DeploymentConfig(TypedDict):
     """Deployments template."""
 
@@ -190,7 +193,7 @@ class ConfigurationTemplate(TypedDict):
     fund_requirements: FundRequirementsTemplate
 
 
-ConfigurationTemplates = t.List[ConfigurationTemplate]
+ConfigurationTemplates = t.Dict[int, ConfigurationTemplate]
 
 
 class ServiceTemplate(TypedDict):
@@ -200,6 +203,8 @@ class ServiceTemplate(TypedDict):
     hash: str
     image: str
     description: str
+    service_version: str
+    home_chain_id: int
     configurations: ConfigurationTemplates
 
 
@@ -263,4 +268,4 @@ class ChainConfig(LocalResource):
         return super().from_json(obj)  # type: ignore
 
 
-ChainConfigs = t.List[ChainConfig]
+ChainConfigs = t.Dict[int, ChainConfig]
