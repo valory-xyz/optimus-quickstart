@@ -16,7 +16,10 @@ import { ServicesService } from '@/service/Services';
 import { WalletService } from '@/service/Wallet';
 import { getMinimumStakedAmountRequired } from '@/utils/service';
 
-import { CannotStartAgent } from '../CannotStartAgent';
+import {
+  CannotStartAgent,
+  CannotStartAgentDueToUnexpectedError,
+} from '../CannotStartAgent';
 import { requiredGas, requiredOlas } from '../constants';
 
 const { Text } = Typography;
@@ -269,11 +272,7 @@ export const AgentButton = () => {
       return <AgentNotRunningButton />;
     }
 
-    return (
-      <Button type="primary" size="large" disabled>
-        Error, contact us!
-      </Button>
-    );
+    return <CannotStartAgentDueToUnexpectedError />;
   }, [
     hasInitialLoaded,
     serviceStatus,
