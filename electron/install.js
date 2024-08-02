@@ -14,7 +14,7 @@ const { paths } = require('./constants');
  * - use "" (nothing as a suffix) for latest release candidate, for example "0.1.0rc26"
  * - use "alpha" for alpha release, for example "0.1.0rc26-alpha"
  */
-const OlasMiddlewareVersion = '0.1.0rc87';
+const OlasMiddlewareVersion = '0.1.0rc93';
 
 const Env = {
   ...process.env,
@@ -129,7 +129,9 @@ async function installTendermintUnix() {
 
   const url = TendermintUrls[os.platform()][process.arch];
 
-  logger.electron(`Downloading ${url} to ${paths.tempDir}. This might take a while...`);
+  logger.electron(
+    `Downloading ${url} to ${paths.tempDir}. This might take a while...`,
+  );
   await downloadFile(url, `${paths.tempDir}/tendermint.tar.gz`);
 
   logger.electron(`Installing tendermint binary`);
@@ -140,7 +142,10 @@ async function installTendermintUnix() {
     if (!fs.existsSync('/usr/local/bin')) {
       await runSudoUnix('mkdir', '/usr/local/bin');
     }
-    await runSudoUnix('install', `${paths.tempDir}/tendermint /usr/local/bin/tendermint`);
+    await runSudoUnix(
+      'install',
+      `${paths.tempDir}/tendermint /usr/local/bin/tendermint`,
+    );
   }
   process.chdir(cwd);
 }
