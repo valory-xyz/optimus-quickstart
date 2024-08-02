@@ -4,8 +4,6 @@ import { useCallback, useMemo } from 'react';
 
 import { Chain, DeploymentStatus } from '@/client';
 import { COLOR } from '@/constants/colors';
-import { UNICODE_SYMBOLS } from '@/constants/symbols';
-import { SUPPORT_URL } from '@/constants/urls';
 import { useBalance } from '@/hooks/useBalance';
 import { useElectronApi } from '@/hooks/useElectronApi';
 import { useServices } from '@/hooks/useServices';
@@ -17,7 +15,10 @@ import { ServicesService } from '@/service/Services';
 import { WalletService } from '@/service/Wallet';
 import { getMinimumStakedAmountRequired } from '@/utils/service';
 
-import { CannotStartAgent } from '../CannotStartAgent';
+import {
+  CannotStartAgent,
+  CannotStartAgentDueToUnexpectedError,
+} from '../CannotStartAgent';
 import { requiredGas, requiredOlas } from '../constants';
 
 const { Text } = Typography;
@@ -260,15 +261,7 @@ export const AgentButton = () => {
       return <AgentNotRunningButton />;
     }
 
-    return (
-      <Button
-        type="primary"
-        size="large"
-        onClick={() => window.open(SUPPORT_URL, '_blank')}
-      >
-        Seek help in Discord {UNICODE_SYMBOLS.EXTERNAL_LINK}
-      </Button>
-    );
+    return <CannotStartAgentDueToUnexpectedError />;
   }, [
     hasInitialLoaded,
     serviceStatus,
