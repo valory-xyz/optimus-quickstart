@@ -17,7 +17,7 @@ const http = require('http');
 const AdmZip = require('adm-zip');
 const { TRAY_ICONS, TRAY_ICONS_PATHS } = require('./icons');
 
-const { Env } = require('./install');
+const { setupDarwin, setupUbuntu, Env } = require('./install');
 
 const { paths } = require('./constants');
 const { killProcesses } = require('./processes');
@@ -427,14 +427,13 @@ ipcMain.on('check', async function (event, _argument) {
   // Setup
   try {
     event.sender.send('response', 'Checking installation');
-    if (!isDev) {
-      if (platform === 'darwin') {
-        //await setupDarwin(event.sender);
-      } else if (platform === 'win32') {
-        // TODO
-      } else {
-        //await setupUbuntu(event.sender);
-      }
+
+    if (platform === 'darwin') {
+      await setupDarwin(event.sender);
+    } else if (platform === 'win32') {
+      // TODO
+    } else {
+      await setupUbuntu(event.sender);
     }
 
     if (isDev) {
