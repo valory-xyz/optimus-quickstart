@@ -6,4 +6,8 @@ export type ElectronStore = {
   agentEvictionAlertShown?: boolean;
 };
 
-export type ElectronTrayIconStatus = 'low-gas' | 'running' | 'paused';
+export type ElectronTrayIconStatus =
+  | 'low-gas'
+  | 'running'
+  | 'paused'
+  | 'logged-out';
