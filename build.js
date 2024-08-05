@@ -12,7 +12,7 @@ const { publishOptions } = require('./electron/constants');
  */
 function artifactName() {
     const env = process.env.NODE_ENV;
-    const prefix = env !== 'production' ? 'dev-' : '';
+    const prefix = env === 'production' ? '' : 'dev-';
     return prefix + '${productName}-${version}-${platform}-${arch}.${ext}';
 }
 
