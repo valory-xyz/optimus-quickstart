@@ -57,5 +57,5 @@
     "test:frontend": "cd frontend && yarn test",
     "download-binaries": "sh download_binaries.sh"
   },
-  "version": "0.1.0-rc97"
+  "version": "0.1.0-rc105"
 }

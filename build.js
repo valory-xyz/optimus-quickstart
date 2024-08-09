@@ -36,6 +36,10 @@ const main = async () => {
           to: 'bins',
           filter: ['**/*'],
         },
+        {
+          from: '.env',
+          to: '.env'
+        },
       ],
       cscKeyPassword: process.env.CSC_KEY_PASSWORD,
       cscLink: process.env.CSC_LINK,
