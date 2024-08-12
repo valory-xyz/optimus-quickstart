@@ -10,6 +10,7 @@ import { useStore } from '@/hooks/useStore';
 import { getMinimumStakedAmountRequired } from '@/utils/service';
 
 import { Alert } from '../Alert';
+import { AlertTitle } from '../Alert/AlertTitle';
 import { CardSection } from '../styled/CardSection';
 
 const { Text, Paragraph } = Typography;
@@ -95,7 +96,7 @@ export const MainNeedsFunds = () => {
   const message: ReactNode = useMemo(
     () => (
       <Flex vertical gap={4}>
-        <Text className="font-weight-600 mb-4">Your agent needs funds</Text>
+        <AlertTitle>Your agent needs funds</AlertTitle>
         <Paragraph className="mb-4">
           USE THE ACCOUNT CREDENTIALS PROVIDED IN THE “ADD FUNDS” INSTRUCTIONS
           BELOW.
