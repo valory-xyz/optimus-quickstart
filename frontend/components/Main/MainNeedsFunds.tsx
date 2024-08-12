@@ -1,6 +1,7 @@
 import { Flex, Typography } from 'antd';
 import { formatUnits } from 'ethers/lib/utils';
 import { ReactNode, useEffect, useMemo } from 'react';
+import styled from 'styled-components';
 
 import { UNICODE_SYMBOLS } from '@/constants/symbols';
 import { useBalance } from '@/hooks/useBalance';
@@ -12,8 +13,15 @@ import { getMinimumStakedAmountRequired } from '@/utils/service';
 import { Alert } from '../Alert';
 import { CardSection } from '../styled/CardSection';
 
-const { Text, Paragraph } = Typography;
+const { Text } = Typography;
 const COVER_PREV_BLOCK_BORDER_STYLE = { marginTop: '-1px' };
+
+const FundingValue = styled.div`
+  font-size: 24px;
+  font-weight: 700;
+  line-height: 32px;
+  letter-spacing: -0.72px;
+`;
 
 const useNeedsFunds = () => {
   const { getServiceTemplates } = useServiceTemplates();
@@ -94,29 +102,28 @@ export const MainNeedsFunds = () => {
 
   const message: ReactNode = useMemo(
     () => (
-      <Flex vertical gap={4}>
-        <Text className="font-weight-600 mb-4">Your agent needs funds</Text>
-        <Paragraph className="mb-4">
-          USE THE ACCOUNT CREDENTIALS PROVIDED IN THE “ADD FUNDS” INSTRUCTIONS
-          BELOW.
-        </Paragraph>
-        <Paragraph className="mb-4">
-          To run your agent, you must add these amounts to your account:
-        </Paragraph>
-        {!hasEnoughOlasForInitialFunding && (
-          <Text>
-            <span className="font-weight-600">{`${UNICODE_SYMBOLS.OLAS}${serviceFundRequirements.olas} OLAS `}</span>
-            - for staking.
-          </Text>
-        )}
-        {!hasEnoughEthForInitialFunding && (
-          <Text>
-            <span className="font-weight-600">
-              {`${serviceFundRequirements.eth} XDAI `}
-            </span>
-            - for trading balance.
-          </Text>
-        )}
+      <Flex vertical gap={16}>
+        <Text className="font-weight-600">Your agent needs funds</Text>
+        <Flex gap={24}>
+          {!hasEnoughOlasForInitialFunding && (
+            <div>
+              <FundingValue>{`${UNICODE_SYMBOLS.OLAS}${serviceFundRequirements.olas} OLAS `}</FundingValue>
+              <span className="text-sm">for staking</span>
+            </div>
+          )}
+          {!hasEnoughEthForInitialFunding && (
+            <div>
+              <FundingValue>
+                {`$${serviceFundRequirements.eth} XDAI `}
+              </FundingValue>
+              <span className="text-sm">for trading</span>
+            </div>
+          )}
+        </Flex>
+        <ul className="p-0 m-0 text-sm">
+          <li>Do not add more than these amounts.</li>
+          <li>Use the address in the “Add Funds” section below.</li>
+        </ul>
       </Flex>
     ),
     [
