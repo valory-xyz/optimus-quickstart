@@ -11,10 +11,10 @@ on:
 
 jobs:
     build-macos-pyinstaller:
-      runs-on: macos-latest
+      runs-on: ${{ matrix.os }}
       strategy:
         matrix:
-          arch: [ x64, arm64 ]
+          os: [ macos-14, macos-14-large ]
 
       steps:
         - uses: actions/checkout@v3
@@ -34,22 +34,30 @@ jobs:
         - name: Install dependencies
           run: poetry install
 
+        - name: Set arch environment variable for macos-latest-large
+          if: contains(matrix.os, 'large')
+          run: echo "OS_ARCH=x64" >> $GITHUB_ENV
+
+        - name: Set arch environment variable for other macOS versions
+          if: ${{ !contains(matrix.os, 'large') }}
+          run: echo "OS_ARCH=arm64" >> $GITHUB_ENV
+
         - name: Get trader bin
           run: |
-            trader_version=$(poetry run python -c "import yaml; config = yaml.safe_load(open('templates/trader.yaml')); print(config['configuration']['trader_version'])")
+            trader_version=$(poetry run python -c "import yaml; config = yaml.safe_load(open('templates/trader.yaml')); print(config['trader_version'])")
             echo $trader_version
-            mkdir dist && curl -L -o dist/aea_bin "https://github.com/valory-xyz/trader/releases/download/${trader_version}/trader_bin_${{ matrix.arch }}"
+            mkdir dist && curl -L -o dist/aea_bin "https://github.com/valory-xyz/trader/releases/download/${trader_version}/trader_bin_${{ env.OS_ARCH }}"
 
         - name: Build with PyInstaller
           run: |
              poetry run pyinstaller operate/services/utils/tendermint.py --onefile
-             poetry run pyinstaller --collect-data eth_account --collect-all aea --collect-all autonomy --collect-all operate --collect-all aea_ledger_ethereum --collect-all aea_ledger_cosmos --collect-all aea_ledger_ethereum_flashbots --hidden-import aea_ledger_ethereum --hidden-import aea_ledger_cosmos --hidden-import aea_ledger_ethereum_flashbots operate/pearl.py --add-binary dist/aea_bin:.  --add-binary dist/tendermint:. --onefile --name pearl_${{ matrix.arch }}
+             poetry run pyinstaller --collect-data eth_account --collect-all aea --collect-all autonomy --collect-all operate --collect-all aea_ledger_ethereum --collect-all aea_ledger_cosmos --collect-all aea_ledger_ethereum_flashbots --hidden-import aea_ledger_ethereum --hidden-import aea_ledger_cosmos --hidden-import aea_ledger_ethereum_flashbots operate/pearl.py --add-binary dist/aea_bin:.  --add-binary dist/tendermint:. --onefile --name pearl_${{ env.OS_ARCH }}
 
         - name: Upload Release Assets
           uses: actions/upload-artifact@v2
           with:
-            name: pearl_${{ matrix.arch }}
-            path: dist/pearl_${{ matrix.arch }}
+            name: pearl_${{ env.OS_ARCH }}
+            path: dist/pearl_${{ env.OS_ARCH }}
 
     release-operate:
         runs-on: macos-latest
