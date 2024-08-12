@@ -123,9 +123,11 @@ const MainOlasBalanceAlert = styled.div`
 
 const LowTradingBalanceAlert = () => {
   const { isBalanceLoaded, safeBalance } = useBalance();
+  const { storeState } = useStore();
 
   if (!isBalanceLoaded) return null;
   if (!safeBalance) return null;
+  if (!storeState?.isInitialFunded) return;
   if (safeBalance.ETH >= LOW_BALANCE) return null;
 
   return (
