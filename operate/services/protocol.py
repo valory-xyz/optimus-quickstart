@@ -63,9 +63,6 @@ from operate.data import DATA_DIR
 from operate.data.contracts.service_staking_token.contract import (
     ServiceStakingTokenContract,
 )
-from operate.data.contracts.staking_token.contract import (
-    StakingTokenContract,
-)
 from operate.types import ContractAddresses
 from operate.utils.gnosis import (
     MultiSendOperation,
@@ -203,48 +200,23 @@ class StakingManager(OnChainHelper):
                 directory=str(DATA_DIR / "contracts" / "service_staking_token")
             ),
         )
-        self.staking_token_ctr = t.cast(
-            StakingTokenContract,
-            StakingTokenContract.from_dir(
-                directory=str(DATA_DIR / "contracts" / "staking_token")
-            ),
-        )
+        # self.staking_token_ctr = t.cast(
+        #     StakingTokenContract,
+        #     StakingTokenContract.from_dir(
+        #         directory=str(DATA_DIR / "contracts" / "staking_token")
+        #     ),
+        # )
 
     def status(self, service_id: int, staking_contract: str) -> StakingState:
         """Is the service staked?"""
-        staking_state = None
-
-        print(staking_contract)
-        try:
-            print("a")
-            staking_state = StakingState(
-                self.staking_ctr.get_instance(
-                    ledger_api=self.ledger_api,
-                    contract_address=staking_contract,
-                )
-                .functions.getStakingState(service_id)
-                .call()
+        return StakingState(
+            self.staking_ctr.get_instance(
+                ledger_api=self.ledger_api,
+                contract_address=staking_contract,
             )
-            print("b")
-            return staking_state
-        except Exception:
-            print("c")
-
-            try:
-                staking_state = StakingState(
-                    self.staking_token_ctr.get_instance(
-                        ledger_api=self.ledger_api,
-                        contract_address=staking_contract,
-                    )
-                    .functions.getStakingState(service_id)
-                    .call()
-                )
-                return staking_state
-            except Exception:
-                print("EXCEPTION")
-            print("d")
-
-        return staking_state
+            .functions.getStakingState(service_id)
+            .call()
+        )
 
     def slots_available(self, staking_contract: str) -> bool:
         """Check if there are available slots on the staking contract"""

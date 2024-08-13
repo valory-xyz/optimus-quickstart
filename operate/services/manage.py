@@ -684,17 +684,29 @@ class ServiceManager:
         ic(info)
 
 
+        # Determine if the service is staked in a known staking program
+        current_staking_program = None
         for staking_program in STAKING[ledger_config.chain]:
             state = sftxb.staking_status(
                 service_id=chain_data.token,
                 staking_contract=STAKING[ledger_config.chain][staking_program],
             )
+            if state in (StakingState.STAKED, StakingState.EVICTED):
+                current_staking_program = staking_program
 
-            print(state)
+        is_staked = current_staking_program is not None
 
+        # if is_staked:
+        #     can_unstake = and not self._can_unstake_service_from_safe(hash=hash)
 
+        print(current_staking_program)
+        print(is_staked)
         import sys
         sys.exit(1)
+
+
+
+
         if (
             chain_data.user_params.use_staking
             and not self._can_unstake_service_from_safe(hash=hash)
