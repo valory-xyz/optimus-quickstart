@@ -21,6 +21,7 @@
 
 import asyncio
 import logging
+import os
 import shutil
 import traceback
 import typing as t
@@ -48,7 +49,10 @@ from operate.services.service import (
     OnChainUserParams,
     Service,
 )
-from operate.types import ServiceTemplate
+from operate.types import (
+    ServiceTemplate,
+    LedgerConfig
+)
 from operate.wallet.master import MasterWalletManager
 
 
@@ -121,12 +125,12 @@ class ServiceManager:
             contracts=CONTRACTS[service.ledger_config.chain],
         )
 
-    def get_eth_safe_tx_builder(self, service: Service) -> EthSafeTxBuilder:
+    def get_eth_safe_tx_builder(self, ledger_config: LedgerConfig) -> EthSafeTxBuilder:
         """Get EthSafeTxBuilder instance."""
         return EthSafeTxBuilder(
-            rpc=service.ledger_config.rpc,
-            wallet=self.wallet_manager.load(service.ledger_config.type),
-            contracts=CONTRACTS[service.ledger_config.chain],
+            rpc=ledger_config.rpc,
+            wallet=self.wallet_manager.load(ledger_config.type),
+            contracts=CONTRACTS[ledger_config.chain],
         )
 
     def load_or_create(
@@ -168,26 +172,32 @@ class ServiceManager:
 
         return service
 
-    def _get_on_chain_state(self, service: Service) -> OnChainState:
-        if service.chain_data.token == NON_EXISTENT_TOKEN:
+    def _get_on_chain_state(self, chain_config: ChainConfig) -> OnChainState:
+        chain_data = chain_config.chain_data
+        ledger_config = chain_config.ledger_config
+        if chain_data.token == NON_EXISTENT_TOKEN:
             service_state = OnChainState.NON_EXISTENT
-            service.chain_data.on_chain_state = service_state
-            service.store()
+            chain_data.on_chain_state = service_state
+            # TODO save service state
+            # service.store()
             return service_state
 
-        sftxb = self.get_eth_safe_tx_builder(service=service)
-        info = sftxb.info(token_id=service.chain_data.token)
+        sftxb = self.get_eth_safe_tx_builder(ledger_config=ledger_config)
+        info = sftxb.info(token_id=chain_data.token)
         service_state = OnChainState(info["service_state"])
-        service.chain_data.on_chain_state = service_state
-        service.store()
+        chain_data.on_chain_state = service_state
+        # TODO save service state
+        # service.store()
         return service_state
 
-    def _get_on_chain_hash(self, service: Service) -> t.Optional[str]:
-        if service.chain_data.token == NON_EXISTENT_TOKEN:
+    def _get_on_chain_hash(self, chain_config: ChainConfig) -> t.Optional[str]:
+        chain_data = chain_config.chain_data
+        ledger_config = chain_config.ledger_config
+        if chain_data.token == NON_EXISTENT_TOKEN:
             return None
 
-        sftxb = self.get_eth_safe_tx_builder(service=service)
-        info = sftxb.info(token_id=service.chain_data.token)
+        sftxb = self.get_eth_safe_tx_builder(ledger_config=ledger_config)
+        info = sftxb.info(token_id=chain_data.token)
         config_hash = info["config_hash"]
         res = requests.get(f"{IPFS_GATEWAY}f01701220{config_hash}", timeout=30)
         if res.status_code == 200:
@@ -385,7 +395,10 @@ class ServiceManager:
         keys = service.keys
         instances = [key.address for key in keys]
         wallet = self.wallet_manager.load(ledger_config.type)
-        sftxb = self.get_eth_safe_tx_builder(service=service)
+        sftxb = self.get_eth_safe_tx_builder(ledger_config=ledger_config)
+
+        # TODO fixme
+        os.environ["CUSTOM_CHAIN_RPC"] = ledger_config.rpc
 
         if user_params.use_staking and not sftxb.staking_slots_available(
             staking_contract=STAKING[ledger_config.chain]
@@ -399,7 +412,7 @@ class ServiceManager:
             chain_data.instances = info["instances"]
             chain_data.multisig = info["multisig"]
             service.store()
-        self.logger.info(f"Service state: {service.chain_data.on_chain_state.name}")
+        self.logger.info(f"Service state: {chain_data.on_chain_state.name}")
 
         if user_params.use_staking:
             self.logger.info("Checking staking compatibility")
@@ -429,8 +442,8 @@ class ServiceManager:
                     f"address: {wallet.safe}; required olas: {required_olas}; your balance: {balance}"
                 )
 
-        on_chain_hash = self._get_on_chain_hash(service)
-        is_first_mint = self._get_on_chain_state(service) == OnChainState.NON_EXISTENT
+        on_chain_hash = self._get_on_chain_hash(chain_config=chain_config)
+        is_first_mint = self._get_on_chain_state(chain_config=chain_config) == OnChainState.NON_EXISTENT
         is_update = (
             (not is_first_mint)
             and (on_chain_hash is not None)
@@ -451,7 +464,13 @@ class ServiceManager:
         #     else:
         #         self.logger.info("Updating the on-chain service")
 
-        if self._get_on_chain_state(service) == OnChainState.NON_EXISTENT:
+        if is_update:
+            self.terminate_service_on_chain_from_safe(
+                hash=hash,
+                chain_id=chain_id
+            )
+
+        if self._get_on_chain_state(chain_config=chain_config) == OnChainState.NON_EXISTENT:
             receipt = (
                 sftxb.new_tx()
                 .add(
@@ -489,9 +508,7 @@ class ServiceManager:
             chain_data.on_chain_state = OnChainState.PRE_REGISTRATION
             service.store()
 
-
-        print("!!!!!!!!!!!!!!!!!!!!!")
-        if self._get_on_chain_state(service) == OnChainState.PRE_REGISTRATION:
+        if self._get_on_chain_state(chain_config=chain_config) == OnChainState.PRE_REGISTRATION:
             cost_of_bond = user_params.cost_of_bond
             if user_params.use_staking:
                 token_utility = "0xa45E64d13A30a51b91ae0eb182e88a40e9b18eD8"  # nosec
@@ -503,7 +520,7 @@ class ServiceManager:
                     registry_contracts.service_registry_token_utility.get_agent_bond(
                         ledger_api=sftxb.ledger_api,
                         contract_address=token_utility,
-                        service_id=service.chain_data.token,
+                        service_id=chain_data.token,
                         agent_id=user_params.agent_id,
                     ).get("bond")
                 )
@@ -533,14 +550,14 @@ class ServiceManager:
             self.logger.info("Activating service")
             sftxb.new_tx().add(
                 sftxb.get_activate_data(
-                    service_id=service.chain_data.token,
+                    service_id=chain_data.token,
                     cost_of_bond=cost_of_bond,
                 )
             ).settle()
-            service.chain_data.on_chain_state = OnChainState.ACTIVE_REGISTRATION
+            chain_data.on_chain_state = OnChainState.ACTIVE_REGISTRATION
             service.store()
 
-        if self._get_on_chain_state(service) == OnChainState.ACTIVE_REGISTRATION:
+        if self._get_on_chain_state(chain_config=chain_config) == OnChainState.ACTIVE_REGISTRATION:
             cost_of_bond = user_params.cost_of_bond
             if user_params.use_staking:
                 token_utility = "0xa45E64d13A30a51b91ae0eb182e88a40e9b18eD8"  # nosec
@@ -580,40 +597,36 @@ class ServiceManager:
                 cost_of_bond = 1
 
             self.logger.info(
-                f"Registering service: {service.chain_data.token} -> {instances}"
+                f"Registering service: {chain_data.token} -> {instances}"
             )
             sftxb.new_tx().add(
                 sftxb.get_register_instances_data(
-                    service_id=service.chain_data.token,
+                    service_id=chain_data.token,
                     instances=instances,
                     agents=[user_params.agent_id for _ in instances],
                     cost_of_bond=cost_of_bond,
                 )
             ).settle()
-            service.chain_data.on_chain_state = OnChainState.FINISHED_REGISTRATION
+            chain_data.on_chain_state = OnChainState.FINISHED_REGISTRATION
             service.store()
 
-        if self._get_on_chain_state(service) == OnChainState.FINISHED_REGISTRATION:
+        if self._get_on_chain_state(chain_config=chain_config) == OnChainState.FINISHED_REGISTRATION:
             self.logger.info("Deploying service")
             sftxb.new_tx().add(
                 sftxb.get_deploy_data(
-                    service_id=service.chain_data.token,
+                    service_id=chain_data.token,
                     reuse_multisig=is_update,
                 )
             ).settle()
-            service.chain_data.on_chain_state = OnChainState.DEPLOYED
+            chain_data.on_chain_state = OnChainState.DEPLOYED
             service.store()
 
         # Update local Service
-        info = sftxb.info(token_id=service.chain_data.token)
-        service.chain_data = OnChainData(
-            token=service.chain_data.token,
-            instances=info["instances"],
-            multisig=info["multisig"],
-            staked=False,
-            on_chain_state=OnChainState(info["service_state"]),
-            user_params=service.chain_data.user_params,
-        )
+        info = sftxb.info(token_id=chain_data.token)
+        chain_data.instances = info["instances"]
+        chain_data.multisig = info["multisig"]
+        chain_data.staked = False
+        chain_data.on_chain_state = OnChainState(info["service_state"])
         service.store()
 
     def terminate_service_on_chain(self, hash: str) -> None:
@@ -643,21 +656,48 @@ class ServiceManager:
         service.chain_data.on_chain_state = OnChainState.TERMINATED_BONDED
         service.store()
 
-    def terminate_service_on_chain_from_safe(self, hash: str) -> None:
+    def terminate_service_on_chain_from_safe(self, hash: str, chain_id: int) -> None:
         """
         Terminate service on-chain
 
         :param hash: Service hash
         """
-
+        self.logger.info("terminate_service_on_chain_from_safe")
         service = self.load_or_create(hash=hash)
-        sftxb = self.get_eth_safe_tx_builder(service=service)
-        info = sftxb.info(token_id=service.chain_data.token)
-        service.chain_data.on_chain_state = OnChainState(info["service_state"])
+        chain_config = service.chain_configs[chain_id]
+        ledger_config = chain_config.ledger_config
+        chain_data = chain_config.chain_data
+        user_params = chain_config.chain_data.user_params
+        keys = service.keys
+        instances = [key.address for key in keys]
+        wallet = self.wallet_manager.load(ledger_config.type)
 
+        # TODO fixme
+        os.environ["CUSTOM_CHAIN_RPC"] = ledger_config.rpc
+
+        sftxb = self.get_eth_safe_tx_builder(ledger_config=ledger_config)
+        info = sftxb.info(token_id=chain_data.token)
+        chain_data.on_chain_state = OnChainState(info["service_state"])
+
+
+        from icecream import ic
+        ic(info)
+
+
+        for staking_program in STAKING[ledger_config.chain]:
+            state = sftxb.staking_status(
+                service_id=chain_data.token,
+                staking_contract=STAKING[ledger_config.chain][staking_program],
+            )
+
+            print(state)
+
+
+        import sys
+        sys.exit(1)
         if (
-            service.chain_data.user_params.use_staking
-            and not self._can_unstake_service(hash=hash)
+            chain_data.user_params.use_staking
+            and not self._can_unstake_service_from_safe(hash=hash)
         ):
             return
 

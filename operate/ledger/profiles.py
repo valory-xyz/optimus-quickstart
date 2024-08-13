@@ -36,7 +36,22 @@ CONTRACTS = {
 }
 
 STAKING = {
-    ChainType.GNOSIS: "0xEE9F19b5DF06c7E8Bfc7B28745dcf944C504198A",
+    ChainType.GNOSIS: {
+        "pearl_alpha": "0xEE9F19b5DF06c7E8Bfc7B28745dcf944C504198A",
+        "pearl_beta": "0xef44fb0842ddef59d37f85d61a1ef492bba6135d"
+    }
+
+    # ChainType.GNOSIS: {
+    #     "pearl_alpha": {
+    #         "stakingTokenAddress": "0x9Ec97Be9FF55ff11606ce7c589956f7Bf3D0b241",
+    #         "stakingTokenInstanceAddress": "0xEE9F19b5DF06c7E8Bfc7B28745dcf944C504198A"
+    #     },
+    #     "pearl_beta": {
+    #         "stakingTokenAddress": "0xEa00be6690a871827fAfD705440D20dd75e67AB1",
+    #         "stakingTokenInstanceAddress": "0xef44fb0842ddef59d37f85d61a1ef492bba6135d"
+    #     }
+    # }
+
 }
 
 OLAS = {

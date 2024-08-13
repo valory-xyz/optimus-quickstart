@@ -251,7 +251,7 @@ class ServiceHelper:
                 (_, config), *_ = override["config"]["ledger_apis"].items()
                 # TODO chain name is inferred from the chain_id. The actual id provided on service.yaml is ignored.
                 chain = ChainType.from_id(cid=config["chain_id"])
-                ledger_configs[config["chain_id"]] = LedgerConfig(
+                ledger_configs[str(config["chain_id"])] = LedgerConfig(
                     rpc=config["address"],
                     chain=chain,
                     type=LedgerType.ETHEREUM,

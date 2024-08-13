@@ -193,7 +193,7 @@ class ConfigurationTemplate(TypedDict):
     fund_requirements: FundRequirementsTemplate
 
 
-ConfigurationTemplates = t.Dict[int, ConfigurationTemplate]
+ConfigurationTemplates = t.Dict[str, ConfigurationTemplate]
 
 
 class ServiceTemplate(TypedDict):
@@ -204,7 +204,7 @@ class ServiceTemplate(TypedDict):
     image: str
     description: str
     service_version: str
-    home_chain_id: int
+    home_chain_id: str
     configurations: ConfigurationTemplates
 
 

@@ -63,6 +63,9 @@ from operate.data import DATA_DIR
 from operate.data.contracts.service_staking_token.contract import (
     ServiceStakingTokenContract,
 )
+from operate.data.contracts.staking_token.contract import (
+    StakingTokenContract,
+)
 from operate.types import ContractAddresses
 from operate.utils.gnosis import (
     MultiSendOperation,
@@ -200,17 +203,48 @@ class StakingManager(OnChainHelper):
                 directory=str(DATA_DIR / "contracts" / "service_staking_token")
             ),
         )
+        self.staking_token_ctr = t.cast(
+            StakingTokenContract,
+            StakingTokenContract.from_dir(
+                directory=str(DATA_DIR / "contracts" / "staking_token")
+            ),
+        )
 
     def status(self, service_id: int, staking_contract: str) -> StakingState:
         """Is the service staked?"""
-        return StakingState(
-            self.staking_ctr.get_instance(
-                ledger_api=self.ledger_api,
-                contract_address=staking_contract,
+        staking_state = None
+
+        print(staking_contract)
+        try:
+            print("a")
+            staking_state = StakingState(
+                self.staking_ctr.get_instance(
+                    ledger_api=self.ledger_api,
+                    contract_address=staking_contract,
+                )
+                .functions.getStakingState(service_id)
+                .call()
             )
-            .functions.getStakingState(service_id)
-            .call()
-        )
+            print("b")
+            return staking_state
+        except Exception:
+            print("c")
+
+            try:
+                staking_state = StakingState(
+                    self.staking_token_ctr.get_instance(
+                        ledger_api=self.ledger_api,
+                        contract_address=staking_contract,
+                    )
+                    .functions.getStakingState(service_id)
+                    .call()
+                )
+                return staking_state
+            except Exception:
+                print("EXCEPTION")
+            print("d")
+
+        return staking_state
 
     def slots_available(self, staking_contract: str) -> bool:
         """Check if there are available slots on the staking contract"""
@@ -484,6 +518,14 @@ class _ChainUtil:
         )
         return ledger_api
 
+    def owner_of(self, token_id: int) -> str:
+        """Get owner of a service."""
+        self._patch()
+        ledger_api, _ = OnChainHelper.get_ledger_and_crypto_objects(
+            chain_type=self.chain_type
+        )
+
+
     def info(self, token_id: int) -> t.Dict:
         """Get service info."""
         self._patch()
@@ -498,7 +540,7 @@ class _ChainUtil:
             max_agents,
             number_of_agent_instances,
             service_state,
-            cannonical_agents,
+            canonical_agents,
         ) = get_service_info(
             ledger_api=ledger_api,
             chain_type=self.chain_type,
@@ -517,7 +559,7 @@ class _ChainUtil:
             max_agents=max_agents,
             number_of_agent_instances=number_of_agent_instances,
             service_state=service_state,
-            cannonical_agents=cannonical_agents,
+            canonical_agents=canonical_agents,
             instances=instances,
         )
 
