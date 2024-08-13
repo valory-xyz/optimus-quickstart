@@ -1174,6 +1174,21 @@ class EthSafeTxBuilder(_ChainUtil):
             staking_contract=staking_contract,
         )
 
+    def can_unstake(self, service_id: int, staking_contract: str) -> bool:
+        """Can unstake the service?"""
+        try:
+            StakingManager(
+                key=self.wallet.key_path,
+                password=self.wallet.password,
+                chain_type=self.chain_type,
+            ).check_if_unstaking_possible(
+                service_id=service_id,
+                staking_contract=staking_contract,
+            )
+            return True
+        except ValueError:
+            return False
+
     def get_swap_data(self, service_id: int, multisig: str, owner_key: str) -> t.Dict:
         """Swap safe owner."""
         # TODO: Discuss implementation
