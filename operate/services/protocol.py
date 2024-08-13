@@ -67,6 +67,7 @@ from operate.types import ContractAddresses
 from operate.utils.gnosis import (
     MultiSendOperation,
     SafeOperation,
+    get_owners,
     hash_payload_to_hex,
     skill_input_hex_to_payload,
 )
@@ -200,12 +201,6 @@ class StakingManager(OnChainHelper):
                 directory=str(DATA_DIR / "contracts" / "service_staking_token")
             ),
         )
-        # self.staking_token_ctr = t.cast(
-        #     StakingTokenContract,
-        #     StakingTokenContract.from_dir(
-        #         directory=str(DATA_DIR / "contracts" / "staking_token")
-        #     ),
-        # )
 
     def status(self, service_id: int, staking_contract: str) -> StakingState:
         """Is the service staked?"""
@@ -245,6 +240,48 @@ class StakingManager(OnChainHelper):
             staking_contract,
             service_id,
         ).get("data")
+ 
+    def agent_ids(self, staking_contract: str) -> t.List[int]:
+        instance = self.staking_ctr.get_instance(
+            ledger_api=self.ledger_api,
+            contract_address=staking_contract,
+        )
+        return instance.functions.getAgentIds().call()
+
+    def service_registry(self, staking_contract: str) -> str:
+        instance = self.staking_ctr.get_instance(
+            ledger_api=self.ledger_api,
+            contract_address=staking_contract,
+        )
+        return instance.functions.serviceRegistry().call()
+
+    def staking_token(self, staking_contract: str) -> str:
+        instance = self.staking_ctr.get_instance(
+            ledger_api=self.ledger_api,
+            contract_address=staking_contract,
+        )
+        return instance.functions.stakingToken().call()
+
+    def service_registry_token_utility(self, staking_contract: str) -> str:
+        instance = self.staking_ctr.get_instance(
+            ledger_api=self.ledger_api,
+            contract_address=staking_contract,
+        )
+        return instance.functions.serviceRegistryTokenUtility().call()
+
+    def min_staking_deposit(self, staking_contract: str) -> str:
+        instance = self.staking_ctr.get_instance(
+            ledger_api=self.ledger_api,
+            contract_address=staking_contract,
+        )
+        return instance.functions.minStakingDeposit().call()
+
+    def activity_checker(self, staking_contract: str) -> str:
+        instance = self.staking_ctr.get_instance(
+            ledger_api=self.ledger_api,
+            contract_address=staking_contract,
+        )
+        return instance.functions.activityChecker().call()
 
     def check_staking_compatibility(
         self,
@@ -535,11 +572,38 @@ class _ChainUtil:
             instances=instances,
         )
 
+
+    def get_service_safe_owners(self, service_id: int) -> t.List[str]:
+        """Get list of owners."""
+        ledger_api, _ = OnChainHelper.get_ledger_and_crypto_objects(
+            chain_type=self.chain_type
+        )
+        (
+            _,
+            multisig_address,
+            _,
+            _,
+            _,
+            _,
+            _,
+            _,
+        ) = get_service_info(
+            ledger_api=ledger_api,
+            chain_type=self.chain_type,
+            token_id=service_id,
+        )
+        return registry_contracts.gnosis_safe.get_owners(
+            ledger_api=ledger_api,
+            contract_address=multisig_address,
+        ).get("owners", [])
+
+
     def swap(  # pylint: disable=too-many-arguments,too-many-locals
         self,
         service_id: int,
         multisig: str,
         owner_key: str,
+        new_owner_address: str
     ) -> None:
         """Swap safe owner."""
         logging.info(f"Swapping safe for service {service_id} [{multisig}]...")
@@ -569,7 +633,7 @@ class _ChainUtil:
             contract_address=multisig,
             old_owner=manager.ledger_api.api.to_checksum_address(owner_to_swap),
             new_owner=manager.ledger_api.api.to_checksum_address(
-                manager.crypto.address
+                new_owner_address
             ),
         ).get("data")
         multisend_txs.append(
@@ -909,7 +973,7 @@ class EthSafeTxBuilder(_ChainUtil):
             )
             .load_metadata()
             .verify_nft(nft=nft)
-            .verify_service_dependencies(agent_id=agent_id)
+            #.verify_service_dependencies(agent_id=agent_id)  # TODO add this check once subgraph production indexes agent 25
             .publish_metadata()
         )
         instance = registry_contracts.service_manager.get_instance(
@@ -917,17 +981,30 @@ class EthSafeTxBuilder(_ChainUtil):
             contract_address=self.contracts["service_manager"],
         )
 
-        txd = instance.encodeABI(
-            fn_name="create" if update_token is None else "update",
-            args=[
-                self.wallet.safe,
-                token or ETHEREUM_ERC20,
-                manager.metadata_hash,
-                [agent_id],
-                [[number_of_slots, cost_of_bond]],
-                threshold,
-            ],
-        )
+        if update_token is None:
+            txd = instance.encodeABI(
+                fn_name="create",
+                args=[
+                    self.wallet.safe,
+                    token or ETHEREUM_ERC20,
+                    manager.metadata_hash,
+                    [agent_id],
+                    [[number_of_slots, cost_of_bond]],
+                    threshold,
+                ],
+            )
+        else:
+            txd = instance.encodeABI(
+                fn_name="update",
+                args=[
+                    token or ETHEREUM_ERC20,
+                    manager.metadata_hash,
+                    [agent_id],
+                    [[number_of_slots, cost_of_bond]],
+                    threshold,
+                    update_token
+                ],
+            )            
 
         return {
             "to": self.contracts["service_manager"],
@@ -1172,6 +1249,42 @@ class EthSafeTxBuilder(_ChainUtil):
         ).status(
             service_id=service_id,
             staking_contract=staking_contract,
+        )
+
+    def get_staking_params(self, staking_contract: str) -> t.Dict:
+        """Get agent IDs for the staking contract"""
+        self._patch()
+        staking_manager = StakingManager(
+            key=self.wallet.key_path,
+            password=self.wallet.password,
+            chain_type=self.chain_type,
+        )
+        agent_ids = staking_manager.agent_ids(
+            staking_contract=staking_contract,
+        )
+        service_registry = staking_manager.service_registry(
+            staking_contract=staking_contract,
+        )
+        staking_token = staking_manager.staking_token(
+            staking_contract=staking_contract,
+        )
+        service_registry_token_utility = staking_manager.service_registry_token_utility(
+            staking_contract=staking_contract,
+        )
+        min_staking_deposit = staking_manager.min_staking_deposit(
+            staking_contract=staking_contract,
+        )
+        activity_checker = staking_manager.activity_checker(
+            staking_contract=staking_contract,
+        )
+
+        return dict(
+            agent_ids=agent_ids,
+            service_registry=service_registry,
+            staking_token=staking_token,
+            service_registry_token_utility=service_registry_token_utility,
+            min_staking_deposit=min_staking_deposit,
+            activity_checker=activity_checker
         )
 
     def can_unstake(self, service_id: int, staking_contract: str) -> bool:

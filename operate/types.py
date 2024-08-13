@@ -182,14 +182,12 @@ class FundRequirementsTemplate(TypedDict):
 class ConfigurationTemplate(TypedDict):
     """Configuration template."""
 
+    staking_program_id: str
     nft: str
     rpc: str
-    agent_id: int
     threshold: int
     use_staking: bool
     cost_of_bond: int
-    olas_cost_of_bond: int
-    olas_required_to_stake: int
     fund_requirements: FundRequirementsTemplate
 
 
@@ -228,13 +226,11 @@ class OnChainFundRequirements(LocalResource):
 class OnChainUserParams(LocalResource):
     """On-chain user params."""
 
+    staking_program_id: str
     nft: str
-    agent_id: int
     threshold: int
     use_staking: bool
     cost_of_bond: int
-    olas_cost_of_bond: int
-    olas_required_to_stake: int
     fund_requirements: OnChainFundRequirements
 
     @classmethod
@@ -268,4 +264,4 @@ class ChainConfig(LocalResource):
         return super().from_json(obj)  # type: ignore
 
 
-ChainConfigs = t.Dict[int, ChainConfig]
+ChainConfigs = t.Dict[str, ChainConfig]
