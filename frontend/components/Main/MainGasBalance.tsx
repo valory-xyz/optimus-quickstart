@@ -7,6 +7,7 @@ import { COLOR } from '@/constants/colors';
 import { LOW_BALANCE } from '@/constants/thresholds';
 import { useBalance } from '@/hooks/useBalance';
 import { useElectronApi } from '@/hooks/useElectronApi';
+import { useStore } from '@/hooks/useStore';
 import { useWallet } from '@/hooks/useWallet';
 
 import { CardSection } from '../styled/CardSection';
@@ -34,6 +35,7 @@ const FineDot = styled(Dot)`
 
 const BalanceStatus = () => {
   const { isBalanceLoaded, safeBalance } = useBalance();
+  const { storeState } = useStore();
   const { showNotification } = useElectronApi();
 
   const [isLowBalanceNotificationShown, setIsLowBalanceNotificationShown] =
@@ -44,6 +46,7 @@ const BalanceStatus = () => {
     if (!isBalanceLoaded) return;
     if (!safeBalance) return;
     if (!showNotification) return;
+    if (!storeState?.isInitialFunded) return;
 
     if (safeBalance.ETH < LOW_BALANCE && !isLowBalanceNotificationShown) {
       showNotification('Trading balance is too low.');
@@ -60,6 +63,7 @@ const BalanceStatus = () => {
     isLowBalanceNotificationShown,
     safeBalance,
     showNotification,
+    storeState?.isInitialFunded,
   ]);
 
   const status = useMemo(() => {
