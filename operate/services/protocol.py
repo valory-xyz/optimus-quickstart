@@ -1475,7 +1475,7 @@ def get_reuse_multisig_from_safe_payload(  # pylint: disable=too-many-locals
         data=multisend_tx["data"],
         operation=1,
     ).get("tx_hash")
-    approve_hash_data = registry_contracts.gnosis_safe.encodeABI(
+    approve_hash_data = multisig_instance.encodeABI(
         fn_name="approveHash",
         args=[
             safe_tx_hash,
