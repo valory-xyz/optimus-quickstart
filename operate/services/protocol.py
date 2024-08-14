@@ -695,6 +695,28 @@ class _ChainUtil:
         if receipt["status"] != 1:
             raise RuntimeError("Error swapping owners")
 
+    def staking_slots_available(self, staking_contract: str) -> bool:
+        """Check if there are available slots on the staking contract"""
+        self._patch()
+        return StakingManager(
+            key=self.wallet.key_path,
+            password=self.wallet.password,
+            chain_type=self.chain_type,
+        ).slots_available(
+            staking_contract=staking_contract,
+        )
+
+    def staking_rewards_available(self, staking_contract: str) -> bool:
+        """Check if there are available staking rewards on the staking contract"""
+        self._patch()
+        available_rewards = StakingManager(
+            key=self.wallet.key_path,
+            password=self.wallet.password,
+            chain_type=self.chain_type,
+        ).available_rewards(
+            staking_contract=staking_contract,
+        )
+        return available_rewards > 0
 
 class OnChainManager(_ChainUtil):
     """On chain service management."""
@@ -864,29 +886,6 @@ class OnChainManager(_ChainUtil):
             ).check_is_service_token_secured(
                 token=token,
             ).unbond_service()
-
-    def staking_slots_available(self, staking_contract: str) -> bool:
-        """Check if there are available slots on the staking contract"""
-        self._patch()
-        return StakingManager(
-            key=self.wallet.key_path,
-            password=self.wallet.password,
-            chain_type=self.chain_type,
-        ).slots_available(
-            staking_contract=staking_contract,
-        )
-
-    def staking_rewards_available(self, staking_contract: str) -> bool:
-        """Check if there are available staking rewards on the staking contract"""
-        self._patch()
-        available_rewards = StakingManager(
-            key=self.wallet.key_path,
-            password=self.wallet.password,
-            chain_type=self.chain_type,
-        ).available_rewards(
-            staking_contract=staking_contract,
-        )
-        return available_rewards > 0
 
     def stake(
         self,
