@@ -636,7 +636,7 @@ class Service(LocalResource):
     version: int
     hash: str
     keys: Keys
-    home_chain_id: int
+    home_chain_id: str
     chain_configs: ChainConfigs
 
     path: Path

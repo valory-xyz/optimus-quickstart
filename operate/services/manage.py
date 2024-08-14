@@ -726,7 +726,6 @@ class ServiceManager:
         chain_config = service.chain_configs[chain_id]
         ledger_config = chain_config.ledger_config
         chain_data = chain_config.chain_data
-        user_params = chain_config.chain_data.user_params
         keys = service.keys
         instances = [key.address for key in keys]
         wallet = self.wallet_manager.load(ledger_config.type)
@@ -927,6 +926,9 @@ class ServiceManager:
             chain_config.chain_data.staked = True
             service.store()
 
+        current_staking_program = self._get_current_staking_program(chain_data, ledger_config, sftxb)
+        self.logger.info(f"{current_staking_program=}")
+
     def unstake_service_on_chain(self, hash: str) -> None:
         """
         Unbond service on-chain
@@ -1013,14 +1015,19 @@ class ServiceManager:
     ) -> None:
         """Fund service if required."""
         service = self.load_or_create(hash=hash)
-        wallet = self.wallet_manager.load(ledger_type=service.ledger_config.type)
-        ledger_api = wallet.ledger_api(chain_type=service.ledger_config.chain, rpc=rpc)
+        chain_id = service.home_chain_id
+        chain_config = service.chain_configs[chain_id]
+        ledger_config = chain_config.ledger_config
+        chain_data = chain_config.chain_data
+        wallet = self.wallet_manager.load(ledger_config.type)
+        ledger_api = wallet.ledger_api(chain_type=ledger_config.chain, rpc=ledger_config.rpc)
         agent_fund_threshold = (
             agent_fund_threshold
-            or service.chain_data.user_params.fund_requirements.agent
+            or chain_data.user_params.fund_requirements.agent
         )
 
         for key in service.keys:
+            print(key.address)
             agent_balance = ledger_api.get_balance(address=key.address)
             self.logger.info(f"Agent {key.address} balance: {agent_balance}")
             self.logger.info(f"Required balance: {agent_fund_threshold}")
@@ -1028,34 +1035,34 @@ class ServiceManager:
                 self.logger.info("Funding agents")
                 to_transfer = (
                     agent_topup
-                    or service.chain_data.user_params.fund_requirements.agent
+                    or chain_data.user_params.fund_requirements.agent
                 )
                 self.logger.info(f"Transferring {to_transfer} units to {key.address}")
                 wallet.transfer(
                     to=key.address,
                     amount=int(to_transfer),
-                    chain_type=service.ledger_config.chain,
+                    chain_type=ledger_config.chain,
                     from_safe=from_safe,
                 )
 
-        safe_balanace = ledger_api.get_balance(service.chain_data.multisig)
+        safe_balanace = ledger_api.get_balance(chain_data.multisig)
         safe_fund_treshold = (
-            safe_fund_treshold or service.chain_data.user_params.fund_requirements.safe
+            safe_fund_treshold or chain_data.user_params.fund_requirements.safe
         )
-        self.logger.info(f"Safe {service.chain_data.multisig} balance: {safe_balanace}")
+        self.logger.info(f"Safe {chain_data.multisig} balance: {safe_balanace}")
         self.logger.info(f"Required balance: {safe_fund_treshold}")
         if safe_balanace < safe_fund_treshold:
             self.logger.info("Funding safe")
             to_transfer = (
-                safe_topup or service.chain_data.user_params.fund_requirements.safe
+                safe_topup or chain_data.user_params.fund_requirements.safe
             )
             self.logger.info(
-                f"Transferring {to_transfer} units to {service.chain_data.multisig}"
+                f"Transferring {to_transfer} units to {chain_data.multisig}"
             )
             wallet.transfer(
-                to=t.cast(str, service.chain_data.multisig),
+                to=t.cast(str, chain_data.multisig),
                 amount=int(to_transfer),
-                chain_type=service.ledger_config.chain,
+                chain_type=ledger_config.chain,
             )
 
     async def funding_job(
@@ -1128,45 +1135,6 @@ class ServiceManager:
         old_service = self.load_or_create(
             hash=old_hash,
         )
-        # TODO code for updating service commented until safe swap transaction is implemented
-        # This is a temporary fix that will only work for services that have not started the
-        # update flow. Services having started the update flow must need to manually change
-        # the Safe owner to the Operator.
-        # (  # noqa: E800
-        #     self.unstake_service_on_chain_from_safe  # noqa: E800
-        #     if from_safe  # noqa: E800
-        #     else self.unstake_service_on_chain  # noqa: E800
-        # )(  # noqa: E800
-        #     hash=old_hash,  # noqa: E800
-        # )  # noqa: E800
-        # (  # noqa: E800
-        #     self.terminate_service_on_chain_from_safe  # noqa: E800
-        #     if from_safe  # noqa: E800
-        #     else self.terminate_service_on_chain  # noqa: E800
-        # )(  # noqa: E800
-        #     hash=old_hash,  # noqa: E800
-        # )  # noqa: E800
-        # (  # noqa: E800
-        #     self.unbond_service_on_chain_from_safe  # noqa: E800
-        #     if from_safe  # noqa: E800
-        #     else self.unbond_service_on_chain  # noqa: E800
-        # )(  # noqa: E800
-        #     hash=old_hash,  # noqa: E800
-        # )  # noqa: E800
-
-        # owner, *_ = old_service.chain_data.instances  # noqa: E800
-        # if from_safe:  # noqa: E800
-
-        # else:  # noqa: E800
-        #     ocm = self.get_on_chain_manager(service=old_service)  # noqa: E800
-        #     ocm.swap(  # noqa: E800
-        #         service_id=old_service.chain_data.token,  # noqa: E800
-        #         multisig=old_service.chain_data.multisig,  # noqa: E800
-        #         owner_key=str(
-        #             self.keys_manager.get(key=owner).private_key
-        #         ),  # noqa: E800
-        #     )  # noqa: E800
-
         new_service = self.load_or_create(
             hash=new_hash,
             rpc=rpc or old_service.ledger_config.rpc,
