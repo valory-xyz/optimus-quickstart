@@ -665,12 +665,12 @@ class ServiceManager:
 
             # current_safe_owners = sftxb.get_service_safe_owners(service_id=chain_data.token)
             # print(f"{current_safe_owners=}")
-            sftxb.new_tx().add(
-                sftxb.get_deploy_data(
-                    service_id=chain_data.token,
-                    reuse_multisig=is_update,
-                )
-            ).settle()
+            approve_message, deploy_message = sftxb.get_deploy_data_from_safe(
+                service_id=chain_data.token,
+                reuse_multisig=is_update,
+                master_safe=sftxb.wallet.safe,
+            )
+            sftxb.new_tx().add(approve_message).add(deploy_message).settle()
             chain_data.on_chain_state = OnChainState.DEPLOYED
             service.store()
 
