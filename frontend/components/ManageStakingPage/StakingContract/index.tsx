@@ -107,7 +107,9 @@ export const StakingContract = ({
           className="m-0"
         >{`${contract.name} contract`}</Typography.Title>
         <StakingContractTag status={contract.status} />
-        {isMigratable && (
+        {!isSelected && (
+          // here instead of isSelected we should check that the contract is not the old staking contract
+          // but the one from staking factory (if we want to open govern)
           <a
             href={`https://gnosisscan.io/address/${contract.contractAddress}`}
             target="_blank"

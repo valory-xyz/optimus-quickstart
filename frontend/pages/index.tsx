@@ -2,12 +2,12 @@ import { useEffect, useMemo } from 'react';
 
 import { HelpAndSupport } from '@/components/HelpAndSupportPage';
 import { Main } from '@/components/MainPage';
+import { ManageStakingPage } from '@/components/ManageStakingPage';
 import { Settings } from '@/components/SettingsPage';
 import { Setup } from '@/components/SetupPage';
 import { Pages } from '@/enums/PageState';
 import { useElectronApi } from '@/hooks/useElectronApi';
 import { usePageState } from '@/hooks/usePageState';
-import { ManageStakingPage } from '@/components/ManageStakingPage';
 
 const DEFAULT_APP_HEIGHT = 700;
 
