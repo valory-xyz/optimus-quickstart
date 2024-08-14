@@ -7,6 +7,7 @@ import { Setup } from '@/components/SetupPage';
 import { Pages } from '@/enums/PageState';
 import { useElectronApi } from '@/hooks/useElectronApi';
 import { usePageState } from '@/hooks/usePageState';
+import { ManageStakingPage } from '@/components/ManageStakingPage';
 
 const DEFAULT_APP_HEIGHT = 700;
 
@@ -42,6 +43,8 @@ export default function Home() {
         return <Settings />;
       case Pages.HelpAndSupport:
         return <HelpAndSupport />;
+      case Pages.ManageStaking:
+        return <ManageStakingPage />;
       default:
         return <Main />;
     }

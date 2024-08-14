@@ -1,47 +1,40 @@
-import { CloseOutlined, SettingOutlined } from '@ant-design/icons';
-import { Button, Card, Flex } from 'antd';
+import { CloseOutlined } from '@ant-design/icons';
+import { Button, Card } from 'antd';
 
+import { IncentiveProgramStatus } from '@/enums/IcentiveProgram';
 import { Pages } from '@/enums/PageState';
 import { usePageState } from '@/hooks/usePageState';
 import { IncentiveProgram } from '@/types/IncentiveProgram';
 
 import { CardTitle } from '../Card/CardTitle';
-import { IncentiveProgramSection } from './IncentiveProgramSection';
-import { WhatAreIncentiveProgramsSection } from './WhatAreIncentivePrograms';
+import { StakingContract } from './StakingContract';
+import { WhatAreStakingContractsSection } from './WhatAreStakingContracts';
 
-const IncentivesTitle = () => {
-  return (
-    <CardTitle
-      title={
-        <Flex gap={10}>
-          <SettingOutlined />
-          Settings
-        </Flex>
-      }
-    />
-  );
-};
-
-const mockIncentivePrograms: IncentiveProgram[] = [
+const mockStakingContracts: IncentiveProgram[] = [
   {
-    name: 'Incentive Program 1',
-    rewardsPerWorkPeriod: 100,
-    requiredOlasForStaking: 1000,
+    name: 'Pearl Beta',
+    rewardsPerWorkPeriod: 0.14,
+    requiredOlasForStaking: 40,
+    isEnoughSlots: true,
+    status: IncentiveProgramStatus.New,
     contractAddress: '0x1234567890',
   },
   {
-    name: 'Incentive Program 2',
-    rewardsPerWorkPeriod: 200,
-    requiredOlasForStaking: 2000,
+    name: 'Pearl Alpha',
+    rewardsPerWorkPeriod: 0.047,
+    requiredOlasForStaking: 20,
+    isEnoughSlots: true,
+    status: IncentiveProgramStatus.Selected,
     contractAddress: '0x0987654321',
   },
 ];
 
-export const Incentives = () => {
+export const ManageStakingPage = () => {
   const { goto } = usePageState();
   return (
     <Card
-      title={<IncentivesTitle />}
+      title={<CardTitle title="Manage staking contract" />}
+      bordered={false}
       extra={
         <Button
           size="large"
@@ -50,12 +43,9 @@ export const Incentives = () => {
         />
       }
     >
-      <WhatAreIncentiveProgramsSection />
-      {mockIncentivePrograms.map((program) => (
-        <IncentiveProgramSection
-          key={program.contractAddress}
-          program={program}
-        />
+      <WhatAreStakingContractsSection />
+      {mockStakingContracts.map((contract) => (
+        <StakingContract key={contract.contractAddress} contract={contract} />
       ))}
     </Card>
   );

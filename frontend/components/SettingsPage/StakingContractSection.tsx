@@ -7,20 +7,29 @@ import { useStakingProgram } from '@/hooks/useStakingProgram';
 
 import { CardSection } from '../styled/CardSection';
 
+const { Text } = Typography;
+
 export const StakingContractSection = () => {
   const { goto } = usePageState();
   const { currentStakingProgram } = useStakingProgram();
   return (
-    <CardSection borderbottom="true" vertical gap={8}>
-      <Typography.Text strong>Staking contract</Typography.Text>
-      <Flex gap={4}>
-        <Typography.Text disabled>{currentStakingProgram.name}</Typography.Text>
-        {/* TODO: Add explorer link */}
-        <Typography.Link href="#">
+    <CardSection vertical gap={8} align="start" borderbottom="true">
+      <Text strong>Staking contract</Text>
+      <Flex gap={16}>
+        <Text type="secondary">{currentStakingProgram.name}</Text>
+        <a
+          href={`https://gnosisscan.io/address/${currentStakingProgram.contractAddress}`}
+          target="_blank"
+        >
           Contract details {UNICODE_SYMBOLS.EXTERNAL_LINK}
-        </Typography.Link>
+        </a>
       </Flex>
-      <Button type="default" onClick={() => goto(Pages.ManageStaking)}>
+      <Button
+        type="primary"
+        ghost
+        size="large"
+        onClick={() => goto(Pages.ManageStaking)}
+      >
         Manage
       </Button>
     </CardSection>
