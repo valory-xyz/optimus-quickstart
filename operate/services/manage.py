@@ -72,6 +72,7 @@ SERVICE_YAML = "service.yaml"
 HTTP_OK = 200
 URI_HASH_POSITION = 7
 IPFS_GATEWAY = "https://gateway.autonolas.tech/ipfs/"
+ZERO_ADDRESS = "0x0000000000000000000000000000000000000000"
 
 
 class ServiceManager:
@@ -665,9 +666,16 @@ class ServiceManager:
 
             # current_safe_owners = sftxb.get_service_safe_owners(service_id=chain_data.token)
             # print(f"{current_safe_owners=}")
+            reuse_multisig = True
+            info = sftxb.info(token_id=chain_data.token)
+            if info["multisig"] == "0x0000000000000000000000000000000000000000":
+                reuse_multisig = False
+
+            self.logger.info(f"{reuse_multisig=}")
+
             approve_message, deploy_message = sftxb.get_deploy_data_from_safe(
                 service_id=chain_data.token,
-                reuse_multisig=not is_first_mint,
+                reuse_multisig=reuse_multisig,
                 master_safe=sftxb.wallet.safe,
             )
             sftxb.new_tx().add(approve_message).add(deploy_message).settle()
