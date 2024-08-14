@@ -36,20 +36,19 @@ export type ServiceTemplate = {
   hash: string;
   image: string;
   description: string;
-  configuration: ConfigurationTemplate;
+  service_version: string;
+  home_chain_id: string;
+  configurations: { [key: string]: ConfigurationTemplate };
   deploy?: boolean;
 };
 
 export type ConfigurationTemplate = {
   nft: string;
-  trader_version: string;
   rpc?: string; // added by user
   agent_id: number;
   threshold: number;
   use_staking: boolean;
   cost_of_bond: number;
-  olas_cost_of_bond: number;
-  olas_required_to_stake: number;
   monthly_gas_estimate: number;
   fund_requirements: FundRequirementsTemplate;
 };
