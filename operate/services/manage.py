@@ -667,12 +667,16 @@ class ServiceManager:
 
             self.logger.info(f"{reuse_multisig=}")
 
-            approve_message, deploy_message = sftxb.get_deploy_data_from_safe(
+            messages = sftxb.get_deploy_data_from_safe(
                 service_id=chain_data.token,
                 reuse_multisig=reuse_multisig,
                 master_safe=sftxb.wallet.safe,
             )
-            sftxb.new_tx().add(approve_message).add(deploy_message).settle()
+            tx = sftxb.new_tx()
+            for message in messages:
+                tx.add(message)
+            tx.settle()
+
             chain_data.on_chain_state = OnChainState.DEPLOYED
             service.store()
 
