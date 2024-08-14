@@ -667,7 +667,7 @@ class ServiceManager:
             # print(f"{current_safe_owners=}")
             approve_message, deploy_message = sftxb.get_deploy_data_from_safe(
                 service_id=chain_data.token,
-                reuse_multisig=is_update,
+                reuse_multisig=not is_first_mint,
                 master_safe=sftxb.wallet.safe,
             )
             sftxb.new_tx().add(approve_message).add(deploy_message).settle()

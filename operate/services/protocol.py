@@ -1152,7 +1152,6 @@ class EthSafeTxBuilder(_ChainUtil):
         else:
             raise NotImplementedError
 
-
         deploy_data = registry_instance.encodeABI(
             fn_name="deploy",
             args=[
@@ -1168,7 +1167,6 @@ class EthSafeTxBuilder(_ChainUtil):
             "value": 0,
         }
         return [approve_hash_message, deploy_message]
-
 
     def get_terminate_data(self, service_id: int) -> t.Dict:
         """Get terminate tx data."""
