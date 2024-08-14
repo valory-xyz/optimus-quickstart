@@ -1074,6 +1074,9 @@ class ServiceManager:
         """Start a background funding job."""
         loop = loop or asyncio.get_event_loop()
         service = self.load_or_create(hash=hash)
+        chain_id = service.home_chain_id
+        chain_config = service.chain_configs[chain_id]
+        ledger_config = chain_config.ledger_config
         with ThreadPoolExecutor() as executor:
             while True:
                 try:
@@ -1081,7 +1084,7 @@ class ServiceManager:
                         executor,
                         self.fund_service,
                         hash,  # Service hash
-                        PUBLIC_RPCS[service.ledger_config.chain],  # RPC
+                        PUBLIC_RPCS[ledger_config.chain],  # RPC
                         100000000000000000,  # agent_topup
                         2000000000000000000,  # safe_topup
                         50000000000000000,  # agent_fund_threshold
