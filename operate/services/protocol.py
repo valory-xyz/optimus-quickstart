@@ -68,7 +68,6 @@ from operate.types import ContractAddresses
 from operate.utils.gnosis import (
     MultiSendOperation,
     SafeOperation,
-    get_owners,
     hash_payload_to_hex,
     skill_input_hex_to_payload, NULL_ADDRESS,
 )

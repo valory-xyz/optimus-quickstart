@@ -69,8 +69,6 @@ from operate.types import (
     ChainConfig,
     ChainConfigs,
     ChainType,
-    ConfigurationTemplate,
-    ConfigurationTemplates,
     DeployedNodes,
     DeploymentConfig,
     DeploymentStatus,

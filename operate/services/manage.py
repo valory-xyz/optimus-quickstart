@@ -52,6 +52,7 @@ from operate.types import (
     ServiceTemplate,
     LedgerConfig
 )
+from operate.utils.gnosis import NULL_ADDRESS
 from operate.wallet.master import MasterWalletManager
 
 
@@ -70,7 +71,6 @@ SERVICE_YAML = "service.yaml"
 HTTP_OK = 200
 URI_HASH_POSITION = 7
 IPFS_GATEWAY = "https://gateway.autonolas.tech/ipfs/"
-ZERO_ADDRESS = "0x0000000000000000000000000000000000000000"
 
 
 class ServiceManager:
@@ -428,6 +428,10 @@ class ServiceManager:
 
         if user_params.use_staking:
             self.logger.info("Checking staking compatibility")
+
+            # TODO: Missing check when the service is currently staked in a program, but needs to be staked
+            # in a different target program. The In this case, balance = currently staked balance + safe balance
+
             if chain_data.on_chain_state in (
                 OnChainState.NON_EXISTENT,
                 OnChainState.PRE_REGISTRATION,
@@ -672,7 +676,7 @@ class ServiceManager:
 
             reuse_multisig = True
             info = sftxb.info(token_id=chain_data.token)
-            if info["multisig"] == "0x0000000000000000000000000000000000000000":
+            if info["multisig"] == NULL_ADDRESS:
                 reuse_multisig = False
 
             self.logger.info(f"{reuse_multisig=}")
@@ -1148,7 +1152,7 @@ class ServiceManager:
     ) -> Service:
         """Update a service."""
 
-        self.logger.info("-----Entering update service on-chain-----")
+        self.logger.info("-----Entering update local service-----")
         old_service = self.load_or_create(
             hash=old_hash,
         )
