@@ -1136,6 +1136,7 @@ class EthSafeTxBuilder(_ChainUtil):
             ledger_api=self.ledger_api,
             contract_address=self.contracts["service_manager"],
         )
+        approve_hash_message = None
         if reuse_multisig:
             _deployment_payload, approve_hash_message, error = get_reuse_multisig_from_safe_payload(
                 ledger_api=self.ledger_api,
@@ -1150,7 +1151,10 @@ class EthSafeTxBuilder(_ChainUtil):
                 GNOSIS_SAFE_SAME_ADDRESS_MULTISIG_CONTRACT.name
             ).contracts[self.chain_type]
         else:
-            raise NotImplementedError
+            deployment_payload = get_delployment_payload()
+            gnosis_safe_multisig = ContractConfigs.get(
+                GNOSIS_SAFE_PROXY_FACTORY_CONTRACT.name
+            ).contracts[self.chain_type]
 
         deploy_data = registry_instance.encodeABI(
             fn_name="deploy",
@@ -1166,6 +1170,8 @@ class EthSafeTxBuilder(_ChainUtil):
             "operation": MultiSendOperation.CALL,
             "value": 0,
         }
+        if approve_hash_message is None:
+            return [deploy_message]
         return [approve_hash_message, deploy_message]
 
     def get_terminate_data(self, service_id: int) -> t.Dict:
