@@ -29,7 +29,6 @@ from collections import Counter
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
-import aiohttp  # type: ignore
 import requests
 from aea.helpers.base import IPFSHash
 from aea.helpers.logging import setup_logger
@@ -209,7 +208,6 @@ class ServiceManager:
             f"Something went wrong while trying to get the code uri from IPFS: {res}"
         )
 
-
     def deploy_service_onchain(  # pylint: disable=too-many-statements
         self,
         hash: str,
@@ -361,7 +359,6 @@ class ServiceManager:
             user_params=service.chain_data.user_params,
         )
         service.store()
-
 
     def deploy_service_onchain_from_safe(  # pylint: disable=too-many-statements,too-many-locals
         self,
@@ -867,17 +864,19 @@ class ServiceManager:
             if not chain_config.chain_data.user_params.use_staking and can_unstake:
                 self.logger.info("Use staking is set to false, but service is staked and can be unstaked. Unstaking...")
                 self.unstake_service_on_chain_from_safe(hash=hash, chain_id=chain_id, staking_program_id=current_staking_program)
-                return
 
             info = sftxb.info(token_id=chain_config.chain_data.token)
             chain_config.chain_data.on_chain_state = OnChainState(info["service_state"])
+            staking_state = sftxb.staking_status(
+                service_id=chain_data.token,
+                staking_contract=current_staking_contract,
+            )
 
-            if self._get_on_chain_state(chain_config=chain_config) == StakingState.EVICTED and can_unstake:
+            if staking_state == StakingState.EVICTED and can_unstake:
                 self.logger.info(f"{chain_config.chain_data.token} has been evicted and can be unstaked. Unstaking...")
                 self.unstake_service_on_chain_from_safe(hash=hash, chain_id=chain_id, staking_program_id=current_staking_program)
-                return
 
-            if self._get_on_chain_state(chain_config=chain_config) == StakingState.STAKED and can_unstake and not ocm.staking_rewards_available(current_staking_contract):
+            if staking_state == StakingState.STAKED and can_unstake and not sftxb.staking_rewards_available(current_staking_contract):
                 self.logger.info(
                     f"There are no rewards available, {chain_config.chain_data.token} "
                     f"is already staked and can be unstaked. "
@@ -885,24 +884,24 @@ class ServiceManager:
                 )
                 self.unstake_service_on_chain_from_safe(hash=hash, chain_id=chain_id, staking_program_id=current_staking_program)
 
-            if self._get_on_chain_state(chain_config=chain_config) == StakingState.STAKED and current_staking_program != target_staking_contract and can_unstake:
+            if staking_state == StakingState.STAKED and current_staking_program != target_staking_contract and can_unstake:
                 self.logger.info(
                     f"{chain_config.chain_data.token} is already staked in a different staking program. "
                     f"Unstaking..."
                 )
                 self.unstake_service_on_chain_from_safe(hash=hash, chain_id=chain_id, staking_program_id=current_staking_program)
 
-        state = sftxb.staking_status(
+        staking_state = sftxb.staking_status(
             service_id=chain_config.chain_data.token,
             staking_contract=target_staking_contract,
         )
 
         if (
                 chain_config.chain_data.user_params.use_staking
-                and state == StakingState.UNSTAKED
+                and staking_state == StakingState.UNSTAKED
                 and sftxb.staking_rewards_available(target_staking_contract)
                 and sftxb.staking_slots_available(target_staking_contract)
-                and chain_config.chain_data.on_chain_state == OnChainState.DEPLOYED
+                and self._get_on_chain_state(chain_config=chain_config) == OnChainState.DEPLOYED
         ):
             self.logger.info(f"Approving staking: {chain_config.chain_data.token}")
             sftxb.new_tx().add(
@@ -1026,7 +1025,6 @@ class ServiceManager:
         )
 
         for key in service.keys:
-            print(key.address)
             agent_balance = ledger_api.get_balance(address=key.address)
             self.logger.info(f"Agent {key.address} balance: {agent_balance}")
             self.logger.info(f"Required balance: {agent_fund_threshold}")
