@@ -41,7 +41,6 @@ from operate.ledger.profiles import CONTRACTS, OLAS, STAKING
 from operate.services.protocol import EthSafeTxBuilder, OnChainManager, StakingState
 from operate.services.service import (
     ChainConfig,
-    ChainConfigs,
     DELETE_PREFIX,
     Deployment,
     NON_EXISTENT_TOKEN,
@@ -1020,7 +1019,7 @@ class ServiceManager:
         ledger_config = chain_config.ledger_config
         chain_data = chain_config.chain_data
         wallet = self.wallet_manager.load(ledger_config.type)
-        ledger_api = wallet.ledger_api(chain_type=ledger_config.chain, rpc=ledger_config.rpc)
+        ledger_api = wallet.ledger_api(chain_type=ledger_config.chain, rpc=rpc if rpc else ledger_config.rpc)
         agent_fund_threshold = (
             agent_fund_threshold
             or chain_data.user_params.fund_requirements.agent
