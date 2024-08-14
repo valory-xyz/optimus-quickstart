@@ -663,14 +663,14 @@ class ServiceManager:
         if self._get_on_chain_state(chain_config=chain_config) == OnChainState.FINISHED_REGISTRATION:
             self.logger.info("Deploying service")
 
-            current_safe_owners = sftxb.get_service_safe_owners(service_id=chain_data.token)
-            print(f"{current_safe_owners=}")
-            sftxb.new_tx().add(
-                sftxb.get_deploy_data(
-                    service_id=chain_data.token,
-                    reuse_multisig=is_update,
-                )
-            ).settle()
+            # current_safe_owners = sftxb.get_service_safe_owners(service_id=chain_data.token)
+            # print(f"{current_safe_owners=}")
+            approve_message, deploy_message = sftxb.get_deploy_data_from_safe(
+                service_id=chain_data.token,
+                reuse_multisig=is_update,
+                master_safe=sftxb.wallet.safe,
+            )
+            sftxb.new_tx().add(approve_message).add(deploy_message).settle()
             chain_data.on_chain_state = OnChainState.DEPLOYED
             service.store()
 
@@ -733,15 +733,7 @@ class ServiceManager:
         chain_data.on_chain_state = OnChainState(info["service_state"])
 
         # Determine if the service is staked in a known staking program
-        current_staking_program = None
-        for staking_program in STAKING[ledger_config.chain]:
-            state = sftxb.staking_status(
-                service_id=chain_data.token,
-                staking_contract=STAKING[ledger_config.chain][staking_program],
-            )
-            if state in (StakingState.STAKED, StakingState.EVICTED):
-                current_staking_program = staking_program
-
+        current_staking_program = self._get_current_staking_program(chain_data, ledger_config, sftxb)
         is_staked = current_staking_program is not None
 
         can_unstake = False
@@ -796,6 +788,17 @@ class ServiceManager:
                 new_owner_address=wallet.safe if wallet.safe else wallet.crypto.address  # TODO it should always be safe address
             )  # noqa: E800
 
+    def _get_current_staking_program(self, chain_data, ledger_config, sftxb) -> t.Optional[str]:
+        current_staking_program = None
+        for staking_program in STAKING[ledger_config.chain]:
+            state = sftxb.staking_status(
+                service_id=chain_data.token,
+                staking_contract=STAKING[ledger_config.chain][staking_program],
+            )
+            if state in (StakingState.STAKED, StakingState.EVICTED):
+                current_staking_program = staking_program
+        return current_staking_program
+
     def unbond_service_on_chain(self, hash: str) -> None:
         """
         Unbond service on-chain
@@ -823,107 +826,100 @@ class ServiceManager:
         service.chain_data.on_chain_state = OnChainState.UNBONDED
         service.store()
 
-    def stake_service_on_chain(self, hash: str) -> None:
+    def stake_service_on_chain(self, hash: str, chain_id: int, staking_program_id: str) -> None:
         """
         Stake service on-chain
 
         :param hash: Service hash
         """
-        service = self.load_or_create(hash=hash)
-        if not service.chain_data.user_params.use_staking:
-            self.logger.info("Cannot stake service, `use_staking` is set to false")
-            return
+        raise NotImplementedError
 
-        ocm = self.get_on_chain_manager(service=service)
-        info = ocm.info(token_id=service.chain_data.token)
-        service.chain_data.on_chain_state = OnChainState(info["service_state"])
-
-        if service.chain_data.on_chain_state != OnChainState.DEPLOYED:
-            self.logger.info("Cannot stake service, it's not in deployed state")
-            return
-
-        state = ocm.staking_status(
-            service_id=service.chain_data.token,
-            staking_contract=STAKING[service.ledger_config.chain],
-        )
-        self.logger.info(f"Checking staking status for: {service.chain_data.token}")
-        if state == StakingState.STAKED:
-            self.logger.info(f"{service.chain_data.token} is already staked")
-            service.chain_data.staked = True
-            service.store()
-            return
-
-        if state == StakingState.EVICTED:
-            self.logger.info(f"{service.chain_data.token} has been evicted")
-            service.chain_data.staked = True
-            service.store()
-            self.unstake_service_on_chain(hash=hash)
-
-        self.logger.info(f"Staking service: {service.chain_data.token}")
-        ocm.stake(
-            service_id=service.chain_data.token,
-            service_registry=CONTRACTS[service.ledger_config.chain]["service_registry"],
-            staking_contract=STAKING[service.ledger_config.chain],
-        )
-        service.chain_data.staked = True
-        service.store()
-
-    def stake_service_on_chain_from_safe(self, hash: str) -> None:
+    def stake_service_on_chain_from_safe(self, hash: str, chain_id: str, target_staking_program_id: str) -> None:
         """
         Stake service on-chain
 
         :param hash: Service hash
+        :param chain_id: The chain id to use.
+        :param target_staking_program_id: The staking program id the agent should be on.
         """
         service = self.load_or_create(hash=hash)
-        if not service.chain_data.user_params.use_staking:
-            self.logger.info("Cannot stake service, `use_staking` is set to false")
-            return
+        chain_config = service.chain_configs[chain_id]
+        ledger_config = chain_config.ledger_config
+        target_staking_contract = STAKING[ledger_config.chain][target_staking_program_id]
+        chain_data = chain_config.chain_data
+        sftxb = self.get_eth_safe_tx_builder(ledger_config=ledger_config)
 
-        sftxb = self.get_eth_safe_tx_builder(service=service)
-        info = sftxb.info(token_id=service.chain_data.token)
-        service.chain_data.on_chain_state = OnChainState(info["service_state"])
+        # TODO fixme
+        os.environ["CUSTOM_CHAIN_RPC"] = ledger_config.rpc
 
-        if service.chain_data.on_chain_state != OnChainState.DEPLOYED:
-            self.logger.info("Cannot stake service, it's not in deployed state")
-            return
+        # Determine if the service is staked in a known staking program
+        current_staking_program = self._get_current_staking_program(chain_data, ledger_config, sftxb)
+        is_staked = current_staking_program is not None
+        current_staking_contract = STAKING[ledger_config.chain][current_staking_program] if is_staked else None
+
+        # perform the unstaking flow if necessary
+        if is_staked:
+            can_unstake = sftxb.can_unstake(chain_config.chain_data.token, current_staking_contract)
+            if not chain_config.chain_data.user_params.use_staking and can_unstake:
+                self.logger.info("Use staking is set to false, but service is staked and can be unstaked. Unstaking...")
+                self.unstake_service_on_chain_from_safe(hash=hash, chain_id=chain_id, staking_program_id=current_staking_program)
+                return
+
+            info = sftxb.info(token_id=chain_config.chain_data.token)
+            chain_config.chain_data.on_chain_state = OnChainState(info["service_state"])
+
+            if self._get_on_chain_state(chain_config=chain_config) == StakingState.EVICTED and can_unstake:
+                self.logger.info(f"{chain_config.chain_data.token} has been evicted and can be unstaked. Unstaking...")
+                self.unstake_service_on_chain_from_safe(hash=hash, chain_id=chain_id, staking_program_id=current_staking_program)
+                return
+
+            if self._get_on_chain_state(chain_config=chain_config) == StakingState.STAKED and can_unstake and not ocm.staking_rewards_available(current_staking_contract):
+                self.logger.info(
+                    f"There are no rewards available, {chain_config.chain_data.token} "
+                    f"is already staked and can be unstaked. "
+                    f"Unstaking..."
+                )
+                self.unstake_service_on_chain_from_safe(hash=hash, chain_id=chain_id, staking_program_id=current_staking_program)
+
+            if self._get_on_chain_state(chain_config=chain_config) == StakingState.STAKED and current_staking_program != target_staking_contract and can_unstake:
+                self.logger.info(
+                    f"{chain_config.chain_data.token} is already staked in a different staking program. "
+                    f"Unstaking..."
+                )
+                self.unstake_service_on_chain_from_safe(hash=hash, chain_id=chain_id, staking_program_id=current_staking_program)
 
         state = sftxb.staking_status(
-            service_id=service.chain_data.token,
-            staking_contract=STAKING[service.ledger_config.chain],
+            service_id=chain_config.chain_data.token,
+            staking_contract=target_staking_contract,
         )
-        self.logger.info(f"Checking staking status for: {service.chain_data.token}")
-        if state == StakingState.STAKED:
-            self.logger.info(f"{service.chain_data.token} is already staked")
-            service.chain_data.staked = True
+
+        if (
+                chain_config.chain_data.user_params.use_staking
+                and state == StakingState.UNSTAKED
+                and sftxb.staking_rewards_available(target_staking_contract)
+                and sftxb.staking_slots_available(target_staking_contract)
+                and chain_config.chain_data.on_chain_state == OnChainState.DEPLOYED
+        ):
+            self.logger.info(f"Approving staking: {chain_config.chain_data.token}")
+            sftxb.new_tx().add(
+                sftxb.get_staking_approval_data(
+                    service_id=chain_config.chain_data.token,
+                    service_registry=CONTRACTS[ledger_config.chain][
+                        "service_registry"
+                    ],
+                    staking_contract=target_staking_contract,
+                )
+            ).settle()
+
+            self.logger.info(f"Staking service: {chain_config.chain_data.token}")
+            sftxb.new_tx().add(
+                sftxb.get_staking_data(
+                    service_id=chain_config.chain_data.token,
+                    staking_contract=target_staking_contract,
+                )
+            ).settle()
+            chain_config.chain_data.staked = True
             service.store()
-            return
-
-        if state == StakingState.EVICTED:
-            self.logger.info(f"{service.chain_data.token} has been evicted")
-            service.chain_data.staked = True
-            service.store()
-            self.unstake_service_on_chain_from_safe(hash=hash)
-
-        self.logger.info(f"Approving staking: {service.chain_data.token}")
-        sftxb.new_tx().add(
-            sftxb.get_staking_approval_data(
-                service_id=service.chain_data.token,
-                service_registry=CONTRACTS[service.ledger_config.chain][
-                    "service_registry"
-                ],
-                staking_contract=STAKING[service.ledger_config.chain],
-            )
-        ).settle()
-
-        self.logger.info(f"Staking service: {service.chain_data.token}")
-        sftxb.new_tx().add(
-            sftxb.get_staking_data(
-                service_id=service.chain_data.token,
-                staking_contract=STAKING[service.ledger_config.chain],
-            )
-        ).settle()
-        service.chain_data.staked = True
-        service.store()
 
     def unstake_service_on_chain(self, hash: str) -> None:
         """
