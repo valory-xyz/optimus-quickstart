@@ -16,7 +16,10 @@ import { useInterval } from 'usehooks-ts';
 
 import { Wallet } from '@/client';
 import { FIVE_SECONDS_INTERVAL } from '@/constants/intervals';
-import { LOW_AGENT_BALANCE, LOW_BALANCE } from '@/constants/thresholds';
+import {
+  LOW_AGENT_SAFE_BALANCE,
+  LOW_MASTER_SAFE_BALANCE,
+} from '@/constants/thresholds';
 import { TOKENS } from '@/constants/tokens';
 import { ServiceRegistryL2ServiceState } from '@/enums/ServiceRegistryL2ServiceState';
 import { Token } from '@/enums/Token';
@@ -207,9 +210,9 @@ export const BalanceProvider = ({ children }: PropsWithChildren) => {
   const isLowBalance = useMemo(() => {
     if (!safeBalance || !agentSafeBalance) return false;
     if (
-      safeBalance.ETH < LOW_BALANCE &&
+      safeBalance.ETH < LOW_MASTER_SAFE_BALANCE &&
       // Need to check agentSafe balance as well, because it's auto-funded from safeBalance
-      agentSafeBalance.ETH < LOW_AGENT_BALANCE
+      agentSafeBalance.ETH < LOW_AGENT_SAFE_BALANCE
     )
       return true;
     return false;
