@@ -1,10 +1,10 @@
 import { useEffect, useMemo } from 'react';
 
-import { HelpAndSupport } from '@/components/HelpAndSupport';
-import { Main } from '@/components/Main';
-import { Settings } from '@/components/Settings';
-import { Setup } from '@/components/Setup';
-import { PageState } from '@/enums/PageState';
+import { HelpAndSupport } from '@/components/HelpAndSupportPage';
+import { Main } from '@/components/MainPage';
+import { Settings } from '@/components/SettingsPage';
+import { Setup } from '@/components/SetupPage';
+import { Pages } from '@/enums/PageState';
 import { useElectronApi } from '@/hooks/useElectronApi';
 import { usePageState } from '@/hooks/usePageState';
 
@@ -34,13 +34,13 @@ export default function Home() {
 
   const page = useMemo(() => {
     switch (pageState) {
-      case PageState.Setup:
+      case Pages.Setup:
         return <Setup />;
-      case PageState.Main:
+      case Pages.Main:
         return <Main />;
-      case PageState.Settings:
+      case Pages.Settings:
         return <Settings />;
-      case PageState.HelpAndSupport:
+      case Pages.HelpAndSupport:
         return <HelpAndSupport />;
       default:
         return <Main />;

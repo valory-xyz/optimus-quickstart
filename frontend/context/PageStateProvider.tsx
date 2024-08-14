@@ -6,20 +6,20 @@ import {
   useState,
 } from 'react';
 
-import { PageState } from '@/enums/PageState';
+import { Pages } from '@/enums/PageState';
 
 type PageStateContextType = {
-  pageState: PageState;
-  setPageState: Dispatch<SetStateAction<PageState>>;
+  pageState: Pages;
+  setPageState: Dispatch<SetStateAction<Pages>>;
 };
 
 export const PageStateContext = createContext<PageStateContextType>({
-  pageState: PageState.Setup,
+  pageState: Pages.Setup,
   setPageState: () => {},
 });
 
 export const PageStateProvider = ({ children }: PropsWithChildren) => {
-  const [pageState, setPageState] = useState(PageState.Setup);
+  const [pageState, setPageState] = useState(Pages.Setup);
 
   return (
     <PageStateContext.Provider value={{ pageState, setPageState }}>

@@ -14,7 +14,7 @@ const icons = {
   error: <ExclamationCircleOutlined />,
 };
 
-export const Alert = ({
+export const CustomAlert = ({
   type,
   fullWidth,
   ...rest
