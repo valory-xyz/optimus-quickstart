@@ -664,8 +664,6 @@ class ServiceManager:
         if self._get_on_chain_state(chain_config=chain_config) == OnChainState.FINISHED_REGISTRATION:
             self.logger.info("Deploying service")
 
-            # current_safe_owners = sftxb.get_service_safe_owners(service_id=chain_data.token)
-            # print(f"{current_safe_owners=}")
             reuse_multisig = True
             info = sftxb.info(token_id=chain_data.token)
             if info["multisig"] == "0x0000000000000000000000000000000000000000":
