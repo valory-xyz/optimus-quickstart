@@ -510,44 +510,29 @@ def create_app(  # pylint: disable=too-many-locals, unused-argument, too-many-st
             old_hash = manager.json[0]["hash"]
             if old_hash == template["hash"]:
                 logger.info(f'Loading service {template["hash"]}')
-                chain_configs = [
-                    services.manage.ChainConfig.from_json(item)
-                    for item in template["chain_configs"]
-                ]
                 service = manager.load_or_create(
                     hash=template["hash"],
-                    chain_configs=chain_configs,
+                    service_template=template,
                 )
             else:
                 logger.info(f"Updating service from {old_hash} to " + template["hash"])
                 service = manager.update_service(
                     old_hash=old_hash,
                     new_hash=template["hash"],
-                    rpc=template["configuration"]["rpc"],
-                    on_chain_user_params=services.manage.OnChainUserParams.from_json(
-                        template["configuration"]
-                    ),
-                    from_safe=True,
+                    service_template=template,
                 )
-                update = True
         else:
             logger.info(f'Creating service {template["hash"]}')
-            chain_configs = [
-                services.manage.ChainConfig.from_json(item)
-                for item in template["chain_configs"]
-            ]
             service = manager.load_or_create(
                 hash=template["hash"],
-                chain_configs=chain_configs,
+                service_template=template,
             )
 
         if template.get("deploy", False):
 
             def _fn() -> None:
-                manager.deploy_service_onchain_from_safe(
-                    hash=service.hash, update=update
-                )
-                manager.stake_service_on_chain_from_safe(hash=service.hash)
+                manager.deploy_service_onchain_from_safe(hash=service.hash)
+                # manager.stake_service_on_chain_from_safe(hash=service.hash) # Done inside deploy_service_onchain
                 manager.fund_service(hash=service.hash)
                 manager.deploy_service_locally(hash=service.hash)
 
@@ -572,8 +557,8 @@ def create_app(  # pylint: disable=too-many-locals, unused-argument, too-many-st
         )
         if template.get("deploy", False):
             manager = operate.service_manager()
-            manager.deploy_service_onchain_from_safe(hash=service.hash, update=True)
-            manager.stake_service_on_chain_from_safe(hash=service.hash)
+            manager.deploy_service_onchain_from_safe(hash=service.hash)
+            # manager.stake_service_on_chain_from_safe(hash=service.hash)  # Done in deploy_service_onchain_from_safe
             manager.fund_service(hash=service.hash)
             manager.deploy_service_locally(hash=service.hash)
             schedule_funding_job(service=service.hash)
@@ -597,6 +582,7 @@ def create_app(  # pylint: disable=too-many-locals, unused-argument, too-many-st
             )
         )
 
+    # TODO this endpoint is possibly not used
     @app.post("/api/services/{service}/onchain/deploy")
     @with_retries
     async def _deploy_service_onchain(request: Request) -> JSONResponse:
@@ -689,7 +675,7 @@ def create_app(  # pylint: disable=too-many-locals, unused-argument, too-many-st
 
         def _fn() -> None:
             manager.deploy_service_onchain(hash=service)
-            manager.stake_service_on_chain(hash=service)
+            # manager.stake_service_on_chain(hash=service)
             manager.fund_service(hash=service)
             manager.deploy_service_locally(hash=service, force=True)
 

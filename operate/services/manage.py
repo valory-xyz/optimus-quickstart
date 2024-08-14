@@ -402,6 +402,7 @@ class ServiceManager:
         os.environ["CUSTOM_CHAIN_RPC"] = ledger_config.rpc
         os.environ["OPEN_AUTONOMY_SUBGRAPH_URL"] = "https://subgraph.autonolas.tech/subgraphs/name/autonolas-staging"
 
+        current_agent_id = None
         if chain_data.token > -1:
             self.logger.info("Syncing service state")
             info = sftxb.info(token_id=chain_data.token)
@@ -1146,26 +1147,25 @@ class ServiceManager:
         self,
         old_hash: str,
         new_hash: str,
-        rpc: t.Optional[str] = None,
-        on_chain_user_params: t.Optional[OnChainUserParams] = None,
-        from_safe: bool = True,  # pylint: disable=unused-argument
+        service_template: t.Optional[ServiceTemplate] = None,
     ) -> Service:
         """Update a service."""
 
         self.logger.info("-----Entering update local service-----")
         old_service = self.load_or_create(
-            hash=old_hash,
+            hash=old_hash
         )
         new_service = self.load_or_create(
             hash=new_hash,
-            rpc=rpc or old_service.ledger_config.rpc,
-            on_chain_user_params=on_chain_user_params
-            or old_service.chain_data.user_params,
+            service_template=service_template
         )
         new_service.keys = old_service.keys
-        new_service.chain_data = old_service.chain_data
-        new_service.ledger_config = old_service.ledger_config
-        new_service.chain_data.on_chain_state = OnChainState.NON_EXISTENT
+        # new_Service.home_chain_id = old_service.home_chain_id
+
+        # FIXME New service must copy all chain_data from old service,
+        # but if service_template is not None, it must copy the user_params
+        # passed in the service_template.
+        new_service.chain_configs = old_service.chain_configs
         new_service.store()
 
         # The following logging has been added to identify OS issues when
