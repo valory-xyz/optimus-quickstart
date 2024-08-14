@@ -364,6 +364,11 @@ class ServiceManager:
         self,
         hash: str,
     ) -> None:
+        """
+        Deploy as service on-chain
+
+        :param hash: Service hash
+        """
         service = self.load_or_create(hash=hash)
         for chain_id in service.chain_configs.keys():
             self._deploy_service_onchain_from_safe(
@@ -456,9 +461,14 @@ class ServiceManager:
             and (on_chain_hash is not None)
             and (on_chain_hash != service.hash or current_agent_id != staking_params["agent_ids"][0])
         )
+        current_staking_program = self._get_current_staking_program(chain_data, ledger_config, sftxb)
 
+        self.logger.info(f"{current_staking_program=}")
+        self.logger.info(f"{user_params.staking_program_id=}")
         self.logger.info(f"{on_chain_hash=}")
         self.logger.info(f"{service.hash=}")
+        self.logger.info(f"{current_agent_id=}")
+        self.logger.info(f"{staking_params['agent_ids'][0]=}")
         self.logger.info(f"{is_first_mint=}")
         self.logger.info(f"{is_update=}")
 
@@ -684,9 +694,9 @@ class ServiceManager:
         info = sftxb.info(token_id=chain_data.token)
         chain_data.instances = info["instances"]
         chain_data.multisig = info["multisig"]
-        chain_data.staked = False
         chain_data.on_chain_state = OnChainState(info["service_state"])
         service.store()
+        self.stake_service_on_chain_from_safe(hash=hash, chain_id=chain_id)
 
     def terminate_service_on_chain(self, hash: str) -> None:
         """
@@ -794,6 +804,9 @@ class ServiceManager:
             )  # noqa: E800
 
     def _get_current_staking_program(self, chain_data, ledger_config, sftxb) -> t.Optional[str]:
+        if chain_data.token == NON_EXISTENT_TOKEN:
+            return None
+
         current_staking_program = None
         for staking_program in STAKING[ledger_config.chain]:
             state = sftxb.staking_status(
@@ -839,7 +852,7 @@ class ServiceManager:
         """
         raise NotImplementedError
 
-    def stake_service_on_chain_from_safe(self, hash: str, chain_id: str, target_staking_program_id: str) -> None:
+    def stake_service_on_chain_from_safe(self, hash: str, chain_id: str) -> None:
         """
         Stake service on-chain
 
@@ -850,8 +863,10 @@ class ServiceManager:
         service = self.load_or_create(hash=hash)
         chain_config = service.chain_configs[chain_id]
         ledger_config = chain_config.ledger_config
-        target_staking_contract = STAKING[ledger_config.chain][target_staking_program_id]
         chain_data = chain_config.chain_data
+        user_params = chain_data.user_params
+        target_staking_program_id = user_params.staking_program_id
+        target_staking_contract = STAKING[ledger_config.chain][target_staking_program_id]
         sftxb = self.get_eth_safe_tx_builder(ledger_config=ledger_config)
 
         # TODO fixme
@@ -866,7 +881,7 @@ class ServiceManager:
         if is_staked:
             can_unstake = sftxb.can_unstake(chain_config.chain_data.token, current_staking_contract)
             if not chain_config.chain_data.user_params.use_staking and can_unstake:
-                self.logger.info("Use staking is set to false, but service is staked and can be unstaked. Unstaking...")
+                self.logger.info(f"Use staking is set to false, but service {chain_config.chain_data.token} is staked and can be unstaked. Unstaking...")
                 self.unstake_service_on_chain_from_safe(hash=hash, chain_id=chain_id, staking_program_id=current_staking_program)
 
             info = sftxb.info(token_id=chain_config.chain_data.token)
@@ -877,21 +892,19 @@ class ServiceManager:
             )
 
             if staking_state == StakingState.EVICTED and can_unstake:
-                self.logger.info(f"{chain_config.chain_data.token} has been evicted and can be unstaked. Unstaking...")
+                self.logger.info(f"Service {chain_config.chain_data.token} has been evicted and can be unstaked. Unstaking...")
                 self.unstake_service_on_chain_from_safe(hash=hash, chain_id=chain_id, staking_program_id=current_staking_program)
 
             if staking_state == StakingState.STAKED and can_unstake and not sftxb.staking_rewards_available(current_staking_contract):
                 self.logger.info(
-                    f"There are no rewards available, {chain_config.chain_data.token} "
-                    f"is already staked and can be unstaked. "
-                    f"Unstaking..."
+                    f"There are no rewards available, service {chain_config.chain_data.token} "
+                    f"is already staked and can be unstaked. Unstaking..."
                 )
                 self.unstake_service_on_chain_from_safe(hash=hash, chain_id=chain_id, staking_program_id=current_staking_program)
 
             if staking_state == StakingState.STAKED and current_staking_program != target_staking_contract and can_unstake:
                 self.logger.info(
-                    f"{chain_config.chain_data.token} is already staked in a different staking program. "
-                    f"Unstaking..."
+                    f"{chain_config.chain_data.token} is staked in a different staking program. Unstaking..."
                 )
                 self.unstake_service_on_chain_from_safe(hash=hash, chain_id=chain_id, staking_program_id=current_staking_program)
 
@@ -1046,13 +1059,13 @@ class ServiceManager:
                     from_safe=from_safe,
                 )
 
-        safe_balanace = ledger_api.get_balance(chain_data.multisig)
+        safe_balance = ledger_api.get_balance(chain_data.multisig)
         safe_fund_treshold = (
             safe_fund_treshold or chain_data.user_params.fund_requirements.safe
         )
-        self.logger.info(f"Safe {chain_data.multisig} balance: {safe_balanace}")
+        self.logger.info(f"Safe {chain_data.multisig} balance: {safe_balance}")
         self.logger.info(f"Required balance: {safe_fund_treshold}")
-        if safe_balanace < safe_fund_treshold:
+        if safe_balance < safe_fund_treshold:
             self.logger.info("Funding safe")
             to_transfer = (
                 safe_topup or chain_data.user_params.fund_requirements.safe
