@@ -82,7 +82,7 @@ from operate.types import (
     OnChainUserParams,
     ServiceTemplate,
 )
-
+from aea.helpers.env_vars import apply_env_variables
 
 SAFE_CONTRACT_ADDRESS = "safe_contract_address"
 ALL_PARTICIPANTS = "all_participants"
@@ -232,6 +232,7 @@ class ServiceBuilder(BaseServiceBuilder):
         self.service.overrides = overrides
 
 
+
 class ServiceHelper:
     """Service config helper."""
 
@@ -244,18 +245,25 @@ class ServiceHelper:
         """Get ledger configs."""
         ledger_configs = {}
         for override in self.config.overrides:
+            override = apply_env_variables(
+                override,
+                env_variables=os.environ.copy()
+            )
             if (
                 override["type"] == "connection"
                 and "valory/ledger" in override["public_id"]
             ):
+                import pdb;pdb.set_trace()
                 (_, config), *_ = override["config"]["ledger_apis"].items()
                 # TODO chain name is inferred from the chain_id. The actual id provided on service.yaml is ignored.
+
                 chain = ChainType.from_id(cid=config["chain_id"])
                 ledger_configs[str(config["chain_id"])] = LedgerConfig(
                     rpc=config["address"],
                     chain=chain,
                     type=LedgerType.ETHEREUM,
                 )
+                print(f"Adding {chain} {config['address']}")
         return ledger_configs
 
     def deployment_config(self) -> DeploymentConfig:

@@ -48,6 +48,8 @@ web3 = "==6.1.0"
 psutil = "^5.9.8"
 pyinstaller = "^6.8.0"
 aiohttp = "3.9.5"
+halo = "^0.0.31"
+icecream = "^2.1.3"
 
 [tool.poetry.group.development.dependencies]
 tomte = {version = "0.2.17", extras = ["cli"]}
