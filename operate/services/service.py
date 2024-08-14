@@ -633,6 +633,7 @@ class Deployment(LocalResource):
 class Service(LocalResource):
     """Service class."""
 
+    version: int
     hash: str
     keys: Keys
     home_chain_id: int
@@ -649,8 +650,58 @@ class Service(LocalResource):
     _file = "config.json"
 
     @classmethod
+    def migrate_format(cls, path: Path) -> None:
+        """Migrate the JSON file format if needed."""
+        file_path = path / Service._file if Service._file is not None and path.name != Service._file else path
+        
+        with open(file_path, 'r', encoding='utf-8') as file:
+            data = json.load(file)
+        
+        if 'version' in data:
+            # Data is already in the new format
+            return
+        
+        # Migrate from old format to new format
+        new_data = {
+            "version": 2,
+            "hash": data.get("hash"),
+            "keys": data.get("keys"),
+            "home_chain_id": "100",  # Assuming a default value for home_chain_id
+            "chain_configs": {
+                "100": {
+                    "ledger_config": {
+                        "rpc": data.get("ledger_config", {}).get("rpc"),
+                        "type": data.get("ledger_config", {}).get("type"),
+                        "chain": data.get("ledger_config", {}).get("chain")
+                    },
+                    "chain_data": {
+                        "instances": data.get("chain_data", {}).get("instances", []),
+                        "token": data.get("chain_data", {}).get("token"),
+                        "multisig": data.get("chain_data", {}).get("multisig"),
+                        "staked": data.get("chain_data", {}).get("staked", False),
+                        "on_chain_state": data.get("chain_data", {}).get("on_chain_state", 3),
+                        "user_params": {
+                            "staking_program_id": "pearl_alpha",
+                            "nft": data.get("chain_data", {}).get("user_params", {}).get("nft"),
+                            "threshold": data.get("chain_data", {}).get("user_params", {}).get("threshold"),
+                            "use_staking": data.get("chain_data", {}).get("user_params", {}).get("use_staking"),
+                            "cost_of_bond": data.get("chain_data", {}).get("user_params", {}).get("cost_of_bond"),
+                            "fund_requirements": data.get("chain_data", {}).get("user_params", {}).get("fund_requirements", {})
+                        }
+                    }
+                }
+            },
+            "service_path": data.get("service_path", ""),
+            "name": data.get("name", "")
+        }
+        
+        with open(file_path, 'w', encoding='utf-8') as file:
+            json.dump(new_data, file, indent=2)
+
+    @classmethod
     def load(cls, path: Path) -> "Service":
         """Load a service"""
+        cls.migrate_format(path)
         return super().load(path)  # type: ignore
 
     @property
@@ -710,6 +761,7 @@ class Service(LocalResource):
             )
 
         service = Service(
+            version=2,  # TODO implement in appropriate place
             name=service_yaml["author"] + "/" + service_yaml["name"],
             hash=service_template["hash"],
             keys=keys,

@@ -320,7 +320,7 @@ class ServiceManager:
         service.chain_data.on_chain_state = OnChainState(info["service_state"])
 
         if service.chain_data.on_chain_state == OnChainState.ACTIVE_REGISTRATION:
-            self.logger.info("Registering service")
+            self.logger.info("Registering agent instances")
             ocm.register(
                 service_id=service.chain_data.token,
                 instances=instances,
@@ -647,7 +647,7 @@ class ServiceManager:
                 cost_of_bond = 1
 
             self.logger.info(
-                f"Registering service: {chain_data.token} -> {instances}"
+                f"Registering agent instances: {chain_data.token} -> {instances}"
             )
             sftxb.new_tx().add(
                 sftxb.get_register_instances_data(
