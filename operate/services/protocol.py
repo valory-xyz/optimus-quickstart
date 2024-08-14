@@ -1359,10 +1359,17 @@ def get_packed_signature_for_approved_hash(owners: t.Tuple[str]) -> bytes:
         sorted_owners = sorted(owners, key=str.lower)
         signatures = b''
         for owner in sorted_owners:
-            # set r = address, s = 0, v = 1
-            r, v = owner, 1
-            # Packed signature data ({bytes32 r}{bytes32 s}{uint8 v})
-            packed_signature = to_bytes(hexstr=r.ljust(66, '0')) + to_bytes(hexstr='0'.zfill(64)) + to_bytes(v)
+            # Convert address to bytes and ensure it is 32 bytes long (left-padded with zeros)
+            r_bytes = to_bytes(hexstr=owner[2:].rjust(64, '0'))
+
+            # `s` as 32 zero bytes
+            s_bytes = b'\x00' * 32
+
+            # `v` as a single byte
+            v_bytes = to_bytes(1)
+
+            # Concatenate r, s, and v to form the packed signature
+            packed_signature = r_bytes + s_bytes + v_bytes
             signatures += packed_signature
 
         return signatures
@@ -1381,7 +1388,7 @@ def get_reuse_multisig_from_safe_payload(  # pylint: disable=too-many-locals
         token_id=service_id,
     )
     if multisig_address == NULL_ADDRESS:
-        return None, "Cannot reuse multisig, No previous deployment exist!"
+        return None, None, "Cannot reuse multisig, No previous deployment exist!"
 
     multisend_address = ContractConfigs.get(MULTISEND_CONTRACT.name).contracts[
         chain_type
