@@ -505,7 +505,6 @@ def create_app(  # pylint: disable=too-many-locals, unused-argument, too-many-st
             return USER_NOT_LOGGED_IN_ERROR
         template = await request.json()
         manager = operate.service_manager()
-        update = False
         if len(manager.json) > 0:
             old_hash = manager.json[0]["hash"]
             if old_hash == template["hash"]:

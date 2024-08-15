@@ -1162,10 +1162,16 @@ class ServiceManager:
         new_service.keys = old_service.keys
         # new_Service.home_chain_id = old_service.home_chain_id
 
-        # FIXME New service must copy all chain_data from old service,
+        # TODO - Ensure this works as expected - New service must copy all chain_data from old service,
         # but if service_template is not None, it must copy the user_params
-        # passed in the service_template.
-        new_service.chain_configs = old_service.chain_configs
+        # passed in the service_template and copy the remaining attributes from old_service.
+
+        new_service.chain_configs = {}
+        for chain_id, config in old_service.chain_configs.items():
+            new_service.chain_configs[chain_id] = config 
+            if service_template:
+                new_service.chain_configs[chain_id].chain_data.user_params = OnChainUserParams.from_json(service_template["configurations"][chain_id])
+
         new_service.store()
 
         # The following logging has been added to identify OS issues when
