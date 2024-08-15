@@ -16,12 +16,13 @@ export const SERVICE_TEMPLATES: ServiceTemplate[] = [
         threshold: 1,
         use_staking: true,
         cost_of_bond: 10000000000000000,
+        olas_required_to_stake: 10000000000000000000,
         monthly_gas_estimate: 10000000000000000000,
         fund_requirements: {
           agent: 100000000000000000,
           safe: 5000000000000000000,
         },
-      }
+      },
     },
   },
 ];
