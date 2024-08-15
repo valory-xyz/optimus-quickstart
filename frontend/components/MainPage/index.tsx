@@ -12,6 +12,7 @@ import { AddFundsSection } from './sections/AddFundsSection';
 import { GasBalanceSection } from './sections/GasBalanceSection';
 import { KeepAgentRunningSection } from './sections/KeepAgentRunningSection';
 import { MainNeedsFunds } from './sections/NeedsFundsSection';
+import { NewStakingProgramAlertSection } from './sections/NewStakingProgramAlertSection';
 import { MainOlasBalance } from './sections/OlasBalanceSection';
 import { MainRewards } from './sections/RewardsSection';
 
@@ -49,6 +50,7 @@ export const Main = () => {
       style={{ borderTopColor: 'transparent' }}
     >
       <Flex vertical>
+        <NewStakingProgramAlertSection />
         <MainOlasBalance />
         <MainRewards />
         <KeepAgentRunningSection />
