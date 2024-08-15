@@ -48,7 +48,8 @@ export type ConfigurationTemplate = {
   agent_id: number;
   threshold: number;
   use_staking: boolean;
-  cost_of_bond: number;
+  cost_of_bond: number; // TODO: REQUEST RESET TO NAMING CONVENTION, OLAS_COST_OF_BOND
+  olas_required_to_stake: number; // TODO: CLARIFY WHY THIS WAS REMOVED
   monthly_gas_estimate: number;
   fund_requirements: FundRequirementsTemplate;
 };
