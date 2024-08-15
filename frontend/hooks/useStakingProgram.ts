@@ -1,7 +1,7 @@
 import { useState } from 'react';
 
-import { IncentiveProgramStatus } from '@/enums/IcentiveProgram';
-import { IncentiveProgram } from '@/types/IncentiveProgram';
+import { StakingProgramStatus } from '@/enums/StakingProgramStatus';
+import { StakingProgram } from '@/types/StakingProgram';
 
 /**
  *  Mock hook for staking program abstraction
@@ -12,9 +12,9 @@ export const useStakingProgram = () => {
 
   // TODO: Calculate current staking program
   // from current staking contract address
-  const currentStakingProgram: IncentiveProgram = {
+  const currentStakingProgram: StakingProgram = {
     name: 'Pearl Alpha',
-    status: IncentiveProgramStatus.Selected,
+    status: StakingProgramStatus.Selected,
     contractAddress: '0x',
     rewardsPerWorkPeriod: 0.25,
     requiredOlasForStaking: 20,

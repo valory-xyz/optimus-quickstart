@@ -1,18 +1,16 @@
 import { Tag } from 'antd';
 
-import { IncentiveProgramStatus } from '@/enums/IcentiveProgram';
+import { StakingProgramStatus } from '@/enums/StakingProgramStatus';
 
 export const StakingContractTag = ({
   status,
 }: {
-  status: IncentiveProgramStatus;
+  status: StakingProgramStatus;
 }) => {
-  if (status === IncentiveProgramStatus.New) {
+  if (status === StakingProgramStatus.New) {
     return <Tag color="blue">New</Tag>;
-  } else if (status === IncentiveProgramStatus.Selected) {
+  } else if (status === StakingProgramStatus.Selected) {
     return <Tag>Selected</Tag>;
-  } else if (status === IncentiveProgramStatus.Deprecated) {
-    return <Tag>Deprecated</Tag>;
   }
   return null;
 };

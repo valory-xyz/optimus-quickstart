@@ -1,22 +1,22 @@
 import { CloseOutlined } from '@ant-design/icons';
 import { Button, Card } from 'antd';
 
-import { IncentiveProgramStatus } from '@/enums/IcentiveProgram';
 import { Pages } from '@/enums/PageState';
+import { StakingProgramStatus } from '@/enums/StakingProgramStatus';
 import { usePageState } from '@/hooks/usePageState';
-import { IncentiveProgram } from '@/types/IncentiveProgram';
+import { StakingProgram } from '@/types/StakingProgram';
 
 import { CardTitle } from '../Card/CardTitle';
 import { StakingContract } from './StakingContract';
 import { WhatAreStakingContractsSection } from './WhatAreStakingContracts';
 
-const mockStakingContracts: IncentiveProgram[] = [
+const mockStakingContracts: StakingProgram[] = [
   {
     name: 'Pearl Beta',
     rewardsPerWorkPeriod: 0.14,
     requiredOlasForStaking: 40,
     isEnoughSlots: true,
-    status: IncentiveProgramStatus.New,
+    status: StakingProgramStatus.New,
     contractAddress: '0x1234567890',
   },
   {
@@ -24,7 +24,7 @@ const mockStakingContracts: IncentiveProgram[] = [
     rewardsPerWorkPeriod: 0.047,
     requiredOlasForStaking: 20,
     isEnoughSlots: true,
-    status: IncentiveProgramStatus.Selected,
+    status: StakingProgramStatus.Selected,
     contractAddress: '0x0987654321',
   },
 ];

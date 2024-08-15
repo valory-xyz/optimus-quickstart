@@ -1,5 +1,5 @@
 import { Chain } from '@/client';
-import { StakingProgram } from '@/enums/StakingPrograms';
+import { StakingProgram } from '@/enums/StakingProgram';
 import { Address } from '@/types/Address';
 
 export const MULTICALL_CONTRACT_ADDRESS: Address =

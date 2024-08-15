@@ -4,9 +4,9 @@ import styled from 'styled-components';
 
 import { CardSection } from '@/components/styled/CardSection';
 import { UNICODE_SYMBOLS } from '@/constants/symbols';
-import { IncentiveProgramStatus } from '@/enums/IcentiveProgram';
+import { StakingProgramStatus } from '@/enums/StakingProgramStatus';
 import { useBalance } from '@/hooks/useBalance';
-import { IncentiveProgram } from '@/types/IncentiveProgram';
+import { StakingProgram } from '@/types/StakingProgram';
 
 import {
   AlertInsufficientMigrationFunds,
@@ -40,16 +40,11 @@ const ContractParameter = ({
   </Flex>
 );
 
-export const StakingContract = ({
-  contract,
-}: {
-  contract: IncentiveProgram;
-}) => {
+export const StakingContract = ({ contract }: { contract: StakingProgram }) => {
   const { token } = useToken();
   const { totalOlasBalance, isBalanceLoaded } = useBalance();
 
-  const isDeprecated = contract.status === IncentiveProgramStatus.Deprecated;
-  const isSelected = contract.status === IncentiveProgramStatus.Selected;
+  const isSelected = contract.status === StakingProgramStatus.Selected;
 
   const isEnoughOlas = useMemo(() => {
     if (totalOlasBalance === undefined) return false;
@@ -58,7 +53,6 @@ export const StakingContract = ({
   const isAppVersionCompatible = true; // contract.appVersion === 'rc105';
 
   const isMigratable =
-    !isDeprecated &&
     !isSelected &&
     isBalanceLoaded &&
     contract.isEnoughSlots &&
@@ -66,7 +60,7 @@ export const StakingContract = ({
     isAppVersionCompatible;
 
   const cantMigrateAlert = useMemo(() => {
-    if (isDeprecated || isSelected || !isBalanceLoaded) {
+    if (isSelected || !isBalanceLoaded) {
       return null;
     }
 
@@ -84,7 +78,6 @@ export const StakingContract = ({
       return <AlertUpdateToMigrate />;
     }
   }, [
-    isDeprecated,
     isSelected,
     isBalanceLoaded,
     totalOlasBalance,
