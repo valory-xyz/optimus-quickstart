@@ -2,6 +2,7 @@ import { Flex, Typography } from 'antd';
 import { formatUnits } from 'ethers/lib/utils';
 import { ReactNode, useEffect, useMemo } from 'react';
 
+import { CHAINS } from '@/constants/chains';
 import { UNICODE_SYMBOLS } from '@/constants/symbols';
 import { useBalance } from '@/hooks/useBalance';
 import { useElectronApi } from '@/hooks/useElectronApi';
@@ -31,7 +32,10 @@ const useNeedsFunds = () => {
 
   const serviceFundRequirements = useMemo(() => {
     const monthlyGasEstimate = Number(
-      formatUnits(`${serviceTemplate.configuration.monthly_gas_estimate}`, 18),
+      formatUnits(
+        `${serviceTemplate.configurations[CHAINS.GNOSIS.chainId].monthly_gas_estimate}`,
+        18,
+      ),
     );
 
     const minimumStakedAmountRequired =
