@@ -3,9 +3,11 @@ import { useMemo } from 'react';
 import styled from 'styled-components';
 
 import { CardSection } from '@/components/styled/CardSection';
+import { STAKING_PROGRAM_META } from '@/constants/stakingProgramMeta';
 import { UNICODE_SYMBOLS } from '@/constants/symbols';
 import { StakingProgram } from '@/enums/StakingProgram';
 import { useBalance } from '@/hooks/useBalance';
+import { useStakingContractInfo } from '@/hooks/useStakingContractInfo';
 import { useStakingProgram } from '@/hooks/useStakingProgram';
 import { Address } from '@/types/Address';
 
@@ -48,27 +50,39 @@ export const StakingContractSection = ({
   stakingProgram: StakingProgram;
   contractAddress: Address;
 }) => {
-  const { currentStakingProgram } = useStakingProgram();
-
+  const { activeStakingProgram } = useStakingProgram();
+  const { stakingContractInfoRecord } = useStakingContractInfo();
   const { token } = useToken();
   const { totalOlasBalance, isBalanceLoaded } = useBalance();
 
+  const stakingContractInfo = stakingContractInfoRecord?.[stakingProgram];
+
+  const activeStakingProgramMeta = STAKING_PROGRAM_META[stakingProgram];
+
   const isSelected =
-    currentStakingProgram && currentStakingProgram === stakingProgram;
+    activeStakingProgram && activeStakingProgram === stakingProgram;
 
-  const stakingContractInfo = useMemo(() => {}, []);
-
-  const isEnoughOlas = useMemo(() => {
+  const hasEnoughOlas = useMemo(() => {
     if (totalOlasBalance === undefined) return false;
-    return totalOlasBalance > contract.requiredOlasForStaking;
-  }, [totalOlasBalance, contract.requiredOlasForStaking]);
+    if (!stakingContractInfo) return false;
+    if (!stakingContractInfo.minStakingDeposit) return false;
+    return totalOlasBalance > stakingContractInfo?.minStakingDeposit;
+  }, [stakingContractInfo, totalOlasBalance]);
+
+  const hasEnoughSlots =
+    stakingContractInfo?.maxNumServices &&
+    stakingContractInfo?.serviceIds &&
+    stakingContractInfo?.maxNumServices >
+      stakingContractInfo?.serviceIds?.length;
+
+  // TODO: compatibility needs to be implemented
   const isAppVersionCompatible = true; // contract.appVersion === 'rc105';
 
   const isMigratable =
     !isSelected &&
     isBalanceLoaded &&
-    contract.isEnoughSlots &&
-    isEnoughOlas &&
+    hasEnoughSlots &&
+    hasEnoughOlas &&
     isAppVersionCompatible;
 
   const cantMigrateAlert = useMemo(() => {
@@ -76,11 +90,11 @@ export const StakingContractSection = ({
       return null;
     }
 
-    if (!contract.isEnoughSlots) {
+    if (!hasEnoughSlots) {
       return <AlertNoSlots />;
     }
 
-    if (!isEnoughOlas) {
+    if (!hasEnoughOlas) {
       return (
         <AlertInsufficientMigrationFunds totalOlasBalance={totalOlasBalance!} />
       );
@@ -93,8 +107,8 @@ export const StakingContractSection = ({
     isSelected,
     isBalanceLoaded,
     totalOlasBalance,
-    contract.isEnoughSlots,
-    isEnoughOlas,
+    hasEnoughSlots,
+    hasEnoughOlas,
     isAppVersionCompatible,
   ]);
 
@@ -110,13 +124,14 @@ export const StakingContractSection = ({
         <Typography.Title
           level={5}
           className="m-0"
-        >{`${contract.name} contract`}</Typography.Title>
-        <StakingContractTag status={contract.status} />
+        >{`${activeStakingProgramMeta.name} contract`}</Typography.Title>
+        {/* TODO: pass `status` attribute */}
+        <StakingContractTag />
         {!isSelected && (
           // here instead of isSelected we should check that the contract is not the old staking contract
           // but the one from staking factory (if we want to open govern)
           <a
-            href={`https://gnosisscan.io/address/${contract.contractAddress}`}
+            href={`https://gnosisscan.io/address/${contractAddress}`}
             target="_blank"
             className="ml-auto"
           >
@@ -124,21 +139,29 @@ export const StakingContractSection = ({
           </a>
         )}
       </Flex>
-      {/* Contract details */}
-      <ContractParameter
-        label="Rewards per work period"
-        value={`${contract.rewardsPerWorkPeriod} OLAS`}
-      />
-      <ContractParameter
-        label="Required OLAS for staking"
-        value={`${contract.requiredOlasForStaking} OLAS`}
-      />
-      {/* "Can't migrate" Alert */}
+
+      {/* TODO: fix */}
+
+      {/* Contract details
+      {stakingContractInfo?.availableRewards && (
+        <ContractParameter
+          label="Rewards per work period"
+          value={`${stakingContractInfo?.availableRewards} OLAS`}
+        />
+      )}
+
+      {stakingContractInfo?.minStakingDeposit && (
+        <ContractParameter
+          label="Required OLAS for staking"
+          value={`${stakingContractInfo?.minStakingDeposit} OLAS`}
+        />
+      )} */}
+
       {cantMigrateAlert}
       {/* Switch to program button */}
       {!isSelected && (
         <Button type="primary" size="large" disabled={!isMigratable}>
-          Switch to {contract.name} contract
+          Switch to {activeStakingProgramMeta?.name} contract
         </Button>
       )}
     </CardSection>

@@ -5,7 +5,7 @@ import { StakingProgramStatus } from '@/enums/StakingProgramStatus';
 export const StakingContractTag = ({
   status,
 }: {
-  status: StakingProgramStatus;
+  status?: StakingProgramStatus;
 }) => {
   if (status === StakingProgramStatus.New) {
     return <Tag color="blue">New</Tag>;
