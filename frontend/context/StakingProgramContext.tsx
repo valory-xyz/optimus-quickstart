@@ -9,11 +9,11 @@ import { AutonolasService } from '@/service/Autonolas';
 export const StakingProgramContext = createContext<{
   activeStakingProgram?: StakingProgram | null;
   defaultStakingProgram: StakingProgram;
-  updateStakingProgram: () => Promise<void>;
+  updateActiveStakingProgram: () => Promise<void>;
 }>({
   activeStakingProgram: undefined,
   defaultStakingProgram: StakingProgram.Beta,
-  updateStakingProgram: async () => {},
+  updateActiveStakingProgram: async () => {},
 });
 
 /** Determines the current active staking program, if any */
@@ -23,7 +23,7 @@ export const StakingProgramProvider = ({ children }: PropsWithChildren) => {
   const [activeStakingProgram, setActiveStakingProgram] =
     useState<StakingProgram | null>();
 
-  const updateStakingProgram = useCallback(async () => {
+  const updateActiveStakingProgram = useCallback(async () => {
     // if no service nft, not staked
     const serviceId =
       service?.chain_configs[CHAINS.GNOSIS.chainId].chain_data?.token;
@@ -43,13 +43,13 @@ export const StakingProgramProvider = ({ children }: PropsWithChildren) => {
     }
   }, [service]);
 
-  useInterval(updateStakingProgram, 5000);
+  useInterval(updateActiveStakingProgram, 5000);
 
   return (
     <StakingProgramContext.Provider
       value={{
         activeStakingProgram,
-        updateStakingProgram,
+        updateActiveStakingProgram,
         defaultStakingProgram: StakingProgram.Beta,
       }}
     >

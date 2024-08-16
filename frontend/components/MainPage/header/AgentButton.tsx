@@ -5,6 +5,7 @@ import { useCallback, useMemo } from 'react';
 import { Chain, DeploymentStatus } from '@/client';
 import { COLOR } from '@/constants/colors';
 import { LOW_BALANCE } from '@/constants/thresholds';
+import { StakingProgram } from '@/enums/StakingProgram';
 import { useBalance } from '@/hooks/useBalance';
 import { useElectronApi } from '@/hooks/useElectronApi';
 import { useServices } from '@/hooks/useServices';
@@ -106,14 +107,17 @@ const AgentNotRunningButton = () => {
     totalEthBalance,
   } = useBalance();
   const { storeState } = useStore();
-  const { isEligibleForStaking, isAgentEvicted, stakingContractInfoRecord } =
-    useStakingContractInfo();
+  const { isEligibleForStaking, isAgentEvicted } = useStakingContractInfo();
   const { activeStakingProgram, defaultStakingProgram } = useStakingProgram();
 
-  const minStakingDeposit =
-    stakingContractInfoRecord?.[activeStakingProgram ?? defaultStakingProgram]
-      ?.minStakingDeposit;
-  const requiredOlas = minStakingDeposit && minStakingDeposit * 2;
+  // const minStakingDeposit =
+  //   stakingContractInfoRecord?.[activeStakingProgram ?? defaultStakingProgram]
+  //     ?.minStakingDeposit;
+
+  const requiredOlas = getMinimumStakedAmountRequired(
+    serviceTemplate,
+    activeStakingProgram ?? defaultStakingProgram,
+  );
 
   const safeOlasBalance = safeBalance?.OLAS;
   const safeOlasBalanceWithStaked =
@@ -169,8 +173,10 @@ const AgentNotRunningButton = () => {
       if (!service) {
         showNotification?.('Your agent is now running!');
       } else {
-        const minimumStakedAmountRequired =
-          getMinimumStakedAmountRequired(serviceTemplate);
+        const minimumStakedAmountRequired = getMinimumStakedAmountRequired(
+          serviceTemplate,
+          StakingProgram.Beta, // users should always deploy on Beta if they are yet to start their agent
+        );
 
         showNotification?.(
           `Your agent is running and you've staked ${minimumStakedAmountRequired} OLAS!`,

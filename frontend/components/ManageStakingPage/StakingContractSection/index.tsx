@@ -69,27 +69,31 @@ export const StakingContractSection = ({
   const { totalOlasBalance, isBalanceLoaded } = useBalance();
   const { isServiceStakedForMinimumDuration } = useStakingContractInfo();
 
-  const stakingContractInfo = stakingContractInfoRecord?.[stakingProgram];
+  const stakingContractInfoForStakingProgram =
+    stakingContractInfoRecord?.[stakingProgram];
 
   const activeStakingProgramMeta = STAKING_PROGRAM_META[stakingProgram];
 
   const isSelected =
     activeStakingProgram && activeStakingProgram === stakingProgram;
 
-  const hasEnoughRewards = (stakingContractInfo?.availableRewards ?? 0) > 0;
+  const hasEnoughRewards =
+    (stakingContractInfoForStakingProgram?.availableRewards ?? 0) > 0;
 
   const hasEnoughOlasToMigrate = useMemo(() => {
     if (totalOlasBalance === undefined) return false;
-    if (!stakingContractInfo) return false;
-    if (!stakingContractInfo.minStakingDeposit) return false;
-    return totalOlasBalance > stakingContractInfo?.minStakingDeposit;
-  }, [stakingContractInfo, totalOlasBalance]);
+    if (!stakingContractInfoForStakingProgram) return false;
+    if (!stakingContractInfoForStakingProgram.minStakingDeposit) return false;
+    return (
+      totalOlasBalance > stakingContractInfoForStakingProgram?.minStakingDeposit
+    );
+  }, [stakingContractInfoForStakingProgram, totalOlasBalance]);
 
   const hasEnoughSlots =
-    stakingContractInfo?.maxNumServices &&
-    stakingContractInfo?.serviceIds &&
-    stakingContractInfo?.maxNumServices >
-      stakingContractInfo?.serviceIds?.length;
+    stakingContractInfoForStakingProgram?.maxNumServices &&
+    stakingContractInfoForStakingProgram?.serviceIds &&
+    stakingContractInfoForStakingProgram?.maxNumServices >
+      stakingContractInfoForStakingProgram?.serviceIds?.length;
 
   // TODO: compatibility needs to be implemented
   const isAppVersionCompatible = true; // contract.appVersion === 'rc105';

@@ -8,8 +8,11 @@ import { StakingProgramContext } from '@/context/StakingProgramContext';
  * @returns {currentStakingProgram: IncentiveProgram}
  */
 export const useStakingProgram = () => {
-  const { activeStakingProgram, defaultStakingProgram, updateStakingProgram } =
-    useContext(StakingProgramContext);
+  const {
+    activeStakingProgram,
+    defaultStakingProgram,
+    updateActiveStakingProgram: updateStakingProgram,
+  } = useContext(StakingProgramContext);
 
   const isLoadedActiveStakingProgram = activeStakingProgram !== undefined;
 
