@@ -1,3 +1,4 @@
+import { StakingProgram } from '@/enums/StakingProgram';
 import { Address } from '@/types/Address';
 
 import { Chain, DeploymentStatus, Ledger } from './enums';
@@ -20,6 +21,19 @@ export type ChainData = {
   instances?: Address[];
   token?: number;
   multisig?: Address;
+  on_chain_state: number;
+  staked: boolean;
+  user_params: {
+    cost_of_bond: number;
+    fund_requirements: {
+      agent: number;
+      safe: number;
+    };
+    nft: string;
+    staking_program_id: StakingProgram;
+    threshold: number;
+    use_staking: true;
+  };
 };
 
 export type Service = {
@@ -27,8 +41,12 @@ export type Service = {
   hash: string;
   keys: ServiceKeys[];
   readme?: string;
-  ledger: LedgerConfig;
-  chain_data: ChainData;
+  chain_configs: {
+    [chainId: number]: {
+      ledger_config: LedgerConfig;
+      chain_data: ChainData;
+    };
+  };
 };
 
 export type ServiceTemplate = {
@@ -43,13 +61,13 @@ export type ServiceTemplate = {
 };
 
 export type ConfigurationTemplate = {
+  rpc?: string; // added on deployment
+  staking_program_id?: StakingProgram; // added on deployment
   nft: string;
-  rpc?: string; // added by user
   agent_id: number;
   threshold: number;
   use_staking: boolean;
-  cost_of_bond: number; // TODO: REQUEST RESET TO NAMING CONVENTION, OLAS_COST_OF_BOND
-  olas_required_to_stake: number; // TODO: CLARIFY WHY THIS WAS REMOVED
+  cost_of_bond: number;
   monthly_gas_estimate: number;
   fund_requirements: FundRequirementsTemplate;
 };
