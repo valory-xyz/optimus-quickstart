@@ -15,6 +15,7 @@ import { ServicesProvider } from '@/context/ServicesProvider';
 import { SettingsProvider } from '@/context/SettingsProvider';
 import { SetupProvider } from '@/context/SetupProvider';
 import { StakingContractInfoProvider } from '@/context/StakingContractInfoProvider';
+import { StakingProgramProvider } from '@/context/StakingProgramContext';
 import { StoreProvider } from '@/context/StoreProvider';
 import { WalletProvider } from '@/context/WalletProvider';
 import { mainTheme } from '@/theme';
@@ -37,15 +38,17 @@ export default function App({ Component, pageProps }: AppProps) {
                     <BalanceProvider>
                       <SetupProvider>
                         <SettingsProvider>
-                          <StakingContractInfoProvider>
-                            <ConfigProvider theme={mainTheme}>
-                              {isMounted ? (
-                                <Layout>
-                                  <Component {...pageProps} />
-                                </Layout>
-                              ) : null}
-                            </ConfigProvider>
-                          </StakingContractInfoProvider>
+                          <StakingProgramProvider>
+                            <StakingContractInfoProvider>
+                              <ConfigProvider theme={mainTheme}>
+                                {isMounted ? (
+                                  <Layout>
+                                    <Component {...pageProps} />
+                                  </Layout>
+                                ) : null}
+                              </ConfigProvider>
+                            </StakingContractInfoProvider>
+                          </StakingProgramProvider>
                         </SettingsProvider>
                       </SetupProvider>
                     </BalanceProvider>
