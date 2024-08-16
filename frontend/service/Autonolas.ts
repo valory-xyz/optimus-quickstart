@@ -328,8 +328,6 @@ const getCurrentStakingProgramByServiceId = async (
     const [isAlphaStaked, isBetaStaked] =
       await gnosisMulticallProvider.all(contractCalls);
 
-    console.log(isAlphaStaked, isBetaStaked);
-
     // Alpha should take precedence, as it must be migrated from
     return isAlphaStaked
       ? StakingProgram.Alpha
@@ -337,7 +335,7 @@ const getCurrentStakingProgramByServiceId = async (
         ? StakingProgram.Beta
         : null;
   } catch (error) {
-    console.log('Error while getting current staking program', error);
+    console.error('Error while getting current staking program', error);
     return null;
   }
 };

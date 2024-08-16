@@ -35,10 +35,8 @@ export const StakingProgramProvider = ({ children }: PropsWithChildren) => {
 
     if (serviceId) {
       // if service exists, we need to check if it is staked
-      console.log('getting current staking program');
       AutonolasService.getCurrentStakingProgramByServiceId(serviceId).then(
         (stakingProgram) => {
-          console.log('setting stakingProgram', stakingProgram);
           setActiveStakingProgram(stakingProgram);
         },
       );
