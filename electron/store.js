@@ -1,15 +1,12 @@
-// @ts-check
-const { logger } = require('./logger');
-
 // set schema to validate store data
 const schema = {
-  isInitialFunded: { type: 'boolean', default: null }, // TODO: reconsider this default, can be problematic if user has already funded prior to implementation
-  firstStakingRewardAchieved: { type: 'boolean', default: null },
-  firstRewardNotificationShown: { type: 'boolean', default: null },
-  agentEvictionAlertShown: { type: 'boolean', default: null },
+  isInitialFunded: { type: 'boolean', default: false }, // TODO: reconsider this default, can be problematic if user has already funded prior to implementation
+  firstStakingRewardAchieved: { type: 'boolean', default: false },
+  firstRewardNotificationShown: { type: 'boolean', default: false },
+  agentEvictionAlertShown: { type: 'boolean', default: false },
 
-  environmentName: { type: 'string', default: null },
-  currentStakingProgram: { type: 'string', default: null },
+  environmentName: { type: 'string', default: '' },
+  currentStakingProgram: { type: 'string', default: '' },
 };
 
 /**
@@ -19,17 +16,7 @@ const schema = {
  * @returns {Promise<void>} - A promise that resolves once the store is set up.
  */
 const setupStoreIpc = async (ipcMain, mainWindow) => {
-  let Store;
-  try {
-    Store = await (import('electron-store').then((mod) => mod.default));
-  } catch (error) {
-    logger.error(`Error importing electron-store: ${error}`);
-  }
-
-  if (!Store) {
-    logger.error('electron-store not found');
-    return;
-  }
+  const Store = (await import("electron-store")).default;
 
   const store = new Store({ schema });
 
