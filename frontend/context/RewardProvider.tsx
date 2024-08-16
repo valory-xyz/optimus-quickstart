@@ -43,9 +43,8 @@ export const RewardProvider = ({ children }: PropsWithChildren) => {
   const service = useMemo(() => services?.[0], [services]);
   const { storeState } = useStore();
   const electronApi = useElectronApi();
-  const { currentStakingProgram, defaultStakingProgram } = useContext(
-    StakingProgramContext,
-  );
+  const { activeStakingProgram: currentStakingProgram, defaultStakingProgram } =
+    useContext(StakingProgramContext);
 
   const [accruedServiceStakingRewards, setAccruedServiceStakingRewards] =
     useState<number>();

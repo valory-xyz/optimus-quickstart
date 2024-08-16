@@ -21,8 +21,9 @@ export const SERVICE_STAKING_TOKEN_MECH_USAGE_CONTRACT_ADDRESSES: Record<
   Record<StakingProgram, Address>
 > = {
   [Chain.GNOSIS]: {
-    [StakingProgram.Alpha]: '0xEE9F19b5DF06c7E8Bfc7B28745dcf944C504198A',
+    // Maintain order, as it is used in the UI
     [StakingProgram.Beta]: '0xeF44Fb0842DDeF59D37f85D61A1eF492bbA6135d',
+    [StakingProgram.Alpha]: '0xEE9F19b5DF06c7E8Bfc7B28745dcf944C504198A',
   },
 };
 

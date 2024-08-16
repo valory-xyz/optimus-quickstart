@@ -14,8 +14,8 @@ const { Text } = Typography;
 export const StakingContractSection = () => {
   const { goto } = usePageState();
   const {
-    currentStakingProgram,
-    currentStakingProgramMeta,
+    activeStakingProgram: currentStakingProgram,
+    activeStakingProgramMeta: currentStakingProgramMeta,
     defaultStakingProgram,
   } = useStakingProgram();
 
