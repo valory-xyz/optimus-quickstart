@@ -17,6 +17,7 @@ import { useStakingContractInfo } from '@/hooks/useStakingContractInfo';
 import { useStakingProgram } from '@/hooks/useStakingProgram';
 import { ServicesService } from '@/service/Services';
 import { Address } from '@/types/Address';
+import { getMinimumStakedAmountRequired } from '@/utils/service';
 
 import {
   AlertInsufficientMigrationFunds,
@@ -85,9 +86,10 @@ export const StakingContractSection = ({
     if (!stakingContractInfoForStakingProgram) return false;
     if (!stakingContractInfoForStakingProgram.minStakingDeposit) return false;
     return (
-      totalOlasBalance > stakingContractInfoForStakingProgram?.minStakingDeposit
+      totalOlasBalance >=
+      getMinimumStakedAmountRequired(serviceTemplate, StakingProgram.Beta)
     );
-  }, [stakingContractInfoForStakingProgram, totalOlasBalance]);
+  }, [serviceTemplate, stakingContractInfoForStakingProgram, totalOlasBalance]);
 
   const hasEnoughSlots =
     stakingContractInfoForStakingProgram?.maxNumServices &&
