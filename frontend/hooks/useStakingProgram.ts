@@ -8,14 +8,14 @@ import { StakingProgramContext } from '@/context/StakingProgramContext';
  * @returns {currentStakingProgram: IncentiveProgram}
  */
 export const useStakingProgram = () => {
-  const { currentStakingProgram, defaultStakingProgram } = useContext(
+  const { activeStakingProgram, defaultStakingProgram } = useContext(
     StakingProgramContext,
   );
 
   const [isMigrating, setIsMigrating] = useState(false);
 
-  const currentStakingProgramMeta =
-    STAKING_PROGRAM_META[currentStakingProgram ?? defaultStakingProgram];
+  const activeStakingProgramMeta =
+    STAKING_PROGRAM_META[activeStakingProgram ?? defaultStakingProgram];
 
   // TODO: Implement migration logic
   const migrate = async () => {
@@ -26,8 +26,8 @@ export const useStakingProgram = () => {
   };
 
   return {
-    currentStakingProgram,
-    currentStakingProgramMeta,
+    activeStakingProgram,
+    activeStakingProgramMeta,
     defaultStakingProgram,
     isMigrating,
     migrate,

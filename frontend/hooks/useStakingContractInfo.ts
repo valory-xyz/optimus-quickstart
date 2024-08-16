@@ -5,10 +5,14 @@ import { StakingContractInfoContext } from '@/context/StakingContractInfoProvide
 import { useServices } from './useServices';
 
 export const useStakingContractInfo = () => {
-  const { stakingContractInfo } = useContext(StakingContractInfoContext);
+  const { activeStakingContractInfo, stakingContractInfoRecord } = useContext(
+    StakingContractInfoContext,
+  );
+
   const { services } = useServices();
 
-  if (!services?.[0] || !stakingContractInfo) return {};
+  if (!services?.[0] || !activeStakingContractInfo)
+    return { stakingContractInfoRecord };
 
   const {
     serviceStakingState,
@@ -17,7 +21,7 @@ export const useStakingContractInfo = () => {
     serviceIds,
     maxNumServices,
     minimumStakingDuration,
-  } = stakingContractInfo;
+  } = activeStakingContractInfo;
 
   const isRewardsAvailable = availableRewards > 0;
   const hasEnoughServiceSlots = serviceIds.length < maxNumServices;
@@ -55,5 +59,6 @@ export const useStakingContractInfo = () => {
     isEligibleForStaking,
     isRewardsAvailable,
     isAgentEvicted,
+    stakingContractInfoRecord,
   };
 };

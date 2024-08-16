@@ -5,11 +5,11 @@ import { useServices } from '@/hooks/useServices';
 import { AutonolasService } from '@/service/Autonolas';
 
 export const StakingProgramContext = createContext<{
-  currentStakingProgram?: StakingProgram | null;
+  activeStakingProgram?: StakingProgram | null;
   defaultStakingProgram: StakingProgram;
   updateStakingProgram: () => Promise<void>;
 }>({
-  currentStakingProgram: undefined,
+  activeStakingProgram: undefined,
   defaultStakingProgram: StakingProgram.Beta,
   updateStakingProgram: async () => {},
 });
@@ -18,7 +18,7 @@ export const StakingProgramContext = createContext<{
 export const StakingProgramProvider = ({ children }: PropsWithChildren) => {
   const { service } = useServices();
 
-  const [currentStakingProgram, setCurrentStakingProgram] =
+  const [activeStakingProgram, setCurrentStakingProgram] =
     useState<StakingProgram | null>();
 
   const updateStakingProgram = useCallback(async () => {
@@ -41,7 +41,7 @@ export const StakingProgramProvider = ({ children }: PropsWithChildren) => {
   return (
     <StakingProgramContext.Provider
       value={{
-        currentStakingProgram,
+        activeStakingProgram,
         updateStakingProgram,
         defaultStakingProgram: StakingProgram.Beta,
       }}
