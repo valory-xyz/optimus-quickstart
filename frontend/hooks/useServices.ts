@@ -13,7 +13,11 @@ const checkServiceIsFunded = async (
   serviceTemplate: ServiceTemplate,
 ): Promise<boolean> => {
   const {
-    chain_data: { instances, multisig },
+    chain_configs: {
+      [CHAINS.GNOSIS.chainId]: {
+        chain_data: { instances, multisig },
+      },
+    },
   } = service;
 
   if (!instances || !multisig) return false;
