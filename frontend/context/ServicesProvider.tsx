@@ -12,6 +12,7 @@ import {
 import { useInterval } from 'usehooks-ts';
 
 import { DeploymentStatus, Service } from '@/client';
+import { CHAINS } from '@/constants/chains';
 import { FIVE_SECONDS_INTERVAL } from '@/constants/intervals';
 import { ServicesService } from '@/service/Services';
 import { Address } from '@/types/Address';
@@ -58,11 +59,16 @@ export const ServicesProvider = ({ children }: PropsWithChildren) => {
   const serviceAddresses = useMemo(
     () =>
       services?.reduce<Address[]>((acc, service: Service) => {
-        if (service.chain_data.instances) {
-          acc.push(...service.chain_data.instances);
+        const instances =
+          service.chain_configs[CHAINS.GNOSIS.chainId].chain_data.instances;
+        if (instances) {
+          acc.push(...instances);
         }
-        if (service.chain_data.multisig) {
-          acc.push(service.chain_data.multisig);
+
+        const multisig =
+          service.chain_configs[CHAINS.GNOSIS.chainId].chain_data.multisig;
+        if (multisig) {
+          acc.push(multisig);
         }
         return acc;
       }, []),

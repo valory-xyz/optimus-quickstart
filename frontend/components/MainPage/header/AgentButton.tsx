@@ -21,7 +21,7 @@ import {
   CannotStartAgentDueToUnexpectedError,
   CannotStartAgentPopover,
 } from './CannotStartAgentPopover';
-import { requiredGas, requiredOlas } from './constants';
+import { requiredGas } from './constants';
 
 const { Text } = Typography;
 
@@ -106,7 +106,14 @@ const AgentNotRunningButton = () => {
     totalEthBalance,
   } = useBalance();
   const { storeState } = useStore();
-  const { isEligibleForStaking, isAgentEvicted } = useStakingContractInfo();
+  const { isEligibleForStaking, isAgentEvicted, stakingContractInfoRecord } =
+    useStakingContractInfo();
+  const { activeStakingProgram, defaultStakingProgram } = useStakingProgram();
+
+  const minStakingDeposit =
+    stakingContractInfoRecord?.[activeStakingProgram ?? defaultStakingProgram]
+      ?.minStakingDeposit;
+  const requiredOlas = minStakingDeposit && minStakingDeposit * 2;
 
   const safeOlasBalance = safeBalance?.OLAS;
   const safeOlasBalanceWithStaked =
@@ -144,10 +151,12 @@ const AgentNotRunningButton = () => {
     // Then create / deploy the service
     try {
       await ServicesService.createService({
+        stakingProgram: activeStakingProgram ?? defaultStakingProgram,
         serviceTemplate,
         deploy: true,
       });
     } catch (error) {
+      0;
       console.error(error);
       setServiceStatus(undefined);
       showNotification?.('Error while deploying service');
@@ -185,6 +194,8 @@ const AgentNotRunningButton = () => {
     setServiceStatus,
     masterSafeAddress,
     showNotification,
+    activeStakingProgram,
+    defaultStakingProgram,
     serviceTemplate,
     service,
   ]);
@@ -203,6 +214,8 @@ const AgentNotRunningButton = () => {
     if (serviceStatus === DeploymentStatus.DEPLOYING) return false;
     if (serviceStatus === DeploymentStatus.STOPPING) return false;
 
+    if (!requiredOlas) return false;
+
     // case where service exists & user has initial funded
     if (service && storeState?.isInitialFunded) {
       if (!safeOlasBalanceWithStaked) return false;
@@ -218,14 +231,15 @@ const AgentNotRunningButton = () => {
 
     return hasEnoughOlas && hasEnoughEth;
   }, [
-    isAgentEvicted,
-    isEligibleForStaking,
-    safeOlasBalanceWithStaked,
-    service,
     serviceStatus,
-    storeState?.isInitialFunded,
-    totalEthBalance,
     safeBalance,
+    service,
+    storeState?.isInitialFunded,
+    isEligibleForStaking,
+    isAgentEvicted,
+    safeOlasBalanceWithStaked,
+    requiredOlas,
+    totalEthBalance,
   ]);
 
   const buttonProps: ButtonProps = {

@@ -12,12 +12,6 @@ export const getMinimumStakedAmountRequired = (
       18,
     ),
   );
-  const olasRequiredToStake = Number(
-    formatUnits(
-      `${serviceTemplate.configurations[CHAINS.GNOSIS.chainId].olas_required_to_stake}`,
-      18,
-    ),
-  );
 
-  return olasCostOfBond + olasRequiredToStake;
+  return olasCostOfBond * 2;
 };

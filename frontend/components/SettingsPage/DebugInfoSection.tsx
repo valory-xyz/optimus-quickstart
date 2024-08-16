@@ -13,6 +13,7 @@ import {
 import { useCallback, useMemo, useState } from 'react';
 import styled from 'styled-components';
 
+import { CHAINS } from '@/constants/chains';
 import { COLOR } from '@/constants/colors';
 import { UNICODE_SYMBOLS } from '@/constants/symbols';
 import { Token } from '@/enums/Token';
@@ -169,16 +170,19 @@ export const DebugInfoSection = () => {
       });
     }
 
-    if (services[0]?.chain_data?.instances?.[0]) {
-      const instanceAddress = services[0].chain_data.instances[0];
+    const instanceAddress =
+      services[0]?.chain_configs?.[CHAINS.GNOSIS.chainId]?.chain_data
+        ?.instances?.[0];
+    if (instanceAddress) {
       result.push({
         title: 'Agent instance',
-        ...getItemData(walletBalances, instanceAddress),
+        ...getItemData(walletBalances, instanceAddress!),
       });
     }
 
-    if (services[0]?.chain_data?.multisig) {
-      const multisigAddress = services[0].chain_data.multisig;
+    const multisigAddress =
+      services[0]?.chain_configs?.[CHAINS.GNOSIS.chainId]?.chain_data?.multisig;
+    if (multisigAddress) {
       result.push({
         title: 'Agent Safe',
         ...getItemData(walletBalances, multisigAddress),

@@ -15,6 +15,7 @@ import {
 import { useInterval } from 'usehooks-ts';
 
 import { Wallet } from '@/client';
+import { CHAINS } from '@/constants/chains';
 import { FIVE_SECONDS_INTERVAL } from '@/constants/intervals';
 import { TOKENS } from '@/constants/tokens';
 import { ServiceRegistryL2ServiceState } from '@/enums/ServiceRegistryL2ServiceState';
@@ -134,7 +135,8 @@ export const BalanceProvider = ({ children }: PropsWithChildren) => {
 
       setWalletBalances(walletBalances);
 
-      const serviceId = services?.[0]?.chain_data.token;
+      const serviceId =
+        services?.[0]?.chain_configs[CHAINS.GNOSIS.chainId].chain_data.token;
 
       if (!isNumber(serviceId)) {
         setIsLoaded(true);

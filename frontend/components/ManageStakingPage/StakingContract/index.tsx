@@ -6,6 +6,7 @@ import { CardSection } from '@/components/styled/CardSection';
 import { STAKING_PROGRAM_META } from '@/constants/stakingProgramMeta';
 import { UNICODE_SYMBOLS } from '@/constants/symbols';
 import { StakingProgram } from '@/enums/StakingProgram';
+import { StakingProgramStatus } from '@/enums/StakingProgramStatus';
 import { useBalance } from '@/hooks/useBalance';
 import { useStakingContractInfo } from '@/hooks/useStakingContractInfo';
 import { useStakingProgram } from '@/hooks/useStakingProgram';
@@ -50,7 +51,7 @@ export const StakingContractSection = ({
   stakingProgram: StakingProgram;
   contractAddress: Address;
 }) => {
-  const { activeStakingProgram } = useStakingProgram();
+  const { activeStakingProgram, defaultStakingProgram } = useStakingProgram();
   const { stakingContractInfoRecord } = useStakingContractInfo();
   const { token } = useToken();
   const { totalOlasBalance, isBalanceLoaded } = useBalance();
@@ -80,6 +81,7 @@ export const StakingContractSection = ({
 
   const isMigratable =
     !isSelected &&
+    activeStakingProgram === StakingProgram.Alpha && // TODO: make more elegant
     isBalanceLoaded &&
     hasEnoughSlots &&
     hasEnoughOlas &&
@@ -112,9 +114,28 @@ export const StakingContractSection = ({
     isAppVersionCompatible,
   ]);
 
+  const contractTagStatus = useMemo(() => {
+    if (activeStakingProgram === stakingProgram)
+      return StakingProgramStatus.Selected;
+
+    // Pearl is not staked, set as Selected if default (Beta)
+    if (!activeStakingProgram && stakingProgram === defaultStakingProgram)
+      return StakingProgramStatus.Selected;
+
+    // Otherwise, highlight Beta as New
+    if (stakingProgram === StakingProgram.Beta) return StakingProgramStatus.New;
+
+    // Otherwise, no tag
+    return;
+  }, [activeStakingProgram, defaultStakingProgram, stakingProgram]);
+
   return (
     <CardSection
-      style={isSelected ? { background: token.colorBgContainerDisabled } : {}}
+      style={
+        isSelected || !activeStakingProgram
+          ? { background: token.colorBgContainerDisabled }
+          : {}
+      }
       borderbottom="true"
       vertical
       gap={16}
@@ -126,7 +147,7 @@ export const StakingContractSection = ({
           className="m-0"
         >{`${activeStakingProgramMeta.name} contract`}</Typography.Title>
         {/* TODO: pass `status` attribute */}
-        <StakingContractTag />
+        <StakingContractTag status={contractTagStatus} />
         {!isSelected && (
           // here instead of isSelected we should check that the contract is not the old staking contract
           // but the one from staking factory (if we want to open govern)
