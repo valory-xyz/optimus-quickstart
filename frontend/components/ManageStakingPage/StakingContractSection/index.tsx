@@ -78,8 +78,8 @@ export const StakingContractSection = ({
   const isSelected =
     activeStakingProgram && activeStakingProgram === stakingProgram;
 
-  const hasEnoughRewards =
-    (stakingContractInfoForStakingProgram?.availableRewards ?? 0) > 0;
+  const hasEnoughRewards = true;
+  //(stakingContractInfoForStakingProgram?.availableRewards ?? 0) > 0;
 
   const minimumOlasRequiredToMigrate = useMemo(
     () => getMinimumStakedAmountRequired(serviceTemplate, StakingProgram.Beta),
