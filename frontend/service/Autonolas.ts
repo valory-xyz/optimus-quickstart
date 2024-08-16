@@ -89,7 +89,6 @@ const getAgentStakingRewardsInfo = async ({
     ].calculateStakingReward(serviceId),
     serviceStakingTokenMechUsageContracts[stakingProgram].minStakingDeposit(),
     serviceStakingTokenMechUsageContracts[stakingProgram].tsCheckpoint(),
-    serviceStakingTokenMechUsageContracts[stakingProgram].minStakingDuration(),
   ];
 
   await gnosisMulticallProvider.init();
@@ -105,7 +104,6 @@ const getAgentStakingRewardsInfo = async ({
     accruedStakingReward,
     minStakingDeposit,
     tsCheckpoint,
-    minStakingDuration,
   ] = multicallResponse;
 
   /**

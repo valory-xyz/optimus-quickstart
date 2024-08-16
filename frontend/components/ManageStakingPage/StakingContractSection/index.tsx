@@ -1,6 +1,5 @@
-import { Button, Divider, Flex, Popover, theme, Typography } from 'antd';
+import { Button, Flex, Popover, theme, Typography } from 'antd';
 import { useMemo } from 'react';
-import styled from 'styled-components';
 
 import { DeploymentStatus } from '@/client';
 import { CardSection } from '@/components/styled/CardSection';
@@ -26,30 +25,30 @@ import {
 } from './alerts';
 import { StakingContractTag } from './StakingContractTag';
 
-const { Text } = Typography;
+// const { Text } = Typography;
 
 const { useToken } = theme;
 
-const CustomDivider = styled(Divider)`
-  flex: auto;
-  width: max-content;
-  min-width: 0;
-  margin: 0;
-`;
+// const CustomDivider = styled(Divider)`
+//   flex: auto;
+//   width: max-content;
+//   min-width: 0;
+//   margin: 0;
+// `;
 
-const ContractParameter = ({
-  label,
-  value,
-}: {
-  label: string;
-  value: string;
-}) => (
-  <Flex gap={16} align="center">
-    <Text type="secondary">{label}</Text>
-    <CustomDivider />
-    <Text className="font-weight-600">{value}</Text>
-  </Flex>
-);
+// const ContractParameter = ({
+//   label,
+//   value,
+// }: {
+//   label: string;
+//   value: string;
+// }) => (
+//   <Flex gap={16} align="center">
+//     <Text type="secondary">{label}</Text>
+//     <CustomDivider />
+//     <Text className="font-weight-600">{value}</Text>
+//   </Flex>
+// );
 
 export const StakingContractSection = ({
   stakingProgram,
