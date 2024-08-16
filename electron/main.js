@@ -195,7 +195,7 @@ const HEIGHT = 700;
 /**
  * Creates the main window
  */
-const createMainWindow = () => {
+const createMainWindow = async () => {
   const width = isDev ? 840 : APP_WIDTH;
   mainWindow = new BrowserWindow({
     title: 'Pearl',
@@ -215,12 +215,6 @@ const createMainWindow = () => {
   });
 
   mainWindow.setMenuBarVisibility(true);
-
-  if (isDev) {
-    mainWindow.loadURL(`http://localhost:${appConfig.ports.dev.next}`);
-  } else {
-    mainWindow.loadURL(`http://localhost:${appConfig.ports.prod.next}`);
-  }
 
   ipcMain.on('close-app', () => {
     mainWindow.close();
@@ -264,14 +258,22 @@ const createMainWindow = () => {
     event.preventDefault();
     mainWindow.hide();
   });
-
-  const storeInitialValues = {
-    environmentName: process.env.IS_STAGING ? 'staging' : '',
-  };
-  setupStoreIpc(ipcMain, mainWindow, storeInitialValues);
+  
+  try {
+    logger.electron('Setting up store IPC');
+    await setupStoreIpc(ipcMain, mainWindow);
+  } catch (e) {
+    logger.electron('Store IPC failed:', JSON.stringify(e));
+  }
 
   if (isDev) {
     mainWindow.webContents.openDevTools();
+  }
+
+  if (isDev) {
+    mainWindow.loadURL(`http://localhost:${appConfig.ports.dev.next}`);
+  } else {
+    mainWindow.loadURL(`http://localhost:${appConfig.ports.prod.next}`);
   }
 };
 
@@ -494,7 +496,7 @@ ipcMain.on('check', async function (event, _argument) {
     }
 
     event.sender.send('response', 'Launching App');
-    createMainWindow();
+    await createMainWindow();
     createTray();
     splashWindow.destroy();
   } catch (e) {
