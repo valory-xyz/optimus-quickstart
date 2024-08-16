@@ -9,10 +9,12 @@ import {
 import { useInterval } from 'usehooks-ts';
 
 import { FIVE_SECONDS_INTERVAL } from '@/constants/intervals';
+import { StakingProgram } from '@/enums/StakingProgram';
 import { AutonolasService } from '@/service/Autonolas';
 import { StakingContractInfo } from '@/types/Autonolas';
 
 import { ServicesContext } from './ServicesProvider';
+import { StakingProgramContext } from './StakingProgramContext';
 
 type StakingContractInfoContextProps = {
   updateStakingContractInfo: () => Promise<void>;
@@ -29,27 +31,38 @@ export const StakingContractInfoProvider = ({
   children,
 }: PropsWithChildren) => {
   const { services } = useContext(ServicesContext);
+  const { currentStakingProgram } = useContext(StakingProgramContext);
+
+  const [stakingContractInfoRecord, setStakingContractInfoRecord] =
+    useState<Record<StakingProgram, StakingContractInfo>>();
+
   const serviceId = useMemo(() => services?.[0]?.chain_data?.token, [services]);
 
-  const [stakingContractInfo, setStakingContractInfo] =
+  const [currentStakingContractInfo, setStakingContractInfo] =
     useState<StakingContractInfo>();
 
-  const updateStakingContractInfo = useCallback(async () => {
+  // CURRENT staking contract info should be updated on interval
+  const updateCurrentStakingContractInfo = useCallback(async () => {
     if (!serviceId) return;
 
-    const info = await AutonolasService.getStakingContractInfo(serviceId);
+    if (!currentStakingProgram) return;
+    const info =
+      await AutonolasService.getStakingContractInfoByServiceIdStakingProgram(
+        serviceId,
+        currentStakingProgram,
+      );
     if (!info) return;
 
     setStakingContractInfo(info);
-  }, [serviceId]);
+  }, [currentStakingProgram, serviceId]);
 
-  useInterval(updateStakingContractInfo, FIVE_SECONDS_INTERVAL);
+  useInterval(updateCurrentStakingContractInfo, FIVE_SECONDS_INTERVAL);
 
   return (
     <StakingContractInfoContext.Provider
       value={{
-        updateStakingContractInfo,
-        stakingContractInfo,
+        updateStakingContractInfo: updateCurrentStakingContractInfo,
+        stakingContractInfo: currentStakingContractInfo,
       }}
     >
       {children}
