@@ -3,9 +3,11 @@ import { Button, Card, Flex } from 'antd';
 import { useEffect } from 'react';
 
 import { Pages } from '@/enums/PageState';
+import { StakingProgram } from '@/enums/StakingProgram';
 import { useBalance } from '@/hooks/useBalance';
 import { usePageState } from '@/hooks/usePageState';
 import { useServices } from '@/hooks/useServices';
+import { useStakingProgram } from '@/hooks/useStakingProgram';
 
 import { MainHeader } from './header';
 import { AddFundsSection } from './sections/AddFundsSection';
@@ -20,6 +22,7 @@ export const Main = () => {
   const { goto } = usePageState();
   const { updateServicesState } = useServices();
   const { updateBalances, isLoaded, setIsLoaded } = useBalance();
+  const { currentStakingProgram } = useStakingProgram();
 
   useEffect(() => {
     if (!isLoaded) {
@@ -50,7 +53,9 @@ export const Main = () => {
       style={{ borderTopColor: 'transparent' }}
     >
       <Flex vertical>
-        <NewStakingProgramAlertSection />
+        {currentStakingProgram === StakingProgram.Alpha && (
+          <NewStakingProgramAlertSection />
+        )}
         <MainOlasBalance />
         <MainRewards />
         <KeepAgentRunningSection />
