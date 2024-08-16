@@ -1,24 +1,21 @@
-import { useState } from 'react';
+import { useContext, useState } from 'react';
 
-import { StakingProgramStatus } from '@/enums/StakingProgramStatus';
-import { StakingProgram } from '@/types/StakingProgram';
+import { STAKING_PROGRAM_META } from '@/constants/stakingProgramMeta';
+import { StakingProgramContext } from '@/context/StakingProgramContext';
 
 /**
  *  Mock hook for staking program abstraction
  * @returns {currentStakingProgram: IncentiveProgram}
  */
 export const useStakingProgram = () => {
+  const { currentStakingProgram, defaultStakingProgram } = useContext(
+    StakingProgramContext,
+  );
+
   const [isMigrating, setIsMigrating] = useState(false);
 
-  // TODO: Calculate current staking program
-  // from current staking contract address
-  const currentStakingProgram: StakingProgram = {
-    name: 'Pearl Alpha',
-    status: StakingProgramStatus.Selected,
-    contractAddress: '0x',
-    rewardsPerWorkPeriod: 0.25,
-    requiredOlasForStaking: 20,
-  };
+  const currentStakingProgramMeta =
+    STAKING_PROGRAM_META[currentStakingProgram ?? defaultStakingProgram];
 
   // TODO: Implement migration logic
   const migrate = async () => {
@@ -30,6 +27,8 @@ export const useStakingProgram = () => {
 
   return {
     currentStakingProgram,
+    currentStakingProgramMeta,
+    defaultStakingProgram,
     isMigrating,
     migrate,
   };
