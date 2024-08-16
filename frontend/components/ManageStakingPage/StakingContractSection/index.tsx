@@ -81,15 +81,16 @@ export const StakingContractSection = ({
   const hasEnoughRewards =
     (stakingContractInfoForStakingProgram?.availableRewards ?? 0) > 0;
 
+  const minimumOlasRequiredToMigrate = useMemo(
+    () => getMinimumStakedAmountRequired(serviceTemplate, StakingProgram.Beta),
+    [serviceTemplate],
+  );
+
   const hasEnoughOlasToMigrate = useMemo(() => {
     if (totalOlasBalance === undefined) return false;
-    if (!stakingContractInfoForStakingProgram) return false;
-    if (!stakingContractInfoForStakingProgram.minStakingDeposit) return false;
-    return (
-      totalOlasBalance >=
-      getMinimumStakedAmountRequired(serviceTemplate, StakingProgram.Beta)
-    );
-  }, [serviceTemplate, stakingContractInfoForStakingProgram, totalOlasBalance]);
+    if (!minimumOlasRequiredToMigrate) return false;
+    return totalOlasBalance >= minimumOlasRequiredToMigrate;
+  }, [minimumOlasRequiredToMigrate, totalOlasBalance]);
 
   const hasEnoughSlots =
     stakingContractInfoForStakingProgram?.maxNumServices &&
@@ -123,7 +124,7 @@ export const StakingContractSection = ({
     }
 
     if (activeStakingProgram !== StakingProgram.Alpha) {
-      return 'Can only migrate from Alpha';
+      return 'Can only migrate from Alpha to Beta';
     }
 
     if (!isBalanceLoaded) {
@@ -135,7 +136,7 @@ export const StakingContractSection = ({
     }
 
     if (!hasEnoughOlasToMigrate) {
-      return 'Insufficient OLAS balance to migrate';
+      return 'Insufficient OLAS balance to migrate, need ${}';
     }
 
     if (!isAppVersionCompatible) {
