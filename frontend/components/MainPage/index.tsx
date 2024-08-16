@@ -22,7 +22,7 @@ export const Main = () => {
   const { goto } = usePageState();
   const { updateServicesState } = useServices();
   const { updateBalances, isLoaded, setIsLoaded } = useBalance();
-  const { currentStakingProgram } = useStakingProgram();
+  const { activeStakingProgram: currentStakingProgram } = useStakingProgram();
 
   useEffect(() => {
     if (!isLoaded) {

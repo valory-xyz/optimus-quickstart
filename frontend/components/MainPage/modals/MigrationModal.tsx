@@ -1,6 +1,7 @@
 import { Button, Flex, Modal, Typography } from 'antd';
 import Image from 'next/image';
 
+import { STAKING_PROGRAM_META } from '@/constants/stakingProgramMeta';
 import { UNICODE_SYMBOLS } from '@/constants/symbols';
 import { useStakingProgram } from '@/hooks/useStakingProgram';
 
@@ -11,7 +12,15 @@ export const MigrationSuccessModal = ({
   open: boolean;
   onClose: () => void;
 }) => {
-  const { currentStakingProgram } = useStakingProgram();
+  const { activeStakingProgram } = useStakingProgram();
+
+  // Close modal if no active staking program, migration doesn't apply to non-stakers
+  if (!activeStakingProgram) {
+    onClose();
+    return null;
+  }
+
+  const activeStakingProgramMeta = STAKING_PROGRAM_META[activeStakingProgram];
 
   return (
     <Modal
@@ -45,7 +54,7 @@ export const MigrationSuccessModal = ({
           You switched staking contract succesfully!
         </Typography.Title>
         <Typography.Text>
-          Your agent is now staked on {currentStakingProgram.name}.
+          Your agent is now staked on {activeStakingProgramMeta.name}.
         </Typography.Text>
         {/* TODO: Add relevant block explorer domain */}
         <Typography.Link href="#">
