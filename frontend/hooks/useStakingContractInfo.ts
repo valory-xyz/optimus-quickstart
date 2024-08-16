@@ -23,7 +23,7 @@ export const useStakingContractInfo = () => {
     minimumStakingDuration,
   } = activeStakingContractInfo;
 
-  const isRewardsAvailable = availableRewards > 0;
+  const isRewardsAvailable = true; // availableRewards > 0;
   const hasEnoughServiceSlots = serviceIds.length < maxNumServices;
   const hasEnoughRewardsAndSlots = isRewardsAvailable && hasEnoughServiceSlots;
 
