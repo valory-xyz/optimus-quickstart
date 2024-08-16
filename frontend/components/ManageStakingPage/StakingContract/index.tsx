@@ -4,9 +4,10 @@ import styled from 'styled-components';
 
 import { CardSection } from '@/components/styled/CardSection';
 import { UNICODE_SYMBOLS } from '@/constants/symbols';
-import { StakingProgramStatus } from '@/enums/StakingProgramStatus';
+import { StakingProgram } from '@/enums/StakingProgram';
 import { useBalance } from '@/hooks/useBalance';
-import { StakingProgram } from '@/types/StakingProgram';
+import { useStakingProgram } from '@/hooks/useStakingProgram';
+import { Address } from '@/types/Address';
 
 import {
   AlertInsufficientMigrationFunds,
@@ -40,11 +41,22 @@ const ContractParameter = ({
   </Flex>
 );
 
-export const StakingContract = ({ contract }: { contract: StakingProgram }) => {
+export const StakingContractSection = ({
+  stakingProgram,
+  contractAddress,
+}: {
+  stakingProgram: StakingProgram;
+  contractAddress: Address;
+}) => {
+  const { currentStakingProgram } = useStakingProgram();
+
   const { token } = useToken();
   const { totalOlasBalance, isBalanceLoaded } = useBalance();
 
-  const isSelected = contract.status === StakingProgramStatus.Selected;
+  const isSelected =
+    currentStakingProgram && currentStakingProgram === stakingProgram;
+
+  const stakingContractInfo = useMemo(() => {}, []);
 
   const isEnoughOlas = useMemo(() => {
     if (totalOlasBalance === undefined) return false;
