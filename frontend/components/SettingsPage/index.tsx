@@ -16,7 +16,7 @@ import { CardTitle } from '../Card/CardTitle';
 import { CardSection } from '../styled/CardSection';
 import { AddBackupWalletPage } from './AddBackupWalletPage';
 import { DebugInfoSection } from './DebugInfoSection';
-import { StakingContractSection } from './StakingContractSection';
+import { SettingsStakingContractSection } from './SettingsStakingContractSection';
 
 const { Text, Paragraph } = Typography;
 
@@ -92,7 +92,7 @@ const SettingsMain = () => {
         )}
       </CardSection>
       {/* Staking contract section */}
-      <StakingContractSection />
+      <SettingsStakingContractSection />
       {/* Debug info */}
       <DebugInfoSection />
     </Card>

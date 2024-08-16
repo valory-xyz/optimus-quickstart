@@ -5,6 +5,7 @@ export const SERVICE_TEMPLATES: ServiceTemplate[] = [
   {
     name: 'Trader Agent',
     hash: 'bafybeidgjgjj5ul6xkubicbemppufgsbx5sr5rwhtrwttk2oivp5bkdnce',
+    // hash: 'bafybeibbloa4w33vj4bvdkso7pzk6tr3duvxjpecbx4mur4ix6ehnwb5uu', // temporary
     description: 'Trader agent for omen prediction markets',
     image:
       'https://operate.olas.network/_next/image?url=%2Fimages%2Fprediction-agent.png&w=3840&q=75',

@@ -8,27 +8,8 @@ import { StakingProgram } from '@/enums/StakingProgram';
 import { usePageState } from '@/hooks/usePageState';
 
 import { CardTitle } from '../Card/CardTitle';
-import { StakingContractSection } from './StakingContract';
+import { StakingContractSection } from './StakingContractSection';
 import { WhatAreStakingContractsSection } from './WhatAreStakingContracts';
-
-// const mockStakingContracts: StakingProgram[] = [
-//   {
-//     name: 'Pearl Beta',
-//     rewardsPerWorkPeriod: 0.14,
-//     requiredOlasForStaking: 40,
-//     isEnoughSlots: true,
-//     status: StakingProgramStatus.New,
-//     contractAddress: '0x1234567890',
-//   },
-//   {
-//     name: 'Pearl Alpha',
-//     rewardsPerWorkPeriod: 0.047,
-//     requiredOlasForStaking: 20,
-//     isEnoughSlots: true,
-//     status: StakingProgramStatus.Selected,
-//     contractAddress: '0x0987654321',
-//   },
-// ];
 
 export const ManageStakingPage = () => {
   const { goto } = usePageState();

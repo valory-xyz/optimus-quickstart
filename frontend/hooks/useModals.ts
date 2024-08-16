@@ -1,11 +1,13 @@
-import { useState } from 'react';
+import { useContext } from 'react';
+
+import { ModalContext } from '@/context/ModalProvider';
 
 export const useModals = () => {
-  const [isMigrationSuccessModalOpen, setIsMigrationSuccessModalOpen] =
-    useState(false);
+  const { migrationModalOpen, setMigrationModalOpen } =
+    useContext(ModalContext);
 
   return {
-    isMigrationSuccessModalOpen,
-    setIsMigrationSuccessModalOpen,
+    migrationModalOpen,
+    setMigrationModalOpen,
   };
 };

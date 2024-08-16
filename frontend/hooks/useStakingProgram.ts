@@ -1,4 +1,4 @@
-import { useContext, useState } from 'react';
+import { useContext } from 'react';
 
 import { STAKING_PROGRAM_META } from '@/constants/stakingProgramMeta';
 import { StakingProgramContext } from '@/context/StakingProgramContext';
@@ -8,28 +8,23 @@ import { StakingProgramContext } from '@/context/StakingProgramContext';
  * @returns {currentStakingProgram: IncentiveProgram}
  */
 export const useStakingProgram = () => {
-  const { activeStakingProgram, defaultStakingProgram } = useContext(
-    StakingProgramContext,
-  );
+  const { activeStakingProgram, defaultStakingProgram, updateStakingProgram } =
+    useContext(StakingProgramContext);
 
-  const [isMigrating, setIsMigrating] = useState(false);
+  const isLoadedActiveStakingProgram = activeStakingProgram !== undefined;
 
   const activeStakingProgramMeta =
-    STAKING_PROGRAM_META[activeStakingProgram ?? defaultStakingProgram];
-
-  // TODO: Implement migration logic
-  const migrate = async () => {
-    setIsMigrating(true);
-    await setTimeout(() => {
-      setIsMigrating(false);
-    }, 1000);
-  };
+    activeStakingProgram === undefined
+      ? null
+      : activeStakingProgram === null
+        ? null
+        : STAKING_PROGRAM_META[activeStakingProgram];
 
   return {
     activeStakingProgram,
     activeStakingProgramMeta,
     defaultStakingProgram,
-    isMigrating,
-    migrate,
+    updateStakingProgram,
+    isLoadedActiveStakingProgram,
   };
 };

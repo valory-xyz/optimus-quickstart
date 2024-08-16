@@ -1,15 +1,22 @@
-import { Button, Divider, Flex, theme, Typography } from 'antd';
+import { Button, Divider, Flex, Popover, theme, Typography } from 'antd';
 import { useMemo } from 'react';
 import styled from 'styled-components';
 
+import { DeploymentStatus } from '@/client';
 import { CardSection } from '@/components/styled/CardSection';
 import { STAKING_PROGRAM_META } from '@/constants/stakingProgramMeta';
 import { UNICODE_SYMBOLS } from '@/constants/symbols';
+import { Pages } from '@/enums/PageState';
 import { StakingProgram } from '@/enums/StakingProgram';
 import { StakingProgramStatus } from '@/enums/StakingProgramStatus';
 import { useBalance } from '@/hooks/useBalance';
+import { useModals } from '@/hooks/useModals';
+import { usePageState } from '@/hooks/usePageState';
+import { useServices } from '@/hooks/useServices';
+import { useServiceTemplates } from '@/hooks/useServiceTemplates';
 import { useStakingContractInfo } from '@/hooks/useStakingContractInfo';
 import { useStakingProgram } from '@/hooks/useStakingProgram';
+import { ServicesService } from '@/service/Services';
 import { Address } from '@/types/Address';
 
 import {
@@ -51,10 +58,17 @@ export const StakingContractSection = ({
   stakingProgram: StakingProgram;
   contractAddress: Address;
 }) => {
-  const { activeStakingProgram, defaultStakingProgram } = useStakingProgram();
+  const { goto } = usePageState();
+  const { setServiceStatus, serviceStatus, setIsServicePollingPaused } =
+    useServices();
+  const { serviceTemplate } = useServiceTemplates();
+  const { setMigrationModalOpen } = useModals();
+  const { activeStakingProgram, defaultStakingProgram, updateStakingProgram } =
+    useStakingProgram();
   const { stakingContractInfoRecord } = useStakingContractInfo();
   const { token } = useToken();
   const { totalOlasBalance, isBalanceLoaded } = useBalance();
+  const { isServiceStakedForMinimumDuration } = useStakingContractInfo();
 
   const stakingContractInfo = stakingContractInfoRecord?.[stakingProgram];
 
@@ -63,7 +77,9 @@ export const StakingContractSection = ({
   const isSelected =
     activeStakingProgram && activeStakingProgram === stakingProgram;
 
-  const hasEnoughOlas = useMemo(() => {
+  const hasEnoughRewards = (stakingContractInfo?.availableRewards ?? 0) > 0;
+
+  const hasEnoughOlasToMigrate = useMemo(() => {
     if (totalOlasBalance === undefined) return false;
     if (!stakingContractInfo) return false;
     if (!stakingContractInfo.minStakingDeposit) return false;
@@ -84,8 +100,69 @@ export const StakingContractSection = ({
     activeStakingProgram === StakingProgram.Alpha && // TODO: make more elegant
     isBalanceLoaded &&
     hasEnoughSlots &&
-    hasEnoughOlas &&
-    isAppVersionCompatible;
+    hasEnoughRewards &&
+    hasEnoughOlasToMigrate &&
+    isAppVersionCompatible &&
+    serviceStatus !== DeploymentStatus.DEPLOYED &&
+    serviceStatus !== DeploymentStatus.DEPLOYING &&
+    serviceStatus !== DeploymentStatus.STOPPING &&
+    isServiceStakedForMinimumDuration;
+
+  const cantMigrateReason = useMemo(() => {
+    if (isSelected) {
+      return 'Contract is already selected';
+    }
+
+    if (!hasEnoughRewards) {
+      return 'No available rewards';
+    }
+
+    if (activeStakingProgram !== StakingProgram.Alpha) {
+      return 'Can only migrate from Alpha';
+    }
+
+    if (!isBalanceLoaded) {
+      return 'Loading balance...';
+    }
+
+    if (!hasEnoughSlots) {
+      return 'No available staking slots';
+    }
+
+    if (!hasEnoughOlasToMigrate) {
+      return 'Insufficient OLAS balance to migrate';
+    }
+
+    if (!isAppVersionCompatible) {
+      return 'Pearl update required to migrate';
+    }
+
+    if (serviceStatus === DeploymentStatus.DEPLOYED) {
+      return 'Service is currently running';
+    }
+
+    if (serviceStatus === DeploymentStatus.DEPLOYING) {
+      return 'Service is currently deploying';
+    }
+
+    if (serviceStatus === DeploymentStatus.STOPPING) {
+      return 'Service is currently stopping';
+    }
+
+    if (!isServiceStakedForMinimumDuration) {
+      return 'Service has not been staked for the minimum duration';
+    }
+  }, [
+    activeStakingProgram,
+    hasEnoughOlasToMigrate,
+    hasEnoughRewards,
+    hasEnoughSlots,
+    isAppVersionCompatible,
+    isBalanceLoaded,
+    isSelected,
+    isServiceStakedForMinimumDuration,
+    serviceStatus,
+  ]);
 
   const cantMigrateAlert = useMemo(() => {
     if (isSelected || !isBalanceLoaded) {
@@ -96,7 +173,7 @@ export const StakingContractSection = ({
       return <AlertNoSlots />;
     }
 
-    if (!hasEnoughOlas) {
+    if (!hasEnoughOlasToMigrate) {
       return (
         <AlertInsufficientMigrationFunds totalOlasBalance={totalOlasBalance!} />
       );
@@ -110,7 +187,7 @@ export const StakingContractSection = ({
     isBalanceLoaded,
     totalOlasBalance,
     hasEnoughSlots,
-    hasEnoughOlas,
+    hasEnoughOlasToMigrate,
     isAppVersionCompatible,
   ]);
 
@@ -181,9 +258,37 @@ export const StakingContractSection = ({
       {cantMigrateAlert}
       {/* Switch to program button */}
       {!isSelected && (
-        <Button type="primary" size="large" disabled={!isMigratable}>
-          Switch to {activeStakingProgramMeta?.name} contract
-        </Button>
+        <Popover content={!isMigratable && cantMigrateReason}>
+          <Button
+            type="primary"
+            size="large"
+            disabled={!isMigratable}
+            onClick={async () => {
+              setIsServicePollingPaused(true);
+              try {
+                setServiceStatus(DeploymentStatus.DEPLOYING);
+                goto(Pages.Main);
+                // TODO: cleanup and call via hook
+
+                await ServicesService.createService({
+                  stakingProgram,
+                  serviceTemplate,
+                  deploy: true,
+                }).then(() => {
+                  updateStakingProgram().then(() =>
+                    setMigrationModalOpen(true),
+                  );
+                });
+              } catch (error) {
+                console.error(error);
+              } finally {
+                setIsServicePollingPaused(false);
+              }
+            }}
+          >
+            Switch to {activeStakingProgramMeta?.name} contract
+          </Button>
+        </Popover>
       )}
     </CardSection>
   );

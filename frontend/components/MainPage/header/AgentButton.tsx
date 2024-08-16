@@ -151,12 +151,11 @@ const AgentNotRunningButton = () => {
     // Then create / deploy the service
     try {
       await ServicesService.createService({
-        stakingProgram: activeStakingProgram ?? defaultStakingProgram,
+        stakingProgram: activeStakingProgram ?? defaultStakingProgram, // overwrite with StakingProgram.Alpha to test migration
         serviceTemplate,
         deploy: true,
       });
     } catch (error) {
-      0;
       console.error(error);
       setServiceStatus(undefined);
       showNotification?.('Error while deploying service');
@@ -254,29 +253,13 @@ const AgentNotRunningButton = () => {
   return <Button {...buttonProps}>{buttonText}</Button>;
 };
 
-const MigratingButton = () => {
-  return (
-    <Flex gap={10} align="center">
-      <Button type="default" size="large" ghost disabled loading>
-        {/* TODO: Check if "Migrating" is more appropriate (https://www.figma.com/design/SoLRXokhWwPexclAIY8QuQ?node-id=2173-11095#908748101) */}
-        Switching...
-      </Button>
-    </Flex>
-  );
-};
-
 export const AgentButton = () => {
-  const { isMigrating } = useStakingProgram();
   const { service, serviceStatus, hasInitialLoaded } = useServices();
   const { isEligibleForStaking, isAgentEvicted } = useStakingContractInfo();
 
   return useMemo(() => {
     if (!hasInitialLoaded) {
       return <Button type="primary" size="large" disabled loading />;
-    }
-
-    if (isMigrating) {
-      return <MigratingButton />;
     }
 
     if (serviceStatus === DeploymentStatus.STOPPING) {
@@ -307,7 +290,6 @@ export const AgentButton = () => {
     return <CannotStartAgentDueToUnexpectedError />;
   }, [
     hasInitialLoaded,
-    isMigrating,
     serviceStatus,
     isEligibleForStaking,
     isAgentEvicted,

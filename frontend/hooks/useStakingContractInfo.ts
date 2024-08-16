@@ -60,5 +60,6 @@ export const useStakingContractInfo = () => {
     isRewardsAvailable,
     isAgentEvicted,
     stakingContractInfoRecord,
+    isServiceStakedForMinimumDuration,
   };
 };

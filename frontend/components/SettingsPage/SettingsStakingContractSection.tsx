@@ -1,4 +1,4 @@
-import { Button, Flex, Typography } from 'antd';
+import { Button, Flex, Skeleton, Typography } from 'antd';
 
 import { Chain } from '@/client';
 import { SERVICE_STAKING_TOKEN_MECH_USAGE_CONTRACT_ADDRESSES } from '@/constants/contractAddresses';
@@ -11,24 +11,33 @@ import { CardSection } from '../styled/CardSection';
 
 const { Text } = Typography;
 
-export const StakingContractSection = () => {
+export const SettingsStakingContractSection = () => {
   const { goto } = usePageState();
   const {
-    activeStakingProgram: currentStakingProgram,
-    activeStakingProgramMeta: currentStakingProgramMeta,
+    activeStakingProgram,
+    activeStakingProgramMeta,
     defaultStakingProgram,
+    isLoadedActiveStakingProgram,
   } = useStakingProgram();
 
   const stakingContractAddress =
     SERVICE_STAKING_TOKEN_MECH_USAGE_CONTRACT_ADDRESSES[Chain.GNOSIS][
-      currentStakingProgram ?? defaultStakingProgram
+      activeStakingProgram ?? defaultStakingProgram
     ];
+
+  if (!isLoadedActiveStakingProgram) {
+    return <Skeleton style={{ height: 100 }} />;
+  }
 
   return (
     <CardSection vertical gap={8} align="start" borderbottom="true">
       <Text strong>Staking contract</Text>
       <Flex gap={16}>
-        <Text type="secondary">{currentStakingProgramMeta.name}</Text>
+        <Text type="secondary">
+          {activeStakingProgramMeta
+            ? activeStakingProgramMeta.name
+            : 'Not staked'}
+        </Text>
         <a
           href={`https://gnosisscan.io/address/${stakingContractAddress}`}
           target="_blank"

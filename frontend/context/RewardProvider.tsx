@@ -10,6 +10,7 @@ import {
 } from 'react';
 import { useInterval } from 'usehooks-ts';
 
+import { CHAINS } from '@/constants/chains';
 import { FIVE_SECONDS_INTERVAL } from '@/constants/intervals';
 import { useElectronApi } from '@/hooks/useElectronApi';
 import { useStore } from '@/hooks/useStore';
@@ -76,12 +77,14 @@ export const RewardProvider = ({ children }: PropsWithChildren) => {
     // only check for rewards if there's a currentStakingProgram active
     if (
       activeStakingProgram &&
-      service?.chain_data?.multisig &&
-      service?.chain_data?.token
+      service?.chain_configs[CHAINS.GNOSIS.chainId].chain_data?.multisig &&
+      service?.chain_configs[CHAINS.GNOSIS.chainId].chain_data?.token
     ) {
       stakingRewardsInfoPromise = AutonolasService.getAgentStakingRewardsInfo({
-        agentMultisigAddress: service?.chain_data?.multisig,
-        serviceId: service?.chain_data?.token,
+        agentMultisigAddress:
+          service.chain_configs[CHAINS.GNOSIS.chainId].chain_data.multisig!,
+        serviceId:
+          service.chain_configs[CHAINS.GNOSIS.chainId].chain_data.token!,
         stakingProgram: activeStakingProgram,
       });
     }
@@ -101,12 +104,7 @@ export const RewardProvider = ({ children }: PropsWithChildren) => {
       stakingRewardsInfo?.accruedServiceStakingRewards,
     );
     setAvailableRewardsForEpoch(rewards);
-  }, [
-    activeStakingProgram,
-    defaultStakingProgram,
-    service?.chain_data?.multisig,
-    service?.chain_data?.token,
-  ]);
+  }, [activeStakingProgram, defaultStakingProgram, service]);
 
   useEffect(() => {
     if (isEligibleForRewards && !storeState?.firstStakingRewardAchieved) {

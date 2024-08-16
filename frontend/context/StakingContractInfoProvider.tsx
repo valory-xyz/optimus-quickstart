@@ -9,6 +9,7 @@ import {
 } from 'react';
 import { useInterval } from 'usehooks-ts';
 
+import { CHAINS } from '@/constants/chains';
 import { FIVE_SECONDS_INTERVAL } from '@/constants/intervals';
 import { StakingProgram } from '@/enums/StakingProgram';
 import { AutonolasService } from '@/service/Autonolas';
@@ -45,7 +46,10 @@ export const StakingContractInfoProvider = ({
   const [stakingContractInfoRecord, setStakingContractInfoRecord] =
     useState<Record<StakingProgram, Partial<StakingContractInfo>>>();
 
-  const serviceId = useMemo(() => services?.[0]?.chain_data?.token, [services]);
+  const serviceId = useMemo(
+    () => services?.[0]?.chain_configs[CHAINS.GNOSIS.chainId].chain_data?.token,
+    [services],
+  );
 
   // ACTIVE staking contract info should be updated on interval
   // it requires serviceId and activeStakingProgram

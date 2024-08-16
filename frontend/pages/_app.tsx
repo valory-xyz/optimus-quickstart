@@ -8,6 +8,7 @@ import { Layout } from '@/components/Layout';
 import { BalanceProvider } from '@/context/BalanceProvider';
 import { ElectronApiProvider } from '@/context/ElectronApiProvider';
 import { MasterSafeProvider } from '@/context/MasterSafeProvider';
+import { ModalProvider } from '@/context/ModalProvider';
 import { OnlineStatusProvider } from '@/context/OnlineStatusProvider';
 import { PageStateProvider } from '@/context/PageStateProvider';
 import { RewardProvider } from '@/context/RewardProvider';
@@ -41,11 +42,13 @@ export default function App({ Component, pageProps }: AppProps) {
                           <StakingProgramProvider>
                             <StakingContractInfoProvider>
                               <ConfigProvider theme={mainTheme}>
-                                {isMounted ? (
-                                  <Layout>
-                                    <Component {...pageProps} />
-                                  </Layout>
-                                ) : null}
+                                <ModalProvider>
+                                  {isMounted ? (
+                                    <Layout>
+                                      <Component {...pageProps} />
+                                    </Layout>
+                                  ) : null}
+                                </ModalProvider>
                               </ConfigProvider>
                             </StakingContractInfoProvider>
                           </StakingProgramProvider>

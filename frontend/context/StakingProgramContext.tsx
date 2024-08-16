@@ -1,5 +1,7 @@
 import { createContext, PropsWithChildren, useCallback, useState } from 'react';
+import { useInterval } from 'usehooks-ts';
 
+import { CHAINS } from '@/constants/chains';
 import { StakingProgram } from '@/enums/StakingProgram';
 import { useServices } from '@/hooks/useServices';
 import { AutonolasService } from '@/service/Autonolas';
@@ -18,25 +20,32 @@ export const StakingProgramContext = createContext<{
 export const StakingProgramProvider = ({ children }: PropsWithChildren) => {
   const { service } = useServices();
 
-  const [activeStakingProgram, setCurrentStakingProgram] =
+  const [activeStakingProgram, setActiveStakingProgram] =
     useState<StakingProgram | null>();
 
   const updateStakingProgram = useCallback(async () => {
-    // if no service / instance is available, we don't need to check for staking program
-    if (!service?.chain_data?.instances?.[0]) {
-      setCurrentStakingProgram(null);
+    // if no service nft, not staked
+    const serviceId =
+      service?.chain_configs[CHAINS.GNOSIS.chainId].chain_data?.token;
+
+    if (!service?.chain_configs[CHAINS.GNOSIS.chainId].chain_data?.token) {
+      setActiveStakingProgram(null);
       return;
     }
 
-    // TODO: check if assuming the first service is the correct approach
-    const operatorAddress = service?.chain_data?.instances?.[0];
-    if (operatorAddress) {
+    if (serviceId) {
       // if service exists, we need to check if it is staked
-      AutonolasService.getCurrentStakingProgram(operatorAddress).then(
-        setCurrentStakingProgram,
+      console.log('getting current staking program');
+      AutonolasService.getCurrentStakingProgramByServiceId(serviceId).then(
+        (stakingProgram) => {
+          console.log('setting stakingProgram', stakingProgram);
+          setActiveStakingProgram(stakingProgram);
+        },
       );
     }
   }, [service]);
+
+  useInterval(updateStakingProgram, 5000);
 
   return (
     <StakingProgramContext.Provider

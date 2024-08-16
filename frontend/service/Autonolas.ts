@@ -89,6 +89,7 @@ const getAgentStakingRewardsInfo = async ({
     ].calculateStakingReward(serviceId),
     serviceStakingTokenMechUsageContracts[stakingProgram].minStakingDeposit(),
     serviceStakingTokenMechUsageContracts[stakingProgram].tsCheckpoint(),
+    serviceStakingTokenMechUsageContracts[stakingProgram].minStakingDuration(),
   ];
 
   await gnosisMulticallProvider.init();
@@ -104,6 +105,7 @@ const getAgentStakingRewardsInfo = async ({
     accruedStakingReward,
     minStakingDeposit,
     tsCheckpoint,
+    minStakingDuration,
   ] = multicallResponse;
 
   /**
@@ -308,15 +310,15 @@ const getServiceRegistryInfo = async (
   };
 };
 
-const getCurrentStakingProgram = async (
-  agentAddress: string,
+const getCurrentStakingProgramByServiceId = async (
+  serviceId: number,
 ): Promise<StakingProgram | null> => {
   const contractCalls = [
     serviceStakingTokenMechUsageContracts[StakingProgram.Alpha].getStakingState(
-      agentAddress,
+      serviceId,
     ),
     serviceStakingTokenMechUsageContracts[StakingProgram.Beta].getStakingState(
-      agentAddress,
+      serviceId,
     ),
   ];
 
@@ -326,6 +328,8 @@ const getCurrentStakingProgram = async (
     const [isAlphaStaked, isBetaStaked] =
       await gnosisMulticallProvider.all(contractCalls);
 
+    console.log(isAlphaStaked, isBetaStaked);
+
     // Alpha should take precedence, as it must be migrated from
     return isAlphaStaked
       ? StakingProgram.Alpha
@@ -333,6 +337,7 @@ const getCurrentStakingProgram = async (
         ? StakingProgram.Beta
         : null;
   } catch (error) {
+    console.log('Error while getting current staking program', error);
     return null;
   }
 };
@@ -340,7 +345,7 @@ const getCurrentStakingProgram = async (
 export const AutonolasService = {
   getAgentStakingRewardsInfo,
   getAvailableRewardsForEpoch,
-  getCurrentStakingProgram,
+  getCurrentStakingProgramByServiceId,
   getServiceRegistryInfo,
   getStakingContractInfoByServiceIdStakingProgram,
   getStakingContractInfoByStakingProgram,
