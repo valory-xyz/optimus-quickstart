@@ -205,8 +205,11 @@ export const BalanceProvider = ({ children }: PropsWithChildren) => {
   );
   const agentSafeBalance = useMemo(
     () =>
-      services?.[0]?.chain_data?.multisig &&
-      walletBalances[services[0].chain_data.multisig],
+      services?.[0]?.chain_configs[CHAINS.GNOSIS.chainId].chain_data
+        ?.multisig &&
+      walletBalances[
+        services[0].chain_configs[CHAINS.GNOSIS.chainId].chain_data.multisig!
+      ],
     [services, walletBalances],
   );
   const isLowBalance = useMemo(() => {
