@@ -10,6 +10,7 @@ import {
 } from 'react';
 import { useInterval } from 'usehooks-ts';
 
+import { CHAINS } from '@/constants/chains';
 import { FIVE_SECONDS_INTERVAL } from '@/constants/intervals';
 import { useElectronApi } from '@/hooks/useElectronApi';
 import { useStore } from '@/hooks/useStore';
@@ -17,6 +18,7 @@ import { AutonolasService } from '@/service/Autonolas';
 
 import { OnlineStatusContext } from './OnlineStatusProvider';
 import { ServicesContext } from './ServicesProvider';
+import { StakingProgramContext } from './StakingProgramContext';
 
 export const RewardContext = createContext<{
   accruedServiceStakingRewards?: number;
@@ -42,6 +44,9 @@ export const RewardProvider = ({ children }: PropsWithChildren) => {
   const service = useMemo(() => services?.[0], [services]);
   const { storeState } = useStore();
   const electronApi = useElectronApi();
+  const { activeStakingProgram, defaultStakingProgram } = useContext(
+    StakingProgramContext,
+  );
 
   const [accruedServiceStakingRewards, setAccruedServiceStakingRewards] =
     useState<number>();
@@ -68,14 +73,27 @@ export const RewardProvider = ({ children }: PropsWithChildren) => {
 
   const updateRewards = useCallback(async (): Promise<void> => {
     let stakingRewardsInfoPromise;
-    if (service?.chain_data?.multisig && service?.chain_data?.token) {
+
+    // only check for rewards if there's a currentStakingProgram active
+    if (
+      activeStakingProgram &&
+      service?.chain_configs[CHAINS.GNOSIS.chainId].chain_data?.multisig &&
+      service?.chain_configs[CHAINS.GNOSIS.chainId].chain_data?.token
+    ) {
       stakingRewardsInfoPromise = AutonolasService.getAgentStakingRewardsInfo({
-        agentMultisigAddress: service?.chain_data?.multisig,
-        serviceId: service?.chain_data?.token,
+        agentMultisigAddress:
+          service.chain_configs[CHAINS.GNOSIS.chainId].chain_data.multisig!,
+        serviceId:
+          service.chain_configs[CHAINS.GNOSIS.chainId].chain_data.token!,
+        stakingProgram: activeStakingProgram,
       });
     }
 
-    const epochRewardsPromise = AutonolasService.getAvailableRewardsForEpoch();
+    // can fallback to default staking program if no current staking program is active
+    const epochRewardsPromise = AutonolasService.getAvailableRewardsForEpoch(
+      activeStakingProgram ?? defaultStakingProgram,
+    );
+
     const [stakingRewardsInfo, rewards] = await Promise.all([
       stakingRewardsInfoPromise,
       epochRewardsPromise,
@@ -86,7 +104,7 @@ export const RewardProvider = ({ children }: PropsWithChildren) => {
       stakingRewardsInfo?.accruedServiceStakingRewards,
     );
     setAvailableRewardsForEpoch(rewards);
-  }, [service]);
+  }, [activeStakingProgram, defaultStakingProgram, service]);
 
   useEffect(() => {
     if (isEligibleForRewards && !storeState?.firstStakingRewardAchieved) {

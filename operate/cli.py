@@ -528,7 +528,6 @@ def create_app(  # pylint: disable=too-many-locals, unused-argument, too-many-st
             )
 
         if template.get("deploy", False):
-
             def _fn() -> None:
                 manager.deploy_service_onchain_from_safe(hash=service.hash)
                 # manager.stake_service_on_chain_from_safe(hash=service.hash) # Done inside deploy_service_onchain
@@ -647,6 +646,7 @@ def create_app(  # pylint: disable=too-many-locals, unused-argument, too-many-st
     @with_retries
     async def _build_service_locally(request: Request) -> JSONResponse:
         """Create a service."""
+        # TODO: add support for chain id.
         if not operate.service_manager().exists(service=request.path_params["service"]):
             return service_not_found_error(service=request.path_params["service"])
         deployment = (

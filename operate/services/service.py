@@ -484,7 +484,7 @@ class Deployment(LocalResource):
         self.status = DeploymentStatus.BUILT
         self.store()
 
-    def _build_host(self, force: bool = True) -> None:
+    def _build_host(self, force: bool = True, chain_id: str = "100") -> None:
         """Build host depployment."""
         build = self.path / DEPLOYMENT
         if build.exists() and not force:
@@ -499,6 +499,10 @@ class Deployment(LocalResource):
             raise RuntimeError(
                 "Host deployment currently only supports single agent deployments"
             )
+
+        chain_config = service.chain_configs[chain_id]
+        ledger_config = chain_config.ledger_config
+        chain_data = chain_config.chain_data
 
         keys_file = self.path / KEYS_JSON
         keys_file.write_text(
@@ -524,15 +528,15 @@ class Deployment(LocalResource):
             builder.deplopyment_type = HostDeploymentGenerator.deployment_type
             builder.try_update_abci_connection_params()
             builder.try_update_runtime_params(
-                multisig_address=service.chain_data.multisig,
-                agent_instances=service.chain_data.instances,
-                service_id=service.chain_data.token,
+                multisig_address=chain_data.multisig,
+                agent_instances=chain_data.instances,
+                service_id=chain_data.token,
                 consensus_threshold=None,
             )
             # TODO: Support for multiledger
             builder.try_update_ledger_params(
-                chain=LedgerType(service.ledger_config.type).name.lower(),
-                address=service.ledger_config.rpc,
+                chain=LedgerType(ledger_config.type).name.lower(),
+                address=ledger_config.rpc,
             )
 
             (
@@ -569,6 +573,7 @@ class Deployment(LocalResource):
         self,
         use_docker: bool = False,
         force: bool = True,
+        chain_id: str = "100",
     ) -> None:
         """
         Build a deployment
@@ -577,9 +582,10 @@ class Deployment(LocalResource):
         :param force: Remove existing deployment and build a new one
         :return: Deployment object
         """
+        # TODO: chain_id should be used properly! Added as a hotfix for now.
         if use_docker:
             return self._build_docker(force=force)
-        return self._build_host(force=force)
+        return self._build_host(force=force, chain_id=chain_id)
 
     def start(self, use_docker: bool = False) -> None:
         """Start the service"""

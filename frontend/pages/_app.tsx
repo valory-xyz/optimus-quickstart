@@ -2,12 +2,13 @@ import '../styles/globals.scss';
 
 import { ConfigProvider } from 'antd';
 import type { AppProps } from 'next/app';
-import { useEffect, useRef } from 'react';
+import { useEffect, useState } from 'react';
 
 import { Layout } from '@/components/Layout';
 import { BalanceProvider } from '@/context/BalanceProvider';
 import { ElectronApiProvider } from '@/context/ElectronApiProvider';
 import { MasterSafeProvider } from '@/context/MasterSafeProvider';
+import { ModalProvider } from '@/context/ModalProvider';
 import { OnlineStatusProvider } from '@/context/OnlineStatusProvider';
 import { PageStateProvider } from '@/context/PageStateProvider';
 import { RewardProvider } from '@/context/RewardProvider';
@@ -15,18 +16,15 @@ import { ServicesProvider } from '@/context/ServicesProvider';
 import { SettingsProvider } from '@/context/SettingsProvider';
 import { SetupProvider } from '@/context/SetupProvider';
 import { StakingContractInfoProvider } from '@/context/StakingContractInfoProvider';
+import { StakingProgramProvider } from '@/context/StakingProgramContext';
 import { StoreProvider } from '@/context/StoreProvider';
 import { WalletProvider } from '@/context/WalletProvider';
 import { mainTheme } from '@/theme';
 
 export default function App({ Component, pageProps }: AppProps) {
-  const isMounted = useRef(false);
-
+  const [isMounted, setIsMounted] = useState(false);
   useEffect(() => {
-    isMounted.current = true;
-    return () => {
-      isMounted.current = false;
-    };
+    setIsMounted(true);
   }, []);
 
   return (
@@ -41,15 +39,19 @@ export default function App({ Component, pageProps }: AppProps) {
                     <BalanceProvider>
                       <SetupProvider>
                         <SettingsProvider>
-                          <StakingContractInfoProvider>
-                            {isMounted ? (
+                          <StakingProgramProvider>
+                            <StakingContractInfoProvider>
                               <ConfigProvider theme={mainTheme}>
-                                <Layout>
-                                  <Component {...pageProps} />
-                                </Layout>
+                                <ModalProvider>
+                                  {isMounted ? (
+                                    <Layout>
+                                      <Component {...pageProps} />
+                                    </Layout>
+                                  ) : null}
+                                </ModalProvider>
                               </ConfigProvider>
-                            ) : null}
-                          </StakingContractInfoProvider>
+                            </StakingContractInfoProvider>
+                          </StakingProgramProvider>
                         </SettingsProvider>
                       </SetupProvider>
                     </BalanceProvider>
