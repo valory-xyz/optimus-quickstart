@@ -872,11 +872,12 @@ class EthSafeTxBuilder(_ChainUtil):
 
     def new_tx(self) -> GnosisSafeTransaction:
         """Create a new GnosisSafeTransaction instance."""
+        safe = self.wallet.safes[self.chain_type]
         return GnosisSafeTransaction(
             ledger_api=self.ledger_api,
             crypto=self.crypto,
             chain_type=self.chain_type,
-            safe=t.cast(str, self.wallet.safe),
+            safe=safe,
         )
 
     def get_mint_tx_data(  # pylint: disable=too-many-arguments
@@ -917,10 +918,11 @@ class EthSafeTxBuilder(_ChainUtil):
             contract_address=self.contracts["service_manager"],
         )
 
+        safe = self.wallet.safes[self.chain_type]
         txd = instance.encodeABI(
             fn_name="create" if update_token is None else "update",
             args=[
-                self.wallet.safe,
+                safe,
                 token or ETHEREUM_ERC20,
                 manager.metadata_hash,
                 [agent_id],
@@ -968,8 +970,9 @@ class EthSafeTxBuilder(_ChainUtil):
             fn_name="activateRegistration",
             args=[service_id],
         )
+        safe = self.wallet.safes[self.chain_type]
         return {
-            "from": self.wallet.safe,
+            "from": safe,
             "to": self.contracts["service_manager"],
             "data": txd[2:],
             "operation": MultiSendOperation.CALL,
@@ -996,8 +999,9 @@ class EthSafeTxBuilder(_ChainUtil):
                 agents,
             ],
         )
+        safe = self.wallet.safes[self.chain_type]
         return {
-            "from": self.wallet.safe,
+            "from": safe,
             "to": self.contracts["service_manager"],
             "data": txd[2:],
             "operation": MultiSendOperation.CALL,
@@ -1099,8 +1103,9 @@ class EthSafeTxBuilder(_ChainUtil):
             service_registry=service_registry,
             staking_contract=staking_contract,
         )
+        safe = self.wallet.safes[self.chain_type]
         return {
-            "from": self.wallet.safe,
+            "from": safe,
             "to": self.contracts["service_registry"],
             "data": txd[2:],
             "operation": MultiSendOperation.CALL,

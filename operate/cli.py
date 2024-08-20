@@ -395,27 +395,33 @@ def create_app(  # pylint: disable=too-many-locals, unused-argument, too-many-st
     @with_retries
     async def _get_safes(request: Request) -> t.List[t.Dict]:
         """Create wallet safe"""
-        safes = []
+        all_safes = []
         for wallet in operate.wallet_manager:
-            safes.append({wallet.ledger_type: wallet.safe})
-        return JSONResponse(content=safes)
+            safes = []
+            if wallet.safes is not None:
+                safes = list(wallet.safes.values())
+            all_safes.append({wallet.ledger_type: safes})
+        return JSONResponse(content=all_safes)
 
     @app.get("/api/wallet/safe/{chain}")
     @with_retries
     async def _get_safe(request: Request) -> t.List[t.Dict]:
         """Create wallet safe"""
-        ledger_type = get_ledger_type_from_chain_type(
-            chain=ChainType.from_string(request.path_params["chain"])
-        )
+        chain_type = ChainType.from_string(request.path_params["chain"])
+        ledger_type = get_ledger_type_from_chain_type(chain=chain_type)
         manager = operate.wallet_manager
         if not manager.exists(ledger_type=ledger_type):
             return JSONResponse(
                 content={"error": "Wallet does not exist"},
                 status_code=404,
             )
+        safes = manager.load(ledger_type=ledger_type).safes
+        if safes is None or safes.get(chain_type) is None:
+            return JSONResponse(content={"error": "No safes found"})
+
         return JSONResponse(
             content={
-                "safe": manager.load(ledger_type=ledger_type).safe,
+                "safe": safes[chain_type],
             },
         )
 
@@ -443,22 +449,73 @@ def create_app(  # pylint: disable=too-many-locals, unused-argument, too-many-st
             return JSONResponse(content={"error": "Wallet does not exist"})
 
         wallet = manager.load(ledger_type=ledger_type)
-        if wallet.safe is not None:
+        if wallet.safes is not None and wallet.safes.get(chain_type) is not None:
             return JSONResponse(
-                content={"safe": wallet.safe, "message": "Safe already exists!"}
+                content={"safe": wallet.safes.get(chain_type), "message": "Safe already exists!"}
             )
 
+        safes = t.cast(t.Dict[ChainType, str], wallet.safes)
         wallet.create_safe(  # pylint: disable=no-member
             chain_type=chain_type,
             owner=data.get("owner"),
         )
         wallet.transfer(
-            to=t.cast(str, wallet.safe),
+            to=t.cast(str, safes.get(chain_type)),
             amount=int(1e18),
             chain_type=chain_type,
             from_safe=False,
         )
-        return JSONResponse(content={"safe": wallet.safe, "message": "Safe created!"})
+        return JSONResponse(content={"safe": safes.get(chain_type), "message": "Safe created!"})
+
+
+    @app.post("/api/wallet/safes")
+    @with_retries
+    async def _create_safes(request: Request) -> t.List[t.Dict]:
+        """Create wallet safes"""
+        if operate.user_account is None:
+            return JSONResponse(
+                content={"error": "Cannot create safe; User account does not exist!"},
+                status_code=400,
+            )
+
+        if operate.password is None:
+            return JSONResponse(
+                content={"error": "You need to login before creating a safe"},
+                status_code=401,
+            )
+
+        data = await request.json()
+        chain_types = [ChainType(chain_type) for chain_type in data["chain_types"]]
+        # check that all chains are supported
+        for chain_type in chain_types:
+            ledger_type = get_ledger_type_from_chain_type(chain=chain_type)
+            manager = operate.wallet_manager
+            if not manager.exists(ledger_type=ledger_type):
+                return JSONResponse(content={"error": f"Wallet does not exist for chain_type {chain_type}"})
+
+        # mint the safes
+        for chain_type in chain_types:
+            ledger_type = get_ledger_type_from_chain_type(chain=chain_type)
+            manager = operate.wallet_manager
+
+            wallet = manager.load(ledger_type=ledger_type)
+            if wallet.safes is not None and wallet.safes.get(chain_type) is not None:
+                logger.info(f"Safe already exists for chain_type {chain_type}")
+                continue
+
+            safes = t.cast(t.Dict[ChainType, str], wallet.safes)
+            wallet.create_safe(  # pylint: disable=no-member
+                chain_type=chain_type,
+                owner=data.get("owner"),
+            )
+            wallet.transfer(
+                to=t.cast(str, safes.get(chain_type)),
+                amount=int(1e18),
+                chain_type=chain_type,
+                from_safe=False,
+            )
+
+        return JSONResponse(content={"safes": safes, "message": "Safes created!"})
 
     @app.put("/api/wallet/safe")
     @with_retries

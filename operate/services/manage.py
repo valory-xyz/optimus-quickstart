@@ -51,7 +51,7 @@ from operate.services.service import (
 )
 from operate.types import (
     ServiceTemplate,
-    LedgerConfig
+    LedgerConfig, ChainType
 )
 from operate.wallet.master import MasterWalletManager
 
@@ -396,6 +396,8 @@ class ServiceManager:
         instances = [key.address for key in keys]
         wallet = self.wallet_manager.load(ledger_config.type)
         sftxb = self.get_eth_safe_tx_builder(ledger_config=ledger_config)
+        chain_type = ChainType.from_id(chain_id)
+        safe = wallet.safes.get(chain_type)
 
         # TODO fixme
         os.environ["CUSTOM_CHAIN_RPC"] = ledger_config.rpc
@@ -433,13 +435,13 @@ class ServiceManager:
                     ledger_api=sftxb.ledger_api,
                     contract_address=OLAS[ledger_config.chain],
                 )
-                .functions.balanceOf(wallet.safe)
+                .functions.balanceOf(safe)
                 .call()
             )
             if balance < required_olas:
                 raise ValueError(
                     "You don't have enough olas to stake, "
-                    f"address: {wallet.safe}; required olas: {required_olas}; your balance: {balance}"
+                    f"address: {safe}; required olas: {required_olas}; your balance: {balance}"
                 )
 
         on_chain_hash = self._get_on_chain_hash(chain_config=chain_config)
@@ -514,7 +516,7 @@ class ServiceManager:
                 token_utility = "0xa45E64d13A30a51b91ae0eb182e88a40e9b18eD8"  # nosec
                 olas_token = "0xcE11e14225575945b8E6Dc0D4F2dD4C570f79d9f"  # nosec
                 self.logger.info(
-                    f"Approving OLAS as bonding token from {wallet.safe} to {token_utility}"
+                    f"Approving OLAS as bonding token from {safe} to {token_utility}"
                 )
                 cost_of_bond = (
                     registry_contracts.service_registry_token_utility.get_agent_bond(
@@ -537,13 +539,13 @@ class ServiceManager:
                         contract_address=olas_token,
                     )
                     .functions.allowance(
-                        wallet.safe,
+                        safe,
                         token_utility,
                     )
                     .call()
                 )
                 self.logger.info(
-                    f"Approved {token_utility_allowance} OLAS from {wallet.safe} to {token_utility}"
+                    f"Approved {token_utility_allowance} OLAS from {safe} to {token_utility}"
                 )
                 cost_of_bond = 1
 
@@ -563,7 +565,7 @@ class ServiceManager:
                 token_utility = "0xa45E64d13A30a51b91ae0eb182e88a40e9b18eD8"  # nosec
                 olas_token = "0xcE11e14225575945b8E6Dc0D4F2dD4C570f79d9f"  # nosec
                 self.logger.info(
-                    f"Approving OLAS as bonding token from {wallet.safe} to {token_utility}"
+                    f"Approving OLAS as bonding token from {safe} to {token_utility}"
                 )
                 cost_of_bond = (
                     registry_contracts.service_registry_token_utility.get_agent_bond(
@@ -586,13 +588,13 @@ class ServiceManager:
                         contract_address=olas_token,
                     )
                     .functions.allowance(
-                        wallet.safe,
+                        safe,
                         token_utility,
                     )
                     .call()
                 )
                 self.logger.info(
-                    f"Approved {token_utility_allowance} OLAS from {wallet.safe} to {token_utility}"
+                    f"Approved {token_utility_allowance} OLAS from {safe} to {token_utility}"
                 )
                 cost_of_bond = 1
 
