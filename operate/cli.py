@@ -504,14 +504,6 @@ def create_app(  # pylint: disable=too-many-locals, unused-argument, too-many-st
         if operate.password is None:
             return USER_NOT_LOGGED_IN_ERROR
         template = await request.json()
-
-        print("!!!!!!!!!!!!!!!!")
-        from icecream import ic
-
-        ic(template)
-        print(template)
-        import sys
-
         manager = operate.service_manager()
         if len(manager.json) > 0:
             old_hash = manager.json[0]["hash"]
