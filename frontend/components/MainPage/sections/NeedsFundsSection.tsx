@@ -3,6 +3,7 @@ import { formatUnits } from 'ethers/lib/utils';
 import { ReactNode, useEffect, useMemo } from 'react';
 import styled from 'styled-components';
 
+import { CustomAlert } from '@/components/Alert';
 import { CHAINS } from '@/constants/chains';
 import { UNICODE_SYMBOLS } from '@/constants/symbols';
 import { useBalance } from '@/hooks/useBalance';
@@ -11,8 +12,6 @@ import { useServiceTemplates } from '@/hooks/useServiceTemplates';
 import { useStore } from '@/hooks/useStore';
 import { getMinimumStakedAmountRequired } from '@/utils/service';
 
-import { CustomAlert } from '../../Alert';
-import { AlertTitle } from '../../Alert/AlertTitle';
 import { CardSection } from '../../styled/CardSection';
 
 const { Text } = Typography;
