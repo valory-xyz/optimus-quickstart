@@ -103,6 +103,7 @@ const AgentNotRunningButton = () => {
   const {
     setIsPaused: setIsBalancePollingPaused,
     safeBalance,
+    isLowBalance,
     totalOlasStakedBalance,
     totalEthBalance,
   } = useBalance();
@@ -211,7 +212,7 @@ const AgentNotRunningButton = () => {
     const isServiceInactive =
       serviceStatus === DeploymentStatus.BUILT ||
       serviceStatus === DeploymentStatus.STOPPED;
-    if (isServiceInactive && safeBalance && safeBalance.ETH < LOW_BALANCE) {
+    if (isServiceInactive && isLowBalance) {
       return false;
     }
 
@@ -245,6 +246,7 @@ const AgentNotRunningButton = () => {
     safeOlasBalanceWithStaked,
     requiredOlas,
     totalEthBalance,
+    isLowBalance,
   ]);
 
   const buttonProps: ButtonProps = {
