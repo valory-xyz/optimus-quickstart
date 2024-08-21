@@ -69,8 +69,6 @@ from operate.types import (
     ChainConfig,
     ChainConfigs,
     ChainType,
-    ConfigurationTemplate,
-    ConfigurationTemplates,
     DeployedNodes,
     DeploymentConfig,
     DeploymentStatus,
@@ -494,7 +492,7 @@ class Deployment(LocalResource):
         self.status = DeploymentStatus.BUILT
         self.store()
 
-    def _build_host(self, force: bool = True) -> None:
+    def _build_host(self, force: bool = True, chain_id: str = "100") -> None:
         """Build host depployment."""
         build = self.path / DEPLOYMENT
         if build.exists() and not force:
@@ -509,6 +507,10 @@ class Deployment(LocalResource):
             raise RuntimeError(
                 "Host deployment currently only supports single agent deployments"
             )
+
+        chain_config = service.chain_configs[chain_id]
+        ledger_config = chain_config.ledger_config
+        chain_data = chain_config.chain_data
 
         keys_file = self.path / KEYS_JSON
         keys_file.write_text(
@@ -534,15 +536,15 @@ class Deployment(LocalResource):
             builder.deplopyment_type = HostDeploymentGenerator.deployment_type
             builder.try_update_abci_connection_params()
             builder.try_update_runtime_params(
-                multisig_address=service.chain_data.multisig,
-                agent_instances=service.chain_data.instances,
-                service_id=service.chain_data.token,
+                multisig_address=chain_data.multisig,
+                agent_instances=chain_data.instances,
+                service_id=chain_data.token,
                 consensus_threshold=None,
             )
             # TODO: Support for multiledger
             builder.try_update_ledger_params(
-                chain=LedgerType(service.ledger_config.type).name.lower(),
-                address=service.ledger_config.rpc,
+                chain=LedgerType(ledger_config.type).name.lower(),
+                address=ledger_config.rpc,
             )
 
             (
@@ -579,6 +581,7 @@ class Deployment(LocalResource):
         self,
         use_docker: bool = False,
         force: bool = True,
+        chain_id: str = "100",
     ) -> None:
         """
         Build a deployment
@@ -587,9 +590,10 @@ class Deployment(LocalResource):
         :param force: Remove existing deployment and build a new one
         :return: Deployment object
         """
+        # TODO: chain_id should be used properly! Added as a hotfix for now.
         if use_docker:
             return self._build_docker(force=force)
-        return self._build_host(force=force)
+        return self._build_host(force=force, chain_id=chain_id)
 
     def start(self, use_docker: bool = False) -> None:
         """Start the service"""
@@ -641,9 +645,10 @@ class Deployment(LocalResource):
 class Service(LocalResource):
     """Service class."""
 
+    version: int
     hash: str
     keys: Keys
-    home_chain_id: int
+    home_chain_id: str
     chain_configs: ChainConfigs
 
     path: Path
@@ -657,8 +662,58 @@ class Service(LocalResource):
     _file = "config.json"
 
     @classmethod
+    def migrate_format(cls, path: Path) -> None:
+        """Migrate the JSON file format if needed."""
+        file_path = path / Service._file if Service._file is not None and path.name != Service._file else path
+        
+        with open(file_path, 'r', encoding='utf-8') as file:
+            data = json.load(file)
+        
+        if 'version' in data:
+            # Data is already in the new format
+            return
+        
+        # Migrate from old format to new format
+        new_data = {
+            "version": 2,
+            "hash": data.get("hash"),
+            "keys": data.get("keys"),
+            "home_chain_id": "100",  # Assuming a default value for home_chain_id
+            "chain_configs": {
+                "100": {
+                    "ledger_config": {
+                        "rpc": data.get("ledger_config", {}).get("rpc"),
+                        "type": data.get("ledger_config", {}).get("type"),
+                        "chain": data.get("ledger_config", {}).get("chain")
+                    },
+                    "chain_data": {
+                        "instances": data.get("chain_data", {}).get("instances", []),
+                        "token": data.get("chain_data", {}).get("token"),
+                        "multisig": data.get("chain_data", {}).get("multisig"),
+                        "staked": data.get("chain_data", {}).get("staked", False),
+                        "on_chain_state": data.get("chain_data", {}).get("on_chain_state", 3),
+                        "user_params": {
+                            "staking_program_id": "pearl_alpha",
+                            "nft": data.get("chain_data", {}).get("user_params", {}).get("nft"),
+                            "threshold": data.get("chain_data", {}).get("user_params", {}).get("threshold"),
+                            "use_staking": data.get("chain_data", {}).get("user_params", {}).get("use_staking"),
+                            "cost_of_bond": data.get("chain_data", {}).get("user_params", {}).get("cost_of_bond"),
+                            "fund_requirements": data.get("chain_data", {}).get("user_params", {}).get("fund_requirements", {})
+                        }
+                    }
+                }
+            },
+            "service_path": data.get("service_path", ""),
+            "name": data.get("name", "")
+        }
+        
+        with open(file_path, 'w', encoding='utf-8') as file:
+            json.dump(new_data, file, indent=2)
+
+    @classmethod
     def load(cls, path: Path) -> "Service":
         """Load a service"""
+        cls.migrate_format(path)
         return super().load(path)  # type: ignore
 
     @property
@@ -718,6 +773,7 @@ class Service(LocalResource):
             )
 
         service = Service(
+            version=2,  # TODO implement in appropriate place
             name=service_yaml["author"] + "/" + service_yaml["name"],
             hash=service_template["hash"],
             keys=keys,
@@ -728,6 +784,14 @@ class Service(LocalResource):
         )
         service.store()
         return service
+
+    def update_user_params_from_template(self, service_template: ServiceTemplate):
+        """Update user params from template."""
+        for chain, config in service_template["configurations"].items():
+            for chain, config in service_template["configurations"].items():
+                self.chain_configs[chain].chain_data.user_params = OnChainUserParams.from_json(config)
+
+        self.store()
 
     def delete(self) -> None:
         """Delete a service."""

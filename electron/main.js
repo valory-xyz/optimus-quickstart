@@ -131,17 +131,18 @@ const createTray = () => {
   tray.setContextMenu(contextMenu);
 
   ipcMain.on('tray', (_event, status) => {
+    const isSupportedOS = isWindows || isMac;
     switch (status) {
       case 'low-gas': {
         const icon = getUpdatedTrayIcon(
-          isWindows || isMac ? TRAY_ICONS.LOW_GAS : TRAY_ICONS_PATHS.LOW_GAS,
+          isSupportedOS ? TRAY_ICONS.LOW_GAS : TRAY_ICONS_PATHS.LOW_GAS,
         );
         tray.setImage(icon);
         break;
       }
       case 'running': {
         const icon = getUpdatedTrayIcon(
-          isWindows || isMac ? TRAY_ICONS.RUNNING : TRAY_ICONS_PATHS.RUNNING,
+          isSupportedOS ? TRAY_ICONS.RUNNING : TRAY_ICONS_PATHS.RUNNING,
         );
         tray.setImage(icon);
 
@@ -149,7 +150,14 @@ const createTray = () => {
       }
       case 'paused': {
         const icon = getUpdatedTrayIcon(
-          isWindows || isMac ? TRAY_ICONS.PAUSED : TRAY_ICONS_PATHS.PAUSED,
+          isSupportedOS ? TRAY_ICONS.PAUSED : TRAY_ICONS_PATHS.PAUSED,
+        );
+        tray.setImage(icon);
+        break;
+      }
+      case 'logged-out': {
+        const icon = getUpdatedTrayIcon(
+          isSupportedOS ? TRAY_ICONS.LOGGED_OUT : TRAY_ICONS_PATHS.LOGGED_OUT,
         );
         tray.setImage(icon);
         break;
@@ -187,7 +195,7 @@ const HEIGHT = 700;
 /**
  * Creates the main window
  */
-const createMainWindow = () => {
+const createMainWindow = async () => {
   const width = isDev ? 840 : APP_WIDTH;
   mainWindow = new BrowserWindow({
     title: 'Pearl',
@@ -207,12 +215,6 @@ const createMainWindow = () => {
   });
 
   mainWindow.setMenuBarVisibility(true);
-
-  if (isDev) {
-    mainWindow.loadURL(`http://localhost:${appConfig.ports.dev.next}`);
-  } else {
-    mainWindow.loadURL(`http://localhost:${appConfig.ports.prod.next}`);
-  }
 
   ipcMain.on('close-app', () => {
     mainWindow.close();
@@ -256,14 +258,22 @@ const createMainWindow = () => {
     event.preventDefault();
     mainWindow.hide();
   });
-
-  const storeInitialValues = {
-    environmentName: process.env.IS_STAGING ? 'staging' : '',
-  };
-  setupStoreIpc(ipcMain, mainWindow, storeInitialValues);
+  
+  try {
+    logger.electron('Setting up store IPC');
+    await setupStoreIpc(ipcMain, mainWindow);
+  } catch (e) {
+    logger.electron('Store IPC failed:', JSON.stringify(e));
+  }
 
   if (isDev) {
     mainWindow.webContents.openDevTools();
+  }
+
+  if (isDev) {
+    mainWindow.loadURL(`http://localhost:${appConfig.ports.dev.next}`);
+  } else {
+    mainWindow.loadURL(`http://localhost:${appConfig.ports.prod.next}`);
   }
 };
 
@@ -486,7 +496,7 @@ ipcMain.on('check', async function (event, _argument) {
     }
 
     event.sender.send('response', 'Launching App');
-    createMainWindow();
+    await createMainWindow();
     createTray();
     splashWindow.destroy();
   } catch (e) {

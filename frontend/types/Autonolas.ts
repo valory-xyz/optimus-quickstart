@@ -20,4 +20,6 @@ export type StakingContractInfo = {
   serviceStakingStartTime: number;
   /** 0: not staked, 1: staked, 2: unstaked - current state of the service */
   serviceStakingState: number;
+  /** OLAS cost of staking */
+  minStakingDeposit: number;
 };

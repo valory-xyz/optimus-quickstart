@@ -1,6 +1,7 @@
 import { useContext } from 'react';
 
 import { Service, ServiceHash, ServiceTemplate } from '@/client';
+import { CHAINS } from '@/constants/chains';
 import { ServicesContext } from '@/context/ServicesProvider';
 import MulticallService from '@/service/Multicall';
 import { ServicesService } from '@/service/Services';
@@ -12,7 +13,11 @@ const checkServiceIsFunded = async (
   serviceTemplate: ServiceTemplate,
 ): Promise<boolean> => {
   const {
-    chain_data: { instances, multisig },
+    chain_configs: {
+      [CHAINS.GNOSIS.chainId]: {
+        chain_data: { instances, multisig },
+      },
+    },
   } = service;
 
   if (!instances || !multisig) return false;
@@ -28,9 +33,11 @@ const checkServiceIsFunded = async (
       Object.assign(acc, {
         [address]: instances.includes(address)
           ? balances[address] >
-            serviceTemplate.configuration.fund_requirements.agent
+            serviceTemplate.configurations[CHAINS.GNOSIS.chainId]
+              .fund_requirements.agent
           : balances[address] >
-            serviceTemplate.configuration.fund_requirements.safe,
+            serviceTemplate.configurations[CHAINS.GNOSIS.chainId]
+              .fund_requirements.safe,
       }),
     {},
   );

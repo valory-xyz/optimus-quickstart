@@ -12,10 +12,11 @@ import {
   MECH_ACTIVITY_CHECKER_CONTRACT_ADDRESS,
   SERVICE_REGISTRY_L2_CONTRACT_ADDRESS,
   SERVICE_REGISTRY_TOKEN_UTILITY_CONTRACT_ADDRESS,
-  SERVICE_STAKING_TOKEN_MECH_USAGE_CONTRACT_ADDRESS,
+  SERVICE_STAKING_TOKEN_MECH_USAGE_CONTRACT_ADDRESSES,
 } from '@/constants/contractAddresses';
 import { gnosisMulticallProvider } from '@/constants/providers';
 import { ServiceRegistryL2ServiceState } from '@/enums/ServiceRegistryL2ServiceState';
+import { StakingProgram } from '@/enums/StakingProgram';
 import { Address } from '@/types/Address';
 import { StakingContractInfo, StakingRewardsInfo } from '@/types/Autonolas';
 
@@ -26,10 +27,27 @@ const agentMechContract = new MulticallContract(
   AGENT_MECH_ABI.filter((abi) => abi.type === 'function'), // weird bug in the package where their filter doesn't work..
 );
 
-const serviceStakingTokenMechUsageContract = new MulticallContract(
-  SERVICE_STAKING_TOKEN_MECH_USAGE_CONTRACT_ADDRESS[Chain.GNOSIS],
-  SERVICE_STAKING_TOKEN_MECH_USAGE_ABI.filter((abi) => abi.type === 'function'), // same as above
-);
+const serviceStakingTokenMechUsageContracts: Record<
+  StakingProgram,
+  MulticallContract
+> = {
+  [StakingProgram.Alpha]: new MulticallContract(
+    SERVICE_STAKING_TOKEN_MECH_USAGE_CONTRACT_ADDRESSES[Chain.GNOSIS][
+      StakingProgram.Alpha
+    ],
+    SERVICE_STAKING_TOKEN_MECH_USAGE_ABI.filter(
+      (abi) => abi.type === 'function',
+    ), // same as above
+  ),
+  [StakingProgram.Beta]: new MulticallContract(
+    SERVICE_STAKING_TOKEN_MECH_USAGE_CONTRACT_ADDRESSES[Chain.GNOSIS][
+      StakingProgram.Beta
+    ],
+    SERVICE_STAKING_TOKEN_MECH_USAGE_ABI.filter(
+      (abi) => abi.type === 'function',
+    ), // same as above
+  ),
+};
 
 const serviceRegistryTokenUtilityContract = new MulticallContract(
   SERVICE_REGISTRY_TOKEN_UTILITY_CONTRACT_ADDRESS[Chain.GNOSIS],
@@ -49,22 +67,28 @@ const mechActivityCheckerContract = new MulticallContract(
 const getAgentStakingRewardsInfo = async ({
   agentMultisigAddress,
   serviceId,
+  stakingProgram,
 }: {
   agentMultisigAddress: Address;
   serviceId: number;
+  stakingProgram: StakingProgram;
 }): Promise<StakingRewardsInfo | undefined> => {
   if (!agentMultisigAddress) return;
   if (!serviceId) return;
 
   const contractCalls = [
     agentMechContract.getRequestsCount(agentMultisigAddress),
-    serviceStakingTokenMechUsageContract.getServiceInfo(serviceId),
-    serviceStakingTokenMechUsageContract.livenessPeriod(),
+    serviceStakingTokenMechUsageContracts[stakingProgram].getServiceInfo(
+      serviceId,
+    ),
+    serviceStakingTokenMechUsageContracts[stakingProgram].livenessPeriod(),
     mechActivityCheckerContract.livenessRatio(),
-    serviceStakingTokenMechUsageContract.rewardsPerSecond(),
-    serviceStakingTokenMechUsageContract.calculateStakingReward(serviceId),
-    serviceStakingTokenMechUsageContract.minStakingDeposit(),
-    serviceStakingTokenMechUsageContract.tsCheckpoint(),
+    serviceStakingTokenMechUsageContracts[stakingProgram].rewardsPerSecond(),
+    serviceStakingTokenMechUsageContracts[
+      stakingProgram
+    ].calculateStakingReward(serviceId),
+    serviceStakingTokenMechUsageContracts[stakingProgram].minStakingDeposit(),
+    serviceStakingTokenMechUsageContracts[stakingProgram].tsCheckpoint(),
   ];
 
   await gnosisMulticallProvider.init();
@@ -136,11 +160,13 @@ const getAgentStakingRewardsInfo = async ({
   } as StakingRewardsInfo;
 };
 
-const getAvailableRewardsForEpoch = async (): Promise<number | undefined> => {
+const getAvailableRewardsForEpoch = async (
+  stakingProgram: StakingProgram,
+): Promise<number | undefined> => {
   const contractCalls = [
-    serviceStakingTokenMechUsageContract.rewardsPerSecond(),
-    serviceStakingTokenMechUsageContract.livenessPeriod(), // epoch length
-    serviceStakingTokenMechUsageContract.tsCheckpoint(), // last checkpoint timestamp
+    serviceStakingTokenMechUsageContracts[stakingProgram].rewardsPerSecond(),
+    serviceStakingTokenMechUsageContracts[stakingProgram].livenessPeriod(), // epoch length
+    serviceStakingTokenMechUsageContracts[stakingProgram].tsCheckpoint(), // last checkpoint timestamp
   ];
 
   await gnosisMulticallProvider.init();
@@ -157,21 +183,24 @@ const getAvailableRewardsForEpoch = async (): Promise<number | undefined> => {
   );
 };
 
-/**
- * function to get the staking contract info
- */
-const getStakingContractInfo = async (
+const getStakingContractInfoByServiceIdStakingProgram = async (
   serviceId: number,
+  stakingProgram: StakingProgram,
 ): Promise<StakingContractInfo | undefined> => {
   if (!serviceId) return;
 
   const contractCalls = [
-    serviceStakingTokenMechUsageContract.availableRewards(),
-    serviceStakingTokenMechUsageContract.maxNumServices(),
-    serviceStakingTokenMechUsageContract.getServiceIds(),
-    serviceStakingTokenMechUsageContract.minStakingDuration(),
-    serviceStakingTokenMechUsageContract.getServiceInfo(serviceId),
-    serviceStakingTokenMechUsageContract.getStakingState(serviceId),
+    serviceStakingTokenMechUsageContracts[stakingProgram].availableRewards(),
+    serviceStakingTokenMechUsageContracts[stakingProgram].maxNumServices(),
+    serviceStakingTokenMechUsageContracts[stakingProgram].getServiceIds(),
+    serviceStakingTokenMechUsageContracts[stakingProgram].minStakingDuration(),
+    serviceStakingTokenMechUsageContracts[stakingProgram].getServiceInfo(
+      serviceId,
+    ),
+    serviceStakingTokenMechUsageContracts[stakingProgram].getStakingState(
+      serviceId,
+    ),
+    serviceStakingTokenMechUsageContracts[stakingProgram].minStakingDeposit(),
   ];
 
   await gnosisMulticallProvider.init();
@@ -184,6 +213,7 @@ const getStakingContractInfo = async (
     minStakingDurationInBN,
     serviceInfo,
     serviceStakingState,
+    minStakingDeposit,
   ] = multicallResponse;
 
   const availableRewards = parseFloat(
@@ -199,6 +229,44 @@ const getStakingContractInfo = async (
     minimumStakingDuration: minStakingDurationInBN.toNumber(),
     serviceStakingStartTime: serviceInfo.tsStart.toNumber(),
     serviceStakingState,
+    minStakingDeposit: parseFloat(ethers.utils.formatEther(minStakingDeposit)),
+  };
+};
+
+const getStakingContractInfoByStakingProgram = async (
+  stakingProgram: StakingProgram,
+) => {
+  const contractCalls = [
+    serviceStakingTokenMechUsageContracts[stakingProgram].availableRewards(),
+    serviceStakingTokenMechUsageContracts[stakingProgram].maxNumServices(),
+    serviceStakingTokenMechUsageContracts[stakingProgram].getServiceIds(),
+    serviceStakingTokenMechUsageContracts[stakingProgram].minStakingDuration(),
+    serviceStakingTokenMechUsageContracts[stakingProgram].minStakingDeposit(),
+  ];
+
+  await gnosisMulticallProvider.init();
+
+  const multicallResponse = await gnosisMulticallProvider.all(contractCalls);
+  const [
+    availableRewardsInBN,
+    maxNumServicesInBN,
+    getServiceIdsInBN,
+    minStakingDurationInBN,
+    minStakingDeposit,
+  ] = multicallResponse;
+
+  const availableRewards = parseFloat(
+    ethers.utils.formatUnits(availableRewardsInBN, 18),
+  );
+  const serviceIds = getServiceIdsInBN.map((id: BigNumber) => id.toNumber());
+  const maxNumServices = maxNumServicesInBN.toNumber();
+
+  return {
+    availableRewards,
+    maxNumServices,
+    serviceIds,
+    minimumStakingDuration: minStakingDurationInBN.toNumber(),
+    minStakingDeposit: parseFloat(ethers.utils.formatEther(minStakingDeposit)),
   };
 };
 
@@ -240,9 +308,41 @@ const getServiceRegistryInfo = async (
   };
 };
 
+const getCurrentStakingProgramByServiceId = async (
+  serviceId: number,
+): Promise<StakingProgram | null> => {
+  const contractCalls = [
+    serviceStakingTokenMechUsageContracts[StakingProgram.Alpha].getStakingState(
+      serviceId,
+    ),
+    serviceStakingTokenMechUsageContracts[StakingProgram.Beta].getStakingState(
+      serviceId,
+    ),
+  ];
+
+  await gnosisMulticallProvider.init();
+
+  try {
+    const [isAlphaStaked, isBetaStaked] =
+      await gnosisMulticallProvider.all(contractCalls);
+
+    // Alpha should take precedence, as it must be migrated from
+    return isAlphaStaked
+      ? StakingProgram.Alpha
+      : isBetaStaked
+        ? StakingProgram.Beta
+        : null;
+  } catch (error) {
+    console.error('Error while getting current staking program', error);
+    return null;
+  }
+};
+
 export const AutonolasService = {
   getAgentStakingRewardsInfo,
   getAvailableRewardsForEpoch,
+  getCurrentStakingProgramByServiceId,
   getServiceRegistryInfo,
-  getStakingContractInfo,
+  getStakingContractInfoByServiceIdStakingProgram,
+  getStakingContractInfoByStakingProgram,
 };
