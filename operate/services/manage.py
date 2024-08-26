@@ -48,7 +48,7 @@ from operate.services.service import (
     OnChainUserParams,
     Service,
 )
-from operate.types import LedgerConfig, ServiceTemplate
+from operate.types import LedgerConfig, ServiceTemplate, ChainType
 from operate.utils.gnosis import NULL_ADDRESS
 from operate.wallet.master import MasterWalletManager
 
@@ -407,7 +407,8 @@ class ServiceManager:
         instances = [key.address for key in keys]
         wallet = self.wallet_manager.load(ledger_config.type)
         sftxb = self.get_eth_safe_tx_builder(ledger_config=ledger_config)
-
+        chain_type = ChainType.from_id(int(chain_id))
+        safe = wallet.safes[chain_type]
         # TODO fix this
         os.environ["CUSTOM_CHAIN_RPC"] = ledger_config.rpc
         os.environ["OPEN_AUTONOMY_SUBGRAPH_URL"] = "https://subgraph.autonolas.tech/subgraphs/name/autonolas-staging"
@@ -460,13 +461,13 @@ class ServiceManager:
                     ledger_api=sftxb.ledger_api,
                     contract_address=OLAS[ledger_config.chain],
                 )
-                .functions.balanceOf(wallet.safe)
+                .functions.balanceOf(safe)
                 .call()
             )
             if balance < required_olas:
                 raise ValueError(
                     "You don't have enough olas to stake, "
-                    f"address: {wallet.safe}; required olas: {required_olas}; your balance: {balance}"
+                    f"address: {safe}; required olas: {required_olas}; your balance: {balance}"
                 )
 
         on_chain_hash = self._get_on_chain_hash(chain_config=chain_config)
@@ -476,9 +477,10 @@ class ServiceManager:
             and (on_chain_hash is not None)
             and (on_chain_hash != service.hash or current_agent_id != staking_params["agent_ids"][0])
         )
-        current_staking_program = self._get_current_staking_program(chain_data, ledger_config, sftxb)
+        if user_params.use_staking:
+            current_staking_program = self._get_current_staking_program(chain_data, ledger_config, sftxb)
+            self.logger.info(f"{current_staking_program=}")
 
-        self.logger.info(f"{current_staking_program=}")
         self.logger.info(f"{user_params.staking_program_id=}")
         self.logger.info(f"{on_chain_hash=}")
         self.logger.info(f"{service.hash=}")
@@ -579,13 +581,13 @@ class ServiceManager:
             service.store()
 
         if self._get_on_chain_state(chain_config=chain_config) == OnChainState.PRE_REGISTRATION:
-            cost_of_bond = staking_params["min_staking_deposit"]
+            cost_of_bond = user_params.cost_of_bond
             if user_params.use_staking:
                 token_utility = staking_params["service_registry_token_utility"]
                 olas_token = staking_params["staking_token"]
                 agent_id = staking_params["agent_ids"][0]
                 self.logger.info(
-                    f"Approving OLAS as bonding token from {wallet.safe} to {token_utility}"
+                    f"Approving OLAS as bonding token from {safe} to {token_utility}"
                 )
                 cost_of_bond = (
                     registry_contracts.service_registry_token_utility.get_agent_bond(
@@ -608,13 +610,13 @@ class ServiceManager:
                         contract_address=olas_token,
                     )
                     .functions.allowance(
-                        wallet.safe,
+                        safe,
                         token_utility,
                     )
                     .call()
                 )
                 self.logger.info(
-                    f"Approved {token_utility_allowance} OLAS from {wallet.safe} to {token_utility}"
+                    f"Approved {token_utility_allowance} OLAS from {safe} to {token_utility}"
                 )
                 cost_of_bond = 1
 
@@ -630,12 +632,12 @@ class ServiceManager:
 
         if self._get_on_chain_state(chain_config=chain_config) == OnChainState.ACTIVE_REGISTRATION:
             cost_of_bond = user_params.cost_of_bond
+            agent_id = staking_params["agent_ids"][0]
             if user_params.use_staking:
                 token_utility = staking_params["service_registry_token_utility"]
                 olas_token = staking_params["staking_token"]
-                agent_id = staking_params["agent_ids"][0]
                 self.logger.info(
-                    f"Approving OLAS as bonding token from {wallet.safe} to {token_utility}"
+                    f"Approving OLAS as bonding token from {safe} to {token_utility}"
                 )
                 cost_of_bond = (
                     registry_contracts.service_registry_token_utility.get_agent_bond(
@@ -658,13 +660,13 @@ class ServiceManager:
                         contract_address=olas_token,
                     )
                     .functions.allowance(
-                        wallet.safe,
+                        safe,
                         token_utility,
                     )
                     .call()
                 )
                 self.logger.info(
-                    f"Approved {token_utility_allowance} OLAS from {wallet.safe} to {token_utility}"
+                    f"Approved {token_utility_allowance} OLAS from {safe} to {token_utility}"
                 )
                 cost_of_bond = 1
 
@@ -695,7 +697,7 @@ class ServiceManager:
             messages = sftxb.get_deploy_data_from_safe(
                 service_id=chain_data.token,
                 reuse_multisig=reuse_multisig,
-                master_safe=sftxb.wallet.safe,
+                master_safe=safe,
             )
             tx = sftxb.new_tx()
             for message in messages:
@@ -711,7 +713,9 @@ class ServiceManager:
         chain_data.multisig = info["multisig"]
         chain_data.on_chain_state = OnChainState(info["service_state"])
         service.store()
-        self.stake_service_on_chain_from_safe(hash=hash, chain_id=chain_id)
+        if user_params.use_staking:
+            self.stake_service_on_chain_from_safe(hash=hash, chain_id=chain_id)
+
 
     def terminate_service_on_chain(self, hash: str) -> None:
         """
@@ -1141,7 +1145,7 @@ class ServiceManager:
                     )
                 await asyncio.sleep(60)
 
-    def deploy_service_locally(self, hash: str, force: bool = True) -> Deployment:
+    def deploy_service_locally(self, hash: str, force: bool = True, chain_id: str = "100", use_docker: bool = False) -> Deployment:
         """
         Deploy service locally
 
@@ -1150,8 +1154,8 @@ class ServiceManager:
         :return: Deployment instance
         """
         deployment = self.load_or_create(hash=hash).deployment
-        deployment.build(force=force)
-        deployment.start()
+        deployment.build(use_docker=use_docker, force=force, chain_id=chain_id)
+        deployment.start(use_docker=use_docker)
         return deployment
 
     def stop_service_locally(self, hash: str, delete: bool = False) -> Deployment:
@@ -1217,3 +1221,4 @@ class ServiceManager:
     def _log_directories(self) -> None:
         directories = [str(p) for p in self.path.iterdir() if p.is_dir()]
         self.logger.info(f"Directories in {self.path}: {', '.join(directories)}")
+

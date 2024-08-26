@@ -21,7 +21,7 @@
 
 import json
 import typing as t
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 
 from aea.crypto.base import Crypto, LedgerApi
@@ -49,7 +49,7 @@ class MasterWallet(LocalResource):
     """Master wallet."""
 
     path: Path
-    safes: t.Optional[t.Dict[ChainType, str]] = None
+    safes: t.Optional[t.Dict[ChainType, str]] = {}
     ledger_type: LedgerType
 
     _key: str
@@ -155,7 +155,7 @@ class EthereumMasterWallet(MasterWallet):
     safe_chains: t.List[ChainType]  # For cross-chain support
 
     ledger_type: LedgerType = LedgerType.ETHEREUM
-    safes: t.Optional[t.Dict[ChainType, str]] = None
+    safes: t.Optional[t.Dict[ChainType, str]] = field(default_factory=dict)
     safe_nonce: t.Optional[int] = None  # For cross-chain reusability
 
     _file = ledger_type.config_file
@@ -344,7 +344,13 @@ class EthereumMasterWallet(MasterWallet):
     @classmethod
     def load(cls, path: Path) -> "EthereumMasterWallet":
         """Load master wallet."""
-        return super().load(path)  # type: ignore
+        raw_ethereum_wallet = super().load(path)  # type: ignore
+        safes = {}
+        for id_, safe_address in raw_ethereum_wallet.safes.items():
+            safes[ChainType(int(id_))] = safe_address
+
+        raw_ethereum_wallet.safes = safes
+        return t.cast(EthereumMasterWallet, raw_ethereum_wallet)
 
 
 LEDGER_TYPE_TO_WALLET_CLASS = {

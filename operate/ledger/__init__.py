@@ -37,6 +37,7 @@ ETHEREUM_RPC = os.environ.get("DEV_RPC", "https://ethereum.publicnode.com")
 GNOSIS_RPC = os.environ.get("DEV_RPC", "https://rpc-gate.autonolas.tech/gnosis-rpc/")
 GOERLI_RPC = os.environ.get("DEV_RPC", "https://ethereum-goerli.publicnode.com")
 SOLANA_RPC = os.environ.get("DEV_RPC", "https://api.mainnet-beta.solana.com")
+OPTIMISM_RPC = os.environ.get("DEV_RPC", "https://optimism-rpc.publicnode.com")
 
 PUBLIC_RPCS = {
     ChainType.ETHEREUM: ETHEREUM_PUBLIC_RPC,
@@ -50,6 +51,7 @@ DEFAULT_RPCS = {
     ChainType.GNOSIS: GNOSIS_RPC,
     ChainType.GOERLI: GOERLI_RPC,
     ChainType.SOLANA: SOLANA_RPC,
+    ChainType.OPTIMISM: OPTIMISM_RPC,
 }
 
 CHAIN_HELPERS: t.Dict[ChainType, t.Type[LedgerHelper]] = {

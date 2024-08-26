@@ -32,11 +32,25 @@ CONTRACTS = {
             "gnosis_safe_same_address_multisig": "0x6e7f594f680f7aBad18b7a63de50F0FeE47dfD06",
             "multisend": "0x40A2aCCbd92BCA938b02010E17A5b8929b49130D",
         }
-    )
+    ),
+    ChainType.OPTIMISM: ContractAddresses(
+        {
+            "service_manager": "0xFbBEc0C8b13B38a9aC0499694A69a10204c5E2aB",
+            "service_registry": "0x3d77596beb0f130a4415df3D2D8232B3d3D31e44",
+            "service_registry_token_utility": "0xBb7e1D6Cb6F243D6bdE81CE92a9f2aFF7Fbe7eac",
+            "gnosis_safe_proxy_factory": "0xE43d4F4103b623B61E095E8bEA34e1bc8979e168",
+            "gnosis_safe_same_address_multisig": "0xb09CcF0Dbf0C178806Aaee28956c74bd66d21f73",
+            "multisend": "0x40A2aCCbd92BCA938b02010E17A5b8929b49130D",
+        }
+    ),
 }
 
 STAKING = {
     ChainType.GNOSIS: {
+        "pearl_alpha": "0xEE9F19b5DF06c7E8Bfc7B28745dcf944C504198A",
+        "pearl_beta": "0xeF44Fb0842DDeF59D37f85D61A1eF492bbA6135d",
+    },
+    ChainType.OPTIMISM: {
         "pearl_alpha": "0xEE9F19b5DF06c7E8Bfc7B28745dcf944C504198A",
         "pearl_beta": "0xeF44Fb0842DDeF59D37f85D61A1eF492bbA6135d",
     }
@@ -44,4 +58,5 @@ STAKING = {
 
 OLAS = {
     ChainType.GNOSIS: "0xcE11e14225575945b8E6Dc0D4F2dD4C570f79d9f",
+    ChainType.OPTIMISM: "0x01B8b6384298D4848E3BE63D4C9D17830EeE488A",
 }

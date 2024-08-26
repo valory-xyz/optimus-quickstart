@@ -251,7 +251,6 @@ class ServiceHelper:
                 override["type"] == "connection"
                 and "valory/ledger" in override["public_id"]
             ):
-                import pdb;pdb.set_trace()
                 (_, config), *_ = override["config"]["ledger_apis"].items()
                 # TODO chain name is inferred from the chain_id. The actual id provided on service.yaml is ignored.
 
@@ -383,6 +382,7 @@ class Deployment(LocalResource):
     def _build_docker(
         self,
         force: bool = True,
+        chain_id: str = "100",
     ) -> None:
         """Build docker deployment."""
         service = Service.load(path=self.path)
@@ -426,15 +426,16 @@ class Deployment(LocalResource):
 
             home_chain_data = service.chain_configs[service.home_chain_id]
             builder.try_update_runtime_params(
-                multisig_address=home_chain_data.multisig,
-                agent_instances=home_chain_data.instances,
-                service_id=home_chain_data.token,
+                multisig_address=home_chain_data.chain_data.multisig,
+                agent_instances=home_chain_data.chain_data.instances,
+                service_id=home_chain_data.chain_data.token,
                 consensus_threshold=None,
             )
             # TODO: Support for multiledger
+            ledger_config = service.chain_configs[service.home_chain_id].ledger_config
             builder.try_update_ledger_params(
-                chain=LedgerType(service.ledger_config.type).name.lower(),
-                address=service.ledger_config.rpc,
+                chain=LedgerType(ledger_config.type).name.lower(),
+                address=ledger_config.rpc,
             )
 
             # build deployment
@@ -592,7 +593,7 @@ class Deployment(LocalResource):
         """
         # TODO: chain_id should be used properly! Added as a hotfix for now.
         if use_docker:
-            return self._build_docker(force=force)
+            return self._build_docker(force=force, chain_id=chain_id)
         return self._build_host(force=force, chain_id=chain_id)
 
     def start(self, use_docker: bool = False) -> None:
@@ -680,7 +681,7 @@ class Service(LocalResource):
             "keys": data.get("keys"),
             "home_chain_id": "100",  # Assuming a default value for home_chain_id
             "chain_configs": {
-                "100": {
+                '10': {
                     "ledger_config": {
                         "rpc": data.get("ledger_config", {}).get("rpc"),
                         "type": data.get("ledger_config", {}).get("type"),

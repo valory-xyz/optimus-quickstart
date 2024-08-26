@@ -74,6 +74,7 @@ from operate.utils.gnosis import (
     skill_input_hex_to_payload,
 )
 from operate.wallet.master import MasterWallet
+from operate.types import ChainType as OperateChainType
 
 
 ETHEREUM_ERC20 = "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE"
@@ -508,6 +509,13 @@ class _ChainUtil:
             ContractConfigs.get(name=name).contracts[self.chain_type] = address
 
     @property
+    def safe(self) -> str:
+        """Get safe address."""
+        chain_id = self.ledger_api.api.eth.chain_id
+        chain_type = OperateChainType.from_id(chain_id)
+        return self.wallet.safes[chain_type]
+
+    @property
     def crypto(self) -> Crypto:
         """Load crypto object."""
         self._patch()
@@ -937,12 +945,11 @@ class EthSafeTxBuilder(_ChainUtil):
 
     def new_tx(self) -> GnosisSafeTransaction:
         """Create a new GnosisSafeTransaction instance."""
-        safe = self.wallet.safes[self.chain_type]
         return GnosisSafeTransaction(
             ledger_api=self.ledger_api,
             crypto=self.crypto,
             chain_type=self.chain_type,
-            safe=safe,
+            safe=self.safe,
         )
 
     def get_mint_tx_data(  # pylint: disable=too-many-arguments
@@ -983,8 +990,8 @@ class EthSafeTxBuilder(_ChainUtil):
             contract_address=self.contracts["service_manager"],
         )
 
-        safe = self.wallet.safes[self.chain_type]
         if update_token is None:
+            safe = self.safe
             txd = instance.encodeABI(
                 fn_name="create",
                 args=[
@@ -1048,9 +1055,8 @@ class EthSafeTxBuilder(_ChainUtil):
             fn_name="activateRegistration",
             args=[service_id],
         )
-        safe = self.wallet.safes[self.chain_type]
         return {
-            "from": safe,
+            "from": self.safe,
             "to": self.contracts["service_manager"],
             "data": txd[2:],
             "operation": MultiSendOperation.CALL,
@@ -1077,9 +1083,8 @@ class EthSafeTxBuilder(_ChainUtil):
                 agents,
             ],
         )
-        safe = self.wallet.safes[self.chain_type]
         return {
-            "from": safe,
+            "from": self.safe,
             "to": self.contracts["service_manager"],
             "data": txd[2:],
             "operation": MultiSendOperation.CALL,
@@ -1230,9 +1235,8 @@ class EthSafeTxBuilder(_ChainUtil):
             service_registry=service_registry,
             staking_contract=staking_contract,
         )
-        safe = self.wallet.safes[self.chain_type]
         return {
-            "from": safe,
+            "from": self.safe,
             "to": self.contracts["service_registry"],
             "data": txd[2:],
             "operation": MultiSendOperation.CALL,
