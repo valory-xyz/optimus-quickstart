@@ -1061,10 +1061,10 @@ class ServiceManager:
         agent_fund_threshold: t.Optional[float] = None,
         safe_fund_treshold: t.Optional[float] = None,
         from_safe: bool = True,
+        chain_id: str = "10",
     ) -> None:
         """Fund service if required."""
         service = self.load_or_create(hash=hash)
-        chain_id = service.home_chain_id
         chain_config = service.chain_configs[chain_id]
         ledger_config = chain_config.ledger_config
         chain_data = chain_config.chain_data

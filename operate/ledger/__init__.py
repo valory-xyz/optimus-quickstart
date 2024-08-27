@@ -22,6 +22,8 @@
 import os
 import typing as t
 
+from autonomy.chain.config import Chain
+
 from operate.ledger.base import LedgerHelper
 from operate.ledger.ethereum import Ethereum
 from operate.ledger.solana import Solana
@@ -33,11 +35,12 @@ GNOSIS_PUBLIC_RPC = os.environ.get("DEV_RPC", "https://gnosis-rpc.publicnode.com
 GOERLI_PUBLIC_RPC = os.environ.get("DEV_RPC", "https://ethereum-goerli.publicnode.com")
 SOLANA_PUBLIC_RPC = os.environ.get("DEV_RPC", "https://api.mainnet-beta.solana.com")
 
-ETHEREUM_RPC = os.environ.get("DEV_RPC", "https://ethereum.publicnode.com")
+ETHEREUM_RPC = os.environ.get("ETHEREUM_RPC", "https://ethereum.publicnode.com")
 GNOSIS_RPC = os.environ.get("DEV_RPC", "https://rpc-gate.autonolas.tech/gnosis-rpc/")
 GOERLI_RPC = os.environ.get("DEV_RPC", "https://ethereum-goerli.publicnode.com")
 SOLANA_RPC = os.environ.get("DEV_RPC", "https://api.mainnet-beta.solana.com")
-OPTIMISM_RPC = os.environ.get("DEV_RPC", "https://optimism-rpc.publicnode.com")
+OPTIMISM_RPC = os.environ.get("OPTIMISM_RPC", "https://optimism-rpc.publicnode.com")
+BASE_RPC = os.environ.get("BASE_RPC", "https://base-rpc.publicnode.com")
 
 PUBLIC_RPCS = {
     ChainType.ETHEREUM: ETHEREUM_PUBLIC_RPC,
@@ -52,12 +55,15 @@ DEFAULT_RPCS = {
     ChainType.GOERLI: GOERLI_RPC,
     ChainType.SOLANA: SOLANA_RPC,
     ChainType.OPTIMISM: OPTIMISM_RPC,
+    ChainType.BASE: BASE_RPC,
 }
 
 CHAIN_HELPERS: t.Dict[ChainType, t.Type[LedgerHelper]] = {
     ChainType.ETHEREUM: Ethereum,
     ChainType.GNOSIS: Ethereum,
     ChainType.GOERLI: Ethereum,
+    ChainType.BASE: Ethereum,
+    ChainType.OPTIMISM: Ethereum,
     ChainType.SOLANA: Solana,
 }
 
