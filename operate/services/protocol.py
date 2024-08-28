@@ -55,6 +55,7 @@ from autonomy.cli.helpers.chain import OnChainHelper
 from autonomy.cli.helpers.chain import ServiceHelper as ServiceManager
 from eth_utils import to_bytes
 from hexbytes import HexBytes
+from web3.contract import Contract
 
 from operate.constants import (
     ON_CHAIN_INTERACT_RETRIES,
@@ -537,6 +538,17 @@ class _ChainUtil:
         )
         return ledger_api
 
+    @property
+    def service_manager_instance(self) -> Contract:
+        """Load service manager contract instance."""
+        contract_interface = registry_contracts.service_manager.contract_interface.get(self.ledger_api.identifier, {})
+        instance = self.ledger_api.get_contract_instance(
+            contract_interface,
+            self.contracts["service_manager"],
+        )
+        return instance
+
+
     def owner_of(self, token_id: int) -> str:
         """Get owner of a service."""
         self._patch()
@@ -985,11 +997,8 @@ class EthSafeTxBuilder(_ChainUtil):
             #.verify_service_dependencies(agent_id=agent_id)  # TODO add this check once subgraph production indexes agent 25
             .publish_metadata()
         )
-        instance = registry_contracts.service_manager.get_instance(
-            ledger_api=self.ledger_api,
-            contract_address=self.contracts["service_manager"],
-        )
 
+        instance = self.service_manager_instance
         if update_token is None:
             safe = self.safe
             txd = instance.encodeABI(
@@ -1047,10 +1056,7 @@ class EthSafeTxBuilder(_ChainUtil):
 
     def get_activate_data(self, service_id: int, cost_of_bond: int) -> t.Dict:
         """Get activate tx data."""
-        instance = registry_contracts.service_manager.get_instance(
-            ledger_api=self.ledger_api,
-            contract_address=self.contracts["service_manager"],
-        )
+        instance = self.service_manager_instance
         txd = instance.encodeABI(
             fn_name="activateRegistration",
             args=[service_id],
@@ -1071,10 +1077,7 @@ class EthSafeTxBuilder(_ChainUtil):
         cost_of_bond: int,
     ) -> t.Dict:
         """Get register instances tx data."""
-        instance = registry_contracts.service_manager.get_instance(
-            ledger_api=self.ledger_api,
-            contract_address=self.contracts["service_manager"],
-        )
+        instance = self.service_manager_instance
         txd = instance.encodeABI(
             fn_name="registerAgents",
             args=[
@@ -1097,10 +1100,7 @@ class EthSafeTxBuilder(_ChainUtil):
         reuse_multisig: bool = False,
     ) -> t.Dict:
         """Get deploy tx data."""
-        instance = registry_contracts.service_manager.get_instance(
-            ledger_api=self.ledger_api,
-            contract_address=self.contracts["service_manager"],
-        )
+        instance = self.service_manager_instance
         if reuse_multisig:
             _deployment_payload, error = get_reuse_multisig_payload(
                 ledger_api=self.ledger_api,
@@ -1142,10 +1142,7 @@ class EthSafeTxBuilder(_ChainUtil):
         reuse_multisig: bool = False,
     ) -> t.List[t.Dict[str, t.Any]]:
         """Get the deploy data instructions for a safe"""
-        registry_instance = registry_contracts.service_manager.get_instance(
-            ledger_api=self.ledger_api,
-            contract_address=self.contracts["service_manager"],
-        )
+        registry_instance = self.service_manager_instance
         approve_hash_message = None
         if reuse_multisig:
             _deployment_payload, approve_hash_message, error = get_reuse_multisig_from_safe_payload(
@@ -1186,10 +1183,7 @@ class EthSafeTxBuilder(_ChainUtil):
 
     def get_terminate_data(self, service_id: int) -> t.Dict:
         """Get terminate tx data."""
-        instance = registry_contracts.service_manager.get_instance(
-            ledger_api=self.ledger_api,
-            contract_address=self.contracts["service_manager"],
-        )
+        instance = self.service_manager_instance
         txd = instance.encodeABI(
             fn_name="terminate",
             args=[service_id],
@@ -1203,10 +1197,7 @@ class EthSafeTxBuilder(_ChainUtil):
 
     def get_unbond_data(self, service_id: int) -> t.Dict:
         """Get unbond tx data."""
-        instance = registry_contracts.service_manager.get_instance(
-            ledger_api=self.ledger_api,
-            contract_address=self.contracts["service_manager"],
-        )
+        instance = self.service_manager_instance
         txd = instance.encodeABI(
             fn_name="unbond",
             args=[service_id],

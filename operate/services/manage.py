@@ -381,12 +381,12 @@ class ServiceManager:
         """
         service = self.load_or_create(hash=hash)
         for chain_id in service.chain_configs.keys():
-            self._deploy_service_onchain_from_safe(
+            self.deploy_service_onchain_from_safe_single_chain(
                 hash=hash,
                 chain_id=chain_id,
             )
 
-    def _deploy_service_onchain_from_safe(  # pylint: disable=too-many-statements,too-many-locals
+    def deploy_service_onchain_from_safe_single_chain(  # pylint: disable=too-many-statements,too-many-locals
         self,
         hash: str,
         chain_id: str,
@@ -1069,7 +1069,7 @@ class ServiceManager:
         ledger_config = chain_config.ledger_config
         chain_data = chain_config.chain_data
         wallet = self.wallet_manager.load(ledger_config.type)
-        ledger_api = wallet.ledger_api(chain_type=ledger_config.chain, rpc=rpc if rpc else ledger_config.rpc)
+        ledger_api = wallet.ledger_api(chain_type=ledger_config.chain, rpc=rpc or ledger_config.rpc)
         agent_fund_threshold = (
             agent_fund_threshold
             or chain_data.user_params.fund_requirements.agent
@@ -1091,6 +1091,7 @@ class ServiceManager:
                     amount=int(to_transfer),
                     chain_type=ledger_config.chain,
                     from_safe=from_safe,
+                    rpc=rpc or ledger_config.rpc,
                 )
 
         safe_balance = ledger_api.get_balance(chain_data.multisig)
@@ -1111,6 +1112,7 @@ class ServiceManager:
                 to=t.cast(str, chain_data.multisig),
                 amount=int(to_transfer),
                 chain_type=ledger_config.chain,
+                rpc=rpc or ledger_config.rpc,
             )
 
     async def funding_job(

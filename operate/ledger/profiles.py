@@ -45,11 +45,11 @@ CONTRACTS = {
     ),
     ChainType.ETHEREUM: ContractAddresses(
         {
-            "service_manager": "0xFbBEc0C8b13B38a9aC0499694A69a10204c5E2aB",
-            "service_registry": "0x3d77596beb0f130a4415df3D2D8232B3d3D31e44",
-            "service_registry_token_utility": "0xBb7e1D6Cb6F243D6bdE81CE92a9f2aFF7Fbe7eac",
-            "gnosis_safe_proxy_factory": "0xE43d4F4103b623B61E095E8bEA34e1bc8979e168",
-            "gnosis_safe_same_address_multisig": "0xb09CcF0Dbf0C178806Aaee28956c74bd66d21f73",
+            "service_manager": "0x2EA682121f815FBcF86EA3F3CaFdd5d67F2dB143",
+            "service_registry": "0x48b6af7B12C71f09e2fC8aF4855De4Ff54e775cA",
+            "service_registry_token_utility": "0x3Fb926116D454b95c669B6Bf2E7c3bad8d19affA",
+            "gnosis_safe_proxy_factory": "0x46C0D07F55d4F9B5Eed2Fc9680B5953e5fd7b461",
+            "gnosis_safe_same_address_multisig": "0xfa517d01DaA100cB1932FA4345F68874f7E7eF46",
             "multisend": "0x40A2aCCbd92BCA938b02010E17A5b8929b49130D",
         }
     ),
@@ -57,8 +57,8 @@ CONTRACTS = {
         {
             "service_manager": "0x63e66d7ad413C01A7b49C7FF4e3Bb765C4E4bd1b",
             "service_registry": "0x3C1fF68f5aa342D296d4DEe4Bb1cACCA912D95fE",
-            "service_registry_token_utility": "0xBb7e1D6Cb6F243D6bdE81CE92a9f2aFF7Fbe7eac",
-            "gnosis_safe_proxy_factory": "0xC22834581EbC8527d974F8a1c97E1bEA4EF910BC",
+            "service_registry_token_utility": "0x34C895f302D0b5cf52ec0Edd3945321EB0f83dd5",
+            "gnosis_safe_proxy_factory": "0xBb7e1D6Cb6F243D6bdE81CE92a9f2aFF7Fbe7eac",
             "gnosis_safe_same_address_multisig": "0xFbBEc0C8b13B38a9aC0499694A69a10204c5E2aB",
             "multisend": "0x40A2aCCbd92BCA938b02010E17A5b8929b49130D",
         }

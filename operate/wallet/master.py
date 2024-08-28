@@ -99,6 +99,7 @@ class MasterWallet(LocalResource):
         amount: int,
         chain_type: ChainType,
         from_safe: bool = True,
+        rpc: t.Optional[str] = None,
     ) -> None:
         """Transfer funds to the given account."""
         raise NotImplementedError()
@@ -162,9 +163,9 @@ class EthereumMasterWallet(MasterWallet):
     _key = ledger_type.key_file
     _crypto_cls = EthereumCrypto
 
-    def _transfer_from_eoa(self, to: str, amount: int, chain_type: ChainType) -> None:
+    def _transfer_from_eoa(self, to: str, amount: int, chain_type: ChainType, rpc: t.Optional[str] = None) -> None:
         """Transfer funds from EOA wallet."""
-        ledger_api = t.cast(EthereumApi, self.ledger_api(chain_type=chain_type))
+        ledger_api = t.cast(EthereumApi, self.ledger_api(chain_type=chain_type, rpc=rpc))
         tx_helper = TxSettler(
             ledger_api=ledger_api,
             crypto=self.crypto,
@@ -195,12 +196,12 @@ class EthereumMasterWallet(MasterWallet):
         setattr(tx_helper, "build", _build_tx)  # noqa: B010
         tx_helper.transact(lambda x: x, "", kwargs={})
 
-    def _transfer_from_safe(self, to: str, amount: int, chain_type: ChainType) -> None:
+    def _transfer_from_safe(self, to: str, amount: int, chain_type: ChainType, rpc: t.Optional[str] = None) -> None:
         """Transfer funds from safe wallet."""
         transfer_from_safe(
-            ledger_api=self.ledger_api(chain_type=chain_type),
+            ledger_api=self.ledger_api(chain_type=chain_type, rpc=rpc),
             crypto=self.crypto,
-            safe=t.cast(str, self.safes),
+            safe=t.cast(str, self.safes[chain_type]),
             to=to,
             amount=amount,
         )
@@ -211,6 +212,7 @@ class EthereumMasterWallet(MasterWallet):
         amount: int,
         chain_type: ChainType,
         from_safe: bool = True,
+        rpc: t.Optional[str] = None,
     ) -> None:
         """Transfer funds to the given account."""
         if from_safe:
@@ -218,11 +220,13 @@ class EthereumMasterWallet(MasterWallet):
                 to=to,
                 amount=amount,
                 chain_type=chain_type,
+                rpc=rpc,
             )
         return self._transfer_from_eoa(
             to=to,
             amount=amount,
             chain_type=chain_type,
+            rpc=rpc,
         )
 
     @classmethod
