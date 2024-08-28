@@ -47,3 +47,4 @@ leak_report
 
 # logs
 *.log
+/.optimus/
