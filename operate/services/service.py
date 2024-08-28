@@ -589,7 +589,6 @@ class Deployment(LocalResource):
         :param force: Remove existing deployment and build a new one
         :return: Deployment object
         """
-        # TODO: chain_id should be used properly! Added as a hotfix for now.
         if use_docker:
             return self._build_docker(force=force, chain_id=chain_id)
         return self._build_host(force=force, chain_id=chain_id)
