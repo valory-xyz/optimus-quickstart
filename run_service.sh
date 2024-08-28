@@ -21,7 +21,7 @@
 if [ "$(git rev-parse --is-inside-work-tree)" = true ]
 then
     poetry install
-    poetry run python quickstart/run_service.py
+    poetry run python run_service.py
 else
     echo "$directory is not a git repo!"
     exit 1

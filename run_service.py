@@ -55,6 +55,7 @@ OPERATE_HOME = Path.cwd() / ".optimus"
 class OptimusConfig(LocalResource):
     """Local configuration."""
 
+    path: Path
     tenderly_api_key: t.Optional[str] = None
     optimism_rpc: t.Optional[str] = None
     ethereum_rpc: t.Optional[str] = None
@@ -166,7 +167,7 @@ def get_local_config() -> OptimusConfig:
     if path.exists():
         optimus_config = OptimusConfig.load(path)
     else:
-        optimus_config = OptimusConfig()
+        optimus_config = OptimusConfig(path)
 
     print_section("API Key Configuration")
 
@@ -184,6 +185,7 @@ def get_local_config() -> OptimusConfig:
             "Please enter your Tenderly API Key. Get one at https://dashboard.tenderly.co/: "
         )
 
+    optimus_config.store()
     return optimus_config
 
 
@@ -357,7 +359,7 @@ def main() -> None:
         manager.fund_service(hash=service.hash, chain_id=chain_id)
 
     home_chain_id = service.home_chain_id
-    manager.deploy_service_locally(hash=service.hash, chain_id=chain_id, use_docker=True)
+    manager.deploy_service_locally(hash=service.hash, chain_id=home_chain_id, use_docker=True)
 
     print()
     print_section("Run the service")
