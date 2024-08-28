@@ -1,7 +1,8 @@
-# -*- coding: utf-8 -*-
+#!/bin/bash
+
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2023 Valory AG
+#   Copyright 2024 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -17,21 +18,11 @@
 #
 # ------------------------------------------------------------------------------
 
-"""Constants."""
-
-OPERATE = ".operate"
-CONFIG = "config.json"
-SERVICES = "services"
-KEYS = "keys"
-DEPLOYMENT = "deployment"
-DEPLOYMENT_JSON = "deployment.json"
-CONFIG = "config.json"
-KEY = "key"
-KEYS = "keys"
-KEYS_JSON = "keys.json"
-DOCKER_COMPOSE_YAML = "docker-compose.yaml"
-SERVICE_YAML = "service.yaml"
-
-ON_CHAIN_INTERACT_TIMEOUT = 120.0
-ON_CHAIN_INTERACT_RETRIES = 40
-ON_CHAIN_INTERACT_SLEEP = 3.0
+if [ "$(git rev-parse --is-inside-work-tree)" = true ]
+then
+    poetry install
+    poetry run python quickstart/run_service.py
+else
+    echo "$directory is not a git repo!"
+    exit 1
+fi

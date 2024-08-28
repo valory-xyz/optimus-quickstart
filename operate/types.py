@@ -41,6 +41,8 @@ _CHAIN_NAME_TO_ENUM = {
     "goerli": 1,
     "gnosis": 2,
     "solana": 3,
+    "optimism": 4,
+    "base": 5
 }
 
 _CHAIN_ID_TO_CHAIN_NAME = {
@@ -48,6 +50,8 @@ _CHAIN_ID_TO_CHAIN_NAME = {
     5: "goerli",
     100: "gnosis",
     1399811149: "solana",
+    10: "optimism",
+    8453: "base"
 }
 
 _CHAIN_NAME_TO_ID = {val: key for key, val in _CHAIN_ID_TO_CHAIN_NAME.items()}
@@ -87,6 +91,8 @@ class ChainType(enum.IntEnum):
     GOERLI = 1
     GNOSIS = 2
     SOLANA = 3
+    OPTIMISM = 4
+    BASE = 5
 
     @property
     def id(self) -> int:
@@ -130,16 +136,17 @@ class DeploymentStatus(enum.IntEnum):
     DELETED = 6
 
 
+# TODO defined in aea.chain.base.OnChainState
 class OnChainState(enum.IntEnum):
     """On-chain state."""
 
-    NOTMINTED = 0
-    MINTED = 1
-    ACTIVATED = 2
-    REGISTERED = 3
+    NON_EXISTENT = 0
+    PRE_REGISTRATION = 1
+    ACTIVE_REGISTRATION = 2
+    FINISHED_REGISTRATION = 3
     DEPLOYED = 4
-    TERMINATED = 5
-    UNBONDED = 6
+    TERMINATED_BONDED = 5
+    UNBONDED = 6  # TODO this is not an on-chain state https://github.com/valory-xyz/autonolas-registries/blob/main/contracts/ServiceRegistryL2.sol
 
 
 class ContractAddresses(TypedDict):
@@ -162,18 +169,7 @@ class LedgerConfig(LocalResource):
     chain: ChainType
 
 
-LedgerConfigs = t.List[LedgerConfig]
-
-
-class ServiceState(enum.IntEnum):
-    """Service state"""
-
-    NON_EXISTENT = 0
-    PRE_REGISTRATION = 1
-    ACTIVE_REGISTRATION = 2
-    FINISHED_REGISTRATION = 3
-    DEPLOYED = 4
-    TERMINATED_BONDED = 5
+LedgerConfigs = t.Dict[str, LedgerConfig]
 
 
 class DeploymentConfig(TypedDict):
@@ -192,15 +188,16 @@ class FundRequirementsTemplate(TypedDict):
 class ConfigurationTemplate(TypedDict):
     """Configuration template."""
 
+    staking_program_id: str
     nft: str
     rpc: str
-    agent_id: int
     threshold: int
     use_staking: bool
     cost_of_bond: int
-    olas_cost_of_bond: int
-    olas_required_to_stake: int
     fund_requirements: FundRequirementsTemplate
+
+
+ConfigurationTemplates = t.Dict[str, ConfigurationTemplate]
 
 
 class ServiceTemplate(TypedDict):
@@ -210,7 +207,9 @@ class ServiceTemplate(TypedDict):
     hash: str
     image: str
     description: str
-    configuration: ConfigurationTemplate
+    service_version: str
+    home_chain_id: str
+    configurations: ConfigurationTemplates
 
 
 @dataclass
@@ -233,13 +232,11 @@ class OnChainFundRequirements(LocalResource):
 class OnChainUserParams(LocalResource):
     """On-chain user params."""
 
+    staking_program_id: str
     nft: str
-    agent_id: int
     threshold: int
     use_staking: bool
     cost_of_bond: int
-    olas_cost_of_bond: int
-    olas_required_to_stake: int
     fund_requirements: OnChainFundRequirements
 
     @classmethod
@@ -258,3 +255,19 @@ class OnChainData(LocalResource):
     staked: bool
     on_chain_state: OnChainState
     user_params: OnChainUserParams
+
+
+@dataclass
+class ChainConfig(LocalResource):
+    """Chain config."""
+
+    ledger_config: LedgerConfig
+    chain_data: OnChainData
+
+    @classmethod
+    def from_json(cls, obj: t.Dict) -> "ChainConfig":
+        """Load the chain config."""
+        return super().from_json(obj)  # type: ignore
+
+
+ChainConfigs = t.Dict[str, ChainConfig]
