@@ -3,16 +3,14 @@
 </h1>
 
 
-Compatible Systems
-
 <h2 align="left">
 <b>Compatible Systems</b>
 </h2>
 
-Windows 10/11: WSL2 / Git BASH
-Mac ARM / Intel
-Linux
-Raspberry Pi 4
+- Windows 10/11: WSL2 / Git BASH
+- Mac ARM / Intel
+- Linux
+- Raspberry Pi 4
 
 <h2 align="left">
 <b>System Requirements</b>
