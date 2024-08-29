@@ -477,17 +477,6 @@ class ServiceManager:
             and (on_chain_hash is not None)
             and (on_chain_hash != service.hash or current_agent_id != staking_params["agent_ids"][0])
         )
-        if user_params.use_staking:
-            current_staking_program = self._get_current_staking_program(chain_data, ledger_config, sftxb)
-            self.logger.info(f"{current_staking_program=}")
-
-        self.logger.info(f"{user_params.staking_program_id=}")
-        self.logger.info(f"{on_chain_hash=}")
-        self.logger.info(f"{service.hash=}")
-        self.logger.info(f"{current_agent_id=}")
-        self.logger.info(f"{staking_params['agent_ids'][0]=}")
-        self.logger.info(f"{is_first_mint=}")
-        self.logger.info(f"{is_update=}")
 
         if is_update:
             self._terminate_service_on_chain_from_safe(

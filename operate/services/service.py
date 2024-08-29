@@ -429,12 +429,11 @@ class Deployment(LocalResource):
                 service_id=home_chain_data.chain_data.token,
                 consensus_threshold=None,
             )
-            # TODO: Support for multiledger
-            ledger_config = service.chain_configs[service.home_chain_id].ledger_config
-            builder.try_update_ledger_params(
-                chain=LedgerType(ledger_config.type).name.lower(),
-                address=ledger_config.rpc,
-            )
+            for chain, config in service.chain_configs.items():
+                builder.try_update_ledger_params(
+                    chain=config.ledger_config.chain.name.lower(),
+                    address=config.ledger_config.rpc,
+                )
 
             # build deployment
             (

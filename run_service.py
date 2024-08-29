@@ -19,6 +19,8 @@
 """Optimus Quickstart script."""
 
 import getpass
+import json
+import os
 import sys
 import time
 import typing as t
@@ -26,6 +28,8 @@ from dataclasses import dataclass
 from pathlib import Path
 
 import requests
+from aea.crypto.base import LedgerApi
+from aea_ledger_ethereum import EthereumApi
 from dotenv import load_dotenv
 from halo import Halo
 from termcolor import colored
@@ -43,11 +47,12 @@ from operate.types import (
 
 load_dotenv()
 
-XDAI_BALANCE_REQUIRED_TO_BOND = 10_000_000_000_000_000
-SUGGESTED_TOP_UP_DEFAULT = 50_000_000_000_000_000
-SUGGESTED_SAFE_TOP_UP_DEFAULT = 500_000_000_000_000_000
-MASTER_WALLET_MIMIMUM_BALANCE = 1_000_000_000_000_000_000
-COST_OF_BOND = 20_000_000_000_000_000
+SUGGESTED_TOP_UP_DEFAULT = 1_000_000_000_000_000
+SUGGESTED_SAFE_TOP_UP_DEFAULT = 5_000_000_000_000_000
+MASTER_WALLET_MIMIMUM_BALANCE = 7_000_000_000_000_000
+COST_OF_BOND = 1
+USDC_REQUIRED = 10_000_000
+USDC_ADDRESS = "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48"
 WARNING_ICON = colored('\u26A0', 'yellow')
 OPERATE_HOME = Path.cwd() / ".optimus"
 
@@ -55,14 +60,18 @@ CHAIN_ID_TO_METADATA = {
     1: {
         "name": "Ethereum Mainnet",
         "token": "ETH",
+        "native_token_balance": MASTER_WALLET_MIMIMUM_BALANCE,
+        "usdcRequired": True,
     },
     10: {
         "name": "Optimism",
         "token": "ETH",
+        "usdcRequired": False,
     },
     8453: {
         "name": "Base",
         "token": "ETH",
+        "usdcRequired": False,
     },
 }
 
@@ -73,10 +82,12 @@ class OptimusConfig(LocalResource):
     """Local configuration."""
 
     path: Path
-    tenderly_api_key: t.Optional[str] = None
     optimism_rpc: t.Optional[str] = None
     ethereum_rpc: t.Optional[str] = None
     base_rpc: t.Optional[str] = None
+    tenderly_access_key: t.Optional[str] = None
+    tenderly_account_slug: t.Optional[str] = None
+    tenderly_project_slug: t.Optional[str] = None
 
 
 def print_box(text: str, margin: int = 1, character: str = '=') -> None:
@@ -197,20 +208,37 @@ def get_local_config() -> OptimusConfig:
     if optimus_config.base_rpc is None:
         optimus_config.base_rpc = input("Please enter a Base RPC URL: ")
 
-    if optimus_config.tenderly_api_key is None:
-        optimus_config.tenderly_api_key = input(
+    if optimus_config.tenderly_access_key is None:
+        optimus_config.tenderly_access_key = input(
             "Please enter your Tenderly API Key. Get one at https://dashboard.tenderly.co/: "
+        )
+
+    if optimus_config.tenderly_account_slug is None:
+        optimus_config.tenderly_account_slug = input(
+            "Please enter your Tenderly Account Slug: "
+        )
+
+    if optimus_config.tenderly_project_slug is None:
+        optimus_config.tenderly_project_slug = input(
+            "Please enter your Tenderly Project Slug: "
         )
 
     optimus_config.store()
     return optimus_config
 
 
+def apply_env_vars(env_vars: t.Dict[str, str]) -> None:
+    """Apply environment variables."""
+    for key, value in env_vars.items():
+        if value is not None:
+            os.environ[key] = value
+
+
 def get_service_template(config: OptimusConfig) -> ServiceTemplate:
     """Get the service template"""
     return ServiceTemplate({
         "name": "Optimus",
-        "hash": "bafybeihjiabgn2wzlrnwdij7lbg6tqvhe62mdycefdmsy2udiyxqtc3rsy",
+        "hash": "bafybeie4y4pfxbpzudwkojwc6j33c34cuqm6rr7g5ieqtetoaqkrieguza",
         "description": "Optimus",
         "image": "https://operate.olas.network/_next/image?url=%2Fimages%2Fprediction-agent.png&w=3840&q=75",
         "service_version": 'v0.18.1',
@@ -266,6 +294,31 @@ def get_service_template(config: OptimusConfig) -> ServiceTemplate:
             ),
         },
 })
+
+
+def get_erc20_balance(ledger_api: LedgerApi, token: str, account: str) -> int:
+    """Get ERC-20 token balance of an account."""
+    web3 = t.cast(EthereumApi, ledger_api).api
+
+    # ERC20 Token Standard Partial ABI
+    erc20_abi = [
+        {
+            "constant": True,
+            "inputs": [{"name": "_owner", "type": "address"}],
+            "name": "balanceOf",
+            "outputs": [{"name": "balance", "type": "uint256"}],
+            "type": "function",
+        }
+    ]
+
+    # Create contract instance
+    contract = web3.eth.contract(address=web3.to_checksum_address(token), abi=erc20_abi)
+
+    # Get the balance of the account
+    balance = contract.functions.balanceOf(web3.to_checksum_address(account)).call()
+
+    return balance
+
 
 
 def main() -> None:
@@ -324,12 +377,16 @@ def main() -> None:
             rpc=chain_config.ledger_config.rpc,
         )
 
-        balance_str = wei_to_token(ledger_api.get_balance(wallet.crypto.address), chain_metadata["token"])
+        name, token = chain_metadata['name'], chain_metadata["token"]
+        balance_str = wei_to_token(ledger_api.get_balance(wallet.crypto.address), token)
         print(
-            f"[{chain_metadata['name']}] Main wallet balance: {balance_str}",
+            f"[{name}] Main wallet balance: {balance_str}",
+        )
+        print(
+            f"[{name}] Please make sure main wallet {wallet.crypto.address} has at least {wei_to_token(MASTER_WALLET_MIMIMUM_BALANCE, token)}",
         )
         spinner = Halo(
-            text=f"[{chain_metadata['name']}] Please make sure main wallet {wallet.crypto.address} has at least {wei_to_token(MASTER_WALLET_MIMIMUM_BALANCE)}.",
+            text=f"[{name}] Waiting for funds...",
             spinner="dots"
         )
         spinner.start()
@@ -337,13 +394,13 @@ def main() -> None:
         while ledger_api.get_balance(wallet.crypto.address) < MASTER_WALLET_MIMIMUM_BALANCE:
             time.sleep(1)
 
-        spinner.succeed(f"[{chain_metadata['name']}] Main wallet updated balance: {wei_to_token(ledger_api.get_balance(wallet.crypto.address))}.")
+        spinner.succeed(f"[{name}] Main wallet updated balance: {wei_to_token(ledger_api.get_balance(wallet.crypto.address), token)}.")
         print()
 
         if wallet.safes.get(chain_type) is not None:
-            print(f"[{chain_metadata['name']}] Safe already exists")
+            print(f"[{name}] Safe already exists")
         else:
-            print(f"[{chain_metadata['name']}] Creating Safe")
+            print(f"[{name}] Creating Safe")
             ledger_type = LedgerType.ETHEREUM
             wallet_manager = operate.wallet_manager
             wallet = wallet_manager.load(ledger_type=ledger_type)
@@ -352,7 +409,7 @@ def main() -> None:
                 chain_type=chain_type,
                 rpc=chain_config.ledger_config.rpc,
             )
-            print(f"[{chain_metadata['name']}] Funding Safe")
+            print(f"[{name}] Funding Safe")
             wallet.transfer(
                 to=t.cast(str, wallet.safes[chain_type]),
                 amount=int(MASTER_WALLET_MIMIMUM_BALANCE),
@@ -361,12 +418,12 @@ def main() -> None:
                 rpc=chain_config.ledger_config.rpc,
             )
 
-        print_section(f"[{chain_metadata['name']}] Set up the service in the Olas Protocol")
+        print_section(f"[{name}] Set up the service in the Olas Protocol")
 
         address = wallet.safes[chain_type]
-        print(f"[{chain_metadata['name']}] {wei_to_token(ledger_api.get_balance(address), chain_metadata['token'])}")
+        print(f"[{name}] {wei_to_token(ledger_api.get_balance(address), chain_metadata['token'])}")
         spinner = Halo(
-            text=f"[{chain_metadata['name']}] Please make sure address {address} has at least {wei_to_token(MASTER_WALLET_MIMIMUM_BALANCE)}.",
+            text=f"[{name}] Please make sure address {address} has at least {wei_to_token(MASTER_WALLET_MIMIMUM_BALANCE, token)}.",
             spinner="dots",
         )
         spinner.start()
@@ -374,11 +431,35 @@ def main() -> None:
         while ledger_api.get_balance(address) < MASTER_WALLET_MIMIMUM_BALANCE:
             time.sleep(1)
 
-        spinner.succeed(f"[{chain_metadata['name']}] Safe updated balance: {wei_to_token(ledger_api.get_balance(address))}.")
+        spinner.succeed(f"[{name}] Safe updated balance: {wei_to_token(ledger_api.get_balance(address), token)}.")
+
+
+        if chain_metadata.get("usdcRequired", False):
+            print(f"[{name}] Please make sure address {address} has at least 10 USDC")
+
+            spinner = Halo(
+                text=f"[{name}] Waiting for USDC...",
+                spinner="dots",
+            )
+            spinner.start()
+
+            while get_erc20_balance(ledger_api, USDC_ADDRESS, address) < USDC_REQUIRED:
+                time.sleep(1)
+
+            balance = get_erc20_balance(ledger_api, USDC_ADDRESS, address) / 10 ** 6
+            spinner.succeed(f"[{name}] Safe updated balance: {balance} USDC.")
 
         manager.deploy_service_onchain_from_safe_single_chain(hash=service.hash, chain_id=chain_id)
         manager.fund_service(hash=service.hash, chain_id=chain_id)
 
+    safes = { chain.name: safe for chain, safe in wallet.safes.items() }
+    env_vars = {
+        "SAFE_CONTRACT_ADDRESSES": json.dumps(safes),
+        "TENDERLY_ACCESS_KEY": optimus_config.tenderly_access_key,
+        "TENDERLY_ACCOUNT_SLUG": optimus_config.tenderly_account_slug,
+        "TENDERLY_PROJECT_SLUG": optimus_config.tenderly_project_slug,
+    }
+    apply_env_vars(env_vars)
     home_chain_id = service.home_chain_id
     manager.deploy_service_locally(hash=service.hash, chain_id=home_chain_id, use_docker=True)
 
