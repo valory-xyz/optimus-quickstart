@@ -316,7 +316,7 @@ def main() -> None:
     )
 
     for chain_id, configuration in service.chain_configs.items():
-        chain_metadata = CHAIN_ID_TO_METADATA[chain_id]
+        chain_metadata = CHAIN_ID_TO_METADATA[int(chain_id)]
         chain_config = service.chain_configs[chain_id]
         chain_type = chain_config.ledger_config.chain
         ledger_api = wallet.ledger_api(
