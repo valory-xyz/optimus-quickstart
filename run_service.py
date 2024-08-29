@@ -428,6 +428,29 @@ def main() -> None:
         )
         spinner.start()
 
+        while ledger_api.get_balance(address) < MASTER_WALLET_MIMIMUM_BALANCE:
+            time.sleep(1)
+
+        spinner.succeed(f"[{name}] Safe updated balance: {wei_to_token(ledger_api.get_balance(address), token)}.")
+
+        if chain_metadata.get("usdcRequired", False):
+            print(f"[{name}] Please make sure address {address} has at least 10 USDC")
+
+            spinner = Halo(
+                text=f"[{name}] Waiting for USDC...",
+                spinner="dots",
+            )
+            spinner.start()
+
+            while get_erc20_balance(ledger_api, USDC_ADDRESS, address) < USDC_REQUIRED:
+                time.sleep(1)
+
+            balance = get_erc20_balance(ledger_api, USDC_ADDRESS, address) / 10 ** 6
+            spinner.succeed(f"[{name}] Safe updated balance: {balance} USDC.")
+
+        manager.deploy_service_onchain_from_safe_single_chain(hash=service.hash, chain_id=chain_id)
+        manager.fund_service(hash=service.hash, chain_id=chain_id)
+
     safes = { chain.name.lower(): safe for chain, safe in wallet.safes.items() }
     env_vars = {
         "SAFE_CONTRACT_ADDRESSES": json.dumps(safes, separators=(',', ':')),
