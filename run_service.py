@@ -32,6 +32,7 @@ from termcolor import colored
 
 from operate.account.user import UserAccount
 from operate.cli import OperateApp
+from operate.ledger import Ethereum
 from operate.resource import LocalResource
 from operate.types import (
     LedgerType,
@@ -49,6 +50,22 @@ MASTER_WALLET_MIMIMUM_BALANCE = 1_000_000_000_000_000_000
 COST_OF_BOND = 20_000_000_000_000_000
 WARNING_ICON = colored('\u26A0', 'yellow')
 OPERATE_HOME = Path.cwd() / ".optimus"
+
+CHAIN_ID_TO_METADATA = {
+    1: {
+        "name": "Ethereum Mainnet",
+        "token": "ETH",
+    },
+    10: {
+        "name": "Optimism",
+        "token": "ETH",
+    },
+    8453: {
+        "name": "Base",
+        "token": "ETH",
+    },
+}
+
 
 
 @dataclass
@@ -299,6 +316,7 @@ def main() -> None:
     )
 
     for chain_id, configuration in service.chain_configs.items():
+        chain_metadata = CHAIN_ID_TO_METADATA[chain_id]
         chain_config = service.chain_configs[chain_id]
         chain_type = chain_config.ledger_config.chain
         ledger_api = wallet.ledger_api(
@@ -306,9 +324,12 @@ def main() -> None:
             rpc=chain_config.ledger_config.rpc,
         )
 
-        print(f"[Chain {chain_id}] Main wallet balance: {wei_to_token(ledger_api.get_balance(wallet.crypto.address))}")
+        balance_str = wei_to_token(ledger_api.get_balance(wallet.crypto.address), chain_metadata["token"])
+        print(
+            f"[{chain_metadata['name']}] Main wallet balance: {balance_str}",
+        )
         spinner = Halo(
-            text=f"Please make sure main wallet {wallet.crypto.address} has at least {wei_to_token(MASTER_WALLET_MIMIMUM_BALANCE)}.",
+            text=f"[{chain_metadata['name']}] Please make sure main wallet {wallet.crypto.address} has at least {wei_to_token(MASTER_WALLET_MIMIMUM_BALANCE)}.",
             spinner="dots"
         )
         spinner.start()
@@ -316,13 +337,13 @@ def main() -> None:
         while ledger_api.get_balance(wallet.crypto.address) < MASTER_WALLET_MIMIMUM_BALANCE:
             time.sleep(1)
 
-        spinner.succeed(f"Main wallet updated balance: {wei_to_token(ledger_api.get_balance(wallet.crypto.address))}.")
+        spinner.succeed(f"[{chain_metadata['name']}] Main wallet updated balance: {wei_to_token(ledger_api.get_balance(wallet.crypto.address))}.")
         print()
 
         if wallet.safes.get(chain_type) is not None:
-            print("Safe already exists")
+            print(f"[{chain_metadata['name']}] Safe already exists")
         else:
-            print("Creating Safe")
+            print(f"[{chain_metadata['name']}] Creating Safe")
             ledger_type = LedgerType.ETHEREUM
             wallet_manager = operate.wallet_manager
             wallet = wallet_manager.load(ledger_type=ledger_type)
@@ -331,7 +352,7 @@ def main() -> None:
                 chain_type=chain_type,
                 rpc=chain_config.ledger_config.rpc,
             )
-            print("Funding Safe")
+            print(f"[{chain_metadata['name']}] Funding Safe")
             wallet.transfer(
                 to=t.cast(str, wallet.safes[chain_type]),
                 amount=int(MASTER_WALLET_MIMIMUM_BALANCE),
@@ -340,12 +361,12 @@ def main() -> None:
                 rpc=chain_config.ledger_config.rpc,
             )
 
-        print_section("Set up the service in the Olas Protocol")
+        print_section(f"[{chain_metadata['name']}] Set up the service in the Olas Protocol")
 
         address = wallet.safes[chain_type]
-        print(f"Safe balance: {wei_to_token(ledger_api.get_balance(address))}")
+        print(f"[{chain_metadata['name']}] {wei_to_token(ledger_api.get_balance(address), chain_metadata['token'])}")
         spinner = Halo(
-            text=f"Please make sure address {address} has at least {wei_to_token(MASTER_WALLET_MIMIMUM_BALANCE)}.",
+            text=f"[{chain_metadata['name']}] Please make sure address {address} has at least {wei_to_token(MASTER_WALLET_MIMIMUM_BALANCE)}.",
             spinner="dots",
         )
         spinner.start()
@@ -353,7 +374,7 @@ def main() -> None:
         while ledger_api.get_balance(address) < MASTER_WALLET_MIMIMUM_BALANCE:
             time.sleep(1)
 
-        spinner.succeed(f"Safe updated balance: {wei_to_token(ledger_api.get_balance(address))}.")
+        spinner.succeed(f"[{chain_metadata['name']}] Safe updated balance: {wei_to_token(ledger_api.get_balance(address))}.")
 
         manager.deploy_service_onchain_from_safe_single_chain(hash=service.hash, chain_id=chain_id)
         manager.fund_service(hash=service.hash, chain_id=chain_id)
@@ -362,7 +383,7 @@ def main() -> None:
     manager.deploy_service_locally(hash=service.hash, chain_id=home_chain_id, use_docker=True)
 
     print()
-    print_section("Run the service")
+    print_section("Running the service")
 
 
 if __name__ == "__main__":
