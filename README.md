@@ -2,6 +2,13 @@
 <b>Optimus Quickstart</b>
 </h1>
 
+## Terms and Conditions Disclaimer
+
+> :warning: **Warning** <br />
+> The code within this repository is provided without any warranties. It leverages third party APIs and it is important to note that the code has not been audited for potential security vulnerabilities.
+> Using this code could potentially lead to loss of funds, compromised data, or asset risk.
+> Exercise caution and use this code at your own risk. Please refer to the [LICENSE](./LICENSE) file for details about the terms and conditions.
+
 ## Compatible Systems
 
 - Windows 10/11: WSL2 / Git BASH
@@ -65,15 +72,6 @@ git pull origin
 ```
 
 Then continue above with "Run the script".
-
-
-## Terms and Conditions Disclaimer
-
-> :warning: **Warning** <br />
-> The code within this repository is provided without any warranties. It leverages third party APIs and it is important to note that the code has not been audited for potential security vulnerabilities.
-> Using this code could potentially lead to loss of funds, compromised data, or asset risk.
-> Exercise caution and use this code at your own risk. Please refer to the [LICENSE](./LICENSE) file for details about the terms and conditions.
-
 
 
 ## Advice for Windows users using Git BASH
