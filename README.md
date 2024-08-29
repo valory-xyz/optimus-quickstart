@@ -20,34 +20,26 @@ Ensure your machine satisfies the requirements:
 
 ## Resource Requirements
 
-- You need xDAI on Gnosis Chain in one of your wallets.
-- You need an RPC for your agent instance. We recommend [Nodies RPC](https://www.nodies.app/).
-- (From release v0.16.0 onwards) You may need a Subgraph API key that can be obtained at [The Graph](https://thegraph.com/studio/apikeys/). If you do not have such an API key you can optionally press 'Enter' directly (with no input) when prompted by the CLI.
+- You need ETH in one of your wallets.
+- You need 3 RPCs for your agent instance for respectively Ethereum, Optimism, and Base. You can use the following public ones: 
+
+  ```bash
+  Ethereum RPC: https://virtual.mainnet.rpc.tenderly.co/4b1b935c-2ad1-4f63-88c4-f74eaae37123
+
+  Optimism RPC: https://virtual.optimism.rpc.tenderly.co/2ba819d3-6ee1-4075-a145-6eaaeb58e5b7
+
+  Base RPC: https://virtual.base.rpc.tenderly.co/a5594f32-3ec3-4ea5-8a91-6d5d7d9e290b
+  ```
+- Finally, you will need your Tenderly Access Key, Tenderly account Slug, and Tenderly Project Slug. Refer to the Tenderly Documentation for more info https://docs.tenderly.co/account/projects. 
+
 
 ## Run the Service
 
 Clone this repository locally and execute:
-
-<h2 align="left">
-<b>Compatible Systems</b>
-</h2>
-
-- Windows 10/11: WSL2 / Git BASH
-- Mac ARM / Intel
-- Linux
-- Raspberry Pi 4
-
-<h2 align="left">
-<b>System Requirements</b>
-</h2>
-
-Ensure your machine satisfies the requirements:
-
-- Python ==3.10
-- Poetry >=1.4.0
-- Docker Engine <25.0.0
-- Docker Compose
-
+```bash
+chmod +x run_service.sh
+./run_service.sh
+```
 
 ### Service is Running
 
@@ -63,10 +55,6 @@ To stop your agent, use:
 ./stop_service.sh
 ```
 
-### Backups
-
-Agent runners are recommended to create a [backup](https://github.com/valory-xyz/trader-quickstart#backup-and-recovery) of the relevant secret key material.
-
 ## Update between versions
 
 Simply pull the latest script:
@@ -77,11 +65,6 @@ git pull origin
 
 Then continue above with "Run the script".
 
-## Advice for Mac users
-
-In Docker Desktop make sure that in `Settings -> Advanced` the following boxes are ticked
-
-![Docker Desktop settings](images/docker.png)
 
 ## Advice for Windows users using Git BASH
 
@@ -132,23 +115,4 @@ Execute the following steps in a PowerShell terminal:
 Now, open a Git Bash terminal and follow the instructions in the "[Run the script](#run-the-script)" section as well as the subsequent sections. You might need to install Microsoft Visual C++ 14.0 or greater.
 
 
-## Backup and Recovery
 
-TODO
-
-## RPC-related Error Messages
-
-When updating the service, you may need to re-run the script if you obtain any of the following error messages:
-
-```Error: Service terminatation failed with following error; ChainTimeoutError(Timed out when waiting for transaction to go through)
-
-Error: Service unbonding failed with following error; ChainTimeoutError(Timed out when waiting for transaction to go through)
-
-Error: Component mint failed with following error; ChainTimeoutError(Timed out when waiting for transaction to go through)
-
-Error: Service activation failed with following error; ChainTimeoutError(Timed out when waiting for transaction to go through)
-
-Error: Service deployment failed with following error; ChainTimeoutError(Timed out when waiting for transaction to go through)
-
-Error: Service terminatation failed with following error; ChainInteractionError({'code': -32010, 'message': 'AlreadyKnown'})
-```
