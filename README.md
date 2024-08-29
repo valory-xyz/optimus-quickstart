@@ -20,7 +20,7 @@ Ensure your machine satisfies the requirements:
 
 ## Resource Requirements
 
-- You need ETH in one of your wallets.
+- You need ETH and USDC in one of your wallets.
 - You need 3 RPCs for your agent instance for respectively Ethereum, Optimism, and Base. You can use the following public ones: 
 
   ```bash
@@ -30,7 +30,7 @@ Ensure your machine satisfies the requirements:
 
   Base RPC: https://virtual.base.rpc.tenderly.co/a5594f32-3ec3-4ea5-8a91-6d5d7d9e290b
   ```
-- Finally, you will need your Tenderly Access Key, Tenderly account Slug, and Tenderly Project Slug. Refer to the Tenderly Documentation for more info https://docs.tenderly.co/account/projects. 
+- Finally, you will need your Tenderly Access Key, Tenderly account Slug, and Tenderly Project Slug. Get one at https://dashboard.tenderly.co/. Refer to the Tenderly Documentation for more info https://docs.tenderly.co/account/projects. 
 
 
 ## Run the Service
@@ -40,6 +40,7 @@ Clone this repository locally and execute:
 chmod +x run_service.sh
 ./run_service.sh
 ```
+When prompted, add the corresponding RPCs (you can copy-paste the ones in the section above) and Tenderly info, send funds to the prompted address and you're good to go!
 
 ### Service is Running
 
