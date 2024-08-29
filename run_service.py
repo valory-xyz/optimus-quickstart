@@ -238,7 +238,7 @@ def get_service_template(config: OptimusConfig) -> ServiceTemplate:
     """Get the service template"""
     return ServiceTemplate({
         "name": "Optimus",
-        "hash": "bafybeie4y4pfxbpzudwkojwc6j33c34cuqm6rr7g5ieqtetoaqkrieguza",
+        "hash": "bafybeig2yqrfkqylnpus7fjsm6eydrlarc7rsonuh7bb6gskeiite7744a",
         "description": "Optimus",
         "image": "https://operate.olas.network/_next/image?url=%2Fimages%2Fprediction-agent.png&w=3840&q=75",
         "service_version": 'v0.18.1',
@@ -428,33 +428,9 @@ def main() -> None:
         )
         spinner.start()
 
-        while ledger_api.get_balance(address) < MASTER_WALLET_MIMIMUM_BALANCE:
-            time.sleep(1)
-
-        spinner.succeed(f"[{name}] Safe updated balance: {wei_to_token(ledger_api.get_balance(address), token)}.")
-
-
-        if chain_metadata.get("usdcRequired", False):
-            print(f"[{name}] Please make sure address {address} has at least 10 USDC")
-
-            spinner = Halo(
-                text=f"[{name}] Waiting for USDC...",
-                spinner="dots",
-            )
-            spinner.start()
-
-            while get_erc20_balance(ledger_api, USDC_ADDRESS, address) < USDC_REQUIRED:
-                time.sleep(1)
-
-            balance = get_erc20_balance(ledger_api, USDC_ADDRESS, address) / 10 ** 6
-            spinner.succeed(f"[{name}] Safe updated balance: {balance} USDC.")
-
-        manager.deploy_service_onchain_from_safe_single_chain(hash=service.hash, chain_id=chain_id)
-        manager.fund_service(hash=service.hash, chain_id=chain_id)
-
-    safes = { chain.name: safe for chain, safe in wallet.safes.items() }
+    safes = { chain.name.lower(): safe for chain, safe in wallet.safes.items() }
     env_vars = {
-        "SAFE_CONTRACT_ADDRESSES": json.dumps(safes),
+        "SAFE_CONTRACT_ADDRESSES": json.dumps(safes, separators=(',', ':')),
         "TENDERLY_ACCESS_KEY": optimus_config.tenderly_access_key,
         "TENDERLY_ACCOUNT_SLUG": optimus_config.tenderly_account_slug,
         "TENDERLY_PROJECT_SLUG": optimus_config.tenderly_project_slug,
