@@ -37,6 +37,7 @@ from termcolor import colored
 from operate.account.user import UserAccount
 from operate.cli import OperateApp
 from operate.ledger import Ethereum
+from operate.ledger.profiles import OLAS
 from operate.resource import LocalResource
 from operate.types import (
     LedgerType,
@@ -51,6 +52,8 @@ SUGGESTED_TOP_UP_DEFAULT = 1_000_000_000_000_000
 SUGGESTED_SAFE_TOP_UP_DEFAULT = 5_000_000_000_000_000
 MASTER_WALLET_MIMIMUM_BALANCE = 7_000_000_000_000_000
 COST_OF_BOND = 1
+COST_OF_BOND_STAKING = 2 * 10 ** 19
+STAKED_BONDING_TOKEN = "OLAS"
 USDC_REQUIRED = 10_000_000
 USDC_ADDRESS = "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48"
 WARNING_ICON = colored('\u26A0', 'yellow')
@@ -234,40 +237,40 @@ def apply_env_vars(env_vars: t.Dict[str, str]) -> None:
             os.environ[key] = value
 
 
-def get_service_template(config: OptimusConfig) -> ServiceTemplate:
+def get_service_template(config: OptimusConfig, user_wants_staking: bool) -> ServiceTemplate:
     """Get the service template"""
     return ServiceTemplate({
         "name": "Optimus",
-        "hash": "bafybeig2yqrfkqylnpus7fjsm6eydrlarc7rsonuh7bb6gskeiite7744a",
+        "hash": "bafybeid3sapqas3ow57jc5pdnngyzrmxutih4k5y56elgbez6jjxaqzfiu",
         "description": "Optimus",
         "image": "https://operate.olas.network/_next/image?url=%2Fimages%2Fprediction-agent.png&w=3840&q=75",
         "service_version": 'v0.18.1',
         "home_chain_id": "10",
         "configurations": {
-            "1": ConfigurationTemplate(
-                {
-                    "staking_program_id": "pearl_alpha",
-                    "rpc": config.ethereum_rpc,
-                    "nft": "bafybeig64atqaladigoc3ds4arltdu63wkdrk3gesjfvnfdmz35amv7faq",
-                    "cost_of_bond": COST_OF_BOND,
-                    "threshold": 1,
-                    "use_staking": False,
-                    "fund_requirements": FundRequirementsTemplate(
-                        {
-                            "agent": SUGGESTED_TOP_UP_DEFAULT,
-                            "safe": SUGGESTED_SAFE_TOP_UP_DEFAULT,
-                        }
-                    ),
-                }
-            ),
+            # "1": ConfigurationTemplate(
+            #     {
+            #         "staking_program_id": "optimus_alpha",
+            #         "rpc": config.ethereum_rpc,
+            #         "nft": "bafybeig64atqaladigoc3ds4arltdu63wkdrk3gesjfvnfdmz35amv7faq",
+            #         "cost_of_bond": COST_OF_BOND,
+            #         "threshold": 1,
+            #         "use_staking": False,
+            #         "fund_requirements": FundRequirementsTemplate(
+            #             {
+            #                 "agent": SUGGESTED_TOP_UP_DEFAULT,
+            #                 "safe": SUGGESTED_SAFE_TOP_UP_DEFAULT,
+            #             }
+            #         ),
+            #     }
+            # ),
             "10": ConfigurationTemplate(
                 {
-                    "staking_program_id": "pearl_alpha",
+                    "staking_program_id": "optimus_alpha",
                     "rpc": config.optimism_rpc,
                     "nft": "bafybeig64atqaladigoc3ds4arltdu63wkdrk3gesjfvnfdmz35amv7faq",
-                    "cost_of_bond": COST_OF_BOND,
+                    "cost_of_bond": COST_OF_BOND_STAKING,
                     "threshold": 1,
-                    "use_staking": False,
+                    "use_staking": user_wants_staking,
                     "fund_requirements": FundRequirementsTemplate(
                         {
                             "agent": SUGGESTED_TOP_UP_DEFAULT,
@@ -276,22 +279,22 @@ def get_service_template(config: OptimusConfig) -> ServiceTemplate:
                     ),
                 }
             ),
-            "8453": ConfigurationTemplate(
-                {
-                    "staking_program_id": "pearl_alpha",
-                    "rpc": config.base_rpc,
-                    "nft": "bafybeig64atqaladigoc3ds4arltdu63wkdrk3gesjfvnfdmz35amv7faq",
-                    "cost_of_bond": COST_OF_BOND,
-                    "threshold": 1,
-                    "use_staking": False,
-                    "fund_requirements": FundRequirementsTemplate(
-                        {
-                            "agent": SUGGESTED_TOP_UP_DEFAULT,
-                            "safe": SUGGESTED_SAFE_TOP_UP_DEFAULT,
-                        }
-                    ),
-                }
-            ),
+            # "8453": ConfigurationTemplate(
+            #     {
+            #         "staking_program_id": "optimus_alpha",
+            #         "rpc": config.base_rpc,
+            #         "nft": "bafybeig64atqaladigoc3ds4arltdu63wkdrk3gesjfvnfdmz35amv7faq",
+            #         "cost_of_bond": COST_OF_BOND,
+            #         "threshold": 1,
+            #         "use_staking": False,
+            #         "fund_requirements": FundRequirementsTemplate(
+            #             {
+            #                 "agent": SUGGESTED_TOP_UP_DEFAULT,
+            #                 "safe": SUGGESTED_SAFE_TOP_UP_DEFAULT,
+            #             }
+            #         ),
+            #     }
+            # ),
         },
 })
 
@@ -319,6 +322,15 @@ def get_erc20_balance(ledger_api: LedgerApi, token: str, account: str) -> int:
 
     return balance
 
+FALLBACK_STAKING_PARAMS = dict(
+    agent_ids=[25],
+    service_registry="0x9338b5153AE39BB89f50468E608eD9d764B755fD",  # nosec
+    staking_token="0xcE11e14225575945b8E6Dc0D4F2dD4C570f79d9f",  # nosec
+    service_registry_token_utility="0xa45E64d13A30a51b91ae0eb182e88a40e9b18eD8",  # nosec
+    min_staking_deposit=20000000000000000000,
+    activity_checker="0x155547857680A6D51bebC5603397488988DEb1c8"  # nosec
+)
+
 
 
 def main() -> None:
@@ -335,7 +347,8 @@ def main() -> None:
     operate.setup()
 
     optimus_config = get_local_config()
-    template = get_service_template(optimus_config)
+    user_wants_staking = input("Do you want to stake your service? (y/n): ").lower() == 'y'
+    template = get_service_template(optimus_config, user_wants_staking)
 
     if operate.user_account is None:
         print("Creating a new local user account...")
@@ -363,10 +376,27 @@ def main() -> None:
         wallet = operate.wallet_manager.load(ledger_type=LedgerType.ETHEREUM)
 
     manager = operate.service_manager()
-    service = manager.load_or_create(
-        hash=template["hash"],
-        service_template=template,
-    )
+    if len(manager.json) > 0:
+        old_hash = manager.json[0]["hash"]
+        if old_hash == template["hash"]:
+            print(f'Loading service {template["hash"]}')
+            service = manager.load_or_create(
+                hash=template["hash"],
+                service_template=template,
+            )
+        else:
+            print(f"Updating service from {old_hash} to " + template["hash"])
+            service = manager.update_service(
+                old_hash=old_hash,
+                new_hash=template["hash"],
+                service_template=template,
+            )
+    else:
+        print(f'Creating service {template["hash"]}')
+        service = manager.load_or_create(
+            hash=template["hash"],
+            service_template=template,
+        )
 
     for chain_id, configuration in service.chain_configs.items():
         chain_metadata = CHAIN_ID_TO_METADATA[int(chain_id)]
@@ -377,16 +407,16 @@ def main() -> None:
             rpc=chain_config.ledger_config.rpc,
         )
 
-        name, token = chain_metadata['name'], chain_metadata["token"]
+        chain_name, token = chain_metadata['name'], chain_metadata["token"]
         balance_str = wei_to_token(ledger_api.get_balance(wallet.crypto.address), token)
         print(
-            f"[{name}] Main wallet balance: {balance_str}",
+            f"[{chain_name}] Main wallet balance: {balance_str}",
         )
         print(
-            f"[{name}] Please make sure main wallet {wallet.crypto.address} has at least {wei_to_token(MASTER_WALLET_MIMIMUM_BALANCE, token)}",
+            f"[{chain_name}] Please make sure main wallet {wallet.crypto.address} has at least {wei_to_token(MASTER_WALLET_MIMIMUM_BALANCE, token)}",
         )
         spinner = Halo(
-            text=f"[{name}] Waiting for funds...",
+            text=f"[{chain_name}] Waiting for funds...",
             spinner="dots"
         )
         spinner.start()
@@ -394,13 +424,13 @@ def main() -> None:
         while ledger_api.get_balance(wallet.crypto.address) < MASTER_WALLET_MIMIMUM_BALANCE:
             time.sleep(1)
 
-        spinner.succeed(f"[{name}] Main wallet updated balance: {wei_to_token(ledger_api.get_balance(wallet.crypto.address), token)}.")
+        spinner.succeed(f"[{chain_name}] Main wallet updated balance: {wei_to_token(ledger_api.get_balance(wallet.crypto.address), token)}.")
         print()
 
         if wallet.safes.get(chain_type) is not None:
-            print(f"[{name}] Safe already exists")
+            print(f"[{chain_name}] Safe already exists")
         else:
-            print(f"[{name}] Creating Safe")
+            print(f"[{chain_name}] Creating Safe")
             ledger_type = LedgerType.ETHEREUM
             wallet_manager = operate.wallet_manager
             wallet = wallet_manager.load(ledger_type=ledger_type)
@@ -409,7 +439,7 @@ def main() -> None:
                 chain_type=chain_type,
                 rpc=chain_config.ledger_config.rpc,
             )
-            print(f"[{name}] Funding Safe")
+            print(f"[{chain_name}] Funding Safe")
             wallet.transfer(
                 to=t.cast(str, wallet.safes[chain_type]),
                 amount=int(MASTER_WALLET_MIMIMUM_BALANCE),
@@ -418,12 +448,14 @@ def main() -> None:
                 rpc=chain_config.ledger_config.rpc,
             )
 
-        print_section(f"[{name}] Set up the service in the Olas Protocol")
+        print_section(f"[{chain_name}] Set up the service in the Olas Protocol")
 
         address = wallet.safes[chain_type]
-        print(f"[{name}] {wei_to_token(ledger_api.get_balance(address), chain_metadata['token'])}")
+        print(
+            f"[{chain_name}] Please make sure address {address} has at least {wei_to_token(MASTER_WALLET_MIMIMUM_BALANCE, token)}."
+        )
         spinner = Halo(
-            text=f"[{name}] Please make sure address {address} has at least {wei_to_token(MASTER_WALLET_MIMIMUM_BALANCE, token)}.",
+            text=f"[{chain_name}] Waiting for funds...",
             spinner="dots",
         )
         spinner.start()
@@ -431,13 +463,29 @@ def main() -> None:
         while ledger_api.get_balance(address) < MASTER_WALLET_MIMIMUM_BALANCE:
             time.sleep(1)
 
-        spinner.succeed(f"[{name}] Safe updated balance: {wei_to_token(ledger_api.get_balance(address), token)}.")
+        spinner.succeed(f"[{chain_name}] Safe updated balance: {wei_to_token(ledger_api.get_balance(address), token)}.")
 
-        if chain_metadata.get("usdcRequired", False):
-            print(f"[{name}] Please make sure address {address} has at least 10 USDC")
+        if chain_config.chain_data.user_params.use_staking:
+            print(f"[{chain_name}] Please make sure address {address} has at least {wei_to_token(2 * COST_OF_BOND_STAKING, STAKED_BONDING_TOKEN)}")
 
             spinner = Halo(
-                text=f"[{name}] Waiting for USDC...",
+                text=f"[{chain_name}] Waiting for {STAKED_BONDING_TOKEN}...",
+                spinner="dots",
+            )
+            spinner.start()
+            olas_address = OLAS[chain_type]
+            while get_erc20_balance(ledger_api, olas_address, address) < 2 * COST_OF_BOND_STAKING:
+                time.sleep(1)
+
+            balance = get_erc20_balance(ledger_api, olas_address, address) / 10 ** 18
+            spinner.succeed(f"[{chain_name}] Safe updated balance: {balance} {STAKED_BONDING_TOKEN}")
+
+
+        if chain_metadata.get("usdcRequired", False):
+            print(f"[{chain_name}] Please make sure address {address} has at least 10 USDC")
+
+            spinner = Halo(
+                text=f"[{chain_name}] Waiting for USDC...",
                 spinner="dots",
             )
             spinner.start()
@@ -446,9 +494,13 @@ def main() -> None:
                 time.sleep(1)
 
             balance = get_erc20_balance(ledger_api, USDC_ADDRESS, address) / 10 ** 6
-            spinner.succeed(f"[{name}] Safe updated balance: {balance} USDC.")
+            spinner.succeed(f"[{chain_name}] Safe updated balance: {balance} USDC.")
 
-        manager.deploy_service_onchain_from_safe_single_chain(hash=service.hash, chain_id=chain_id)
+        manager.deploy_service_onchain_from_safe_single_chain(
+            hash=service.hash,
+            chain_id=chain_id,
+            fallback_staking_params=FALLBACK_STAKING_PARAMS,
+        )
         manager.fund_service(hash=service.hash, chain_id=chain_id)
 
     safes = { chain.name.lower(): safe for chain, safe in wallet.safes.items() }

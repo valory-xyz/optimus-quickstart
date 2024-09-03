@@ -390,6 +390,7 @@ class ServiceManager:
         self,
         hash: str,
         chain_id: str,
+        fallback_staking_params: t.Optional[t.Dict] = None,
     ) -> None:
         """
         Deploy as service on-chain
@@ -428,15 +429,10 @@ class ServiceManager:
             staking_params = sftxb.get_staking_params(
                 staking_contract=STAKING[ledger_config.chain][user_params.staking_program_id],
             )
-        else:  # TODO fix this - using pearl beta params
-            staking_params = dict(
-                agent_ids=[25],
-                service_registry="0x9338b5153AE39BB89f50468E608eD9d764B755fD",  # nosec
-                staking_token="0xcE11e14225575945b8E6Dc0D4F2dD4C570f79d9f",  # nosec
-                service_registry_token_utility="0xa45E64d13A30a51b91ae0eb182e88a40e9b18eD8",  # nosec
-                min_staking_deposit=20000000000000000000,
-                activity_checker="0x155547857680A6D51bebC5603397488988DEb1c8"  # nosec
-            )
+        elif fallback_staking_params is not None:
+            staking_params = fallback_staking_params
+        else:
+            raise ValueError("Staking params are required!")
 
         if user_params.use_staking:
             self.logger.info("Checking staking compatibility")
@@ -477,13 +473,16 @@ class ServiceManager:
             and (on_chain_hash is not None)
             and (on_chain_hash != service.hash or current_agent_id != staking_params["agent_ids"][0])
         )
+        agent_id = (
+            staking_params["agent_ids"] and staking_params["agent_ids"][0]
+            or fallback_staking_params["agent_ids"][0]
+        )
 
         if is_update:
             self._terminate_service_on_chain_from_safe(
                 hash=hash,
                 chain_id=chain_id
             )
-
             # Update service
             if self._get_on_chain_state(chain_config=chain_config) == OnChainState.PRE_REGISTRATION:
                 self.logger.info("Updating service")
@@ -492,7 +491,7 @@ class ServiceManager:
                     .add(
                         sftxb.get_mint_tx_data(
                             package_path=service.service_path,
-                            agent_id=staking_params["agent_ids"][0],
+                            agent_id=agent_id,
                             number_of_slots=service.helper.config.number_of_agents,
                             cost_of_bond=(
                                 staking_params["min_staking_deposit"]
@@ -537,7 +536,7 @@ class ServiceManager:
                 .add(
                     sftxb.get_mint_tx_data(
                         package_path=service.service_path,
-                        agent_id=staking_params["agent_ids"][0],
+                        agent_id=agent_id,
                         number_of_slots=service.helper.config.number_of_agents,
                         cost_of_bond=(
                             staking_params["min_staking_deposit"]
@@ -574,7 +573,6 @@ class ServiceManager:
             if user_params.use_staking:
                 token_utility = staking_params["service_registry_token_utility"]
                 olas_token = staking_params["staking_token"]
-                agent_id = staking_params["agent_ids"][0]
                 self.logger.info(
                     f"Approving OLAS as bonding token from {safe} to {token_utility}"
                 )
@@ -621,7 +619,6 @@ class ServiceManager:
 
         if self._get_on_chain_state(chain_config=chain_config) == OnChainState.ACTIVE_REGISTRATION:
             cost_of_bond = user_params.cost_of_bond
-            agent_id = staking_params["agent_ids"][0]
             if user_params.use_staking:
                 token_utility = staking_params["service_registry_token_utility"]
                 olas_token = staking_params["staking_token"]
@@ -1149,7 +1146,7 @@ class ServiceManager:
         deployment.start(use_docker=use_docker)
         return deployment
 
-    def stop_service_locally(self, hash: str, delete: bool = False) -> Deployment:
+    def stop_service_locally(self, hash: str, delete: bool = False, use_docker: bool = False) -> Deployment:
         """
         Stop service locally
 
@@ -1158,7 +1155,7 @@ class ServiceManager:
         :return: Deployment instance
         """
         deployment = self.load_or_create(hash=hash).deployment
-        deployment.stop()
+        deployment.stop(use_docker)
         if delete:
             deployment.delete()
         return deployment
