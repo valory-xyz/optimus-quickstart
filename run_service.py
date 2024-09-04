@@ -512,7 +512,8 @@ def main() -> None:
     }
     apply_env_vars(env_vars)
     home_chain_id = service.home_chain_id
-    manager.deploy_service_locally(hash=service.hash, chain_id=home_chain_id, use_docker=True)
+    print("Skipping local deployment")
+    # manager.deploy_service_locally(hash=service.hash, chain_id=home_chain_id, use_docker=True)
 
     print()
     print_section("Running the service")
