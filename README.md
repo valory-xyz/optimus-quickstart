@@ -27,7 +27,7 @@ Ensure your machine satisfies the requirements:
 
 ## Resource Requirements
 
-- You need ETH and USDC in one of your wallets.
+- You need ETH and USDC in one of your wallets. We recommend having $10 worth of ETH and USDC on Etherum. 
 - You need 3 RPCs for your agent instance for respectively Ethereum, Optimism, and Base. You can use the following public ones: 
 
   ```bash
