@@ -93,6 +93,7 @@ class OptimusConfig(LocalResource):
     tenderly_account_slug: t.Optional[str] = None
     tenderly_project_slug: t.Optional[str] = None
     password_migrated: t.Optional[bool] = None
+    use_staking: t.Optional[bool] = None
 
     @classmethod
     def from_json(cls, obj: t.Dict) -> "LocalResource":
@@ -246,6 +247,12 @@ def get_local_config() -> OptimusConfig:
             "Please enter your Tenderly Project Slug: "
         )
 
+    if optimus_config.password_migrated is None:
+        optimus_config.password_migrated = False
+
+    if optimus_config.use_staking is None:
+        optimus_config.use_staking = input("Do you want to stake your service? (y/n): ").lower() == 'y'
+
     optimus_config.store()
     return optimus_config
 
@@ -266,7 +273,7 @@ def handle_password_migration(user_account: UserAccount, config: OptimusConfig) 
         config.store()
 
 
-def get_service_template(config: OptimusConfig, user_wants_staking: bool) -> ServiceTemplate:
+def get_service_template(config: OptimusConfig) -> ServiceTemplate:
     """Get the service template"""
     return ServiceTemplate({
         "name": "Optimus",
@@ -299,7 +306,7 @@ def get_service_template(config: OptimusConfig, user_wants_staking: bool) -> Ser
                     "nft": "bafybeig64atqaladigoc3ds4arltdu63wkdrk3gesjfvnfdmz35amv7faq",
                     "cost_of_bond": COST_OF_BOND_STAKING,
                     "threshold": 1,
-                    "use_staking": user_wants_staking,
+                    "use_staking": config.use_staking,
                     "fund_requirements": FundRequirementsTemplate(
                         {
                             "agent": SUGGESTED_TOP_UP_DEFAULT,
@@ -385,8 +392,7 @@ def main() -> None:
     operate.setup()
 
     optimus_config = get_local_config()
-    user_wants_staking = input("Do you want to stake your service? (y/n): ").lower() == 'y'
-    template = get_service_template(optimus_config, user_wants_staking)
+    template = get_service_template(optimus_config)
 
     if operate.user_account is None:
         print("Creating a new local user account...")
@@ -395,6 +401,8 @@ def main() -> None:
             password=password,
             path=operate._path / "user.json",
         )
+        optimus_config.password_migrated = True
+        optimus_config.store()
     else:
         handle_password_migration(operate.user_account, optimus_config)
         password = getpass.getpass("Enter local user account password: ")
