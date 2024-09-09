@@ -331,6 +331,12 @@ def main() -> None:
     )
     operate.setup()
 
+    # check if optimus was started before
+    path = OPERATE_HOME / "local_config.json"
+    if not path.exists():
+        print("Nothing to clean. Exiting.")
+        sys.exit(0)
+
     optimus_config = get_local_config()
     template = get_service_template(optimus_config)
     manager = operate.service_manager()
