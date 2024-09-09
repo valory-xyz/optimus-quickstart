@@ -276,22 +276,22 @@ def get_service_template(config: OptimusConfig, user_wants_staking: bool) -> Ser
         "service_version": 'v0.18.1',
         "home_chain_id": "10",
         "configurations": {
-            # "1": ConfigurationTemplate(
-            #     {
-            #         "staking_program_id": "optimus_alpha",
-            #         "rpc": config.ethereum_rpc,
-            #         "nft": "bafybeig64atqaladigoc3ds4arltdu63wkdrk3gesjfvnfdmz35amv7faq",
-            #         "cost_of_bond": COST_OF_BOND,
-            #         "threshold": 1,
-            #         "use_staking": False,
-            #         "fund_requirements": FundRequirementsTemplate(
-            #             {
-            #                 "agent": SUGGESTED_TOP_UP_DEFAULT,
-            #                 "safe": SUGGESTED_SAFE_TOP_UP_DEFAULT,
-            #             }
-            #         ),
-            #     }
-            # ),
+            "1": ConfigurationTemplate(
+                {
+                    "staking_program_id": "optimus_alpha",
+                    "rpc": config.ethereum_rpc,
+                    "nft": "bafybeig64atqaladigoc3ds4arltdu63wkdrk3gesjfvnfdmz35amv7faq",
+                    "cost_of_bond": COST_OF_BOND,
+                    "threshold": 1,
+                    "use_staking": False,
+                    "fund_requirements": FundRequirementsTemplate(
+                        {
+                            "agent": SUGGESTED_TOP_UP_DEFAULT,
+                            "safe": SUGGESTED_SAFE_TOP_UP_DEFAULT,
+                        }
+                    ),
+                }
+            ),
             "10": ConfigurationTemplate(
                 {
                     "staking_program_id": "optimus_alpha",
@@ -308,22 +308,22 @@ def get_service_template(config: OptimusConfig, user_wants_staking: bool) -> Ser
                     ),
                 }
             ),
-            # "8453": ConfigurationTemplate(
-            #     {
-            #         "staking_program_id": "optimus_alpha",
-            #         "rpc": config.base_rpc,
-            #         "nft": "bafybeig64atqaladigoc3ds4arltdu63wkdrk3gesjfvnfdmz35amv7faq",
-            #         "cost_of_bond": COST_OF_BOND,
-            #         "threshold": 1,
-            #         "use_staking": False,
-            #         "fund_requirements": FundRequirementsTemplate(
-            #             {
-            #                 "agent": SUGGESTED_TOP_UP_DEFAULT,
-            #                 "safe": SUGGESTED_SAFE_TOP_UP_DEFAULT,
-            #             }
-            #         ),
-            #     }
-            # ),
+            "8453": ConfigurationTemplate(
+                {
+                    "staking_program_id": "optimus_alpha",
+                    "rpc": config.base_rpc,
+                    "nft": "bafybeig64atqaladigoc3ds4arltdu63wkdrk3gesjfvnfdmz35amv7faq",
+                    "cost_of_bond": COST_OF_BOND,
+                    "threshold": 1,
+                    "use_staking": False,
+                    "fund_requirements": FundRequirementsTemplate(
+                        {
+                            "agent": SUGGESTED_TOP_UP_DEFAULT,
+                            "safe": SUGGESTED_SAFE_TOP_UP_DEFAULT,
+                        }
+                    ),
+                }
+            ),
         },
 })
 
