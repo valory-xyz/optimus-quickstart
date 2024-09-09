@@ -28,6 +28,7 @@ from dataclasses import dataclass
 from pathlib import Path
 
 import requests
+import yaml
 from aea.crypto.base import LedgerApi
 from aea_ledger_ethereum import EthereumApi
 from dotenv import load_dotenv
@@ -241,7 +242,7 @@ def get_service_template(config: OptimusConfig, user_wants_staking: bool) -> Ser
     """Get the service template"""
     return ServiceTemplate({
         "name": "Optimus",
-        "hash": "bafybeid3sapqas3ow57jc5pdnngyzrmxutih4k5y56elgbez6jjxaqzfiu",
+        "hash": "bafybeidaecl6dpacdjxewlnv5leuqzs26dlodwgnfdkgjrk2yqj64oncg4",
         "description": "Optimus",
         "image": "https://operate.olas.network/_next/image?url=%2Fimages%2Fprediction-agent.png&w=3840&q=75",
         "service_version": 'v0.18.1',
@@ -331,6 +332,15 @@ FALLBACK_STAKING_PARAMS = dict(
     activity_checker="0x155547857680A6D51bebC5603397488988DEb1c8"  # nosec
 )
 
+def add_volumes(docker_compose_path: Path, host_path: str, container_path: str) -> None:
+    """Add volumes to the docker-compose."""
+    with open(docker_compose_path, "r") as f:
+        docker_compose = yaml.safe_load(f)
+
+    docker_compose["services"]["optimus_abci_0"]["volumes"].append(f"{host_path}:{container_path}:Z")
+
+    with open(docker_compose_path, "w") as f:
+        yaml.dump(docker_compose, f)
 
 
 def main() -> None:
@@ -513,7 +523,10 @@ def main() -> None:
     apply_env_vars(env_vars)
     home_chain_id = service.home_chain_id
     print("Skipping local deployment")
-    # manager.deploy_service_locally(hash=service.hash, chain_id=home_chain_id, use_docker=True)
+    service.deployment.build(use_docker=True, force=True, chain_id=home_chain_id)
+    docker_compose_path = service.path / "deployment" / "docker-compose.yaml"
+    add_volumes(docker_compose_path, str(OPERATE_HOME), "/data")
+    service.deployment.start(use_docker=True)
 
     print()
     print_section("Running the service")
