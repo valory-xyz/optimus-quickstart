@@ -22,8 +22,17 @@ if [ "$(git rev-parse --is-inside-work-tree)" = true ]
 then
     poetry install
     poetry run python stop_service.py || echo "Stopping the deployment failed. Continuing with cleanup."
-    docker rm -f $(docker ps -a -q --filter name=optimus)
-    sudo rm -rf .optimus/services/*/deployment
+
+    # remove all containers with the name optimus, if they exist
+    container_ids=$(docker ps -a -q --filter name=optimus)
+    if [ -n "$container_ids" ]; then
+      docker rm -f $container_ids
+    fi
+
+    # remove old deployments if they exist
+    if ls .optimus/services/*/deployment 1> /dev/null 2>&1; then
+      sudo rm -rf .optimus/services/*/deployment
+    fi
 else
     echo "$directory is not a git repo!"
     exit 1
