@@ -324,11 +324,8 @@ def get_erc20_balance(ledger_api: LedgerApi, token: str, account: str) -> int:
 def main() -> None:
     """Run service."""
 
-    print_title("Optimus Quickstart")
-    print("This script will assist you in setting up and running the Optimus service.")
-    print()
+    print_title("Stop Optimus Quickstart")
 
-    print_section("Set up local user account")
     operate = OperateApp(
         home=OPERATE_HOME,
     )
