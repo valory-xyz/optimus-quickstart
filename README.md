@@ -27,17 +27,19 @@ Ensure your machine satisfies the requirements:
 
 ## Resource Requirements
 
-- You need ETH and USDC in one of your wallets. We recommend having $10 worth of ETH and USDC on Etherum. 
+- You need ETH and USDC in one of your wallets. We recommend having $10 worth of ETH and USDC on Etherum.
 - You need 3 RPCs for your agent instance for respectively Ethereum, Optimism, and Base. You can use the following public ones: 
 
   ```bash
   Ethereum RPC: https://virtual.mainnet.rpc.tenderly.co/4b1b935c-2ad1-4f63-88c4-f74eaae37123
 
-  Optimism RPC: https://virtual.optimism.rpc.tenderly.co/2ba819d3-6ee1-4075-a145-6eaaeb58e5b7
+  Optimism RPC: https://virtual.optimism.rpc.tenderly.co/f31a1efd-d795-4d0b-97a6-f57887ecfb3f
 
   Base RPC: https://virtual.base.rpc.tenderly.co/a5594f32-3ec3-4ea5-8a91-6d5d7d9e290b
   ```
-- Finally, you will need your Tenderly Access Key, Tenderly account Slug, and Tenderly Project Slug. Get one at https://dashboard.tenderly.co/. Refer to the Tenderly Documentation for more info https://docs.tenderly.co/account/projects. 
+- You will need your Tenderly Access Key, Tenderly account Slug, and Tenderly Project Slug. Get one at https://dashboard.tenderly.co/. Refer to the Tenderly Documentation for more info https://docs.tenderly.co/account/projects.
+
+
 
 
 ## Run the Service
@@ -48,6 +50,40 @@ chmod +x run_service.sh
 ./run_service.sh
 ```
 When prompted, add the corresponding RPCs (you can copy-paste the ones in the section above) and Tenderly info, send funds to the prompted address and you're good to go!
+
+### Creating a local user account
+
+For your own asset's protection, when run for the first time, the agent will setup for you a new local user account. For this purpose, you will be asked to 
+enter and confirm a password as below.
+For future runs of the agent, please make sure to store the given password on a safe side file of your choice. 
+```bash
+Creating a new local user account...
+Please enter a password: 
+Please confirm your password: 
+Creating the main wallet...
+```
+
+## Staking
+
+The agent will need your answer on staking. If you plan to run it as a non staking agent, please answer _n_ to the question below. Otherwise, please answer _y_ and, consequently when prompted, fund your agent with the required number of Olas.
+
+```bash
+Do you want to stake your service? (y/n):
+```
+
+This version of Optimus comes with only one staking program with a min OLAS requirement of 40.00 OLAS. The script will check that your owner address meets the minimum required OLAS on the Gnosis Chain.
+
+
+### Notes:
+
+- Staking is currently in a testing phase, so the number of trader agents that can be staked might be limited.
+- Within each staking period (24hrs) staking happens after the agent has reached its staking KPIs. In the current agent's version, this takes approxiamtely 45 minutes of activity.
+- In case a service is stopped and remains inactive beyond the specified _maxAllowedInactivity_ time (2 staking periods, 48hrs), it faces eviction from the staking program, ceasing to accrue additional rewards.
+
+
+## Wallet Password
+
+Finally, the agent will prompt you to setup your wallet password. Please be mindful of storing it in a secure space, for future use.
 
 ### Service is Running
 
@@ -121,6 +157,3 @@ Execute the following steps in a PowerShell terminal:
 8. Open [Docker Desktop](https://www.docker.com/products/docker-desktop/) and leave it opened in the background.
 
 Now, open a Git Bash terminal and follow the instructions in the "[Run the script](#run-the-script)" section as well as the subsequent sections. You might need to install Microsoft Visual C++ 14.0 or greater.
-
-
-

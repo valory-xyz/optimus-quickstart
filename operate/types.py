@@ -195,6 +195,7 @@ class ConfigurationTemplate(TypedDict):
     use_staking: bool
     cost_of_bond: int
     fund_requirements: FundRequirementsTemplate
+    fallback_chain_params: t.Optional[t.Dict]
 
 
 ConfigurationTemplates = t.Dict[str, ConfigurationTemplate]

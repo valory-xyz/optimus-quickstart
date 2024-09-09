@@ -71,22 +71,13 @@ STAKING = {
         "pearl_beta": "0xeF44Fb0842DDeF59D37f85D61A1eF492bbA6135d",
     },
     ChainType.OPTIMISM: {
-        "pearl_alpha": "0xEE9F19b5DF06c7E8Bfc7B28745dcf944C504198A",
-        "pearl_beta": "0xeF44Fb0842DDeF59D37f85D61A1eF492bbA6135d",
-    },
-    ChainType.BASE: {
-        "pearl_alpha": "0xEE9F19b5DF06c7E8Bfc7B28745dcf944C504198A",
-        "pearl_beta": "0xeF44Fb0842DDeF59D37f85D61A1eF492bbA6135d",
-    },
-    ChainType.ETHEREUM: {
-        "pearl_alpha": "0xEE9F19b5DF06c7E8Bfc7B28745dcf944C504198A",
-        "pearl_beta": "0xeF44Fb0842DDeF59D37f85D61A1eF492bbA6135d",
+        "optimus_alpha": "0x88996bbdE7f982D93214881756840cE2c77C4992",
     },
 }
 
 OLAS = {
     ChainType.GNOSIS: "0xcE11e14225575945b8E6Dc0D4F2dD4C570f79d9f",
-    ChainType.OPTIMISM: "0x01B8b6384298D4848E3BE63D4C9D17830EeE488A",
+    ChainType.OPTIMISM: "0xFC2E6e6BCbd49ccf3A5f029c79984372DcBFE527",
     ChainType.BASE: "0x54330d28ca3357F294334BDC454a032e7f353416",
     ChainType.ETHEREUM: "0x0001A500A6B18995B03f44bb040A5fFc28E45CB0",
 }

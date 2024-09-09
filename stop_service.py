@@ -324,15 +324,18 @@ def get_erc20_balance(ledger_api: LedgerApi, token: str, account: str) -> int:
 def main() -> None:
     """Run service."""
 
-    print_title("Optimus Quickstart")
-    print("This script will assist you in setting up and running the Optimus service.")
-    print()
+    print_title("Stop Optimus Quickstart")
 
-    print_section("Set up local user account")
     operate = OperateApp(
         home=OPERATE_HOME,
     )
     operate.setup()
+
+    # check if optimus was started before
+    path = OPERATE_HOME / "local_config.json"
+    if not path.exists():
+        print("Nothing to clean. Exiting.")
+        sys.exit(0)
 
     optimus_config = get_local_config()
     template = get_service_template(optimus_config)
