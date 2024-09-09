@@ -263,14 +263,23 @@ def apply_env_vars(env_vars: t.Dict[str, str]) -> None:
         if value is not None:
             os.environ[key] = value
 
-def handle_password_migration(user_account: UserAccount, config: OptimusConfig) -> None:
+def handle_password_migration(operate: OperateApp, config: OptimusConfig) -> t.Optional[str]:
     """Handle password migration."""
     if not config.password_migrated:
         print("Add password...")
         old_password, new_password = "12345", ask_confirm_password()
-        user_account.update(old_password, new_password)
+        operate.user_account.update(old_password, new_password)
+        if operate.wallet_manager.exists(LedgerType.ETHEREUM):
+            operate.password = old_password
+            wallet = operate.wallet_manager.load(LedgerType.ETHEREUM)
+            wallet.crypto.dump(str(wallet.key_path), password=new_password)
+            wallet.password = new_password
+            wallet.store()
+
         config.password_migrated = True
         config.store()
+        return new_password
+    return None
 
 
 def get_service_template(config: OptimusConfig) -> ServiceTemplate:
@@ -404,8 +413,9 @@ def main() -> None:
         optimus_config.password_migrated = True
         optimus_config.store()
     else:
-        handle_password_migration(operate.user_account, optimus_config)
-        password = getpass.getpass("Enter local user account password: ")
+        password = handle_password_migration(operate, optimus_config)
+        if password is None:
+            password = getpass.getpass("Enter local user account password: ")
         if not operate.user_account.is_valid(password=password):
             print("Invalid password!")
             sys.exit(1)
