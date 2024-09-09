@@ -466,16 +466,16 @@ class ServiceManager:
                     f"address: {safe}; required olas: {required_olas}; your balance: {balance}"
                 )
 
+        agent_id = (
+            staking_params["agent_ids"] and staking_params["agent_ids"][0]
+            or fallback_staking_params["agent_ids"][0]
+        )
         on_chain_hash = self._get_on_chain_hash(chain_config=chain_config)
         is_first_mint = self._get_on_chain_state(chain_config=chain_config) == OnChainState.NON_EXISTENT
         is_update = (
             (not is_first_mint)
             and (on_chain_hash is not None)
-            and (on_chain_hash != service.hash or current_agent_id != staking_params["agent_ids"][0])
-        )
-        agent_id = (
-            staking_params["agent_ids"] and staking_params["agent_ids"][0]
-            or fallback_staking_params["agent_ids"][0]
+            and (on_chain_hash != service.hash or current_agent_id != agent_id)
         )
 
         if is_update:
@@ -744,6 +744,7 @@ class ServiceManager:
         keys = service.keys
         instances = [key.address for key in keys]
         wallet = self.wallet_manager.load(ledger_config.type)
+        chain_type = ChainType.from_id(int(chain_id))
 
         # TODO fixme
         os.environ["CUSTOM_CHAIN_RPC"] = ledger_config.rpc
@@ -805,7 +806,7 @@ class ServiceManager:
                 owner_key=str(
                     self.keys_manager.get(key=current_safe_owners[0]).private_key  # TODO allow multiple owners
                 ),  # noqa: E800
-                new_owner_address=wallet.safe if wallet.safe else wallet.crypto.address  # TODO it should always be safe address
+                new_owner_address=wallet.safes[chain_type] if wallet.safes[chain_type] else wallet.crypto.address  # TODO it should always be safe address
             )  # noqa: E800
 
     def _get_current_staking_program(self, chain_data, ledger_config, sftxb) -> t.Optional[str]:
