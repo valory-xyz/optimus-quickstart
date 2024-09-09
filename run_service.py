@@ -39,7 +39,7 @@ from operate.account.user import UserAccount
 from operate.cli import OperateApp
 from operate.ledger import Ethereum
 from operate.ledger.profiles import OLAS
-from operate.resource import LocalResource
+from operate.resource import LocalResource, deserialize
 from operate.types import (
     LedgerType,
     ServiceTemplate,
@@ -92,6 +92,25 @@ class OptimusConfig(LocalResource):
     tenderly_access_key: t.Optional[str] = None
     tenderly_account_slug: t.Optional[str] = None
     tenderly_project_slug: t.Optional[str] = None
+    password_migrated: t.Optional[bool] = None
+
+    @classmethod
+    def from_json(cls, obj: t.Dict) -> "LocalResource":
+        """Load LocalResource from json."""
+        kwargs = {}
+        for pname, ptype in cls.__annotations__.items():
+            if pname.startswith("_"):
+                continue
+
+            # allow for optional types
+            is_optional_type = t.get_origin(ptype) is t.Union and type(None) in t.get_args(ptype)
+            value = obj.get(pname, None)
+            if is_optional_type and value is None:
+                continue
+
+            kwargs[pname] = deserialize(obj=obj[pname], otype=ptype)
+        return cls(**kwargs)
+
 
 
 def print_box(text: str, margin: int = 1, character: str = '=') -> None:
@@ -237,6 +256,15 @@ def apply_env_vars(env_vars: t.Dict[str, str]) -> None:
         if value is not None:
             os.environ[key] = value
 
+def handle_password_migration(user_account: UserAccount, config: OptimusConfig) -> None:
+    """Handle password migration."""
+    if not config.password_migrated:
+        print("Add password...")
+        old_password, new_password = "12345", ask_confirm_password()
+        user_account.update(old_password, new_password)
+        config.password_migrated = True
+        config.store()
+
 
 def get_service_template(config: OptimusConfig, user_wants_staking: bool) -> ServiceTemplate:
     """Get the service template"""
@@ -362,14 +390,14 @@ def main() -> None:
 
     if operate.user_account is None:
         print("Creating a new local user account...")
-        password = "12345"
+        password = ask_confirm_password()
         UserAccount.new(
             password=password,
             path=operate._path / "user.json",
         )
     else:
-        password = "12345"
-        # password = getpass.getpass("Enter local user account password: ")
+        handle_password_migration(operate.user_account, optimus_config)
+        password = getpass.getpass("Enter local user account password: ")
         if not operate.user_account.is_valid(password=password):
             print("Invalid password!")
             sys.exit(1)
