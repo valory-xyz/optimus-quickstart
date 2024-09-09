@@ -38,13 +38,13 @@ from termcolor import colored
 from operate.account.user import UserAccount
 from operate.cli import OperateApp
 from operate.ledger import Ethereum
-from operate.ledger.profiles import OLAS
+from operate.ledger.profiles import OLAS, STAKING
 from operate.resource import LocalResource, deserialize
 from operate.types import (
     LedgerType,
     ServiceTemplate,
     ConfigurationTemplate,
-    FundRequirementsTemplate,
+    FundRequirementsTemplate, ChainType,
 )
 
 load_dotenv()
@@ -276,22 +276,22 @@ def get_service_template(config: OptimusConfig, user_wants_staking: bool) -> Ser
         "service_version": 'v0.18.1',
         "home_chain_id": "10",
         "configurations": {
-            "1": ConfigurationTemplate(
-                {
-                    "staking_program_id": "optimus_alpha",
-                    "rpc": config.ethereum_rpc,
-                    "nft": "bafybeig64atqaladigoc3ds4arltdu63wkdrk3gesjfvnfdmz35amv7faq",
-                    "cost_of_bond": COST_OF_BOND,
-                    "threshold": 1,
-                    "use_staking": False,
-                    "fund_requirements": FundRequirementsTemplate(
-                        {
-                            "agent": SUGGESTED_TOP_UP_DEFAULT,
-                            "safe": SUGGESTED_SAFE_TOP_UP_DEFAULT,
-                        }
-                    ),
-                }
-            ),
+            # "1": ConfigurationTemplate(
+            #     {
+            #         "staking_program_id": "optimus_alpha",
+            #         "rpc": config.ethereum_rpc,
+            #         "nft": "bafybeig64atqaladigoc3ds4arltdu63wkdrk3gesjfvnfdmz35amv7faq",
+            #         "cost_of_bond": COST_OF_BOND,
+            #         "threshold": 1,
+            #         "use_staking": False,
+            #         "fund_requirements": FundRequirementsTemplate(
+            #             {
+            #                 "agent": SUGGESTED_TOP_UP_DEFAULT,
+            #                 "safe": SUGGESTED_SAFE_TOP_UP_DEFAULT,
+            #             }
+            #         ),
+            #     }
+            # ),
             "10": ConfigurationTemplate(
                 {
                     "staking_program_id": "optimus_alpha",
@@ -308,22 +308,22 @@ def get_service_template(config: OptimusConfig, user_wants_staking: bool) -> Ser
                     ),
                 }
             ),
-            "8453": ConfigurationTemplate(
-                {
-                    "staking_program_id": "optimus_alpha",
-                    "rpc": config.base_rpc,
-                    "nft": "bafybeig64atqaladigoc3ds4arltdu63wkdrk3gesjfvnfdmz35amv7faq",
-                    "cost_of_bond": COST_OF_BOND,
-                    "threshold": 1,
-                    "use_staking": False,
-                    "fund_requirements": FundRequirementsTemplate(
-                        {
-                            "agent": SUGGESTED_TOP_UP_DEFAULT,
-                            "safe": SUGGESTED_SAFE_TOP_UP_DEFAULT,
-                        }
-                    ),
-                }
-            ),
+            # "8453": ConfigurationTemplate(
+            #     {
+            #         "staking_program_id": "optimus_alpha",
+            #         "rpc": config.base_rpc,
+            #         "nft": "bafybeig64atqaladigoc3ds4arltdu63wkdrk3gesjfvnfdmz35amv7faq",
+            #         "cost_of_bond": COST_OF_BOND,
+            #         "threshold": 1,
+            #         "use_staking": False,
+            #         "fund_requirements": FundRequirementsTemplate(
+            #             {
+            #                 "agent": SUGGESTED_TOP_UP_DEFAULT,
+            #                 "safe": SUGGESTED_SAFE_TOP_UP_DEFAULT,
+            #             }
+            #         ),
+            #     }
+            # ),
         },
 })
 
@@ -542,14 +542,17 @@ def main() -> None:
         manager.fund_service(hash=service.hash, chain_id=chain_id)
 
     safes = { chain.name.lower(): safe for chain, safe in wallet.safes.items() }
+    home_chain_id = service.home_chain_id
+    home_chain_type = ChainType.from_id(int(home_chain_id))
+    target_staking_program_id = service.chain_configs[home_chain_id].chain_data.user_params.staking_program_id
     env_vars = {
         "SAFE_CONTRACT_ADDRESSES": json.dumps(safes, separators=(',', ':')),
         "TENDERLY_ACCESS_KEY": optimus_config.tenderly_access_key,
         "TENDERLY_ACCOUNT_SLUG": optimus_config.tenderly_account_slug,
         "TENDERLY_PROJECT_SLUG": optimus_config.tenderly_project_slug,
+        "STAKING_TOKEN_CONTRACT_ADDRESS": STAKING[home_chain_type][target_staking_program_id],
     }
     apply_env_vars(env_vars)
-    home_chain_id = service.home_chain_id
     print("Skipping local deployment")
     service.deployment.build(use_docker=True, force=True, chain_id=home_chain_id)
     docker_compose_path = service.path / "deployment" / "docker-compose.yaml"
