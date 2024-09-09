@@ -33,7 +33,7 @@ Ensure your machine satisfies the requirements:
   ```bash
   Ethereum RPC: https://virtual.mainnet.rpc.tenderly.co/4b1b935c-2ad1-4f63-88c4-f74eaae37123
 
-  Optimism RPC: https://virtual.optimism.rpc.tenderly.co/2ba819d3-6ee1-4075-a145-6eaaeb58e5b7
+  Optimism RPC: https://virtual.optimism.rpc.tenderly.co/f31a1efd-d795-4d0b-97a6-f57887ecfb3f
 
   Base RPC: https://virtual.base.rpc.tenderly.co/a5594f32-3ec3-4ea5-8a91-6d5d7d9e290b
   ```
