@@ -51,6 +51,18 @@ chmod +x run_service.sh
 ```
 When prompted, add the corresponding RPCs (you can copy-paste the ones in the section above) and Tenderly info, send funds to the prompted address and you're good to go!
 
+### Creating a local user account
+
+For your own asset's protection, when run for the first time, the agent will setup for you a new local user account. For this purpose, you will be asked to 
+enter and confirm a password as below.
+For future runs of the agent, please make sure to store the given password on a safe side file of your choice. 
+```bash
+Creating a new local user account...
+Please enter a password: 
+Please confirm your password: 
+Creating the main wallet...
+```
+
 ## Staking
 
 The agent will need your answer on staking. If you plan to run it as a non staking agent, please answer _n_ to the question below. Otherwise, please answer _y_ and, consequently when prompted, fund your agent with the required number of Olas.
@@ -65,8 +77,8 @@ This version of Optimus comes with only one staking program with a min OLAS requ
 ### Notes:
 
 - Staking is currently in a testing phase, so the number of trader agents that can be staked might be limited.
-
-- Currently, the avg first staking time is approximately 45 minutes and one staking period lasts 24 hours.
+- Within each staking period (24hrs) staking happens after the agent has reached its staking KPIs. In the current agent's version, this takes approxiamtely 45 minutes of activity.
+- In case a service is stopped and remains inactive beyond the specified _maxAllowedInactivity_ time (2 staking periods, 48hrs), it faces eviction from the staking program, ceasing to accrue additional rewards.
 
 
 ## Wallet Password
