@@ -22,26 +22,27 @@ Ensure your machine satisfies the requirements:
 
 - Python `==3.10`
 - [Poetry](https://python-poetry.org/docs/) `>=1.4.0`
-- [Docker Engine](https://docs.docker.com/engine/install/) `<25.0.0`
+- [Docker Engine](https://docs.docker.com/engine/install/)
 - [Docker Compose](https://docs.docker.com/compose/install/)
 
 ## Resource Requirements
 
-- You need ETH and USDC in one of your wallets. We recommend having $10 worth of ETH and USDC on Etherum.
-- You need 3 RPCs for your agent instance for respectively Ethereum, Optimism, and Base. You can use the following public ones: 
+- You will need to fund certain addresses with the following funds when requested: 0.01 ETH (Ethereum mainnet) + 10 USDC (Ethereum mainnet) + 0.01 ETH (Base chain). Additionally some quantity of OLAS bridged to Optimism if you want to stake.
 
-  ```bash
-  Ethereum RPC: https://virtual.mainnet.rpc.tenderly.co/4b1b935c-2ad1-4f63-88c4-f74eaae37123
-
-  Optimism RPC: https://virtual.optimism.rpc.tenderly.co/f31a1efd-d795-4d0b-97a6-f57887ecfb3f
-
-  Base RPC: https://virtual.base.rpc.tenderly.co/a5594f32-3ec3-4ea5-8a91-6d5d7d9e290b
+- You need 3 RPCs for your agent instance for respectively Ethereum, Optimism, and Base.
+```bash
+Please enter an Ethereum RPC URL:
+Please enter an Optimism RPC URL:
+Please enter a Base RPC URL:
   ```
-- You will need your Tenderly Access Key, Tenderly account Slug, and Tenderly Project Slug. Get one at https://dashboard.tenderly.co/. Refer to the Tenderly Documentation for more info https://docs.tenderly.co/account/projects.
 
-
-
-
+- You will need your Tenderly Access Key, Tenderly account Slug, and Tenderly Project Slug. Get one at https://dashboard.tenderly.co/ under settings. 
+```bash
+Please enter your Tenderly API Key:
+Please enter your Tenderly Account Slug:
+Please enter your Tenderly Project Slug: 
+  ```
+Refer to the Tenderly Documentation for more info https://docs.tenderly.co/account/projects
 ## Run the Service
 
 Clone this repository locally and execute:
@@ -49,12 +50,12 @@ Clone this repository locally and execute:
 chmod +x run_service.sh
 ./run_service.sh
 ```
-When prompted, add the corresponding RPCs (you can copy-paste the ones in the section above) and Tenderly info, send funds to the prompted address and you're good to go!
+When prompted, add the corresponding RPCs and Tenderly info, send funds to the prompted address and you're good to go!
 
 ### Creating a local user account
 
 When run for the first time, the agent will setup for you a password protected local account. You will be asked to enter and confirm a password as below. 
-Please be mindful of storing it in a secure space, for future use.
+Please be mindful of storing it in a secure space, for future use. **Hint:** If you do not want to use a password just press Enter when asked to enter and confirm your password.
 
 ```bash
 Creating a new local user account...
@@ -65,20 +66,17 @@ Creating the main wallet...
 
 ## Staking
 
-The agent will need your answer on staking. If you plan to run it as a non staking agent, please answer _n_ to the question below. Otherwise, please answer _y_ and, consequently when prompted, fund your agent with the required number of Olas.
+The agent will need your answer on staking. If you plan to run it as a non staking agent, please answer _n_ to the question below. Otherwise, please answer _y_ and, consequently when prompted, fund your agent with the required number of bridged Olas in Optimism Chain.
 
 ```bash
 Do you want to stake your service? (y/n):
 ```
 
-This version of Optimus comes with only one staking program with a min OLAS requirement of 40.00 OLAS. The script will check that your owner address meets the minimum required OLAS on the Gnosis Chain.
-
-
 ### Notes:
 
 - Staking is currently in a testing phase, so the number of trader agents that can be staked might be limited.
 - Within each staking period (24hrs) staking happens after the agent has reached its staking contract's KPIs. In the current agent's version, this takes approxiamtely 45 minutes of activity.
-- In case a service becomes inactive and remains so for more than 2 staking periods (48 hours), it faces eviction from the staking program and ceasies to accrue additional rewards.
+- In case a service becomes inactive and remains so for more than 2 staking periods (approx. 48 hours), it faces eviction from the staking program and ceases to accrue additional rewards.
 
 ### Service is Running
 
@@ -86,6 +84,16 @@ Once the command has completed, i.e. the service is running, you can see the liv
 
 ```bash
 docker logs optimus_abci_0 --follow
+```
+
+To inspect the tree state transition of the current run of the agent run:
+```bash
+poetry run autonomy analyse logs --from-dir .optimus/services/[service-hash]/deployment/persistent_data/logs/  --agent aea_0 --fsm --reset-db
+```
+where `[service-hash]` is the onchain representation of the agent code that you're running and can be found by doing
+
+```bash
+ls .optimus/services
 ```
 
 To stop your agent, use:
