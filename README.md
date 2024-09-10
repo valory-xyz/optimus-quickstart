@@ -53,9 +53,9 @@ When prompted, add the corresponding RPCs (you can copy-paste the ones in the se
 
 ### Creating a local user account
 
-For your own asset's protection, when run for the first time, the agent will setup for you a new local user account. For this purpose, you will be asked to 
-enter and confirm a password as below.
-For future runs of the agent, please make sure to store the given password on a safe side file of your choice. 
+When run for the first time, the agent will setup for you a password protected local account. You will be asked to enter and confirm a password as below. 
+Please be mindful of storing it in a secure space, for future use.
+
 ```bash
 Creating a new local user account...
 Please enter a password: 
@@ -77,13 +77,8 @@ This version of Optimus comes with only one staking program with a min OLAS requ
 ### Notes:
 
 - Staking is currently in a testing phase, so the number of trader agents that can be staked might be limited.
-- Within each staking period (24hrs) staking happens after the agent has reached its staking KPIs. In the current agent's version, this takes approxiamtely 45 minutes of activity.
-- In case a service is stopped and remains inactive beyond the specified _maxAllowedInactivity_ time (2 staking periods, 48hrs), it faces eviction from the staking program, ceasing to accrue additional rewards.
-
-
-## Wallet Password
-
-Finally, the agent will prompt you to setup your wallet password. Please be mindful of storing it in a secure space, for future use.
+- Within each staking period (24hrs) staking happens after the agent has reached its staking contract's KPIs. In the current agent's version, this takes approxiamtely 45 minutes of activity.
+- In case a service becomes inactive and remains so for more than 2 staking periods (48 hours), it faces eviction from the staking program and ceasies to accrue additional rewards.
 
 ### Service is Running
 
