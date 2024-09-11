@@ -65,7 +65,7 @@ def _get_agent_status() -> str:
     client = docker.from_env()
     optmius_abci_container = (
         client.containers.get("optimus_abci_0")
-        if "trader_abci_0" in [c.name for c in client.containers.list()]
+        if "optimus_abci_0" in [c.name for c in client.containers.list()]
         else None
     )
     is_running = optmius_abci_container 
