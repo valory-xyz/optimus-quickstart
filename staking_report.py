@@ -149,6 +149,7 @@ def staking_report(config: dict) -> None:
     staking_program_id = chain_data["chain_data"]["user_params"]["staking_program_id"]
     home_chain_id = config.get("home_chain_id")
     service_id = config["chain_configs"][home_chain_id]["chain_data"]["token"]
+    multisig_address = config["chain_configs"][home_chain_id]["chain_data"]["multisig"]
     w3 = Web3(HTTPProvider(rpc))
     #staking_token_address = "0x88996bbdE7f982D93214881756840cE2c77C4992"
     staking_token_address = STAKING[ChainType.OPTIMISM]["optimus_alpha"]
@@ -240,7 +241,7 @@ def staking_report(config: dict) -> None:
                 (liveness_ratio * 60 * 60 * 24) / 10**18
             )   
 
-        multisig_nonces = activity_checker_contract.functions.getMultisigNonces("0x26C9780CACF3f0299B183645c198dD3A5Ed104Dc").call()
+        multisig_nonces = activity_checker_contract.functions.getMultisigNonces(multisig_address).call()
         multisig_nonces = multisig_nonces[0]
         service_info = staking_token_contract.functions.getServiceInfo(service_id).call()
         multisig_nonces_on_last_checkpoint = service_info[2][0]
