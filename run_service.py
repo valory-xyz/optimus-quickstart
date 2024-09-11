@@ -286,7 +286,7 @@ def get_service_template(config: OptimusConfig) -> ServiceTemplate:
     """Get the service template"""
     return ServiceTemplate({
         "name": "Optimus",
-        "hash": "bafybeiadjaxghlfqqyjx2btzdzyw74dwufbr67amoi7xajg43zuvdwnjtq",
+        "hash": "bafybeih6tpj3cvudqgohobntmq6rrq3d46xflwebjj7jpmvm4xi5skgnly",
         "description": "Optimus",
         "image": "https://operate.olas.network/_next/image?url=%2Fimages%2Fprediction-agent.png&w=3840&q=75",
         "service_version": 'v0.18.1',
