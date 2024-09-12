@@ -43,14 +43,14 @@ from operate.types import (
     LedgerType,
     ServiceTemplate,
     ConfigurationTemplate,
-    FundRequirementsTemplate, ChainType,
+    FundRequirementsTemplate, ChainType, OnChainState,
 )
 
 load_dotenv()
 
 SUGGESTED_TOP_UP_DEFAULT = 1_000_000_000_000_000
 SUGGESTED_SAFE_TOP_UP_DEFAULT = 5_000_000_000_000_000
-MASTER_WALLET_MIMIMUM_BALANCE = 7_000_000_000_000_000
+MASTER_WALLET_MIMIMUM_BALANCE = 6_001_000_000_000_000
 COST_OF_BOND = 1
 COST_OF_BOND_STAKING = 2 * 10 ** 19
 STAKED_BONDING_TOKEN = "OLAS"
@@ -467,8 +467,10 @@ def main() -> None:
         print(
             f"[{chain_name}] Main wallet balance: {balance_str}",
         )
+        safe_exists = wallet.safes.get(chain_type) is not None
+        required_balance = MASTER_WALLET_MIMIMUM_BALANCE if safe_exists else SUGGESTED_TOP_UP_DEFAULT
         print(
-            f"[{chain_name}] Please make sure main wallet {wallet.crypto.address} has at least {wei_to_token(MASTER_WALLET_MIMIMUM_BALANCE, token)}",
+            f"[{chain_name}] Please make sure main wallet {wallet.crypto.address} has at least {wei_to_token(required_balance, token)}",
         )
         spinner = Halo(
             text=f"[{chain_name}] Waiting for funds...",
@@ -476,15 +478,13 @@ def main() -> None:
         )
         spinner.start()
 
-        while ledger_api.get_balance(wallet.crypto.address) < MASTER_WALLET_MIMIMUM_BALANCE:
+        while ledger_api.get_balance(wallet.crypto.address) < required_balance:
             time.sleep(1)
 
         spinner.succeed(f"[{chain_name}] Main wallet updated balance: {wei_to_token(ledger_api.get_balance(wallet.crypto.address), token)}.")
         print()
 
-        if wallet.safes.get(chain_type) is not None:
-            print(f"[{chain_name}] Safe already exists")
-        else:
+        if not safe_exists:
             print(f"[{chain_name}] Creating Safe")
             ledger_type = LedgerType.ETHEREUM
             wallet_manager = operate.wallet_manager
@@ -506,21 +506,24 @@ def main() -> None:
         print_section(f"[{chain_name}] Set up the service in the Olas Protocol")
 
         address = wallet.safes[chain_type]
-        print(
-            f"[{chain_name}] Please make sure address {address} has at least {wei_to_token(MASTER_WALLET_MIMIMUM_BALANCE, token)}."
-        )
-        spinner = Halo(
-            text=f"[{chain_name}] Waiting for funds...",
-            spinner="dots",
-        )
-        spinner.start()
+        service_exists = manager._get_on_chain_state(chain_config) != OnChainState.NON_EXISTENT
 
-        while ledger_api.get_balance(address) < MASTER_WALLET_MIMIMUM_BALANCE:
-            time.sleep(1)
+        if not service_exists:
+            print(
+                f"[{chain_name}] Please make sure address {address} has at least {wei_to_token(MASTER_WALLET_MIMIMUM_BALANCE, token)}."
+            )
+            spinner = Halo(
+                text=f"[{chain_name}] Waiting for funds...",
+                spinner="dots",
+            )
+            spinner.start()
 
-        spinner.succeed(f"[{chain_name}] Safe updated balance: {wei_to_token(ledger_api.get_balance(address), token)}.")
+            while ledger_api.get_balance(address) < MASTER_WALLET_MIMIMUM_BALANCE:
+                time.sleep(1)
 
-        if chain_config.chain_data.user_params.use_staking:
+            spinner.succeed(f"[{chain_name}] Safe updated balance: {wei_to_token(ledger_api.get_balance(address), token)}.")
+
+        if chain_config.chain_data.user_params.use_staking and not service_exists:
             print(f"[{chain_name}] Please make sure address {address} has at least {wei_to_token(2 * COST_OF_BOND_STAKING, STAKED_BONDING_TOKEN)}")
 
             spinner = Halo(
@@ -536,7 +539,7 @@ def main() -> None:
             spinner.succeed(f"[{chain_name}] Safe updated balance: {balance} {STAKED_BONDING_TOKEN}")
 
 
-        if chain_metadata.get("usdcRequired", False):
+        if chain_metadata.get("usdcRequired", False) and not service_exists:
             print(f"[{chain_name}] Please make sure address {address} has at least 10 USDC")
 
             spinner = Halo(
