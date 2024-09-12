@@ -68,6 +68,11 @@ CHAIN_ID_TO_METADATA = {
         "usdcRequired": True,
         "firstTimeTopUp": SUGGESTED_TOP_UP_DEFAULT * 10 * 2,
         "operationalFundReq": SUGGESTED_TOP_UP_DEFAULT * 10,
+        "gasParams": {
+            # this means default values will be used
+            "MAX_PRIORITY_FEE_PER_GAS": "",
+            "MAX_FEE_PER_GAS": "",
+        }
     },
     10: {
         "name": "Optimism",
@@ -75,6 +80,10 @@ CHAIN_ID_TO_METADATA = {
         "usdcRequired": False,
         "firstTimeTopUp": SUGGESTED_TOP_UP_DEFAULT * 10,
         "operationalFundReq": SUGGESTED_TOP_UP_DEFAULT,
+        "gasParams": {
+            "MAX_PRIORITY_FEE_PER_GAS": str(150_000),
+            "MAX_FEE_PER_GAS": str(5_000_000_000),
+        }
     },
     8453: {
         "name": "Base",
@@ -82,6 +91,10 @@ CHAIN_ID_TO_METADATA = {
         "firstTimeTopUp": SUGGESTED_TOP_UP_DEFAULT * 10,
         "operationalFundReq": SUGGESTED_TOP_UP_DEFAULT,
         "usdcRequired": False,
+        "gasParams": {
+            "MAX_PRIORITY_FEE_PER_GAS": str(150_000),
+            "MAX_FEE_PER_GAS": str(5_000_000_000),
+        }
     },
 }
 
@@ -470,6 +483,8 @@ def main() -> None:
         )
         os.environ["CUSTOM_CHAIN_RPC"] = chain_config.ledger_config.rpc
         os.environ["OPEN_AUTONOMY_SUBGRAPH_URL"] = "https://subgraph.autonolas.tech/subgraphs/name/autonolas-staging"
+        os.environ["MAX_PRIORITY_FEE_PER_GAS"] = chain_metadata["gasParams"]["MAX_PRIORITY_FEE_PER_GAS"]
+        os.environ["MAX_FEE_PER_GAS"] = chain_metadata["gasParams"]["MAX_FEE_PER_GAS"]
         service_exists = manager._get_on_chain_state(chain_config) != OnChainState.NON_EXISTENT
 
         chain_name, token = chain_metadata['name'], chain_metadata["token"]
