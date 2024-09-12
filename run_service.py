@@ -147,7 +147,7 @@ def wei_to_unit(wei: int) -> float:
 
 def wei_to_token(wei: int, token: str = "xDAI") -> str:
     """Convert Wei to token."""
-    return f"{wei_to_unit(wei):.2f} {token}"
+    return f"{wei_to_unit(wei):.6f} {token}"
 
 
 def ask_confirm_password() -> str:
