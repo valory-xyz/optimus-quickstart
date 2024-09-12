@@ -29,7 +29,6 @@ from run_service import (
 from web3 import HTTPProvider, Web3
 
 SCRIPT_PATH = Path(__file__).resolve().parent
-print("SCRIPT_PATH",SCRIPT_PATH)
 STAKING_TOKEN_JSON_PATH = Path(
     SCRIPT_PATH,
     "contracts",

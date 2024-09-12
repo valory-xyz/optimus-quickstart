@@ -104,8 +104,6 @@ def save_wallet_info():
     file_path = OPERATE_HOME / "wallets" / "wallet_info.json"
     with open(file_path, "w") as f:
         json.dump(wallet_info, f, indent=2, cls=DecimalEncoder)
-    
-    print(f"Wallet information saved to {file_path}")
 
 if __name__ == "__main__":
     save_wallet_info()
