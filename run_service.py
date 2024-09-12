@@ -492,7 +492,8 @@ def main() -> None:
         print(
             f"[{chain_name}] Main wallet balance: {balance_str}",
         )
-        required_balance = chain_metadata["firstTimeTopUp"] if not service_exists else chain_metadata["operationalFundReq"]
+        safe_exists = wallet.safes[chain_type] is not None
+        required_balance = chain_metadata["firstTimeTopUp"] if not safe_exists else chain_metadata["operationalFundReq"]
         print(
             f"[{chain_name}] Please make sure main wallet {wallet.crypto.address} has at least {wei_to_token(required_balance, token)}",
         )
@@ -508,7 +509,7 @@ def main() -> None:
         spinner.succeed(f"[{chain_name}] Main wallet updated balance: {wei_to_token(ledger_api.get_balance(wallet.crypto.address), token)}.")
         print()
 
-        if not service_exists:
+        if not safe_exists:
             print(f"[{chain_name}] Creating Safe")
             ledger_type = LedgerType.ETHEREUM
             wallet_manager = operate.wallet_manager
