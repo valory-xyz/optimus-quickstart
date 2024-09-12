@@ -78,7 +78,7 @@ CHAIN_ID_TO_METADATA = {
         "name": "Optimism",
         "token": "ETH",
         "usdcRequired": False,
-        "firstTimeTopUp": SUGGESTED_TOP_UP_DEFAULT * 10,
+        "firstTimeTopUp": SUGGESTED_TOP_UP_DEFAULT * 9,
         "operationalFundReq": SUGGESTED_TOP_UP_DEFAULT,
         "gasParams": {
             "MAX_PRIORITY_FEE_PER_GAS": str(150_000),
