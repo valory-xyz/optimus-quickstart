@@ -37,7 +37,6 @@ from termcolor import colored
 
 from operate.account.user import UserAccount
 from operate.cli import OperateApp
-from operate.ledger import Ethereum
 from operate.ledger.profiles import OLAS, STAKING
 from operate.resource import LocalResource, deserialize
 from operate.types import (
@@ -286,7 +285,7 @@ def get_service_template(config: OptimusConfig) -> ServiceTemplate:
     """Get the service template"""
     return ServiceTemplate({
         "name": "Optimus",
-        "hash": "bafybeie4mwft76qkajsn3wypza5vcpvx5vdaosywqzzsnohr4my6o2xu3y",
+        "hash": "bafybeibjwknk7bchs24irn7ayogp72i2cbaioqcd5dzssqtdq4gihrocu4",
         "description": "Optimus",
         "image": "https://operate.olas.network/_next/image?url=%2Fimages%2Fprediction-agent.png&w=3840&q=75",
         "service_version": 'v0.18.1',
@@ -559,7 +558,10 @@ def main() -> None:
         )
         manager.fund_service(hash=service.hash, chain_id=chain_id)
 
-    safes = { chain.name.lower(): safe for chain, safe in wallet.safes.items() }
+    safes = {
+        ChainType.from_id(int(chain)).name.lower(): config.chain_data.multisig
+        for chain, config in service.chain_configs.items()
+    }
     home_chain_id = service.home_chain_id
     home_chain_type = ChainType.from_id(int(home_chain_id))
     target_staking_program_id = service.chain_configs[home_chain_id].chain_data.user_params.staking_program_id
