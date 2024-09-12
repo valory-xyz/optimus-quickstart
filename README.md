@@ -88,7 +88,7 @@ docker logs optimus_abci_0 --follow
 Execute the report command to view a summary of the service status:
 
 ```bash
-python report.py
+poetry run python report.py
 ```
 To inspect the tree state transition of the current run of the agent run:
 ```bash
