@@ -67,7 +67,7 @@ CHAIN_ID_TO_METADATA = {
         "native_token_balance": MASTER_WALLET_MIMIMUM_BALANCE,
         "usdcRequired": True,
         "firstTimeTopUp": SUGGESTED_TOP_UP_DEFAULT * 10 * 2,
-        "operationalFundReq": SUGGESTED_TOP_UP_DEFAULT * 10,
+        "operationalFundReq": SUGGESTED_TOP_UP_DEFAULT * 5,
         "gasParams": {
             # this means default values will be used
             "MAX_PRIORITY_FEE_PER_GAS": "",
