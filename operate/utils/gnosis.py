@@ -252,8 +252,8 @@ def send_safe_txs(
         signatures_by_owner=signatures,
         operation=SafeOperation.CALL.value,
         nonce=ledger_api.api.eth.get_transaction_count(owner),
-        max_fee_per_gas=max_fee_per_gas,
-        max_priority_fee_per_gas=max_priority_fee_per_gas,
+        max_fee_per_gas=int(max_fee_per_gas) if max_fee_per_gas else None,
+        max_priority_fee_per_gas=int(max_priority_fee_per_gas) if max_priority_fee_per_gas else None
     )
     ledger_api.get_transaction_receipt(
         ledger_api.send_signed_transaction(

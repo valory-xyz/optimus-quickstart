@@ -26,7 +26,6 @@ import time
 import typing as t
 from dataclasses import dataclass
 from pathlib import Path
-from token import MINUS
 
 import requests
 import yaml
@@ -78,22 +77,22 @@ CHAIN_ID_TO_METADATA = {
         "name": "Optimism",
         "token": "ETH",
         "usdcRequired": False,
-        "firstTimeTopUp": SUGGESTED_TOP_UP_DEFAULT * 9,
+        "firstTimeTopUp": SUGGESTED_TOP_UP_DEFAULT * 5,
         "operationalFundReq": SUGGESTED_TOP_UP_DEFAULT,
         "gasParams": {
-            "MAX_PRIORITY_FEE_PER_GAS": str(150_000),
-            "MAX_FEE_PER_GAS": str(5_000_000_000),
+            "MAX_PRIORITY_FEE_PER_GAS": str(15_000),
+            "MAX_FEE_PER_GAS": str(1_000_000_000),
         }
     },
     8453: {
         "name": "Base",
         "token": "ETH",
-        "firstTimeTopUp": SUGGESTED_TOP_UP_DEFAULT * 10,
-        "operationalFundReq": SUGGESTED_TOP_UP_DEFAULT,
+        "firstTimeTopUp": SUGGESTED_TOP_UP_DEFAULT * 5,
+        "operationalFundReq": SUGGESTED_TOP_UP_DEFAULT / 10,
         "usdcRequired": False,
         "gasParams": {
             "MAX_PRIORITY_FEE_PER_GAS": str(150_000),
-            "MAX_FEE_PER_GAS": str(5_000_000_000),
+            "MAX_FEE_PER_GAS": str(500_000_000),
         }
     },
 }
@@ -338,7 +337,7 @@ def get_service_template(config: OptimusConfig) -> ServiceTemplate:
                     "fund_requirements": FundRequirementsTemplate(
                         {
                             "agent": SUGGESTED_TOP_UP_DEFAULT,
-                            "safe": SUGGESTED_SAFE_TOP_UP_DEFAULT,
+                            "safe": 0,
                         }
                     ),
                 }
@@ -354,7 +353,7 @@ def get_service_template(config: OptimusConfig) -> ServiceTemplate:
                     "fund_requirements": FundRequirementsTemplate(
                         {
                             "agent": SUGGESTED_TOP_UP_DEFAULT,
-                            "safe": SUGGESTED_SAFE_TOP_UP_DEFAULT,
+                            "safe": 0,
                         }
                     ),
                 }
@@ -492,7 +491,7 @@ def main() -> None:
         print(
             f"[{chain_name}] Main wallet balance: {balance_str}",
         )
-        safe_exists = wallet.safes[chain_type] is not None
+        safe_exists = wallet.safes.get(chain_type) is not None
         required_balance = chain_metadata["firstTimeTopUp"] if not safe_exists else chain_metadata["operationalFundReq"]
         print(
             f"[{chain_name}] Please make sure main wallet {wallet.crypto.address} has at least {wei_to_token(required_balance, token)}",
@@ -519,14 +518,6 @@ def main() -> None:
                 chain_type=chain_type,
                 rpc=chain_config.ledger_config.rpc,
             )
-            print(f"[{chain_name}] Funding Safe")
-            wallet.transfer(
-                to=t.cast(str, wallet.safes[chain_type]),
-                amount=int(chain_metadata["firstTimeTopUp"]),
-                chain_type=chain_type,
-                from_safe=False,
-                rpc=chain_config.ledger_config.rpc,
-            )
 
         print_section(f"[{chain_name}] Set up the service in the Olas Protocol")
 
@@ -543,6 +534,14 @@ def main() -> None:
             spinner.start()
 
             while ledger_api.get_balance(address) < first_time_top_up:
+                print(f"[{chain_name}] Funding Safe")
+                wallet.transfer(
+                    to=t.cast(str, wallet.safes[chain_type]),
+                    amount=int(chain_metadata["firstTimeTopUp"]),
+                    chain_type=chain_type,
+                    from_safe=False,
+                    rpc=chain_config.ledger_config.rpc,
+                )
                 time.sleep(1)
 
             spinner.succeed(f"[{chain_name}] Safe updated balance: {wei_to_token(ledger_api.get_balance(address), token)}.")
