@@ -26,7 +26,6 @@ import time
 import typing as t
 from dataclasses import dataclass
 from pathlib import Path
-from token import MINUS
 
 import requests
 import yaml
@@ -44,14 +43,14 @@ from operate.types import (
     LedgerType,
     ServiceTemplate,
     ConfigurationTemplate,
-    FundRequirementsTemplate, ChainType, OnChainState,
+    FundRequirementsTemplate, ChainType,
 )
 
 load_dotenv()
 
 SUGGESTED_TOP_UP_DEFAULT = 1_000_000_000_000_000
 SUGGESTED_SAFE_TOP_UP_DEFAULT = 5_000_000_000_000_000
-MASTER_WALLET_MIMIMUM_BALANCE = 6_001_000_000_000_000
+MASTER_WALLET_MIMIMUM_BALANCE = 7_000_000_000_000_000
 COST_OF_BOND = 1
 COST_OF_BOND_STAKING = 2 * 10 ** 19
 STAKED_BONDING_TOKEN = "OLAS"
@@ -66,35 +65,16 @@ CHAIN_ID_TO_METADATA = {
         "token": "ETH",
         "native_token_balance": MASTER_WALLET_MIMIMUM_BALANCE,
         "usdcRequired": True,
-        "firstTimeTopUp": SUGGESTED_TOP_UP_DEFAULT * 10 * 2,
-        "operationalFundReq": SUGGESTED_TOP_UP_DEFAULT * 3,
-        "gasParams": {
-            # this means default values will be used
-            "MAX_PRIORITY_FEE_PER_GAS": "",
-            "MAX_FEE_PER_GAS": "",
-        }
     },
     10: {
         "name": "Optimism",
         "token": "ETH",
         "usdcRequired": False,
-        "firstTimeTopUp": SUGGESTED_TOP_UP_DEFAULT * 9,
-        "operationalFundReq": SUGGESTED_TOP_UP_DEFAULT,
-        "gasParams": {
-            "MAX_PRIORITY_FEE_PER_GAS": str(150_000),
-            "MAX_FEE_PER_GAS": str(5_000_000_000),
-        }
     },
     8453: {
         "name": "Base",
         "token": "ETH",
-        "firstTimeTopUp": SUGGESTED_TOP_UP_DEFAULT * 10,
-        "operationalFundReq": SUGGESTED_TOP_UP_DEFAULT,
         "usdcRequired": False,
-        "gasParams": {
-            "MAX_PRIORITY_FEE_PER_GAS": str(150_000),
-            "MAX_FEE_PER_GAS": str(5_000_000_000),
-        }
     },
 }
 
@@ -167,7 +147,7 @@ def wei_to_unit(wei: int) -> float:
 
 def wei_to_token(wei: int, token: str = "xDAI") -> str:
     """Convert Wei to token."""
-    return f"{wei_to_unit(wei):.6f} {token}"
+    return f"{wei_to_unit(wei):.2f} {token}"
 
 
 def ask_confirm_password() -> str:
@@ -481,21 +461,14 @@ def main() -> None:
             chain_type=chain_type,
             rpc=chain_config.ledger_config.rpc,
         )
-        os.environ["CUSTOM_CHAIN_RPC"] = chain_config.ledger_config.rpc
-        os.environ["OPEN_AUTONOMY_SUBGRAPH_URL"] = "https://subgraph.autonolas.tech/subgraphs/name/autonolas-staging"
-        os.environ["MAX_PRIORITY_FEE_PER_GAS"] = chain_metadata["gasParams"]["MAX_PRIORITY_FEE_PER_GAS"]
-        os.environ["MAX_FEE_PER_GAS"] = chain_metadata["gasParams"]["MAX_FEE_PER_GAS"]
-        service_exists = manager._get_on_chain_state(chain_config) != OnChainState.NON_EXISTENT
 
         chain_name, token = chain_metadata['name'], chain_metadata["token"]
         balance_str = wei_to_token(ledger_api.get_balance(wallet.crypto.address), token)
         print(
             f"[{chain_name}] Main wallet balance: {balance_str}",
         )
-        safe_exists = wallet.safes[chain_type] is not None
-        required_balance = chain_metadata["firstTimeTopUp"] if not safe_exists else chain_metadata["operationalFundReq"]
         print(
-            f"[{chain_name}] Please make sure main wallet {wallet.crypto.address} has at least {wei_to_token(required_balance, token)}",
+            f"[{chain_name}] Please make sure main wallet {wallet.crypto.address} has at least {wei_to_token(MASTER_WALLET_MIMIMUM_BALANCE, token)}",
         )
         spinner = Halo(
             text=f"[{chain_name}] Waiting for funds...",
@@ -503,13 +476,15 @@ def main() -> None:
         )
         spinner.start()
 
-        while ledger_api.get_balance(wallet.crypto.address) < required_balance:
+        while ledger_api.get_balance(wallet.crypto.address) < MASTER_WALLET_MIMIMUM_BALANCE:
             time.sleep(1)
 
         spinner.succeed(f"[{chain_name}] Main wallet updated balance: {wei_to_token(ledger_api.get_balance(wallet.crypto.address), token)}.")
         print()
 
-        if not safe_exists:
+        if wallet.safes.get(chain_type) is not None:
+            print(f"[{chain_name}] Safe already exists")
+        else:
             print(f"[{chain_name}] Creating Safe")
             ledger_type = LedgerType.ETHEREUM
             wallet_manager = operate.wallet_manager
@@ -522,7 +497,7 @@ def main() -> None:
             print(f"[{chain_name}] Funding Safe")
             wallet.transfer(
                 to=t.cast(str, wallet.safes[chain_type]),
-                amount=int(chain_metadata["firstTimeTopUp"]),
+                amount=int(MASTER_WALLET_MIMIMUM_BALANCE),
                 chain_type=chain_type,
                 from_safe=False,
                 rpc=chain_config.ledger_config.rpc,
@@ -531,23 +506,21 @@ def main() -> None:
         print_section(f"[{chain_name}] Set up the service in the Olas Protocol")
 
         address = wallet.safes[chain_type]
-        if not service_exists:
-            first_time_top_up = chain_metadata["firstTimeTopUp"]
-            print(
-                f"[{chain_name}] Please make sure address {address} has at least {wei_to_token(first_time_top_up, token)}."
-            )
-            spinner = Halo(
-                text=f"[{chain_name}] Waiting for funds...",
-                spinner="dots",
-            )
-            spinner.start()
+        print(
+            f"[{chain_name}] Please make sure address {address} has at least {wei_to_token(MASTER_WALLET_MIMIMUM_BALANCE, token)}."
+        )
+        spinner = Halo(
+            text=f"[{chain_name}] Waiting for funds...",
+            spinner="dots",
+        )
+        spinner.start()
 
-            while ledger_api.get_balance(address) < first_time_top_up:
-                time.sleep(1)
+        while ledger_api.get_balance(address) < MASTER_WALLET_MIMIMUM_BALANCE:
+            time.sleep(1)
 
-            spinner.succeed(f"[{chain_name}] Safe updated balance: {wei_to_token(ledger_api.get_balance(address), token)}.")
+        spinner.succeed(f"[{chain_name}] Safe updated balance: {wei_to_token(ledger_api.get_balance(address), token)}.")
 
-        if chain_config.chain_data.user_params.use_staking and not service_exists:
+        if chain_config.chain_data.user_params.use_staking:
             print(f"[{chain_name}] Please make sure address {address} has at least {wei_to_token(2 * COST_OF_BOND_STAKING, STAKED_BONDING_TOKEN)}")
 
             spinner = Halo(
@@ -563,7 +536,7 @@ def main() -> None:
             spinner.succeed(f"[{chain_name}] Safe updated balance: {balance} {STAKED_BONDING_TOKEN}")
 
 
-        if chain_metadata.get("usdcRequired", False) and not service_exists:
+        if chain_metadata.get("usdcRequired", False):
             print(f"[{chain_name}] Please make sure address {address} has at least 10 USDC")
 
             spinner = Halo(

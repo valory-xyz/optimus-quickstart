@@ -20,7 +20,6 @@
 """Safe helpers."""
 
 import binascii
-import os
 import secrets
 import typing as t
 from enum import Enum
@@ -238,8 +237,6 @@ def send_safe_txs(
             is_deprecated_mode=True,
         )[2:]
     }
-    max_priority_fee_per_gas = os.getenv("MAX_PRIORITY_FEE_PER_GAS", None)
-    max_fee_per_gas = os.getenv("MAX_FEE_PER_GAS", None)
     transaction = registry_contracts.gnosis_safe.get_raw_safe_transaction(
         ledger_api=ledger_api,
         contract_address=safe,
@@ -252,8 +249,6 @@ def send_safe_txs(
         signatures_by_owner=signatures,
         operation=SafeOperation.CALL.value,
         nonce=ledger_api.api.eth.get_transaction_count(owner),
-        max_fee_per_gas=max_fee_per_gas,
-        max_priority_fee_per_gas=max_priority_fee_per_gas,
     )
     ledger_api.get_transaction_receipt(
         ledger_api.send_signed_transaction(
@@ -330,8 +325,6 @@ def transfer(
             is_deprecated_mode=True,
         )[2:]
     }
-    max_priority_fee_per_gas = os.getenv("MAX_PRIORITY_FEE_PER_GAS", None)
-    max_fee_per_gas = os.getenv("MAX_FEE_PER_GAS", None)
     transaction = registry_contracts.gnosis_safe.get_raw_safe_transaction(
         ledger_api=ledger_api,
         contract_address=safe,
@@ -344,8 +337,6 @@ def transfer(
         signatures_by_owner=signatures,
         operation=SafeOperation.CALL.value,
         nonce=ledger_api.api.eth.get_transaction_count(owner),
-        max_fee_per_gas=int(max_fee_per_gas) if max_fee_per_gas else None,
-        max_priority_fee_per_gas=int(max_priority_fee_per_gas) if max_priority_fee_per_gas else None,
     )
     ledger_api.get_transaction_receipt(
         ledger_api.send_signed_transaction(
