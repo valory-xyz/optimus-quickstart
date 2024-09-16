@@ -20,7 +20,6 @@
 """Master key implementation"""
 
 import json
-import os
 import typing as t
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -180,8 +179,6 @@ class EthereumMasterWallet(MasterWallet):
             *args: t.Any, **kwargs: t.Any
         ) -> t.Dict:
             """Build transaction"""
-            max_priority_fee_per_gas = os.getenv("MAX_PRIORITY_FEE_PER_GAS", None)
-            max_fee_per_gas = os.getenv("MAX_FEE_PER_GAS", None)
             tx = ledger_api.get_transfer_transaction(
                 sender_address=self.crypto.address,
                 destination_address=to,
@@ -190,8 +187,6 @@ class EthereumMasterWallet(MasterWallet):
                 tx_nonce="0x",
                 chain_id=chain_type.id,
                 raise_on_try=True,
-                max_fee_per_gas=int(max_fee_per_gas) if max_fee_per_gas else None,
-                max_priority_fee_per_gas=int(max_priority_fee_per_gas) if max_priority_fee_per_gas else None,
             )
             return ledger_api.update_with_gas_estimate(
                 transaction=tx,
