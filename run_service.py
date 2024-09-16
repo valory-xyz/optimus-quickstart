@@ -70,11 +70,23 @@ CHAIN_ID_TO_METADATA = {
         "name": "Optimism",
         "token": "ETH",
         "usdcRequired": False,
+        "firstTimeTopUp": SUGGESTED_TOP_UP_DEFAULT * 9,
+        "operationalFundReq": SUGGESTED_TOP_UP_DEFAULT,
+        "gasParams": {
+            "MAX_PRIORITY_FEE_PER_GAS": str(150_000),
+            "MAX_FEE_PER_GAS": str(5_000_000_000),
+        }
     },
     8453: {
         "name": "Base",
         "token": "ETH",
+        "firstTimeTopUp": SUGGESTED_TOP_UP_DEFAULT * 10,
+        "operationalFundReq": SUGGESTED_TOP_UP_DEFAULT,
         "usdcRequired": False,
+        "gasParams": {
+            "MAX_PRIORITY_FEE_PER_GAS": str(150_000),
+            "MAX_FEE_PER_GAS": str(5_000_000_000),
+        }
     },
 }
 
@@ -318,7 +330,7 @@ def get_service_template(config: OptimusConfig) -> ServiceTemplate:
                     "fund_requirements": FundRequirementsTemplate(
                         {
                             "agent": SUGGESTED_TOP_UP_DEFAULT,
-                            "safe": SUGGESTED_SAFE_TOP_UP_DEFAULT,
+                            "safe": 0,
                         }
                     ),
                 }
@@ -334,7 +346,7 @@ def get_service_template(config: OptimusConfig) -> ServiceTemplate:
                     "fund_requirements": FundRequirementsTemplate(
                         {
                             "agent": SUGGESTED_TOP_UP_DEFAULT,
-                            "safe": SUGGESTED_SAFE_TOP_UP_DEFAULT,
+                            "safe": 0,
                         }
                     ),
                 }
@@ -467,6 +479,8 @@ def main() -> None:
         print(
             f"[{chain_name}] Main wallet balance: {balance_str}",
         )
+        safe_exists = wallet.safes[chain_type] is not None
+        required_balance = chain_metadata["firstTimeTopUp"] if not safe_exists else chain_metadata["operationalFundReq"]
         print(
             f"[{chain_name}] Please make sure main wallet {wallet.crypto.address} has at least {wei_to_token(MASTER_WALLET_MIMIMUM_BALANCE, token)}",
         )
@@ -497,7 +511,7 @@ def main() -> None:
             print(f"[{chain_name}] Funding Safe")
             wallet.transfer(
                 to=t.cast(str, wallet.safes[chain_type]),
-                amount=int(MASTER_WALLET_MIMIMUM_BALANCE),
+                amount=int(chain_metadata["firstTimeTopUp"]),
                 chain_type=chain_type,
                 from_safe=False,
                 rpc=chain_config.ledger_config.rpc,
@@ -515,8 +529,8 @@ def main() -> None:
         )
         spinner.start()
 
-        while ledger_api.get_balance(address) < MASTER_WALLET_MIMIMUM_BALANCE:
-            time.sleep(1)
+            while ledger_api.get_balance(address) < first_time_top_up:
+                time.sleep(1)
 
         spinner.succeed(f"[{chain_name}] Safe updated balance: {wei_to_token(ledger_api.get_balance(address), token)}.")
 
