@@ -27,7 +27,7 @@ Ensure your machine satisfies the requirements:
 
 ## Resource Requirements
 
-- You will need to fund certain addresses with the following funds when requested: 0.01 ETH (Ethereum mainnet) + 10 USDC (Ethereum mainnet) + 0.01 ETH (Base chain). Additionally some quantity of OLAS bridged to Optimism if you want to stake.
+- You will need to fund certain addresses with the following funds when requested: 0.02 ETH (Ethereum mainnet) + 10 USDC (Ethereum mainnet) + 0.01 ETH (Optimism chain) + 0.01 ETH (Base chain). Additionally some quantity of OLAS bridged to Optimism if you want to stake.
 
 - You need 3 RPCs for your agent instance for respectively Ethereum, Optimism, and Base.
 ```bash
@@ -94,6 +94,11 @@ where `[service-hash]` is the onchain representation of the agent code that you'
 
 ```bash
 ls .optimus/services
+```
+
+To obtain a report of your agent's activity run
+```bash
+poetry run python staking_report.py
 ```
 
 To stop your agent, use:
