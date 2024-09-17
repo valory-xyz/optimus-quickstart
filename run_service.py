@@ -30,10 +30,13 @@ from pathlib import Path
 import requests
 import yaml
 from aea.crypto.base import LedgerApi
-from aea_ledger_ethereum import EthereumApi
+from aea_ledger_ethereum import EthereumApi, EIP1559, wei_to_gwei, estimate_priority_fee, get_base_fee_multiplier
 from dotenv import load_dotenv
+from eth_utils import to_wei
 from halo import Halo
 from termcolor import colored
+from web3 import Web3
+from web3.types import Wei, TxParams
 
 from operate.account.user import UserAccount
 from operate.cli import OperateApp
@@ -78,10 +81,11 @@ CHAIN_ID_TO_METADATA = {
         "token": "ETH",
         "usdcRequired": False,
         "firstTimeTopUp": SUGGESTED_TOP_UP_DEFAULT * 5,
-        "operationalFundReq": SUGGESTED_TOP_UP_DEFAULT,
+        "operationalFundReq": SUGGESTED_TOP_UP_DEFAULT / 10,
         "gasParams": {
-            "MAX_PRIORITY_FEE_PER_GAS": str(15_000),
-            "MAX_FEE_PER_GAS": str(1_000_000_000),
+            # this means default values will be used
+            "MAX_PRIORITY_FEE_PER_GAS": "",
+            "MAX_FEE_PER_GAS": "",
         }
     },
     8453: {
@@ -91,12 +95,88 @@ CHAIN_ID_TO_METADATA = {
         "operationalFundReq": SUGGESTED_TOP_UP_DEFAULT / 10,
         "usdcRequired": False,
         "gasParams": {
-            "MAX_PRIORITY_FEE_PER_GAS": str(150_000),
-            "MAX_FEE_PER_GAS": str(500_000_000),
+            # this means default values will be used
+            "MAX_PRIORITY_FEE_PER_GAS": "",
+            "MAX_FEE_PER_GAS": "",
         }
     },
 }
 
+
+
+def patched_get_gas_price_strategy_eip1559(
+    max_gas_fast: int,
+    fee_history_blocks: int,
+    fee_history_percentile: int,
+    default_priority_fee: t.Optional[int],
+    fallback_estimate: t.Dict[str, t.Optional[int]],
+    priority_fee_increase_boundary: int,
+) -> t.Callable[[Web3, TxParams], t.Dict[str, Wei]]:
+        """Get the gas price strategy."""
+
+        def eip1559_price_strategy(
+                web3: Web3,  # pylint: disable=redefined-outer-name
+                transaction_params: TxParams,  # pylint: disable=unused-argument
+        ) -> t.Dict[str, Wei]:
+            """
+            Get gas price using EIP1559.
+
+            Visit `https://github.com/ethereum/EIPs/blob/master/EIPS/eip-1559.md`
+            for more information.
+
+            :param web3: web3 instance
+            :param transaction_params: transaction parameters
+            :return: dictionary containing gas price strategy
+            """
+
+            latest_block = web3.eth.get_block("latest")
+            base_fee = latest_block.get("baseFeePerGas")
+            block_number = latest_block.get("number")
+            base_fee_gwei = wei_to_gwei(base_fee)
+
+            estimated_priority_fee = estimate_priority_fee(
+                web3,
+                block_number,
+                default_priority_fee=default_priority_fee,
+                fee_history_blocks=fee_history_blocks,
+                fee_history_percentile=fee_history_percentile,
+                priority_fee_increase_boundary=priority_fee_increase_boundary,
+            )
+
+            if estimated_priority_fee is None:
+
+                return fallback_estimate
+
+            max_priority_fee_per_gas = max(
+                estimated_priority_fee,
+                to_wei(default_priority_fee, "gwei")
+                if default_priority_fee is not None
+                else -1,
+            )
+            multiplier = get_base_fee_multiplier(base_fee_gwei)
+
+            potential_max_fee = base_fee * multiplier
+            max_fee_per_gas = (
+                (potential_max_fee + max_priority_fee_per_gas)
+                if max_priority_fee_per_gas > potential_max_fee
+                else potential_max_fee
+            )
+
+            if (
+                    wei_to_gwei(max_fee_per_gas) >= max_gas_fast
+                    or wei_to_gwei(max_priority_fee_per_gas) >= max_gas_fast
+            ):
+                return fallback_estimate
+
+            return {
+                "maxFeePerGas": Wei(int(max_fee_per_gas)),
+                "maxPriorityFeePerGas": Wei(int(max_priority_fee_per_gas)),
+            }
+
+        return eip1559_price_strategy
+
+
+EthereumApi._gas_price_strategy_callables[EIP1559] = patched_get_gas_price_strategy_eip1559
 
 
 @dataclass
@@ -561,7 +641,6 @@ def main() -> None:
             balance = get_erc20_balance(ledger_api, olas_address, address) / 10 ** 18
             spinner.succeed(f"[{chain_name}] Safe updated balance: {balance} {STAKED_BONDING_TOKEN}")
 
-
         if chain_metadata.get("usdcRequired", False) and not service_exists:
             print(f"[{chain_name}] Please make sure address {address} has at least 10 USDC")
 
@@ -574,8 +653,8 @@ def main() -> None:
             while get_erc20_balance(ledger_api, USDC_ADDRESS, address) < USDC_REQUIRED:
                 time.sleep(1)
 
-            balance = get_erc20_balance(ledger_api, USDC_ADDRESS, address) / 10 ** 6
-            spinner.succeed(f"[{chain_name}] Safe updated balance: {balance} USDC.")
+            usdc_balance = get_erc20_balance(ledger_api, USDC_ADDRESS, address) / 10 ** 6
+            spinner.succeed(f"[{chain_name}] Safe updated balance: {usdc_balance} USDC.")
 
         manager.deploy_service_onchain_from_safe_single_chain(
             hash=service.hash,
@@ -583,6 +662,18 @@ def main() -> None:
             fallback_staking_params=FALLBACK_STAKING_PARAMS,
         )
         manager.fund_service(hash=service.hash, chain_id=chain_id)
+
+        usdc_balance = get_erc20_balance(ledger_api, USDC_ADDRESS, address) if chain_metadata.get("usdcRequired", False) else 0
+        if usdc_balance > 0:
+            # transfer all the usdc balance into the service safe
+            manager.fund_service_erc20(
+                hash=service.hash,
+                chain_id=chain_id,
+                token=USDC_ADDRESS,
+                safe_topup=usdc_balance,
+                agent_topup=0,
+                safe_fund_treshold=USDC_REQUIRED + usdc_balance,
+            )
 
     safes = {
         ChainType.from_id(int(chain)).name.lower(): config.chain_data.multisig

@@ -215,17 +215,19 @@ def send_safe_txs(
     safe: str,
     ledger_api: LedgerApi,
     crypto: Crypto,
+    to: t.Optional[str] = None
 ) -> None:
     """Send internal safe transaction."""
     owner = ledger_api.api.to_checksum_address(
         crypto.address,
     )
+    to_address = to or safe
     safe_tx_hash = registry_contracts.gnosis_safe.get_raw_safe_transaction_hash(
         ledger_api=ledger_api,
         contract_address=safe,
         value=0,
         safe_tx_gas=0,
-        to_address=safe,
+        to_address=to_address,
         data=txd,
         operation=SafeOperation.CALL.value,
     ).get("tx_hash")
@@ -245,7 +247,7 @@ def send_safe_txs(
         contract_address=safe,
         sender_address=owner,
         owners=(owner,),  # type: ignore
-        to_address=safe,
+        to_address=to_address,
         value=0,
         data=txd,
         safe_tx_gas=0,
@@ -353,4 +355,33 @@ def transfer(
                 transaction,
             ),
         )
+    )
+
+def transfer_erc20_from_safe(
+    ledger_api: LedgerApi,
+    crypto: Crypto,
+    safe: str,
+    token: str,
+    to: str,
+    amount: t.Union[float, int],
+) -> None:
+    """Transfer ERC20 assets from safe to given address."""
+    amount = int(amount)
+    instance = registry_contracts.erc20.get_instance(
+        ledger_api=ledger_api,
+        contract_address=token,
+    )
+    txd = instance.encodeABI(
+        fn_name="transfer",
+        args=[
+            to,
+            amount,
+        ],
+    )
+    send_safe_txs(
+        txd=bytes.fromhex(txd[2:]),
+        safe=safe,
+        ledger_api=ledger_api,
+        crypto=crypto,
+        to=token,
     )
