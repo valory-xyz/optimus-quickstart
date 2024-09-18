@@ -22,7 +22,7 @@ import sys
 
 from operate.cli import OperateApp
 from run_service import (
-    print_title, OPERATE_HOME, get_local_config, get_service_template, print_section,
+    print_title, OPERATE_HOME, get_local_config, get_service_template, print_section, get_service,
 )
 
 
@@ -45,10 +45,7 @@ def main() -> None:
     optimus_config = get_local_config()
     template = get_service_template(optimus_config)
     manager = operate.service_manager()
-    service = manager.load_or_create(
-        hash=template["hash"],
-        service_template=template,
-    )
+    service = get_service(manager, template)
     manager.stop_service_locally(hash=service.hash, delete=True)
 
     print()

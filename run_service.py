@@ -42,6 +42,8 @@ from operate.account.user import UserAccount
 from operate.cli import OperateApp
 from operate.ledger.profiles import OLAS, STAKING
 from operate.resource import LocalResource, deserialize
+from operate.services.manage import ServiceManager
+from operate.services.service import Service
 from operate.types import (
     LedgerType,
     ServiceTemplate,
@@ -69,7 +71,7 @@ CHAIN_ID_TO_METADATA = {
         "native_token_balance": MASTER_WALLET_MIMIMUM_BALANCE,
         "usdcRequired": True,
         "firstTimeTopUp": SUGGESTED_TOP_UP_DEFAULT * 10 * 2,
-        "operationalFundReq": SUGGESTED_TOP_UP_DEFAULT * 3,
+        "operationalFundReq": 0,
         "gasParams": {
             # this means default values will be used
             "MAX_PRIORITY_FEE_PER_GAS": "",
@@ -425,7 +427,7 @@ def get_service_template(config: OptimusConfig) -> ServiceTemplate:
     """Get the service template"""
     return ServiceTemplate({
         "name": "Optimus",
-        "hash": "bafybeiakhjobjcnqgx2gcdsxhpybwlgcyoll3jovwoygs6hk2hx67cjiiy",
+        "hash": "bafybeibwl3knnkoyolsyubj3z2vil6gfmftu2xd24fukvpjcn6tkmph66q",
         "description": "Optimus",
         "image": "https://operate.olas.network/_next/image?url=%2Fimages%2Fprediction-agent.png&w=3840&q=75",
         "service_version": 'v0.18.1',
@@ -526,6 +528,32 @@ def add_volumes(docker_compose_path: Path, host_path: str, container_path: str) 
         yaml.dump(docker_compose, f)
 
 
+def get_service(manager: ServiceManager, template: ServiceTemplate) -> Service:
+    if len(manager.json) > 0:
+        old_hash = manager.json[0]["hash"]
+        if old_hash == template["hash"]:
+            print(f'Loading service {template["hash"]}')
+            service = manager.load_or_create(
+                hash=template["hash"],
+                service_template=template,
+            )
+        else:
+            print(f"Updating service from {old_hash} to " + template["hash"])
+            service = manager.update_service(
+                old_hash=old_hash,
+                new_hash=template["hash"],
+                service_template=template,
+            )
+    else:
+        print(f'Creating service {template["hash"]}')
+        service = manager.load_or_create(
+            hash=template["hash"],
+            service_template=template,
+        )
+
+    return service
+
+
 def main() -> None:
     """Run service."""
 
@@ -541,6 +569,8 @@ def main() -> None:
 
     optimus_config = get_local_config()
     template = get_service_template(optimus_config)
+    manager = operate.service_manager()
+    service = get_service(manager, template)
 
     if operate.user_account is None:
         print("Creating a new local user account...")
@@ -571,27 +601,7 @@ def main() -> None:
         wallet = operate.wallet_manager.load(ledger_type=LedgerType.ETHEREUM)
 
     manager = operate.service_manager()
-    if len(manager.json) > 0:
-        old_hash = manager.json[0]["hash"]
-        if old_hash == template["hash"]:
-            print(f'Loading service {template["hash"]}')
-            service = manager.load_or_create(
-                hash=template["hash"],
-                service_template=template,
-            )
-        else:
-            print(f"Updating service from {old_hash} to " + template["hash"])
-            service = manager.update_service(
-                old_hash=old_hash,
-                new_hash=template["hash"],
-                service_template=template,
-            )
-    else:
-        print(f'Creating service {template["hash"]}')
-        service = manager.load_or_create(
-            hash=template["hash"],
-            service_template=template,
-        )
+
 
     for chain_id, configuration in service.chain_configs.items():
         chain_metadata = CHAIN_ID_TO_METADATA[int(chain_id)]
