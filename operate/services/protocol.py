@@ -24,6 +24,7 @@ import contextlib
 import io
 import json
 import logging
+import os
 import tempfile
 import time
 import typing as t
@@ -147,6 +148,8 @@ class GnosisSafeTransaction:
                 is_deprecated_mode=True,
             )[2:]
         }
+        max_priority_fee_per_gas = os.getenv("MAX_PRIORITY_FEE_PER_GAS", None)
+        max_fee_per_gas = os.getenv("MAX_FEE_PER_GAS", None)
         tx = registry_contracts.gnosis_safe.get_raw_safe_transaction(
             ledger_api=self.ledger_api,
             contract_address=self.safe,
@@ -159,6 +162,8 @@ class GnosisSafeTransaction:
             signatures_by_owner=signatures,
             operation=SafeOperation.DELEGATE_CALL.value,
             nonce=self.ledger_api.api.eth.get_transaction_count(owner),
+            max_fee_per_gas=int(max_fee_per_gas) if max_fee_per_gas else None,
+            max_priority_fee_per_gas=int(max_priority_fee_per_gas) if max_priority_fee_per_gas else None,
         )
         self.tx = self.crypto.sign_transaction(tx)
         return t.cast(t.Dict, self.tx)

@@ -30,10 +30,13 @@ from pathlib import Path
 import requests
 import yaml
 from aea.crypto.base import LedgerApi
-from aea_ledger_ethereum import EthereumApi
+from aea_ledger_ethereum import EthereumApi, EIP1559, wei_to_gwei, get_base_fee_multiplier
 from dotenv import load_dotenv
+from eth_utils import to_wei
 from halo import Halo
 from termcolor import colored
+from web3 import Web3
+from web3.types import Wei, TxParams
 
 from operate.account.user import UserAccount
 from operate.cli import OperateApp
@@ -43,14 +46,14 @@ from operate.types import (
     LedgerType,
     ServiceTemplate,
     ConfigurationTemplate,
-    FundRequirementsTemplate, ChainType,
+    FundRequirementsTemplate, ChainType, OnChainState,
 )
 
 load_dotenv()
 
 SUGGESTED_TOP_UP_DEFAULT = 1_000_000_000_000_000
 SUGGESTED_SAFE_TOP_UP_DEFAULT = 5_000_000_000_000_000
-MASTER_WALLET_MIMIMUM_BALANCE = 7_000_000_000_000_000
+MASTER_WALLET_MIMIMUM_BALANCE = 6_001_000_000_000_000
 COST_OF_BOND = 1
 COST_OF_BOND_STAKING = 2 * 10 ** 19
 STAKED_BONDING_TOKEN = "OLAS"
@@ -65,19 +68,156 @@ CHAIN_ID_TO_METADATA = {
         "token": "ETH",
         "native_token_balance": MASTER_WALLET_MIMIMUM_BALANCE,
         "usdcRequired": True,
+        "firstTimeTopUp": SUGGESTED_TOP_UP_DEFAULT * 10 * 2,
+        "operationalFundReq": SUGGESTED_TOP_UP_DEFAULT * 3,
+        "gasParams": {
+            # this means default values will be used
+            "MAX_PRIORITY_FEE_PER_GAS": "",
+            "MAX_FEE_PER_GAS": "",
+        }
     },
     10: {
         "name": "Optimism",
         "token": "ETH",
         "usdcRequired": False,
+        "firstTimeTopUp": SUGGESTED_TOP_UP_DEFAULT * 5,
+        "operationalFundReq": SUGGESTED_TOP_UP_DEFAULT / 10,
+        "gasParams": {
+            # this means default values will be used
+            "MAX_PRIORITY_FEE_PER_GAS": "",
+            "MAX_FEE_PER_GAS": "",
+        }
     },
     8453: {
         "name": "Base",
         "token": "ETH",
+        "firstTimeTopUp": SUGGESTED_TOP_UP_DEFAULT * 5,
+        "operationalFundReq": SUGGESTED_TOP_UP_DEFAULT / 10,
         "usdcRequired": False,
+        "gasParams": {
+            # this means default values will be used
+            "MAX_PRIORITY_FEE_PER_GAS": "",
+            "MAX_FEE_PER_GAS": "",
+        }
     },
 }
 
+
+def estimate_priority_fee(
+    web3_object: Web3,
+    block_number: int,
+    default_priority_fee: t.Optional[int],
+    fee_history_blocks: int,
+    fee_history_percentile: int,
+    priority_fee_increase_boundary: int,
+) -> t.Optional[int]:
+    """Estimate priority fee from base fee."""
+
+    if default_priority_fee is not None:
+        return default_priority_fee
+
+    fee_history = web3_object.eth.fee_history(
+        fee_history_blocks, block_number, [fee_history_percentile]  # type: ignore
+    )
+
+    # This is going to break if more percentiles are introduced in the future,
+    # i.e., `fee_history_percentile` param becomes a `List[int]`.
+    rewards = sorted([reward[0] for reward in fee_history.get("reward", []) if reward[0] > 0])
+    if len(rewards) == 0:
+        return None
+
+    # Calculate percentage increases from between ordered list of fees
+    percentage_increases = [
+        ((j - i) / i) * 100 if i != 0 else 0 for i, j in zip(rewards[:-1], rewards[1:])
+    ]
+    highest_increase = max(*percentage_increases)
+    highest_increase_index = percentage_increases.index(highest_increase)
+
+    values = rewards.copy()
+    # If we have big increase in value, we could be considering "outliers" in our estimate
+    # Skip the low elements and take a new median
+    if (
+        highest_increase > priority_fee_increase_boundary
+        and highest_increase_index >= len(values) // 2
+    ):
+        values = values[highest_increase_index:]
+
+    return values[len(values) // 2]
+
+
+
+def patched_get_gas_price_strategy_eip1559(
+    max_gas_fast: int,
+    fee_history_blocks: int,
+    fee_history_percentile: int,
+    default_priority_fee: t.Optional[int],
+    fallback_estimate: t.Dict[str, t.Optional[int]],
+    priority_fee_increase_boundary: int,
+) -> t.Callable[[Web3, TxParams], t.Dict[str, Wei]]:
+        """Get the gas price strategy."""
+
+        def eip1559_price_strategy(
+                web3: Web3,  # pylint: disable=redefined-outer-name
+                transaction_params: TxParams,  # pylint: disable=unused-argument
+        ) -> t.Dict[str, Wei]:
+            """
+            Get gas price using EIP1559.
+
+            Visit `https://github.com/ethereum/EIPs/blob/master/EIPS/eip-1559.md`
+            for more information.
+
+            :param web3: web3 instance
+            :param transaction_params: transaction parameters
+            :return: dictionary containing gas price strategy
+            """
+
+            latest_block = web3.eth.get_block("latest")
+            base_fee = latest_block.get("baseFeePerGas")
+            block_number = latest_block.get("number")
+            base_fee_gwei = wei_to_gwei(base_fee)
+
+            estimated_priority_fee = estimate_priority_fee(
+                web3,
+                block_number,
+                default_priority_fee=default_priority_fee,
+                fee_history_blocks=fee_history_blocks,
+                fee_history_percentile=fee_history_percentile,
+                priority_fee_increase_boundary=priority_fee_increase_boundary,
+            )
+
+            if estimated_priority_fee is None:
+                return fallback_estimate
+
+            max_priority_fee_per_gas = max(
+                estimated_priority_fee,
+                to_wei(default_priority_fee, "gwei")
+                if default_priority_fee is not None
+                else -1,
+            )
+            multiplier = get_base_fee_multiplier(base_fee_gwei)
+
+            potential_max_fee = base_fee * multiplier
+            max_fee_per_gas = (
+                (potential_max_fee + max_priority_fee_per_gas)
+                if max_priority_fee_per_gas > potential_max_fee
+                else potential_max_fee
+            )
+
+            if (
+                    wei_to_gwei(max_fee_per_gas) >= max_gas_fast
+                    or wei_to_gwei(max_priority_fee_per_gas) >= max_gas_fast
+            ):
+                return fallback_estimate
+
+            return {
+                "maxFeePerGas": Wei(int(max_fee_per_gas)),
+                "maxPriorityFeePerGas": Wei(int(max_priority_fee_per_gas)),
+            }
+
+        return eip1559_price_strategy
+
+
+EthereumApi._gas_price_strategy_callables[EIP1559] = patched_get_gas_price_strategy_eip1559
 
 
 @dataclass
@@ -147,7 +287,7 @@ def wei_to_unit(wei: int) -> float:
 
 def wei_to_token(wei: int, token: str = "xDAI") -> str:
     """Convert Wei to token."""
-    return f"{wei_to_unit(wei):.2f} {token}"
+    return f"{wei_to_unit(wei):.6f} {token}"
 
 
 def ask_confirm_password() -> str:
@@ -285,7 +425,7 @@ def get_service_template(config: OptimusConfig) -> ServiceTemplate:
     """Get the service template"""
     return ServiceTemplate({
         "name": "Optimus",
-        "hash": "bafybeibjwknk7bchs24irn7ayogp72i2cbaioqcd5dzssqtdq4gihrocu4",
+        "hash": "bafybeiakhjobjcnqgx2gcdsxhpybwlgcyoll3jovwoygs6hk2hx67cjiiy",
         "description": "Optimus",
         "image": "https://operate.olas.network/_next/image?url=%2Fimages%2Fprediction-agent.png&w=3840&q=75",
         "service_version": 'v0.18.1',
@@ -301,7 +441,7 @@ def get_service_template(config: OptimusConfig) -> ServiceTemplate:
                     "use_staking": False,
                     "fund_requirements": FundRequirementsTemplate(
                         {
-                            "agent": SUGGESTED_TOP_UP_DEFAULT,
+                            "agent": SUGGESTED_TOP_UP_DEFAULT * 5,
                             "safe": SUGGESTED_SAFE_TOP_UP_DEFAULT,
                         }
                     ),
@@ -318,7 +458,7 @@ def get_service_template(config: OptimusConfig) -> ServiceTemplate:
                     "fund_requirements": FundRequirementsTemplate(
                         {
                             "agent": SUGGESTED_TOP_UP_DEFAULT,
-                            "safe": SUGGESTED_SAFE_TOP_UP_DEFAULT,
+                            "safe": 0,
                         }
                     ),
                 }
@@ -334,7 +474,7 @@ def get_service_template(config: OptimusConfig) -> ServiceTemplate:
                     "fund_requirements": FundRequirementsTemplate(
                         {
                             "agent": SUGGESTED_TOP_UP_DEFAULT,
-                            "safe": SUGGESTED_SAFE_TOP_UP_DEFAULT,
+                            "safe": 0,
                         }
                     ),
                 }
@@ -461,14 +601,21 @@ def main() -> None:
             chain_type=chain_type,
             rpc=chain_config.ledger_config.rpc,
         )
+        os.environ["CUSTOM_CHAIN_RPC"] = chain_config.ledger_config.rpc
+        os.environ["OPEN_AUTONOMY_SUBGRAPH_URL"] = "https://subgraph.autonolas.tech/subgraphs/name/autonolas-staging"
+        os.environ["MAX_PRIORITY_FEE_PER_GAS"] = chain_metadata["gasParams"]["MAX_PRIORITY_FEE_PER_GAS"]
+        os.environ["MAX_FEE_PER_GAS"] = chain_metadata["gasParams"]["MAX_FEE_PER_GAS"]
+        service_exists = manager._get_on_chain_state(chain_config) != OnChainState.NON_EXISTENT
 
         chain_name, token = chain_metadata['name'], chain_metadata["token"]
         balance_str = wei_to_token(ledger_api.get_balance(wallet.crypto.address), token)
         print(
             f"[{chain_name}] Main wallet balance: {balance_str}",
         )
+        safe_exists = wallet.safes.get(chain_type) is not None
+        required_balance = chain_metadata["firstTimeTopUp"] if not safe_exists else chain_metadata["operationalFundReq"]
         print(
-            f"[{chain_name}] Please make sure main wallet {wallet.crypto.address} has at least {wei_to_token(MASTER_WALLET_MIMIMUM_BALANCE, token)}",
+            f"[{chain_name}] Please make sure main wallet {wallet.crypto.address} has at least {wei_to_token(required_balance, token)}",
         )
         spinner = Halo(
             text=f"[{chain_name}] Waiting for funds...",
@@ -476,15 +623,13 @@ def main() -> None:
         )
         spinner.start()
 
-        while ledger_api.get_balance(wallet.crypto.address) < MASTER_WALLET_MIMIMUM_BALANCE:
+        while ledger_api.get_balance(wallet.crypto.address) < required_balance:
             time.sleep(1)
 
         spinner.succeed(f"[{chain_name}] Main wallet updated balance: {wei_to_token(ledger_api.get_balance(wallet.crypto.address), token)}.")
         print()
 
-        if wallet.safes.get(chain_type) is not None:
-            print(f"[{chain_name}] Safe already exists")
-        else:
+        if not safe_exists:
             print(f"[{chain_name}] Creating Safe")
             ledger_type = LedgerType.ETHEREUM
             wallet_manager = operate.wallet_manager
@@ -494,33 +639,35 @@ def main() -> None:
                 chain_type=chain_type,
                 rpc=chain_config.ledger_config.rpc,
             )
-            print(f"[{chain_name}] Funding Safe")
-            wallet.transfer(
-                to=t.cast(str, wallet.safes[chain_type]),
-                amount=int(MASTER_WALLET_MIMIMUM_BALANCE),
-                chain_type=chain_type,
-                from_safe=False,
-                rpc=chain_config.ledger_config.rpc,
-            )
 
         print_section(f"[{chain_name}] Set up the service in the Olas Protocol")
 
         address = wallet.safes[chain_type]
-        print(
-            f"[{chain_name}] Please make sure address {address} has at least {wei_to_token(MASTER_WALLET_MIMIMUM_BALANCE, token)}."
-        )
-        spinner = Halo(
-            text=f"[{chain_name}] Waiting for funds...",
-            spinner="dots",
-        )
-        spinner.start()
+        if not service_exists:
+            first_time_top_up = chain_metadata["firstTimeTopUp"]
+            print(
+                f"[{chain_name}] Please make sure address {address} has at least {wei_to_token(first_time_top_up, token)}."
+            )
+            spinner = Halo(
+                text=f"[{chain_name}] Waiting for funds...",
+                spinner="dots",
+            )
+            spinner.start()
 
-        while ledger_api.get_balance(address) < MASTER_WALLET_MIMIMUM_BALANCE:
-            time.sleep(1)
+            while ledger_api.get_balance(address) < first_time_top_up:
+                print(f"[{chain_name}] Funding Safe")
+                wallet.transfer(
+                    to=t.cast(str, wallet.safes[chain_type]),
+                    amount=int(chain_metadata["firstTimeTopUp"]),
+                    chain_type=chain_type,
+                    from_safe=False,
+                    rpc=chain_config.ledger_config.rpc,
+                )
+                time.sleep(1)
 
-        spinner.succeed(f"[{chain_name}] Safe updated balance: {wei_to_token(ledger_api.get_balance(address), token)}.")
+            spinner.succeed(f"[{chain_name}] Safe updated balance: {wei_to_token(ledger_api.get_balance(address), token)}.")
 
-        if chain_config.chain_data.user_params.use_staking:
+        if chain_config.chain_data.user_params.use_staking and not service_exists:
             print(f"[{chain_name}] Please make sure address {address} has at least {wei_to_token(2 * COST_OF_BOND_STAKING, STAKED_BONDING_TOKEN)}")
 
             spinner = Halo(
@@ -535,8 +682,7 @@ def main() -> None:
             balance = get_erc20_balance(ledger_api, olas_address, address) / 10 ** 18
             spinner.succeed(f"[{chain_name}] Safe updated balance: {balance} {STAKED_BONDING_TOKEN}")
 
-
-        if chain_metadata.get("usdcRequired", False):
+        if chain_metadata.get("usdcRequired", False) and not service_exists:
             print(f"[{chain_name}] Please make sure address {address} has at least 10 USDC")
 
             spinner = Halo(
@@ -548,8 +694,8 @@ def main() -> None:
             while get_erc20_balance(ledger_api, USDC_ADDRESS, address) < USDC_REQUIRED:
                 time.sleep(1)
 
-            balance = get_erc20_balance(ledger_api, USDC_ADDRESS, address) / 10 ** 6
-            spinner.succeed(f"[{chain_name}] Safe updated balance: {balance} USDC.")
+            usdc_balance = get_erc20_balance(ledger_api, USDC_ADDRESS, address) / 10 ** 6
+            spinner.succeed(f"[{chain_name}] Safe updated balance: {usdc_balance} USDC.")
 
         manager.deploy_service_onchain_from_safe_single_chain(
             hash=service.hash,
@@ -557,6 +703,18 @@ def main() -> None:
             fallback_staking_params=FALLBACK_STAKING_PARAMS,
         )
         manager.fund_service(hash=service.hash, chain_id=chain_id)
+
+        usdc_balance = get_erc20_balance(ledger_api, USDC_ADDRESS, address) if chain_metadata.get("usdcRequired", False) else 0
+        if usdc_balance > 0:
+            # transfer all the usdc balance into the service safe
+            manager.fund_service_erc20(
+                hash=service.hash,
+                chain_id=chain_id,
+                token=USDC_ADDRESS,
+                safe_topup=usdc_balance,
+                agent_topup=0,
+                safe_fund_treshold=USDC_REQUIRED + usdc_balance,
+            )
 
     safes = {
         ChainType.from_id(int(chain)).name.lower(): config.chain_data.multisig

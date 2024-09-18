@@ -33,6 +33,7 @@ import requests
 from aea.helpers.base import IPFSHash
 from aea.helpers.logging import setup_logger
 from autonomy.chain.base import registry_contracts
+from pycparser.ply.yacc import token
 
 from operate.keys import Key, KeysManager
 from operate.ledger import PUBLIC_RPCS
@@ -475,7 +476,7 @@ class ServiceManager:
         is_update = (
             (not is_first_mint)
             and (on_chain_hash is not None)
-            and (on_chain_hash != service.hash or current_agent_id != agent_id)
+            and (current_agent_id != agent_id)
         )
 
         if is_update:
@@ -1101,6 +1102,73 @@ class ServiceManager:
                 chain_type=ledger_config.chain,
                 rpc=rpc or ledger_config.rpc,
             )
+
+    def fund_service_erc20(  # pylint: disable=too-many-arguments
+        self,
+        hash: str,
+        token: str,
+        rpc: t.Optional[str] = None,
+        agent_topup: t.Optional[float] = None,
+        safe_topup: t.Optional[float] = None,
+        agent_fund_threshold: t.Optional[float] = None,
+        safe_fund_treshold: t.Optional[float] = None,
+        from_safe: bool = True,
+        chain_id: str = "10",
+    ) -> None:
+        """Fund service if required."""
+        service = self.load_or_create(hash=hash)
+        chain_config = service.chain_configs[chain_id]
+        ledger_config = chain_config.ledger_config
+        chain_data = chain_config.chain_data
+        wallet = self.wallet_manager.load(ledger_config.type)
+        ledger_api = wallet.ledger_api(chain_type=ledger_config.chain, rpc=rpc or ledger_config.rpc)
+        agent_fund_threshold = (
+            agent_fund_threshold
+            or chain_data.user_params.fund_requirements.agent
+        )
+
+        for key in service.keys:
+            agent_balance = ledger_api.get_balance(address=key.address)
+            self.logger.info(f"Agent {key.address} balance: {agent_balance}")
+            self.logger.info(f"Required balance: {agent_fund_threshold}")
+            if agent_balance < agent_fund_threshold:
+                self.logger.info("Funding agents")
+                to_transfer = (
+                    agent_topup
+                    or chain_data.user_params.fund_requirements.agent
+                )
+                self.logger.info(f"Transferring {to_transfer} units to {key.address}")
+                wallet.transfer_erc20(
+                    token=token,
+                    to=key.address,
+                    amount=int(to_transfer),
+                    chain_type=ledger_config.chain,
+                    from_safe=from_safe,
+                    rpc=rpc or ledger_config.rpc,
+                )
+
+        safe_balance = registry_contracts.erc20.get_instance(ledger_api, token).functions.balanceOf(chain_data.multisig).call()
+        safe_fund_treshold = (
+            safe_fund_treshold or chain_data.user_params.fund_requirements.safe
+        )
+        self.logger.info(f"Safe {chain_data.multisig} balance: {safe_balance}")
+        self.logger.info(f"Required balance: {safe_fund_treshold}")
+        if safe_balance < safe_fund_treshold:
+            self.logger.info("Funding safe")
+            to_transfer = (
+                    safe_topup or chain_data.user_params.fund_requirements.safe
+            )
+            self.logger.info(
+                f"Transferring {to_transfer} units to {chain_data.multisig}"
+            )
+            wallet.transfer_erc20(
+                token=token,
+                to=t.cast(str, chain_data.multisig),
+                amount=int(to_transfer),
+                chain_type=ledger_config.chain,
+                rpc=rpc or ledger_config.rpc,
+            )
+
 
     async def funding_job(
         self,

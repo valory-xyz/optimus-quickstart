@@ -85,7 +85,11 @@ Once the command has completed, i.e. the service is running, you can see the liv
 ```bash
 docker logs optimus_abci_0 --follow
 ```
+Execute the report command to view a summary of the service status:
 
+```bash
+poetry run python report.py
+```
 To inspect the tree state transition of the current run of the agent run:
 ```bash
 poetry run autonomy analyse logs --from-dir .optimus/services/[service-hash]/deployment/persistent_data/logs/  --agent aea_0 --fsm --reset-db
