@@ -30,7 +30,7 @@ from pathlib import Path
 import requests
 import yaml
 from aea.crypto.base import LedgerApi
-from aea_ledger_ethereum import EthereumApi, EIP1559, wei_to_gwei, estimate_priority_fee, get_base_fee_multiplier
+from aea_ledger_ethereum import EthereumApi, EIP1559, wei_to_gwei, get_base_fee_multiplier
 from dotenv import load_dotenv
 from eth_utils import to_wei
 from halo import Halo
@@ -103,6 +103,48 @@ CHAIN_ID_TO_METADATA = {
 }
 
 
+def estimate_priority_fee(
+    web3_object: Web3,
+    block_number: int,
+    default_priority_fee: t.Optional[int],
+    fee_history_blocks: int,
+    fee_history_percentile: int,
+    priority_fee_increase_boundary: int,
+) -> t.Optional[int]:
+    """Estimate priority fee from base fee."""
+
+    if default_priority_fee is not None:
+        return default_priority_fee
+
+    fee_history = web3_object.eth.fee_history(
+        fee_history_blocks, block_number, [fee_history_percentile]  # type: ignore
+    )
+
+    # This is going to break if more percentiles are introduced in the future,
+    # i.e., `fee_history_percentile` param becomes a `List[int]`.
+    rewards = sorted([reward[0] for reward in fee_history.get("reward", []) if reward[0] > 0])
+    if len(rewards) == 0:
+        return None
+
+    # Calculate percentage increases from between ordered list of fees
+    percentage_increases = [
+        ((j - i) / i) * 100 if i != 0 else 0 for i, j in zip(rewards[:-1], rewards[1:])
+    ]
+    highest_increase = max(*percentage_increases)
+    highest_increase_index = percentage_increases.index(highest_increase)
+
+    values = rewards.copy()
+    # If we have big increase in value, we could be considering "outliers" in our estimate
+    # Skip the low elements and take a new median
+    if (
+        highest_increase > priority_fee_increase_boundary
+        and highest_increase_index >= len(values) // 2
+    ):
+        values = values[highest_increase_index:]
+
+    return values[len(values) // 2]
+
+
 
 def patched_get_gas_price_strategy_eip1559(
     max_gas_fast: int,
@@ -144,7 +186,6 @@ def patched_get_gas_price_strategy_eip1559(
             )
 
             if estimated_priority_fee is None:
-
                 return fallback_estimate
 
             max_priority_fee_per_gas = max(
