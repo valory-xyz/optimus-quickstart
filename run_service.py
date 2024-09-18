@@ -441,7 +441,7 @@ def get_service_template(config: OptimusConfig) -> ServiceTemplate:
                     "use_staking": False,
                     "fund_requirements": FundRequirementsTemplate(
                         {
-                            "agent": SUGGESTED_TOP_UP_DEFAULT,
+                            "agent": SUGGESTED_TOP_UP_DEFAULT * 5,
                             "safe": SUGGESTED_SAFE_TOP_UP_DEFAULT,
                         }
                     ),

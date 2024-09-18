@@ -476,7 +476,7 @@ class ServiceManager:
         is_update = (
             (not is_first_mint)
             and (on_chain_hash is not None)
-            and (on_chain_hash != service.hash or current_agent_id != agent_id)
+            and (current_agent_id != agent_id)
         )
 
         if is_update:
