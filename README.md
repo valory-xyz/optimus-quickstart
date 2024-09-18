@@ -27,7 +27,7 @@ Ensure your machine satisfies the requirements:
 
 ## Resource Requirements
 
-- You will need to fund certain addresses with the following funds when requested: 0.01 ETH (Ethereum mainnet) + 10 USDC (Ethereum mainnet) + 0.01 ETH (Base chain). Additionally some quantity of OLAS bridged to Optimism if you want to stake.
+- For the initial setup you will need to fund certain addresses with the following funds when requested: 0.055 ETH (Ethereum mainnet) + 10 USDC (Ethereum mainnet) + 0.01 ETH (Optimism chain) + 0.01 ETH (Base chain). These quantities are based on the gas prices seen on Sept 2024 and may need to be revised. Additionally some quantity of OLAS bridged to Optimism if you want to stake.
 
 - You need 3 RPCs for your agent instance for respectively Ethereum, Optimism, and Base.
 ```bash
