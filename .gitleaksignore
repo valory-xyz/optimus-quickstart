@@ -32,3 +32,8 @@ d8149e9b5b7bd6a7ed7bc1039900702f1d4f287b:operate/services/manage.py:generic-api-
 410bea2bd02ff54da69387fe8f3b58793e09f7b0:operate/services/manage.py:generic-api-key:422
 58687d329c0153ddbecb381ba130ed793822b882:run_service.py:generic-api-key:329
 58687d329c0153ddbecb381ba130ed793822b882:run_service.py:generic-api-key:328
+58687d329c0153ddbecb381ba130ed793822b882:run_service.py:generic-api-key:3284637db8956d3ffa836ab0ca8fe1ce87d0141ab64:staking_report.py:generic-api-key:154
+64128d4c3415f669a9c656ad9421be2f839f5159:run_service.py:generic-api-key:391
+64128d4c3415f669a9c656ad9421be2f839f5159:run_service.py:generic-api-key:392
+fcdfd32ce4e7a716fe6ee3d5f15fa152abec28d3:staking_report.py:generic-api-key:153
+4637db8956d3ffa836ab0ca8fe1ce87d0141ab64:staking_report.py:generic-api-key:154

@@ -22,8 +22,6 @@
 import os
 import typing as t
 
-from autonomy.chain.config import Chain
-
 from operate.ledger.base import LedgerHelper
 from operate.ledger.ethereum import Ethereum
 from operate.ledger.solana import Solana

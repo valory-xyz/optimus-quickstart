@@ -62,7 +62,7 @@ CONTRACTS = {
             "gnosis_safe_same_address_multisig": "0xFbBEc0C8b13B38a9aC0499694A69a10204c5E2aB",
             "multisend": "0x40A2aCCbd92BCA938b02010E17A5b8929b49130D",
         }
-    )
+    ),
 }
 
 STAKING = {

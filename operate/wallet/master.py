@@ -40,10 +40,11 @@ from operate.constants import (
 from operate.ledger import get_default_rpc
 from operate.resource import LocalResource
 from operate.types import ChainType, LedgerType
-from operate.utils.gnosis import add_owner, transfer_erc20_from_safe
+from operate.utils.gnosis import add_owner
 from operate.utils.gnosis import create_safe as create_gnosis_safe
 from operate.utils.gnosis import get_owners, swap_owner
 from operate.utils.gnosis import transfer as transfer_from_safe
+from operate.utils.gnosis import transfer_erc20_from_safe
 
 
 class MasterWallet(LocalResource):
@@ -105,6 +106,7 @@ class MasterWallet(LocalResource):
         """Transfer funds to the given account."""
         raise NotImplementedError()
 
+    # pylint: disable=too-many-arguments
     def transfer_erc20(
         self,
         token: str,
@@ -116,7 +118,6 @@ class MasterWallet(LocalResource):
     ) -> None:
         """Transfer funds to the given account."""
         raise NotImplementedError()
-
 
     @staticmethod
     def new(password: str, path: Path) -> t.Tuple["MasterWallet", t.List[str]]:
@@ -177,9 +178,13 @@ class EthereumMasterWallet(MasterWallet):
     _key = ledger_type.key_file
     _crypto_cls = EthereumCrypto
 
-    def _transfer_from_eoa(self, to: str, amount: int, chain_type: ChainType, rpc: t.Optional[str] = None) -> None:
+    def _transfer_from_eoa(
+        self, to: str, amount: int, chain_type: ChainType, rpc: t.Optional[str] = None
+    ) -> None:
         """Transfer funds from EOA wallet."""
-        ledger_api = t.cast(EthereumApi, self.ledger_api(chain_type=chain_type, rpc=rpc))
+        ledger_api = t.cast(
+            EthereumApi, self.ledger_api(chain_type=chain_type, rpc=rpc)
+        )
         tx_helper = TxSettler(
             ledger_api=ledger_api,
             crypto=self.crypto,
@@ -204,7 +209,9 @@ class EthereumMasterWallet(MasterWallet):
                 chain_id=chain_type.id,
                 raise_on_try=True,
                 max_fee_per_gas=int(max_fee_per_gas) if max_fee_per_gas else None,
-                max_priority_fee_per_gas=int(max_priority_fee_per_gas) if max_priority_fee_per_gas else None,
+                max_priority_fee_per_gas=int(max_priority_fee_per_gas)
+                if max_priority_fee_per_gas
+                else None,
             )
             return ledger_api.update_with_gas_estimate(
                 transaction=tx,
@@ -214,7 +221,9 @@ class EthereumMasterWallet(MasterWallet):
         setattr(tx_helper, "build", _build_tx)  # noqa: B010
         tx_helper.transact(lambda x: x, "", kwargs={})
 
-    def _transfer_from_safe(self, to: str, amount: int, chain_type: ChainType, rpc: t.Optional[str] = None) -> None:
+    def _transfer_from_safe(
+        self, to: str, amount: int, chain_type: ChainType, rpc: t.Optional[str] = None
+    ) -> None:
         """Transfer funds from safe wallet."""
         transfer_from_safe(
             ledger_api=self.ledger_api(chain_type=chain_type, rpc=rpc),
@@ -225,7 +234,12 @@ class EthereumMasterWallet(MasterWallet):
         )
 
     def _transfer_erc20_from_safe(
-            self, token: str, to: str, amount: int, chain_type: ChainType, rpc: t.Optional[str] = None
+        self,
+        token: str,
+        to: str,
+        amount: int,
+        chain_type: ChainType,
+        rpc: t.Optional[str] = None,
     ) -> None:
         """Transfer funds from safe wallet."""
         transfer_erc20_from_safe(
@@ -236,7 +250,6 @@ class EthereumMasterWallet(MasterWallet):
             to=to,
             amount=amount,
         )
-
 
     def transfer(
         self,
@@ -261,6 +274,7 @@ class EthereumMasterWallet(MasterWallet):
             rpc=rpc,
         )
 
+    # pylint: disable=too-many-arguments
     def transfer_erc20(
         self,
         token: str,

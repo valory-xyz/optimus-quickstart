@@ -215,7 +215,7 @@ def send_safe_txs(
     safe: str,
     ledger_api: LedgerApi,
     crypto: Crypto,
-    to: t.Optional[str] = None
+    to: t.Optional[str] = None,
 ) -> None:
     """Send internal safe transaction."""
     owner = ledger_api.api.to_checksum_address(
@@ -255,7 +255,9 @@ def send_safe_txs(
         operation=SafeOperation.CALL.value,
         nonce=ledger_api.api.eth.get_transaction_count(owner),
         max_fee_per_gas=int(max_fee_per_gas) if max_fee_per_gas else None,
-        max_priority_fee_per_gas=int(max_priority_fee_per_gas) if max_priority_fee_per_gas else None
+        max_priority_fee_per_gas=int(max_priority_fee_per_gas)
+        if max_priority_fee_per_gas
+        else None,
     )
     ledger_api.get_transaction_receipt(
         ledger_api.send_signed_transaction(
@@ -347,7 +349,9 @@ def transfer(
         operation=SafeOperation.CALL.value,
         nonce=ledger_api.api.eth.get_transaction_count(owner),
         max_fee_per_gas=int(max_fee_per_gas) if max_fee_per_gas else None,
-        max_priority_fee_per_gas=int(max_priority_fee_per_gas) if max_priority_fee_per_gas else None,
+        max_priority_fee_per_gas=int(max_priority_fee_per_gas)
+        if max_priority_fee_per_gas
+        else None,
     )
     ledger_api.get_transaction_receipt(
         ledger_api.send_signed_transaction(
@@ -356,6 +360,7 @@ def transfer(
             ),
         )
     )
+
 
 def transfer_erc20_from_safe(
     ledger_api: LedgerApi,
