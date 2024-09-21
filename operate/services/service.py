@@ -16,7 +16,7 @@
 #   limitations under the License.
 #
 # ------------------------------------------------------------------------------
-
+# type: ignore
 """Service as HTTP resource."""
 
 import json

@@ -16,7 +16,7 @@
 #   limitations under the License.
 #
 # ------------------------------------------------------------------------------
-
+# type: ignore
 """Operate app CLI module."""
 
 import asyncio

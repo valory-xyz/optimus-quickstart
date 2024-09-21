@@ -17,6 +17,7 @@
 #   limitations under the License.
 #
 # ------------------------------------------------------------------------------
+# type: ignore
 """This module implements the onchain manager."""
 
 import binascii

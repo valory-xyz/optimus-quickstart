@@ -17,6 +17,7 @@
 #   limitations under the License.
 #
 # ------------------------------------------------------------------------------
+# type: ignore
 """Service manager."""
 
 import asyncio

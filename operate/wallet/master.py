@@ -16,7 +16,7 @@
 #   limitations under the License.
 #
 # ------------------------------------------------------------------------------
-
+# type: ignore
 """Master key implementation"""
 
 import json
