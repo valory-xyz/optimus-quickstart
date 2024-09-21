@@ -471,7 +471,11 @@ class ServiceManager:
                     f"address: {safe}; required olas: {required_olas}; your balance: {balance}"
                 )
 
-        agent_id = (staking_params['agent_ids'][0] if staking_params['agent_ids'] else fallback_staking_params['agent_ids'][0])
+        agent_id = (
+            staking_params["agent_ids"][0]
+            if staking_params["agent_ids"]
+            else fallback_staking_params["agent_ids"][0]
+        )
         on_chain_hash = self._get_on_chain_hash(chain_config=chain_config)
         is_first_mint = (
             self._get_on_chain_state(chain_config=chain_config)
@@ -747,7 +751,9 @@ class ServiceManager:
         service.chain_data.on_chain_state = OnChainState.TERMINATED_BONDED
         service.store()
 
-    def _terminate_service_on_chain_from_safe(self, hash: str, chain_id: str) -> None:  # pylint: disable=too-many-locals
+    def _terminate_service_on_chain_from_safe(  # pylint: disable=too-many-locals
+        self, hash: str, chain_id: str
+    ) -> None:
         """
         Terminate service on-chain
 
@@ -887,7 +893,9 @@ class ServiceManager:
         """
         raise NotImplementedError
 
-    def stake_service_on_chain_from_safe(self, hash: str, chain_id: str) -> None:  # pylint: disable=too-many-statements,too-many-locals
+    def stake_service_on_chain_from_safe(  # pylint: disable=too-many-statements,too-many-locals
+        self, hash: str, chain_id: str
+    ) -> None:
         """
         Stake service on-chain
 
