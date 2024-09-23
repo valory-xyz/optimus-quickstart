@@ -799,7 +799,9 @@ class Service(LocalResource):
         service.store()
         return service
 
-    def update_user_params_from_template(self, service_template: ServiceTemplate) -> None:
+    def update_user_params_from_template(
+        self, service_template: ServiceTemplate
+    ) -> None:
         """Update user params from template."""
         for chain, config in service_template["configurations"].items():
             self.chain_configs[

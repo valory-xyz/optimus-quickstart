@@ -55,7 +55,7 @@ from autonomy.chain.tx import TxSettler
 from autonomy.cli.helpers.chain import MintHelper as MintManager
 from autonomy.cli.helpers.chain import OnChainHelper
 from autonomy.cli.helpers.chain import ServiceHelper as ServiceManager
-from eth_utils import to_bytes # type: ignore
+from eth_utils import to_bytes  # type: ignore
 from hexbytes import HexBytes
 from web3.contract import Contract
 
@@ -575,9 +575,8 @@ class _ChainUtil:
             chain_type=self.chain_type
         )
         owner = registry_contracts.service_manager.owner_of(
-            ledger_api=ledger_api,
-            token_id=token_id
-        ).get('owner', "")
+            ledger_api=ledger_api, token_id=token_id
+        ).get("owner", "")
         return owner
 
     def info(self, token_id: int) -> t.Dict:

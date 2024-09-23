@@ -171,7 +171,7 @@ class EthereumMasterWallet(MasterWallet):
     safe_chains: t.List[ChainType]  # For cross-chain support
 
     ledger_type: LedgerType = LedgerType.ETHEREUM
-    safes: t.Optional[t.Dict[ChainType, str]] = field(default_factory=dict) # type: ignore
+    safes: t.Optional[t.Dict[ChainType, str]] = field(default_factory=dict)  # type: ignore
     safe_nonce: t.Optional[int] = None  # For cross-chain reusability
 
     _file = ledger_type.config_file
@@ -249,7 +249,7 @@ class EthereumMasterWallet(MasterWallet):
             ledger_api=self.ledger_api(chain_type=chain_type, rpc=rpc),
             crypto=self.crypto,
             token=token,
-            safe=t.cast(str, self.safes[chain_type]), # type: ignore
+            safe=t.cast(str, self.safes[chain_type]),  # type: ignore
             to=to,
             amount=amount,
         )
@@ -353,9 +353,9 @@ class EthereumMasterWallet(MasterWallet):
     ) -> None:
         """Add a backup owner."""
         ledger_api = self.ledger_api(chain_type=chain_type, rpc=rpc)
-        if chain_type not in self.safes: # type: ignore
+        if chain_type not in self.safes:  # type: ignore
             raise ValueError(f"Safes not created for chain_type {chain_type}!")
-        safe = t.cast(str, self.safes[chain_type]) # type: ignore
+        safe = t.cast(str, self.safes[chain_type])  # type: ignore
         if len(get_owners(ledger_api=ledger_api, safe=safe)) == 2:
             raise ValueError("Backup owner already exist!")
         add_owner(
@@ -374,9 +374,9 @@ class EthereumMasterWallet(MasterWallet):
     ) -> None:
         """Swap backup owner."""
         ledger_api = self.ledger_api(chain_type=chain_type, rpc=rpc)
-        if chain_type not in self.safes: # type: ignore
+        if chain_type not in self.safes:  # type: ignore
             raise ValueError(f"Safes not created for chain_type {chain_type}!")
-        safe = t.cast(str, self.safes[chain_type]) # type: ignore
+        safe = t.cast(str, self.safes[chain_type])  # type: ignore
         if len(get_owners(ledger_api=ledger_api, safe=safe)) == 1:
             raise ValueError("Backup owner does not exist, cannot swap!")
         swap_owner(
@@ -419,10 +419,10 @@ class EthereumMasterWallet(MasterWallet):
         """Load master wallet."""
         raw_ethereum_wallet = super().load(path)  # type: ignore
         safes = {}
-        for id_, safe_address in raw_ethereum_wallet.safes.items(): # type: ignore
+        for id_, safe_address in raw_ethereum_wallet.safes.items():  # type: ignore
             safes[ChainType(int(id_))] = safe_address
 
-        raw_ethereum_wallet.safes = safes # type: ignore
+        raw_ethereum_wallet.safes = safes  # type: ignore
         return t.cast(EthereumMasterWallet, raw_ethereum_wallet)
 
 
