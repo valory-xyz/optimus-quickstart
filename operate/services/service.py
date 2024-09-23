@@ -380,7 +380,7 @@ class Deployment(LocalResource):
     def _build_docker(
         self,
         force: bool = True,
-        chain_id: str = "100",  # pylint: disable=unused-argument
+        _chain_id: str = "100",
     ) -> None:
         """Build docker deployment."""
         service = Service.load(path=self.path)
@@ -589,7 +589,7 @@ class Deployment(LocalResource):
         :return: Deployment object
         """
         if use_docker:
-            return self._build_docker(force=force, chain_id=chain_id)
+            return self._build_docker(force=force, _chain_id=chain_id)
         return self._build_host(force=force, chain_id=chain_id)
 
     def start(self, use_docker: bool = False) -> None:

@@ -656,7 +656,7 @@ def create_app(  # pylint: disable=too-many-locals, unused-argument, too-many-st
         operate.service_manager().deploy_service_onchain(
             hash=request.path_params["service"]
         )
-        operate.service_manager().stake_service_on_chain(
+        operate.service_manager().stake_service_on_chain(  # pylint: disable=no-value-for-parameter
             hash=request.path_params["service"]
         )
         return JSONResponse(
