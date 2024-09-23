@@ -17,7 +17,7 @@
 #   limitations under the License.
 #
 # ------------------------------------------------------------------------------
-# type: ignore
+
 """This module implements the onchain manager."""
 
 import binascii
@@ -55,7 +55,7 @@ from autonomy.chain.tx import TxSettler
 from autonomy.cli.helpers.chain import MintHelper as MintManager
 from autonomy.cli.helpers.chain import OnChainHelper
 from autonomy.cli.helpers.chain import ServiceHelper as ServiceManager
-from eth_utils import to_bytes
+from eth_utils import to_bytes # type: ignore
 from hexbytes import HexBytes
 from web3.contract import Contract
 
@@ -528,6 +528,12 @@ class _ChainUtil:
         """Get safe address."""
         chain_id = self.ledger_api.api.eth.chain_id
         chain_type = OperateChainType.from_id(chain_id)
+        
+        if self.wallet.safes is None:
+            raise ValueError("Safes not initialized")
+        if chain_type not in self.wallet.safes:
+            raise ValueError(f"Safe for chain type {chain_type} not found")
+        
         return self.wallet.safes[chain_type]
 
     @property
@@ -564,12 +570,17 @@ class _ChainUtil:
         )
         return instance
 
-    def owner_of(self, token_id: int) -> str:  # pylint: disable=unused-argument
+    def owner_of(self, token_id: int) -> str:
         """Get owner of a service."""
         self._patch()
-        _ledger_api, _ = OnChainHelper.get_ledger_and_crypto_objects(
+        ledger_api, _ = OnChainHelper.get_ledger_and_crypto_objects(
             chain_type=self.chain_type
         )
+        owner = registry_contracts.service_manager.owner_of(
+            ledger_api=ledger_api,
+            token_id=token_id
+        ).get('owner', "")
+        return owner
 
     def info(self, token_id: int) -> t.Dict:
         """Get service info."""

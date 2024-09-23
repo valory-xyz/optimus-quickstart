@@ -16,7 +16,7 @@
 #   limitations under the License.
 #
 # ------------------------------------------------------------------------------
-# type: ignore
+
 """Service as HTTP resource."""
 
 import json
@@ -778,7 +778,7 @@ class Service(LocalResource):
                 multisig=DUMMY_MULTISIG,
                 staked=False,
                 on_chain_state=OnChainState.NON_EXISTENT,
-                user_params=OnChainUserParams.from_json(config),
+                user_params=OnChainUserParams.from_json(dict(config)),
             )
 
             chain_configs[chain] = ChainConfig(
@@ -799,12 +799,12 @@ class Service(LocalResource):
         service.store()
         return service
 
-    def update_user_params_from_template(self, service_template: ServiceTemplate):
+    def update_user_params_from_template(self, service_template: ServiceTemplate) -> None:
         """Update user params from template."""
         for chain, config in service_template["configurations"].items():
             self.chain_configs[
                 chain
-            ].chain_data.user_params = OnChainUserParams.from_json(config)
+            ].chain_data.user_params = OnChainUserParams.from_json(dict(config))
 
         self.store()
 

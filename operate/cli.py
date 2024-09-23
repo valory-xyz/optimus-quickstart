@@ -16,7 +16,7 @@
 #   limitations under the License.
 #
 # ------------------------------------------------------------------------------
-# type: ignore
+
 """Operate app CLI module."""
 
 import asyncio
@@ -81,7 +81,7 @@ class OperateApp:
         self.setup()
 
         self.logger = logger or setup_logger(name="operate")
-        self.keys_manager = services.manage.KeysManager(
+        self.keys_manager = services.manage.KeysManager( # type: ignore
             path=self._keys,
             logger=self.logger,
         )
@@ -95,9 +95,9 @@ class OperateApp:
             path=self._path / "user.json",
         )
 
-    def service_manager(self) -> services.manage.ServiceManager:
+    def service_manager(self) -> services.manage.ServiceManager: # type: ignore
         """Load service manager."""
-        return services.manage.ServiceManager(
+        return services.manage.ServiceManager( # type: ignore
             path=self._services,
             keys_manager=self.keys_manager,
             wallet_manager=self.wallet_manager,
