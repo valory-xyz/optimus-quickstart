@@ -528,12 +528,10 @@ class _ChainUtil:
         """Get safe address."""
         chain_id = self.ledger_api.api.eth.chain_id
         chain_type = OperateChainType.from_id(chain_id)
-        
         if self.wallet.safes is None:
             raise ValueError("Safes not initialized")
         if chain_type not in self.wallet.safes:
             raise ValueError(f"Safe for chain type {chain_type} not found")
-        
         return self.wallet.safes[chain_type]
 
     @property
