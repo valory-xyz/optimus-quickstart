@@ -17,6 +17,7 @@
 #   limitations under the License.
 #
 # ------------------------------------------------------------------------------
+
 """This module implements the onchain manager."""
 
 import binascii
@@ -54,7 +55,7 @@ from autonomy.chain.tx import TxSettler
 from autonomy.cli.helpers.chain import MintHelper as MintManager
 from autonomy.cli.helpers.chain import OnChainHelper
 from autonomy.cli.helpers.chain import ServiceHelper as ServiceManager
-from eth_utils import to_bytes
+from eth_utils import to_bytes  # type: ignore
 from hexbytes import HexBytes
 from web3.contract import Contract
 
@@ -67,6 +68,7 @@ from operate.data import DATA_DIR
 from operate.data.contracts.service_staking_token.contract import (
     ServiceStakingTokenContract,
 )
+from operate.types import ChainType as OperateChainType
 from operate.types import ContractAddresses
 from operate.utils.gnosis import (
     MultiSendOperation,
@@ -76,7 +78,6 @@ from operate.utils.gnosis import (
     skill_input_hex_to_payload,
 )
 from operate.wallet.master import MasterWallet
-from operate.types import ChainType as OperateChainType
 
 
 ETHEREUM_ERC20 = "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE"
@@ -163,7 +164,9 @@ class GnosisSafeTransaction:
             operation=SafeOperation.DELEGATE_CALL.value,
             nonce=self.ledger_api.api.eth.get_transaction_count(owner),
             max_fee_per_gas=int(max_fee_per_gas) if max_fee_per_gas else None,
-            max_priority_fee_per_gas=int(max_priority_fee_per_gas) if max_priority_fee_per_gas else None,
+            max_priority_fee_per_gas=int(max_priority_fee_per_gas)
+            if max_priority_fee_per_gas
+            else None,
         )
         self.tx = self.crypto.sign_transaction(tx)
         return t.cast(t.Dict, self.tx)
@@ -251,6 +254,7 @@ class StakingManager(OnChainHelper):
         ).get("data")
 
     def agent_ids(self, staking_contract: str) -> t.List[int]:
+        """Get a list of agent IDs for the given staking contract."""
         instance = self.staking_ctr.get_instance(
             ledger_api=self.ledger_api,
             contract_address=staking_contract,
@@ -258,6 +262,7 @@ class StakingManager(OnChainHelper):
         return instance.functions.getAgentIds().call()
 
     def service_registry(self, staking_contract: str) -> str:
+        """Retrieve the service registry address for the given staking contract."""
         instance = self.staking_ctr.get_instance(
             ledger_api=self.ledger_api,
             contract_address=staking_contract,
@@ -265,6 +270,7 @@ class StakingManager(OnChainHelper):
         return instance.functions.serviceRegistry().call()
 
     def staking_token(self, staking_contract: str) -> str:
+        """Get the staking token address for the staking contract."""
         instance = self.staking_ctr.get_instance(
             ledger_api=self.ledger_api,
             contract_address=staking_contract,
@@ -272,6 +278,7 @@ class StakingManager(OnChainHelper):
         return instance.functions.stakingToken().call()
 
     def service_registry_token_utility(self, staking_contract: str) -> str:
+        """Get the service registry token utility address for the staking contract."""
         instance = self.staking_ctr.get_instance(
             ledger_api=self.ledger_api,
             contract_address=staking_contract,
@@ -279,6 +286,7 @@ class StakingManager(OnChainHelper):
         return instance.functions.serviceRegistryTokenUtility().call()
 
     def min_staking_deposit(self, staking_contract: str) -> str:
+        """Retrieve the minimum staking deposit required for the staking contract."""
         instance = self.staking_ctr.get_instance(
             ledger_api=self.ledger_api,
             contract_address=staking_contract,
@@ -286,6 +294,7 @@ class StakingManager(OnChainHelper):
         return instance.functions.minStakingDeposit().call()
 
     def activity_checker(self, staking_contract: str) -> str:
+        """Retrieve the activity checker address for the staking contract."""
         instance = self.staking_ctr.get_instance(
             ledger_api=self.ledger_api,
             contract_address=staking_contract,
@@ -519,6 +528,10 @@ class _ChainUtil:
         """Get safe address."""
         chain_id = self.ledger_api.api.eth.chain_id
         chain_type = OperateChainType.from_id(chain_id)
+        if self.wallet.safes is None:
+            raise ValueError("Safes not initialized")
+        if chain_type not in self.wallet.safes:
+            raise ValueError(f"Safe for chain type {chain_type} not found")
         return self.wallet.safes[chain_type]
 
     @property
@@ -546,13 +559,14 @@ class _ChainUtil:
     @property
     def service_manager_instance(self) -> Contract:
         """Load service manager contract instance."""
-        contract_interface = registry_contracts.service_manager.contract_interface.get(self.ledger_api.identifier, {})
+        contract_interface = registry_contracts.service_manager.contract_interface.get(
+            self.ledger_api.identifier, {}
+        )
         instance = self.ledger_api.get_contract_instance(
             contract_interface,
             self.contracts["service_manager"],
         )
         return instance
-
 
     def owner_of(self, token_id: int) -> str:
         """Get owner of a service."""
@@ -560,7 +574,10 @@ class _ChainUtil:
         ledger_api, _ = OnChainHelper.get_ledger_and_crypto_objects(
             chain_type=self.chain_type
         )
-
+        owner = registry_contracts.service_manager.owner_of(
+            ledger_api=ledger_api, token_id=token_id
+        ).get("owner", "")
+        return owner
 
     def info(self, token_id: int) -> t.Dict:
         """Get service info."""
@@ -599,7 +616,6 @@ class _ChainUtil:
             instances=instances,
         )
 
-
     def get_service_safe_owners(self, service_id: int) -> t.List[str]:
         """Get list of owners."""
         ledger_api, _ = OnChainHelper.get_ledger_and_crypto_objects(
@@ -624,13 +640,8 @@ class _ChainUtil:
             contract_address=multisig_address,
         ).get("owners", [])
 
-
     def swap(  # pylint: disable=too-many-arguments,too-many-locals
-        self,
-        service_id: int,
-        multisig: str,
-        owner_key: str,
-        new_owner_address: str
+        self, service_id: int, multisig: str, owner_key: str, new_owner_address: str
     ) -> None:
         """Swap safe owner."""
         logging.info(f"Swapping safe for service {service_id} [{multisig}]...")
@@ -659,9 +670,7 @@ class _ChainUtil:
             ledger_api=manager.ledger_api,
             contract_address=multisig,
             old_owner=manager.ledger_api.api.to_checksum_address(owner_to_swap),
-            new_owner=manager.ledger_api.api.to_checksum_address(
-                new_owner_address
-            ),
+            new_owner=manager.ledger_api.api.to_checksum_address(new_owner_address),
         ).get("data")
         multisend_txs.append(
             {
@@ -744,6 +753,7 @@ class _ChainUtil:
             staking_contract=staking_contract,
         )
         return available_rewards > 0
+
 
 class OnChainManager(_ChainUtil):
     """On chain service management."""
@@ -999,7 +1009,7 @@ class EthSafeTxBuilder(_ChainUtil):
             )
             .load_metadata()
             .verify_nft(nft=nft)
-            #.verify_service_dependencies(agent_id=agent_id)  # TODO add this check once subgraph production indexes agent 25
+            # .verify_service_dependencies(agent_id=agent_id)  # TODO add this check once subgraph production indexes agent 25
             .publish_metadata()
         )
 
@@ -1026,7 +1036,7 @@ class EthSafeTxBuilder(_ChainUtil):
                     [agent_id],
                     [[number_of_slots, cost_of_bond]],
                     threshold,
-                    update_token
+                    update_token,
                 ],
             )
 
@@ -1150,7 +1160,11 @@ class EthSafeTxBuilder(_ChainUtil):
         registry_instance = self.service_manager_instance
         approve_hash_message = None
         if reuse_multisig:
-            _deployment_payload, approve_hash_message, error = get_reuse_multisig_from_safe_payload(
+            (
+                _deployment_payload,
+                approve_hash_message,
+                error,
+            ) = get_reuse_multisig_from_safe_payload(
                 ledger_api=self.ledger_api,
                 chain_type=self.chain_type,
                 service_id=service_id,
@@ -1339,7 +1353,7 @@ class EthSafeTxBuilder(_ChainUtil):
             staking_token=staking_token,
             service_registry_token_utility=service_registry_token_utility,
             min_staking_deposit=min_staking_deposit,
-            activity_checker=activity_checker
+            activity_checker=activity_checker,
         )
 
     def can_unstake(self, service_id: int, staking_contract: str) -> bool:
@@ -1363,26 +1377,25 @@ class EthSafeTxBuilder(_ChainUtil):
         raise NotImplementedError()
 
 
-
 def get_packed_signature_for_approved_hash(owners: t.Tuple[str]) -> bytes:
-        """Get the packed signatures."""
-        sorted_owners = sorted(owners, key=str.lower)
-        signatures = b''
-        for owner in sorted_owners:
-            # Convert address to bytes and ensure it is 32 bytes long (left-padded with zeros)
-            r_bytes = to_bytes(hexstr=owner[2:].rjust(64, '0'))
+    """Get the packed signatures."""
+    sorted_owners = sorted(owners, key=str.lower)
+    signatures = b""
+    for owner in sorted_owners:
+        # Convert address to bytes and ensure it is 32 bytes long (left-padded with zeros)
+        r_bytes = to_bytes(hexstr=owner[2:].rjust(64, "0"))
 
-            # `s` as 32 zero bytes
-            s_bytes = b'\x00' * 32
+        # `s` as 32 zero bytes
+        s_bytes = b"\x00" * 32
 
-            # `v` as a single byte
-            v_bytes = to_bytes(1)
+        # `v` as a single byte
+        v_bytes = to_bytes(1)
 
-            # Concatenate r, s, and v to form the packed signature
-            packed_signature = r_bytes + s_bytes + v_bytes
-            signatures += packed_signature
+        # Concatenate r, s, and v to form the packed signature
+        packed_signature = r_bytes + s_bytes + v_bytes
+        signatures += packed_signature
 
-        return signatures
+    return signatures
 
 
 def get_reuse_multisig_from_safe_payload(  # pylint: disable=too-many-locals
@@ -1482,7 +1495,7 @@ def get_reuse_multisig_from_safe_payload(  # pylint: disable=too-many-locals
         contract_address=multisend_address,
         txs=txs,
     )
-    signature_bytes = get_packed_signature_for_approved_hash(owners=(master_safe, ))
+    signature_bytes = get_packed_signature_for_approved_hash(owners=(master_safe,))
 
     safe_tx_hash = registry_contracts.gnosis_safe.get_raw_safe_transaction_hash(
         ledger_api=ledger_api,
@@ -1522,4 +1535,3 @@ def get_reuse_multisig_from_safe_payload(  # pylint: disable=too-many-locals
     )
     payload = multisig_address + safe_exec_data[2:]
     return payload, approve_hash_message, None
-

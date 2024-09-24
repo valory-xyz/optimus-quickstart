@@ -81,7 +81,7 @@ class OperateApp:
         self.setup()
 
         self.logger = logger or setup_logger(name="operate")
-        self.keys_manager = services.manage.KeysManager(
+        self.keys_manager = services.manage.KeysManager(  # type: ignore
             path=self._keys,
             logger=self.logger,
         )
@@ -95,9 +95,9 @@ class OperateApp:
             path=self._path / "user.json",
         )
 
-    def service_manager(self) -> services.manage.ServiceManager:
+    def service_manager(self) -> services.manage.ServiceManager:  # type: ignore
         """Load service manager."""
-        return services.manage.ServiceManager(
+        return services.manage.ServiceManager(  # type: ignore
             path=self._services,
             keys_manager=self.keys_manager,
             wallet_manager=self.wallet_manager,
@@ -451,7 +451,10 @@ def create_app(  # pylint: disable=too-many-locals, unused-argument, too-many-st
         wallet = manager.load(ledger_type=ledger_type)
         if wallet.safes is not None and wallet.safes.get(chain_type) is not None:
             return JSONResponse(
-                content={"safe": wallet.safes.get(chain_type), "message": "Safe already exists!"}
+                content={
+                    "safe": wallet.safes.get(chain_type),
+                    "message": "Safe already exists!",
+                }
             )
 
         safes = t.cast(t.Dict[ChainType, str], wallet.safes)
@@ -465,8 +468,9 @@ def create_app(  # pylint: disable=too-many-locals, unused-argument, too-many-st
             chain_type=chain_type,
             from_safe=False,
         )
-        return JSONResponse(content={"safe": safes.get(chain_type), "message": "Safe created!"})
-
+        return JSONResponse(
+            content={"safe": safes.get(chain_type), "message": "Safe created!"}
+        )
 
     @app.post("/api/wallet/safes")
     @with_retries
@@ -491,7 +495,11 @@ def create_app(  # pylint: disable=too-many-locals, unused-argument, too-many-st
             ledger_type = get_ledger_type_from_chain_type(chain=chain_type)
             manager = operate.wallet_manager
             if not manager.exists(ledger_type=ledger_type):
-                return JSONResponse(content={"error": f"Wallet does not exist for chain_type {chain_type}"})
+                return JSONResponse(
+                    content={
+                        "error": f"Wallet does not exist for chain_type {chain_type}"
+                    }
+                )
 
         # mint the safes
         for chain_type in chain_types:
@@ -588,7 +596,6 @@ def create_app(  # pylint: disable=too-many-locals, unused-argument, too-many-st
 
             def _fn() -> None:
                 manager.deploy_service_onchain_from_safe(hash=service.hash)
-                # manager.stake_service_on_chain_from_safe(hash=service.hash) # Done inside deploy_service_onchain
                 manager.fund_service(hash=service.hash)
                 manager.deploy_service_locally(hash=service.hash)
 
@@ -614,7 +621,6 @@ def create_app(  # pylint: disable=too-many-locals, unused-argument, too-many-st
         if template.get("deploy", False):
             manager = operate.service_manager()
             manager.deploy_service_onchain_from_safe(hash=service.hash)
-            # manager.stake_service_on_chain_from_safe(hash=service.hash)  # Done in deploy_service_onchain_from_safe
             manager.fund_service(hash=service.hash)
             manager.deploy_service_locally(hash=service.hash)
             schedule_funding_job(service=service.hash)
@@ -650,7 +656,7 @@ def create_app(  # pylint: disable=too-many-locals, unused-argument, too-many-st
         operate.service_manager().deploy_service_onchain(
             hash=request.path_params["service"]
         )
-        operate.service_manager().stake_service_on_chain(
+        operate.service_manager().stake_service_on_chain(  # pylint: disable=no-value-for-parameter
             hash=request.path_params["service"]
         )
         return JSONResponse(
@@ -732,7 +738,6 @@ def create_app(  # pylint: disable=too-many-locals, unused-argument, too-many-st
 
         def _fn() -> None:
             manager.deploy_service_onchain(hash=service)
-            # manager.stake_service_on_chain(hash=service)
             manager.fund_service(hash=service)
             manager.deploy_service_locally(hash=service, force=True)
 

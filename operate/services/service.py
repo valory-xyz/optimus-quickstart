@@ -36,6 +36,7 @@ from aea.configurations.constants import (
     SKILL,
 )
 from aea.configurations.data_types import PackageType
+from aea.helpers.env_vars import apply_env_variables
 from aea.helpers.yaml_utils import yaml_dump, yaml_load, yaml_load_all
 from aea_cli_ipfs.ipfs_utils import IPFSTool
 from autonomy.cli.helpers.deployment import run_deployment, stop_deployment
@@ -65,6 +66,8 @@ from operate.keys import Keys
 from operate.resource import LocalResource
 from operate.services.deployment_runner import run_host_deployment, stop_host_deployment
 from operate.services.utils import tendermint
+
+# pylint: disable=unused-import
 from operate.types import (
     ChainConfig,
     ChainConfigs,
@@ -80,7 +83,7 @@ from operate.types import (
     OnChainUserParams,
     ServiceTemplate,
 )
-from aea.helpers.env_vars import apply_env_variables
+
 
 SAFE_CONTRACT_ADDRESS = "safe_contract_address"
 ALL_PARTICIPANTS = "all_participants"
@@ -230,7 +233,6 @@ class ServiceBuilder(BaseServiceBuilder):
         self.service.overrides = overrides
 
 
-
 class ServiceHelper:
     """Service config helper."""
 
@@ -243,15 +245,12 @@ class ServiceHelper:
         """Get ledger configs."""
         ledger_configs = {}
         for override in self.config.overrides:
-            override = apply_env_variables(
-                override,
-                env_variables=os.environ.copy()
-            )
+            override = apply_env_variables(override, env_variables=os.environ.copy())
             if (
                 override["type"] == "connection"
                 and "valory/ledger" in override["public_id"]
             ):
-                for chain_id, config in override["config"]["ledger_apis"].items():
+                for _chain_id, config in override["config"]["ledger_apis"].items():
                     chain = ChainType.from_id(cid=config["chain_id"])
                     ledger_configs[str(config["chain_id"])] = LedgerConfig(
                         rpc=config["address"],
@@ -377,10 +376,11 @@ class Deployment(LocalResource):
         """Load a service"""
         return super().load(path)  # type: ignore
 
+    # pylint: disable=too-many-locals
     def _build_docker(
         self,
         force: bool = True,
-        chain_id: str = "100",
+        _chain_id: str = "100",
     ) -> None:
         """Build docker deployment."""
         service = Service.load(path=self.path)
@@ -429,7 +429,7 @@ class Deployment(LocalResource):
                 service_id=home_chain_data.chain_data.token,
                 consensus_threshold=None,
             )
-            for chain, config in service.chain_configs.items():
+            for _chain, config in service.chain_configs.items():
                 builder.try_update_ledger_params(
                     chain=config.ledger_config.chain.name.lower(),
                     address=config.ledger_config.rpc,
@@ -589,7 +589,7 @@ class Deployment(LocalResource):
         :return: Deployment object
         """
         if use_docker:
-            return self._build_docker(force=force, chain_id=chain_id)
+            return self._build_docker(force=force, _chain_id=chain_id)
         return self._build_host(force=force, chain_id=chain_id)
 
     def start(self, use_docker: bool = False) -> None:
@@ -661,15 +661,19 @@ class Service(LocalResource):
     @classmethod
     def migrate_format(cls, path: Path) -> None:
         """Migrate the JSON file format if needed."""
-        file_path = path / Service._file if Service._file is not None and path.name != Service._file else path
-        
-        with open(file_path, 'r', encoding='utf-8') as file:
+        file_path = (
+            path / Service._file
+            if Service._file is not None and path.name != Service._file
+            else path
+        )
+
+        with open(file_path, "r", encoding="utf-8") as file:
             data = json.load(file)
-        
-        if 'version' in data:
+
+        if "version" in data:
             # Data is already in the new format
             return
-        
+
         # Migrate from old format to new format
         new_data = {
             "version": 2,
@@ -677,34 +681,46 @@ class Service(LocalResource):
             "keys": data.get("keys"),
             "home_chain_id": "100",  # Assuming a default value for home_chain_id
             "chain_configs": {
-                '10': {
+                "10": {
                     "ledger_config": {
                         "rpc": data.get("ledger_config", {}).get("rpc"),
                         "type": data.get("ledger_config", {}).get("type"),
-                        "chain": data.get("ledger_config", {}).get("chain")
+                        "chain": data.get("ledger_config", {}).get("chain"),
                     },
                     "chain_data": {
                         "instances": data.get("chain_data", {}).get("instances", []),
                         "token": data.get("chain_data", {}).get("token"),
                         "multisig": data.get("chain_data", {}).get("multisig"),
                         "staked": data.get("chain_data", {}).get("staked", False),
-                        "on_chain_state": data.get("chain_data", {}).get("on_chain_state", 3),
+                        "on_chain_state": data.get("chain_data", {}).get(
+                            "on_chain_state", 3
+                        ),
                         "user_params": {
                             "staking_program_id": "pearl_alpha",
-                            "nft": data.get("chain_data", {}).get("user_params", {}).get("nft"),
-                            "threshold": data.get("chain_data", {}).get("user_params", {}).get("threshold"),
-                            "use_staking": data.get("chain_data", {}).get("user_params", {}).get("use_staking"),
-                            "cost_of_bond": data.get("chain_data", {}).get("user_params", {}).get("cost_of_bond"),
-                            "fund_requirements": data.get("chain_data", {}).get("user_params", {}).get("fund_requirements", {})
-                        }
-                    }
+                            "nft": data.get("chain_data", {})
+                            .get("user_params", {})
+                            .get("nft"),
+                            "threshold": data.get("chain_data", {})
+                            .get("user_params", {})
+                            .get("threshold"),
+                            "use_staking": data.get("chain_data", {})
+                            .get("user_params", {})
+                            .get("use_staking"),
+                            "cost_of_bond": data.get("chain_data", {})
+                            .get("user_params", {})
+                            .get("cost_of_bond"),
+                            "fund_requirements": data.get("chain_data", {})
+                            .get("user_params", {})
+                            .get("fund_requirements", {}),
+                        },
+                    },
                 }
             },
             "service_path": data.get("service_path", ""),
-            "name": data.get("name", "")
+            "name": data.get("name", ""),
         }
-        
-        with open(file_path, 'w', encoding='utf-8') as file:
+
+        with open(file_path, "w", encoding="utf-8") as file:
             json.dump(new_data, file, indent=2)
 
     @classmethod
@@ -729,6 +745,7 @@ class Service(LocalResource):
             self._deployment = Deployment.load(path=self.path)
         return t.cast(Deployment, self._deployment)
 
+    # pylint: disable=too-many-locals
     @staticmethod
     def new(
         hash: str,
@@ -761,7 +778,7 @@ class Service(LocalResource):
                 multisig=DUMMY_MULTISIG,
                 staked=False,
                 on_chain_state=OnChainState.NON_EXISTENT,
-                user_params=OnChainUserParams.from_json(config),
+                user_params=OnChainUserParams.from_json(dict(config)),
             )
 
             chain_configs[chain] = ChainConfig(
@@ -782,10 +799,14 @@ class Service(LocalResource):
         service.store()
         return service
 
-    def update_user_params_from_template(self, service_template: ServiceTemplate):
+    def update_user_params_from_template(
+        self, service_template: ServiceTemplate
+    ) -> None:
         """Update user params from template."""
         for chain, config in service_template["configurations"].items():
-            self.chain_configs[chain].chain_data.user_params = OnChainUserParams.from_json(config)
+            self.chain_configs[
+                chain
+            ].chain_data.user_params = OnChainUserParams.from_json(dict(config))
 
         self.store()
 
