@@ -30,7 +30,7 @@ from pathlib import Path
 import requests
 import yaml
 from aea.crypto.base import LedgerApi
-from aea_ledger_ethereum import EthereumApi, EIP1559, wei_to_gwei, get_base_fee_multiplier
+from aea_ledger_ethereum import EthereumApi, EIP1559, get_base_fee_multiplier
 from dotenv import load_dotenv
 from eth_utils import to_wei
 from halo import Halo
@@ -145,81 +145,6 @@ def estimate_priority_fee(
         values = values[highest_increase_index:]
 
     return values[len(values) // 2]
-
-
-
-# def patched_get_gas_price_strategy_eip1559(
-#     max_gas_fast: int,
-#     fee_history_blocks: int,
-#     fee_history_percentile: int,
-#     default_priority_fee: t.Optional[int],
-#     fallback_estimate: t.Dict[str, t.Optional[int]],
-#     priority_fee_increase_boundary: int,
-# ) -> t.Callable[[Web3, TxParams], t.Dict[str, Wei]]:
-#         """Get the gas price strategy."""
-
-#         def eip1559_price_strategy(
-#                 web3: Web3,  # pylint: disable=redefined-outer-name
-#                 transaction_params: TxParams,  # pylint: disable=unused-argument
-#         ) -> t.Dict[str, Wei]:
-#             """
-#             Get gas price using EIP1559.
-
-#             Visit `https://github.com/ethereum/EIPs/blob/master/EIPS/eip-1559.md`
-#             for more information.
-
-#             :param web3: web3 instance
-#             :param transaction_params: transaction parameters
-#             :return: dictionary containing gas price strategy
-#             """
-
-#             latest_block = web3.eth.get_block("latest")
-#             base_fee = latest_block.get("baseFeePerGas")
-#             block_number = latest_block.get("number")
-#             base_fee_gwei = wei_to_gwei(base_fee)
-
-#             estimated_priority_fee = estimate_priority_fee(
-#                 web3,
-#                 block_number,
-#                 default_priority_fee=default_priority_fee,
-#                 fee_history_blocks=fee_history_blocks,
-#                 fee_history_percentile=fee_history_percentile,
-#                 priority_fee_increase_boundary=priority_fee_increase_boundary,
-#             )
-
-#             if estimated_priority_fee is None:
-#                 return fallback_estimate
-
-#             max_priority_fee_per_gas = max(
-#                 estimated_priority_fee,
-#                 to_wei(default_priority_fee, "gwei")
-#                 if default_priority_fee is not None
-#                 else -1,
-#             )
-#             multiplier = get_base_fee_multiplier(base_fee_gwei)
-
-#             potential_max_fee = base_fee * multiplier
-#             max_fee_per_gas = (
-#                 (potential_max_fee + max_priority_fee_per_gas)
-#                 if max_priority_fee_per_gas > potential_max_fee
-#                 else potential_max_fee
-#             )
-
-#             if (
-#                     wei_to_gwei(max_fee_per_gas) >= max_gas_fast
-#                     or wei_to_gwei(max_priority_fee_per_gas) >= max_gas_fast
-#             ):
-#                 return fallback_estimate
-
-#             return {
-#                 "maxFeePerGas": Wei(int(max_fee_per_gas)),
-#                 "maxPriorityFeePerGas": Wei(int(max_priority_fee_per_gas)),
-#             }
-
-#         return eip1559_price_strategy
-
-
-# EthereumApi._gas_price_strategy_callables[EIP1559] = patched_get_gas_price_strategy_eip1559
 
 
 @dataclass
