@@ -25,7 +25,30 @@ Ensure your machine satisfies the requirements:
 - [Docker Engine](https://docs.docker.com/engine/install/)
 - [Docker Compose](https://docs.docker.com/compose/install/)
 
-## Resource Requirements
+## Optimus Agent: Functionality Overview
+
+**Supported Chains:**
+The Optimus agent currently operates on the following chains:
+- Optimism
+- Base
+- Ethereum
+
+**Supported DEXs:**
+The Optimus agent trades on the following decentralized exchanges (DEXs):
+- Balancer
+- Uniswap
+
+**Operational Process:**
+Within a typical epoch of 24 hours, the Optimus agent performs the following tasks:
+
+1. **Opportunity Identification:** It identifies trading opportunities through campaigns advertised on the Merkl platform across the supported DEXs.
+  
+2. **Liquidity Pool Investment:** When a suitable liquidity pool is found, the agent takes the following actions:
+   - **First Opportunity:** If this is the first opportunity encountered, the agent will add liquidity to the pool if its Annual Percentage Rate (APR) is higher than 5%.
+   - **Subsequent Opportunities:** If the agent has already invested in a liquidity pool, it will consider the next opportunity only if its APR exceeds that of the previously invested pool.
+
+3. **Transaction Tracking:** The agent tracks the number of transactions performed on the Optimism chain, which serves as key performance indicators (KPIs) for Olas Staking Rewards.
+## Minimal Funding Requirements
 
 - For the initial setup you will need to fund certain addresses with the following funds when requested: 0.08 ETH (Ethereum mainnet) + 20 USDC (Ethereum mainnet) + 0.04 ETH (Optimism chain) + 0.04 ETH (Base chain). These quantities are based on the gas prices seen on the 1st half of Sept 2024 and may need to be revised. Additionally some quantity of OLAS bridged to Optimism if you want to stake.
 
