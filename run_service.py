@@ -158,6 +158,7 @@ class OptimusConfig(LocalResource):
     tenderly_access_key: t.Optional[str] = None
     tenderly_account_slug: t.Optional[str] = None
     tenderly_project_slug: t.Optional[str] = None
+    coingecko_api_key: t.Optional[str] = None
     password_migrated: t.Optional[bool] = None
     use_staking: t.Optional[bool] = None
 
@@ -313,6 +314,11 @@ def get_local_config() -> OptimusConfig:
             "Please enter your Tenderly Project Slug: "
         )
 
+    if optimus_config.coingecko_api_key is None:
+        optimus_config.coingecko_api_key = input(
+            "Please enter your CoinGecko API Key. Get one at https://www.coingecko.com/: "
+        )    
+
     if optimus_config.password_migrated is None:
         optimus_config.password_migrated = False
 
@@ -352,7 +358,7 @@ def get_service_template(config: OptimusConfig) -> ServiceTemplate:
     """Get the service template"""
     return ServiceTemplate({
         "name": "Optimus",
-        "hash": "bafybeiawewwnrbu4urr5nkyg2gd55gpcbrr4j4lreyzpkopftpmpf3jrry",
+        "hash": "bafybeiasbh4wha2soe62izwwwtgf2vxcjyxe5nxqen4t66amfwbyho4v2u",
         "description": "Optimus",
         "image": "https://operate.olas.network/_next/image?url=%2Fimages%2Fprediction-agent.png&w=3840&q=75",
         "service_version": 'v0.18.1',
@@ -664,6 +670,7 @@ def main() -> None:
         "TENDERLY_ACCOUNT_SLUG": optimus_config.tenderly_account_slug,
         "TENDERLY_PROJECT_SLUG": optimus_config.tenderly_project_slug,
         "STAKING_TOKEN_CONTRACT_ADDRESS": STAKING[home_chain_type][target_staking_program_id],
+        "COINGECKO_API_KEY": optimus_config.coingecko_api_key,
     }
     apply_env_vars(env_vars)
     print("Skipping local deployment")
