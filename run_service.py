@@ -59,7 +59,7 @@ MASTER_WALLET_MIMIMUM_BALANCE = 6_001_000_000_000_000
 COST_OF_BOND = 1
 COST_OF_BOND_STAKING = 2 * 10 ** 19
 STAKED_BONDING_TOKEN = "OLAS"
-USDC_REQUIRED = 10_000_000
+USDC_REQUIRED = 15_000_000
 USDC_ADDRESS = "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48"
 WARNING_ICON = colored('\u26A0', 'yellow')
 OPERATE_HOME = Path.cwd() / ".optimus"
@@ -624,7 +624,7 @@ def main() -> None:
             spinner.succeed(f"[{chain_name}] Safe updated balance: {balance} {STAKED_BONDING_TOKEN}")
 
         if chain_metadata.get("usdcRequired", False) and not service_exists:
-            print(f"[{chain_name}] Please make sure address {address} has at least 10 USDC")
+            print(f"[{chain_name}] Please make sure address {address} has at least 15 USDC")
 
             spinner = Halo(
                 text=f"[{chain_name}] Waiting for USDC...",
