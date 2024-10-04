@@ -11,7 +11,7 @@
 
 ## Compatible Systems
 
-- Windows 10/11: WSL2 / Git BASH
+- Windows 10/11: WSL2
 - Mac ARM / Intel
 - Linux
 - Raspberry Pi 4
@@ -140,50 +140,36 @@ git pull origin
 Then continue above with "Run the script".
 
 
-## Advice for Windows users using Git BASH
+## Advice for Windows users on installing Windows Subsystem for Linux version 2 (WSL2)
 
-We provide some hints to have your Windows system ready to run the agent. The instructions below have been tested in Windows 11.
+1. Open a **Command Prompt** terminal as an Administrator.
 
-Execute the following steps in a PowerShell terminal:
-
-1. Install [Git](https://git-scm.com/download/win) and Git Bash:
+2. Run the following commands:
 
     ```bash
-    winget install --id Git.Git -e --source winget
+    dism.exe /online /enable-feature /featurename:Microsoft-Windows-Subsystem-Linux /all /norestart
     ```
-
-2. Install Python 3.10:
 
     ```bash
-    winget install Python.Python.3.10
+    dism.exe /online /enable-feature /featurename:VirtualMachinePlatform /all /norestart
     ```
 
-3. Close and re-open the PowerShell terminal.
+3. Then restart the computer.
 
-4. Install [Poetry](https://python-poetry.org/docs/):
+4. Open a **Command Prompt** terminal.
+
+5. Make WSL2 the default version by running:
 
     ```bash
-    curl.exe -sSL https://install.python-poetry.org | python -
+    wsl --set-default-version 2
     ```
 
-5. Add Poetry to your user's path:
+6. Install Ubuntu 22.04 by running:
 
     ```bash
-    $existingUserPath = (Get-Item -Path HKCU:\Environment).GetValue("PATH", $null, "DoNotExpandEnvironmentNames")
-
-    $newUserPath = "$existingUserPath;$Env:APPDATA\Python\Scripts"
-
-    [System.Environment]::SetEnvironmentVariable("Path", $newUserPath, "User")
+    wsl --install -d Ubuntu-22.04
     ```
 
-6. Install [Docker Desktop](https://www.docker.com/products/docker-desktop/):
+7. Follow the on-screen instructions and set a username and password for your Ubuntu installation.
 
-    ```bash
-    winget install -e --id Docker.DockerDesktop
-    ```
-
-7. Log out of your Windows session and then log back in.
-
-8. Open [Docker Desktop](https://www.docker.com/products/docker-desktop/) and leave it opened in the background.
-
-Now, open a Git Bash terminal and follow the instructions in the "[Run the script](#run-the-script)" section as well as the subsequent sections. You might need to install Microsoft Visual C++ 14.0 or greater.
+8. Install Docker Desktop and enable the WSL 2 backend by following the instructions from Docker [here](https://docs.docker.com/desktop/wsl/).
