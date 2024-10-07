@@ -159,6 +159,7 @@ class OptimusConfig(LocalResource):
     tenderly_account_slug: t.Optional[str] = None
     tenderly_project_slug: t.Optional[str] = None
     coingecko_api_key: t.Optional[str] = None
+    min_swap_amount_threshold: t.Optional[int] = None
     password_migrated: t.Optional[bool] = None
     use_staking: t.Optional[bool] = None
 
@@ -317,7 +318,12 @@ def get_local_config() -> OptimusConfig:
     if optimus_config.coingecko_api_key is None:
         optimus_config.coingecko_api_key = input(
             "Please enter your CoinGecko API Key. Get one at https://www.coingecko.com/: "
-        )    
+        )
+
+    if optimus_config.min_swap_amount_threshold is None:
+        optimus_config.min_swap_amount_threshold = input(
+            "Please enter the minimum swap amount threshold: "
+        )
 
     if optimus_config.password_migrated is None:
         optimus_config.password_migrated = False
@@ -672,6 +678,7 @@ def main() -> None:
         "TENDERLY_PROJECT_SLUG": optimus_config.tenderly_project_slug,
         "STAKING_TOKEN_CONTRACT_ADDRESS": STAKING[home_chain_type][target_staking_program_id],
         "COINGECKO_API_KEY": optimus_config.coingecko_api_key,
+        "MIN_SWAP_AMOUNT_THRESHOLD": optimus_config.min_swap_amount_threshold,
     }
     apply_env_vars(env_vars)
     print("Skipping local deployment")
