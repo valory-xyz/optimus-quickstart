@@ -63,6 +63,7 @@ USDC_REQUIRED = 15_000_000
 USDC_ADDRESS = "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48"
 WARNING_ICON = colored('\u26A0', 'yellow')
 OPERATE_HOME = Path.cwd() / ".optimus"
+DEFAULT_MIN_SWAP_AMOUNT_THRESHOLD = 15
 
 CHAIN_ID_TO_METADATA = {
     1: {
@@ -321,9 +322,23 @@ def get_local_config() -> OptimusConfig:
         )
 
     if optimus_config.min_swap_amount_threshold is None:
-        optimus_config.min_swap_amount_threshold = input(
-            "Please enter the minimum swap amount threshold: "
-        )
+        update_min_swap = input(f"Do you want to update the minimum swap amount threshold (set to {DEFAULT_MIN_SWAP_AMOUNT_THRESHOLD} USD)? (y/n): ").lower() == 'y'
+        if update_min_swap:
+            while True:
+                try:
+                    user_input = input(
+                        f"Please enter the minimum swap amount threshold (at least {DEFAULT_MIN_SWAP_AMOUNT_THRESHOLD} USD): "
+                    )
+                    min_swap_amount = int(user_input)
+                    if min_swap_amount >= DEFAULT_MIN_SWAP_AMOUNT_THRESHOLD:
+                        optimus_config.min_swap_amount_threshold = min_swap_amount
+                        break
+                    else:
+                        print(f"Error: The minimum swap amount must be at least {DEFAULT_MIN_SWAP_AMOUNT_THRESHOLD} USD.")
+                except ValueError:
+                    print("Error: Please enter a valid integer.")
+        else:
+            optimus_config.min_swap_amount_threshold = DEFAULT_MIN_SWAP_AMOUNT_THRESHOLD
 
     if optimus_config.password_migrated is None:
         optimus_config.password_migrated = False
