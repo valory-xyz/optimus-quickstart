@@ -528,7 +528,7 @@ def fetch_initial_funding_requirements() -> None:
     global CHAIN_ID_TO_METADATA
 
     optimus_config = get_local_config()
-
+    fetch_operational_fund_requirement(optimus_config.ethereum_rpc)
     headers = {
         "accept": "application/json",
         "x-cg-api-key": optimus_config.coingecko_api_key
@@ -546,7 +546,7 @@ def fetch_initial_funding_requirements() -> None:
     eth_required_rounded = float(Decimal(eth_required).quantize(Decimal('0.0001'), rounding=ROUND_UP))
     eth_required_in_wei = int((eth_required_rounded * 10 ** 18) + safety_margin)
     INITIAL_FUNDS_REQUIREMENT['ETH'] = eth_required_in_wei
-    operational_fund_requirement = 15_000_000_000_000_000
+    operational_fund_requirement = fetch_operational_fund_requirement(optimus_config.ethereum_rpc)
     CHAIN_ID_TO_METADATA[1]['firstTimeTopUp'] = eth_required_in_wei + operational_fund_requirement
     # Fetch USDC price
     usdc_url = f"https://api.coingecko.com/api/v3/simple/token_price/ethereum?contract_addresses={USDC_ADDRESS}&vs_currencies=usd"
@@ -560,6 +560,28 @@ def fetch_initial_funding_requirements() -> None:
     usdc_required_rounded = math.ceil(usdc_required)
     usdc_required_in_decimals = int((usdc_required_rounded * 10 ** 6) + safety_margin)
     INITIAL_FUNDS_REQUIREMENT['USDC'] = usdc_required_in_decimals
+
+def fetch_operational_fund_requirement(rpc, fee_history_blocks: int = 7000) -> int:
+    web3 = Web3(Web3.HTTPProvider(rpc))
+    block_number = web3.eth.block_number
+
+    # Fetch fee history
+    fee_history = web3.eth.fee_history(
+        fee_history_blocks, block_number, [50]
+    )
+    base_fees = fee_history['baseFeePerGas']
+    priority_fees = [reward[0] for reward in fee_history['reward'] if reward]
+
+    # Calculate average fees
+    average_base_fee = sum(base_fees) / len(base_fees)
+    average_priority_fee = sum(priority_fees) / len(priority_fees)
+
+    average_gas_price = average_base_fee + average_priority_fee
+
+    gas_amount = 1_000_000 
+    safety_margin = 1_000_000_000_000_000
+    operational_fund_requirement = int((average_gas_price * gas_amount) + safety_margin)
+    return operational_fund_requirement
 
 def main() -> None:
     """Run service."""
@@ -719,8 +741,16 @@ def main() -> None:
             chain_id=chain_id,
             fallback_staking_params=FALLBACK_STAKING_PARAMS,
         )
-        safe_fund_threshold=INITIAL_FUNDS_REQUIREMENT['ETH'] if chain_id == 1 else None
-        manager.fund_service(hash=service.hash, chain_id=chain_id, safe_fund_treshold=safe_fund_threshold)
+        if chain_id == '1':
+            safe_fund_threshold=INITIAL_FUNDS_REQUIREMENT['ETH']
+            service_safe = chain_config.chain_data.multisig
+            safe_balance = ledger_api.get_balance(service_safe)
+            safe_topup = safe_fund_threshold - safe_balance
+        else:
+            safe_fund_threshold = None
+            safe_topup = None
+
+        manager.fund_service(hash=service.hash, chain_id=chain_id, safe_fund_treshold=safe_fund_threshold, safe_topup=safe_topup)
 
         usdc_balance = get_erc20_balance(ledger_api, USDC_ADDRESS, address) if chain_metadata.get("usdcRequired", False) else 0
         if usdc_balance > 0:
