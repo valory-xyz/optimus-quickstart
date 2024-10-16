@@ -25,7 +25,7 @@ getcontext().prec = 18
 GAS_COSTS_JSON_PATH = Path(".optimus") / "gas_costs.json"
 FUNDING_MULTIPLIER = Decimal(10)
 ROUNDING_PRECISION = Decimal('0.0001')
-
+MIN_TRANSACTIONS_SUPPORTED = 5
 # Configure logging
 logging.basicConfig(level=logging.INFO, format='%(message)s')
 
@@ -127,13 +127,13 @@ def _report_funding_status(chain_name: str, balance_info: Any, average_gas_cost:
     if funding_needed <= 0:
         funding_message = f"[{chain_name}] Your current balance is sufficient for future transactions."
         print(_color_string(funding_message, ColorCode.GREEN))
-    elif transactions_supported < 5:
+    elif transactions_supported < MIN_TRANSACTIONS_SUPPORTED:
         funding_needed_rounded = _round_up(funding_needed, ROUNDING_PRECISION)
-        funding_message = f"[{chain_name}] BALANCE TOO LOW! Urgently fund your agent {agent_address} at least {funding_needed_rounded} ETH to ensure smooth operation"
+        funding_message = f"[{chain_name}] BALANCE TOO LOW! Please urgently fund your agent {agent_address} with at least {funding_needed_rounded} ETH to ensure smooth operation"
         print(_color_string(funding_message, ColorCode.RED))
     else:
         funding_needed_rounded = _round_up(funding_needed, ROUNDING_PRECISION)
-        funding_message = f"[{chain_name}] Please fund your agent {agent_address} at least {funding_needed_rounded} ETH to cover future transaction costs"
+        funding_message = f"[{chain_name}] Please fund your agent {agent_address} with at least {funding_needed_rounded} ETH to cover future transaction costs"
         print(_color_string(funding_message, ColorCode.YELLOW))
 
 def _round_up(value: Decimal, precision: Decimal) -> Decimal:
