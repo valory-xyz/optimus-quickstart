@@ -327,20 +327,21 @@ def get_local_config() -> OptimusConfig:
         update_min_swap = input(f"Do you want to update the minimum swap amount threshold (set to {DEFAULT_MIN_SWAP_AMOUNT_THRESHOLD} USD)? (y/n): ").lower() == 'y'
         if update_min_swap:
             while True:
-                try:
-                    user_input = input(
-                        f"Please enter the minimum swap amount threshold (at least {DEFAULT_MIN_SWAP_AMOUNT_THRESHOLD} USD): "
-                    )
-                    min_swap_amount = int(user_input)
-                    if min_swap_amount >= DEFAULT_MIN_SWAP_AMOUNT_THRESHOLD:
-                        optimus_config.min_swap_amount_threshold = min_swap_amount
-                        break
-                    else:
-                        print(f"Error: The minimum swap amount must be at least {DEFAULT_MIN_SWAP_AMOUNT_THRESHOLD} USD.")
-                except ValueError:
+                user_input = input(
+                    f"Please enter the minimum swap amount threshold (at least {DEFAULT_MIN_SWAP_AMOUNT_THRESHOLD} USD): "
+                )
+                min_swap_amount = user_input
+                if not min_swap_amount.isdigit():
                     print("Error: Please enter a valid integer.")
+                    continue
+                
+                if int(min_swap_amount) >= DEFAULT_MIN_SWAP_AMOUNT_THRESHOLD:
+                    optimus_config.min_swap_amount_threshold = min_swap_amount
+                    break
+                else:
+                    print(f"Error: The minimum swap amount must be at least {DEFAULT_MIN_SWAP_AMOUNT_THRESHOLD} USD.")
         else:
-            optimus_config.min_swap_amount_threshold = DEFAULT_MIN_SWAP_AMOUNT_THRESHOLD
+            optimus_config.min_swap_amount_threshold = str(DEFAULT_MIN_SWAP_AMOUNT_THRESHOLD)
 
     if optimus_config.password_migrated is None:
         optimus_config.password_migrated = False
@@ -542,7 +543,7 @@ def fetch_initial_funding_requirements() -> None:
         return
 
     safety_margin = 500_000_000_000_000
-    eth_required = (optimus_config.min_swap_amount_threshold / eth_price)
+    eth_required = (int(optimus_config.min_swap_amount_threshold) / eth_price)
     eth_required_rounded = float(Decimal(eth_required).quantize(Decimal('0.0001'), rounding=ROUND_UP))
     eth_required_in_wei = int((eth_required_rounded * 10 ** 18) + safety_margin)
     INITIAL_FUNDS_REQUIREMENT['ETH'] = eth_required_in_wei
@@ -556,7 +557,7 @@ def fetch_initial_funding_requirements() -> None:
         return
       
     safety_margin = 1_000_000
-    usdc_required = (optimus_config.min_swap_amount_threshold / usdc_price)
+    usdc_required = (int(optimus_config.min_swap_amount_threshold) / usdc_price)
     usdc_required_rounded = math.ceil(usdc_required)
     usdc_required_in_decimals = int((usdc_required_rounded * 10 ** 6) + safety_margin)
     INITIAL_FUNDS_REQUIREMENT['USDC'] = usdc_required_in_decimals
