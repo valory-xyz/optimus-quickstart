@@ -24,8 +24,10 @@ import os
 import sys
 import time
 import typing as t
+import math
 from dataclasses import dataclass
 from pathlib import Path
+from decimal import Decimal, ROUND_UP
 
 import requests
 import yaml
@@ -59,10 +61,11 @@ MASTER_WALLET_MIMIMUM_BALANCE = 6_001_000_000_000_000
 COST_OF_BOND = 1
 COST_OF_BOND_STAKING = 2 * 10 ** 19
 STAKED_BONDING_TOKEN = "OLAS"
-USDC_REQUIRED = 15_000_000
+INITIAL_FUNDS_REQUIREMENT = {"USDC": 15_000_000, "ETH": 6_000_000_000_000_000}
 USDC_ADDRESS = "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48"
 WARNING_ICON = colored('\u26A0', 'yellow')
 OPERATE_HOME = Path.cwd() / ".optimus"
+DEFAULT_MIN_SWAP_AMOUNT_THRESHOLD = 15
 
 CHAIN_ID_TO_METADATA = {
     1: {
@@ -159,6 +162,7 @@ class OptimusConfig(LocalResource):
     tenderly_account_slug: t.Optional[str] = None
     tenderly_project_slug: t.Optional[str] = None
     coingecko_api_key: t.Optional[str] = None
+    min_swap_amount_threshold: t.Optional[int] = None
     password_migrated: t.Optional[bool] = None
     use_staking: t.Optional[bool] = None
 
@@ -317,7 +321,27 @@ def get_local_config() -> OptimusConfig:
     if optimus_config.coingecko_api_key is None:
         optimus_config.coingecko_api_key = input(
             "Please enter your CoinGecko API Key. Get one at https://www.coingecko.com/: "
-        )    
+        )
+
+    if optimus_config.min_swap_amount_threshold is None:
+        update_min_swap = input(f"Do you want to update the minimum swap amount threshold (set to {DEFAULT_MIN_SWAP_AMOUNT_THRESHOLD} USD)? (y/n): ").lower() == 'y'
+        if update_min_swap:
+            while True:
+                user_input = input(
+                    f"Please enter the minimum swap amount threshold (at least {DEFAULT_MIN_SWAP_AMOUNT_THRESHOLD} USD): "
+                )
+                min_swap_amount = user_input
+                if not min_swap_amount.isdigit():
+                    print("Error: Please enter a valid integer.")
+                    continue
+                
+                if int(min_swap_amount) >= DEFAULT_MIN_SWAP_AMOUNT_THRESHOLD:
+                    optimus_config.min_swap_amount_threshold = min_swap_amount
+                    break
+                else:
+                    print(f"Error: The minimum swap amount must be at least {DEFAULT_MIN_SWAP_AMOUNT_THRESHOLD} USD.")
+        else:
+            optimus_config.min_swap_amount_threshold = str(DEFAULT_MIN_SWAP_AMOUNT_THRESHOLD)
 
     if optimus_config.password_migrated is None:
         optimus_config.password_migrated = False
@@ -376,7 +400,7 @@ def get_service_template(config: OptimusConfig) -> ServiceTemplate:
                     "fund_requirements": FundRequirementsTemplate(
                         {
                             "agent": SUGGESTED_TOP_UP_DEFAULT * 5,
-                            "safe": SUGGESTED_SAFE_TOP_UP_DEFAULT,
+                            "safe": 0,
                         }
                     ),
                 }
@@ -484,7 +508,81 @@ def get_service(manager: ServiceManager, template: ServiceTemplate) -> Service:
         )
 
     return service
+    
+def fetch_token_price(url: str, headers: dict) -> t.Optional[float]:
+    """Fetch the price of a token from a given URL."""
+    try:
+        response = requests.get(url, headers=headers)
+        if response.status_code != 200:
+            print(f"Error fetching info from url {url}. Failed with status code: {response.status_code}")
+            return None
+        prices = response.json()
+        token = next(iter(prices)) 
+        return prices[token].get('usd', None)
+    except Exception as e:
+        print(f"Error fetching token price: {e}")
+        return None
 
+def fetch_initial_funding_requirements() -> None:
+    """Fetch initial funding requirements based on min_swap_amount_threshold."""
+    global INITIAL_FUNDS_REQUIREMENT
+    global CHAIN_ID_TO_METADATA
+
+    optimus_config = get_local_config()
+    fetch_operational_fund_requirement(optimus_config.ethereum_rpc)
+    headers = {
+        "accept": "application/json",
+        "x-cg-api-key": optimus_config.coingecko_api_key
+    }
+
+    # Fetch ETH price
+    eth_url = "https://api.coingecko.com/api/v3/simple/price?ids=ethereum&vs_currencies=usd"
+    eth_price = fetch_token_price(eth_url, headers)
+    if eth_price is None:
+        print("Error: Could not fetch price for ETH.")
+        return
+
+    safety_margin = 500_000_000_000_000
+    eth_required = (int(optimus_config.min_swap_amount_threshold) / eth_price)
+    eth_required_rounded = float(Decimal(eth_required).quantize(Decimal('0.0001'), rounding=ROUND_UP))
+    eth_required_in_wei = int((eth_required_rounded * 10 ** 18) + safety_margin)
+    INITIAL_FUNDS_REQUIREMENT['ETH'] = eth_required_in_wei
+    operational_fund_requirement = fetch_operational_fund_requirement(optimus_config.ethereum_rpc)
+    CHAIN_ID_TO_METADATA[1]['firstTimeTopUp'] = eth_required_in_wei + operational_fund_requirement
+    # Fetch USDC price
+    usdc_url = f"https://api.coingecko.com/api/v3/simple/token_price/ethereum?contract_addresses={USDC_ADDRESS}&vs_currencies=usd"
+    usdc_price = fetch_token_price(usdc_url, headers)
+    if usdc_price is None:
+        print("Error: Could not fetch price for USDC.")
+        return
+      
+    safety_margin = 1_000_000
+    usdc_required = (int(optimus_config.min_swap_amount_threshold) / usdc_price)
+    usdc_required_rounded = math.ceil(usdc_required)
+    usdc_required_in_decimals = int((usdc_required_rounded * 10 ** 6) + safety_margin)
+    INITIAL_FUNDS_REQUIREMENT['USDC'] = usdc_required_in_decimals
+
+def fetch_operational_fund_requirement(rpc, fee_history_blocks: int = 7000) -> int:
+    web3 = Web3(Web3.HTTPProvider(rpc))
+    block_number = web3.eth.block_number
+
+    # Fetch fee history
+    fee_history = web3.eth.fee_history(
+        fee_history_blocks, block_number, [50]
+    )
+    base_fees = fee_history['baseFeePerGas']
+    priority_fees = [reward[0] for reward in fee_history['reward'] if reward]
+
+    # Calculate average fees
+    average_base_fee = sum(base_fees) / len(base_fees)
+    average_priority_fee = sum(priority_fees) / len(priority_fees)
+
+    average_gas_price = average_base_fee + average_priority_fee
+
+    gas_amount = 1_000_000 
+    safety_margin = 1_000_000_000_000_000
+    operational_fund_requirement = int((average_gas_price * gas_amount) + safety_margin)
+    return operational_fund_requirement
 
 def main() -> None:
     """Run service."""
@@ -533,7 +631,7 @@ def main() -> None:
         wallet = operate.wallet_manager.load(ledger_type=LedgerType.ETHEREUM)
 
     manager = operate.service_manager()
-
+    fetch_initial_funding_requirements()
 
     for chain_id, configuration in service.chain_configs.items():
         chain_metadata = CHAIN_ID_TO_METADATA[int(chain_id)]
@@ -633,7 +731,7 @@ def main() -> None:
             )
             spinner.start()
 
-            while get_erc20_balance(ledger_api, USDC_ADDRESS, address) < USDC_REQUIRED:
+            while get_erc20_balance(ledger_api, USDC_ADDRESS, address) < INITIAL_FUNDS_REQUIREMENT['USDC']:
                 time.sleep(1)
 
             usdc_balance = get_erc20_balance(ledger_api, USDC_ADDRESS, address) / 10 ** 6
@@ -644,7 +742,16 @@ def main() -> None:
             chain_id=chain_id,
             fallback_staking_params=FALLBACK_STAKING_PARAMS,
         )
-        manager.fund_service(hash=service.hash, chain_id=chain_id)
+        if chain_id == '1' and not service_exists:
+            safe_fund_threshold=INITIAL_FUNDS_REQUIREMENT['ETH']
+            service_safe = chain_config.chain_data.multisig
+            safe_balance = ledger_api.get_balance(service_safe)
+            safe_topup = safe_fund_threshold - safe_balance
+        else:
+            safe_fund_threshold = None
+            safe_topup = None
+
+        manager.fund_service(hash=service.hash, chain_id=chain_id, safe_fund_treshold=safe_fund_threshold, safe_topup=safe_topup)
 
         usdc_balance = get_erc20_balance(ledger_api, USDC_ADDRESS, address) if chain_metadata.get("usdcRequired", False) else 0
         if usdc_balance > 0:
@@ -655,7 +762,7 @@ def main() -> None:
                 token=USDC_ADDRESS,
                 safe_topup=usdc_balance,
                 agent_topup=0,
-                safe_fund_treshold=USDC_REQUIRED + usdc_balance,
+                safe_fund_treshold=INITIAL_FUNDS_REQUIREMENT['USDC'] + usdc_balance,
             )
 
     safes = {
@@ -672,6 +779,7 @@ def main() -> None:
         "TENDERLY_PROJECT_SLUG": optimus_config.tenderly_project_slug,
         "STAKING_TOKEN_CONTRACT_ADDRESS": STAKING[home_chain_type][target_staking_program_id],
         "COINGECKO_API_KEY": optimus_config.coingecko_api_key,
+        "MIN_SWAP_AMOUNT_THRESHOLD": optimus_config.min_swap_amount_threshold,
     }
     apply_env_vars(env_vars)
     print("Skipping local deployment")
