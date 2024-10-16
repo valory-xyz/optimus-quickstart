@@ -100,7 +100,7 @@ def analyze_and_report_gas_costs(gas_costs: dict, balance_info: Any, chain_id: i
     transactions = gas_costs.get(chain_id, [])
     average_gas_price = _calculate_average_gas_price(chain_rpc)
     if not transactions:
-        average_gas_used = 2_000_000
+        average_gas_used = 2_00_000
     else:
         total_gas_used = sum(Decimal(tx["gas_used"]) for tx in transactions)
         average_gas_used = total_gas_used / Decimal(len(transactions))
