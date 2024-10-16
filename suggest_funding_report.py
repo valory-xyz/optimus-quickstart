@@ -3,7 +3,8 @@ from datetime import datetime
 import logging
 from decimal import Decimal, getcontext, ROUND_UP
 from pathlib import Path
-from typing import Any, Tuple
+from typing import Any, Tuple, Dict
+from web3 import Web3
 
 from run_service import (
     CHAIN_ID_TO_METADATA,
@@ -74,7 +75,8 @@ def generate_gas_cost_report():
             chain_name = get_chain_name(chain_id, CHAIN_ID_TO_METADATA)
             balance_info = wallet_info.get('main_wallet_balances', {}).get(chain_name, {})
             agent_address = wallet_info.get('main_wallet_address', 'N/A')
-            analyze_and_report_gas_costs(gas_costs, balance_info, chain_id, chain_name, agent_address)
+            chain_rpc = wallet_info.get("chain_configs").get(str(chain_id)).get('rpc')
+            analyze_and_report_gas_costs(gas_costs, balance_info, chain_id, chain_name, agent_address, chain_rpc)
 
     except Exception as e:
         print(f"An unexpected error occurred in generate_gas_cost_report: {e}")
@@ -91,22 +93,37 @@ def _load_json_file(file_path: Path, description: str) -> dict:
         print(f"Error: {description} file contains invalid JSON.")
         return {}
 
-def analyze_and_report_gas_costs(gas_costs: dict, balance_info: Any, chain_id: int, chain_name: str, agent_address: str) -> None:
+def analyze_and_report_gas_costs(gas_costs: dict, balance_info: Any, chain_id: int, chain_name: str, agent_address: str, chain_rpc: str) -> None:
     """Analyze gas costs and suggest funding amount."""
     _print_subsection_header(f"Funding Recommendation for {chain_name}")
 
     transactions = gas_costs.get(chain_id, [])
+    average_gas_price = _calculate_average_gas_price(chain_rpc)
     if not transactions:
-        no_data_message = f"[{chain_name}] No transaction data available for analysis."
-        print(_color_string(no_data_message, ColorCode.YELLOW))
-        return
+        average_gas_used = 2_000_000
+    else:
+        total_gas_used = sum(Decimal(tx["gas_used"]) for tx in transactions)
+        average_gas_used = total_gas_used / Decimal(len(transactions))
 
-    total_gas_cost = sum(Decimal(tx["gas_cost"]) for tx in transactions)
-    average_gas_price = sum(Decimal(tx["gas_price"]) for tx in transactions) / Decimal(len(transactions))
-    average_gas_cost = total_gas_cost / Decimal(len(transactions))
-
+    average_gas_cost = average_gas_used * average_gas_price
     funding_needed, funding_suggestion = _calculate_funding_needed(average_gas_cost, balance_info)
     _report_funding_status(chain_name, balance_info, average_gas_cost, average_gas_price, funding_suggestion, funding_needed, agent_address)
+
+def _calculate_average_gas_price(rpc, fee_history_blocks: int = 7000) -> Decimal:
+    web3 = Web3(Web3.HTTPProvider(rpc))
+    block_number = web3.eth.block_number
+    fee_history = web3.eth.fee_history(
+        fee_history_blocks, block_number, [50]
+    )
+    base_fees = fee_history['baseFeePerGas']
+    priority_fees = [reward[0] for reward in fee_history['reward'] if reward]
+
+    # Calculate average fees
+    average_base_fee = sum(base_fees) / len(base_fees)
+    average_priority_fee = sum(priority_fees) / len(priority_fees)
+
+    average_gas_price = average_base_fee + average_priority_fee
+    return Decimal(average_gas_price)
 
 def _calculate_funding_needed(average_gas_cost: Decimal, balance_info: Any) -> Tuple[Decimal,Decimal]:
     """Calculate the funding needed based on average gas cost and current balance."""
