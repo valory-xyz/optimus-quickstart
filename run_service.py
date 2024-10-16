@@ -399,7 +399,7 @@ def get_service_template(config: OptimusConfig) -> ServiceTemplate:
                     "fund_requirements": FundRequirementsTemplate(
                         {
                             "agent": SUGGESTED_TOP_UP_DEFAULT * 5,
-                            "safe": SUGGESTED_SAFE_TOP_UP_DEFAULT,
+                            "safe": 0,
                         }
                     ),
                 }
@@ -741,7 +741,7 @@ def main() -> None:
             chain_id=chain_id,
             fallback_staking_params=FALLBACK_STAKING_PARAMS,
         )
-        if chain_id == '1':
+        if chain_id == '1' and not service_exists:
             safe_fund_threshold=INITIAL_FUNDS_REQUIREMENT['ETH']
             service_safe = chain_config.chain_data.multisig
             safe_balance = ledger_api.get_balance(service_safe)
