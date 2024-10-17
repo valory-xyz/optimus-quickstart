@@ -98,9 +98,9 @@ def analyze_and_report_gas_costs(gas_costs: dict, balance_info: Any, chain_id: i
     _print_subsection_header(f"Funding Recommendation for {chain_name}")
 
     transactions = gas_costs.get(chain_id, [])
-    average_gas_price = _calculate_average_gas_price(chain_rpc)
+    average_gas_price = _calculate_average_gas_price(chain_rpc, chain_id)
     if not transactions:
-        average_gas_used = 2_00_000
+        average_gas_used = 3_00_000
     else:
         total_gas_used = sum(Decimal(tx["gas_used"]) for tx in transactions)
         average_gas_used = total_gas_used / Decimal(len(transactions))
@@ -109,11 +109,12 @@ def analyze_and_report_gas_costs(gas_costs: dict, balance_info: Any, chain_id: i
     funding_needed, funding_suggestion = _calculate_funding_needed(average_gas_cost, balance_info)
     _report_funding_status(chain_name, balance_info, average_gas_cost, average_gas_price, funding_suggestion, funding_needed, agent_address)
 
-def _calculate_average_gas_price(rpc, fee_history_blocks: int = 7000) -> Decimal:
+def _calculate_average_gas_price(rpc, chain_id) -> Decimal:
+    fee_history_blocks = {"1": 7000, "10": 100000000, "8453": 100000000, "34443": 100000000}
     web3 = Web3(Web3.HTTPProvider(rpc))
     block_number = web3.eth.block_number
     fee_history = web3.eth.fee_history(
-        fee_history_blocks, block_number, [50]
+        fee_history_blocks[chain_id], block_number, [50]
     )
     base_fees = fee_history['baseFeePerGas']
     priority_fees = [reward[0] for reward in fee_history['reward'] if reward]
@@ -123,7 +124,8 @@ def _calculate_average_gas_price(rpc, fee_history_blocks: int = 7000) -> Decimal
     average_priority_fee = sum(priority_fees) / len(priority_fees)
 
     average_gas_price = average_base_fee + average_priority_fee
-    return Decimal(average_gas_price)
+    adjusted_gas_price = average_gas_price * 1.5
+    return Decimal(adjusted_gas_price)
 
 def _calculate_funding_needed(average_gas_cost: Decimal, balance_info: Any) -> Tuple[Decimal,Decimal]:
     """Calculate the funding needed based on average gas cost and current balance."""
@@ -135,14 +137,14 @@ def _report_funding_status(chain_name: str, balance_info: Any, average_gas_cost:
     _print_status(f"[{chain_name}] Current Balance ", balance_info.get('balance_formatted', 'N/A'))
     _print_status(f"[{chain_name}] Average Gas Cost (WEI) ", average_gas_cost)
     _print_status(f"[{chain_name}] Average Gas Price (WEI) ", average_gas_price)
-    _print_status(f"[{chain_name}] Funds needed to execute atleast next {FUNDING_MULTIPLIER} transactions (ETH) ", funding_suggestion)
+    _print_status(f"[{chain_name}] Amount of ETH to cover for estimated gas cost of the next {FUNDING_MULTIPLIER} Transactions: ", f"{funding_suggestion} ETH")
 
     average_gas_cost_eth = average_gas_cost / Decimal(1e18)
     current_balance = Decimal(balance_info.get('balance', 0))
     transactions_supported = current_balance / average_gas_cost_eth
 
     if funding_needed <= 0:
-        funding_message = f"[{chain_name}] Your current balance is sufficient for future transactions."
+        funding_message = f"[{chain_name}] Current balance can cover for the gas cost of up to {int(transactions_supported)} transactions"
         print(_color_string(funding_message, ColorCode.GREEN))
     elif transactions_supported < MIN_TRANSACTIONS_SUPPORTED:
         funding_needed_rounded = _round_up(funding_needed, ROUNDING_PRECISION)
