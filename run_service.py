@@ -66,7 +66,9 @@ USDC_ADDRESS = "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48"
 WARNING_ICON = colored('\u26A0', 'yellow')
 OPERATE_HOME = Path.cwd() / ".optimus"
 DEFAULT_MIN_SWAP_AMOUNT_THRESHOLD = 15
-
+DEFAULT_CHAINS = ["optimism","base"]
+STAKING_CHAINS = ["optimism"]
+DEFAULT_START_CHAIN = "Ethereum Mainnet"
 CHAIN_ID_TO_METADATA = {
     1: {
         "name": "Ethereum Mainnet",
@@ -165,6 +167,7 @@ class OptimusConfig(LocalResource):
     min_swap_amount_threshold: t.Optional[int] = None
     password_migrated: t.Optional[bool] = None
     use_staking: t.Optional[bool] = None
+    allowed_chains: t.Optional[list[str]] = None
 
     @classmethod
     def from_json(cls, obj: t.Dict) -> "LocalResource":
@@ -348,6 +351,23 @@ def get_local_config() -> OptimusConfig:
 
     if optimus_config.use_staking is None:
         optimus_config.use_staking = input("Do you want to stake your service? (y/n): ").lower() == 'y'
+
+    if optimus_config.allowed_chains is None:
+        update_chains = input("Do you want to restrict the operability to specific chains? (y/n): ").lower() == 'y'
+        if update_chains:
+            allowed_chains = []
+            for chain in DEFAULT_CHAINS:
+                if chain in STAKING_CHAINS:
+                    allowed_chains.append(chain)
+                    continue      
+                operate_on_chain = input(f"Do you wish the service to operate on {chain}? (y/n): ").lower() == 'y'
+                if operate_on_chain:
+                    allowed_chains.append(chain)
+
+            optimus_config.allowed_chains = allowed_chains
+        else:
+            optimus_config.allowed_chains = DEFAULT_CHAINS
+            
 
     optimus_config.store()
     return optimus_config
@@ -635,7 +655,13 @@ def main() -> None:
 
     for chain_id, configuration in service.chain_configs.items():
         chain_metadata = CHAIN_ID_TO_METADATA[int(chain_id)]
+        chain_name, token = chain_metadata['name'], chain_metadata["token"]
         chain_config = service.chain_configs[chain_id]
+        service_exists = manager._get_on_chain_state(chain_config) != OnChainState.NON_EXISTENT
+
+        if not service_exists and chain_name.lower() not in optimus_config.allowed_chains and chain_name != DEFAULT_START_CHAIN:
+            continue
+
         chain_type = chain_config.ledger_config.chain
         ledger_api = wallet.ledger_api(
             chain_type=chain_type,
@@ -645,9 +671,7 @@ def main() -> None:
         os.environ["OPEN_AUTONOMY_SUBGRAPH_URL"] = "https://subgraph.autonolas.tech/subgraphs/name/autonolas-staging"
         os.environ["MAX_PRIORITY_FEE_PER_GAS"] = chain_metadata["gasParams"]["MAX_PRIORITY_FEE_PER_GAS"]
         os.environ["MAX_FEE_PER_GAS"] = chain_metadata["gasParams"]["MAX_FEE_PER_GAS"]
-        service_exists = manager._get_on_chain_state(chain_config) != OnChainState.NON_EXISTENT
-
-        chain_name, token = chain_metadata['name'], chain_metadata["token"]
+        
         balance_str = wei_to_token(ledger_api.get_balance(wallet.crypto.address), token)
         print(
             f"[{chain_name}] Main wallet balance: {balance_str}",
@@ -780,6 +804,7 @@ def main() -> None:
         "STAKING_TOKEN_CONTRACT_ADDRESS": STAKING[home_chain_type][target_staking_program_id],
         "COINGECKO_API_KEY": optimus_config.coingecko_api_key,
         "MIN_SWAP_AMOUNT_THRESHOLD": optimus_config.min_swap_amount_threshold,
+        "ALLOWED_CHAINS": optimus_config.allowed_chains
     }
     apply_env_vars(env_vars)
     print("Skipping local deployment")
