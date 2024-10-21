@@ -7,8 +7,10 @@ from typing import Any, Tuple, Dict
 from web3 import Web3
 
 from run_service import (
+    get_local_config,
     CHAIN_ID_TO_METADATA,
     OPERATE_HOME,
+    DEFAULT_START_CHAIN
 )
 
 from utils import (
@@ -52,6 +54,7 @@ def generate_gas_cost_report():
     try:
         gas_costs = load_gas_costs(GAS_COSTS_JSON_PATH)
         wallet_info = load_wallet_info()
+        optimus_config = get_local_config()
         if not wallet_info:
             print("Error: Wallet info is empty.")
             return
@@ -73,6 +76,8 @@ def generate_gas_cost_report():
 
         for chain_id, _ in config.get("chain_configs", {}).items():
             chain_name = get_chain_name(chain_id, CHAIN_ID_TO_METADATA)
+            if optimus_config.allowed_chains and chain_name.lower() not in optimus_config.allowed_chains and chain_name != DEFAULT_START_CHAIN:
+                continue
             balance_info = wallet_info.get('main_wallet_balances', {}).get(chain_name, {})
             agent_address = wallet_info.get('main_wallet_address', 'N/A')
             chain_rpc = wallet_info.get("chain_configs").get(str(chain_id)).get('rpc')
@@ -99,6 +104,9 @@ def analyze_and_report_gas_costs(gas_costs: dict, balance_info: Any, chain_id: i
 
     transactions = gas_costs.get(chain_id, [])
     average_gas_price = _calculate_average_gas_price(chain_rpc, chain_id)
+    if average_gas_price is None:
+        print(f"Unable to calculate gas fees for chain_name {chain_name}")
+        return 
     if not transactions:
         average_gas_used = 3_00_000
     else:
@@ -116,9 +124,14 @@ def _calculate_average_gas_price(rpc, chain_id) -> Decimal:
     fee_history = web3.eth.fee_history(
         fee_history_blocks[chain_id], block_number, [50]
     )
-    base_fees = fee_history['baseFeePerGas']
-    priority_fees = [reward[0] for reward in fee_history['reward'] if reward]
-
+    base_fees = fee_history.get('baseFeePerGas')
+    if base_fees is None:
+        return None
+    
+    priority_fees = [reward[0] for reward in fee_history.get('reward',[]) if reward]
+    if not priority_fees:
+        return None
+    
     # Calculate average fees
     average_base_fee = sum(base_fees) / len(base_fees)
     average_priority_fee = sum(priority_fees) / len(priority_fees)
