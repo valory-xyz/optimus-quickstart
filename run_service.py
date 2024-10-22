@@ -69,16 +69,14 @@ DEFAULT_MIN_SWAP_AMOUNT_THRESHOLD = 15
 DEFAULT_CHAINS = ["optimism","base"]
 STAKING_CHAINS = ["optimism"]
 DEFAULT_START_CHAIN = "Ethereum Mainnet"
-SAFE_DEPLOYMENT_TOP_UP = 1_000_000_000_000_000
 CHAIN_ID_TO_METADATA = {
     1: {
         "name": "Ethereum Mainnet",
         "token": "ETH",
         "native_token_balance": MASTER_WALLET_MIMIMUM_BALANCE,
         "usdcRequired": True,
-        "safeDeploymentTopUp":  SAFE_DEPLOYMENT_TOP_UP * 2,
-        "firstTimeTopUp": SUGGESTED_TOP_UP_DEFAULT * 10 * 2,
-        "operationalFundReq": 0,
+        "initialFundsRequirement": SUGGESTED_TOP_UP_DEFAULT * 10,
+        "operationalFundReq": SUGGESTED_TOP_UP_DEFAULT * 10 * 2,
         "gasParams": {
             # this means default values will be used
             "MAX_PRIORITY_FEE_PER_GAS": "",
@@ -89,8 +87,7 @@ CHAIN_ID_TO_METADATA = {
         "name": "Optimism",
         "token": "ETH",
         "usdcRequired": False,
-        "safeDeploymentTopUp":  SAFE_DEPLOYMENT_TOP_UP / 10,
-        "firstTimeTopUp": SUGGESTED_TOP_UP_DEFAULT * 5,
+        "initialFundsRequirement": 0,
         "operationalFundReq": SUGGESTED_TOP_UP_DEFAULT / 10,
         "gasParams": {
             # this means default values will be used
@@ -101,8 +98,7 @@ CHAIN_ID_TO_METADATA = {
     8453: {
         "name": "Base",
         "token": "ETH",
-        "safeDeploymentTopUp":  SAFE_DEPLOYMENT_TOP_UP / 10,
-        "firstTimeTopUp": SUGGESTED_TOP_UP_DEFAULT * 5,
+        "initialFundsRequirement": 0,
         "operationalFundReq": SUGGESTED_TOP_UP_DEFAULT / 10,
         "usdcRequired": False,
         "gasParams": {
@@ -570,8 +566,7 @@ def fetch_initial_funding_requirements() -> None:
     eth_required_rounded = float(Decimal(eth_required).quantize(Decimal('0.0001'), rounding=ROUND_UP))
     eth_required_in_wei = int((eth_required_rounded * 10 ** 18) + safety_margin)
     INITIAL_FUNDS_REQUIREMENT['ETH'] = eth_required_in_wei
-    operational_fund_requirement = fetch_operational_fund_requirement(optimus_config.ethereum_rpc)
-    CHAIN_ID_TO_METADATA[1]['firstTimeTopUp'] = eth_required_in_wei + operational_fund_requirement
+    CHAIN_ID_TO_METADATA[1]['initialFundsRequirement'] = eth_required_in_wei
 
     # Fetch USDC price
     usdc_url = f"https://api.coingecko.com/api/v3/simple/token_price/ethereum?contract_addresses={USDC_ADDRESS}&vs_currencies=usd"
@@ -586,25 +581,27 @@ def fetch_initial_funding_requirements() -> None:
     usdc_required_in_decimals = int((usdc_required_rounded * 10 ** 6) + safety_margin)
     INITIAL_FUNDS_REQUIREMENT['USDC'] = usdc_required_in_decimals
 
-def fetch_operational_fund_requirement(rpc, fee_history_blocks: int = 7000) -> int:
+def calculate_fund_requirement(rpc, fee_history_blocks: int, gas_amount: int) -> int:
+    if rpc is None:
+        return None
+    
     web3 = Web3(Web3.HTTPProvider(rpc))
     block_number = web3.eth.block_number
-    fallback_operational_fund_requirement = 20_000_000_000_000_000
     # Fetch fee history
     fee_history = web3.eth.fee_history(
         fee_history_blocks, block_number, [50]
     )
 
     if fee_history is None:
-        return fallback_operational_fund_requirement
+        return None
     
     base_fees = fee_history.get('baseFeePerGas')
     if base_fees is None:
-        return fallback_operational_fund_requirement
+        return None
 
     priority_fees = [reward[0] for reward in fee_history.get('reward', []) if reward]
-    if len(priority_fees) == 0:
-        return fallback_operational_fund_requirement
+    if not priority_fees:
+        return None
     
     # Calculate average fees
     average_base_fee = sum(base_fees) / len(base_fees)
@@ -612,10 +609,17 @@ def fetch_operational_fund_requirement(rpc, fee_history_blocks: int = 7000) -> i
 
     average_gas_price = average_base_fee + average_priority_fee
 
-    gas_amount = 1_000_000 
-    safety_margin = 1_000_000_000_000_000
-    operational_fund_requirement = int((average_gas_price * gas_amount) + safety_margin)
-    return operational_fund_requirement
+    safety_margin = 500_000_000_000_000
+    fund_requirement = int((average_gas_price * gas_amount) + safety_margin)
+    return fund_requirement
+
+def fetch_agent_fund_requirement(rpc, fee_history_blocks: int = 100000000) -> int:
+    gas_amount = 5_000_000
+    return calculate_fund_requirement(rpc, fee_history_blocks, gas_amount)
+
+def fetch_operator_fund_requirement(rpc, fee_history_blocks: int = 100000000) -> int:
+    gas_amount = 2_000_000
+    return calculate_fund_requirement(rpc, fee_history_blocks, gas_amount)
 
 def main() -> None:
     """Run service."""
@@ -692,8 +696,43 @@ def main() -> None:
         print(
             f"[{chain_name}] Main wallet balance: {balance_str}",
         )
-        safe_exists = wallet.safes.get(chain_type) is not None
-        required_balance = chain_metadata["firstTimeTopUp"] + chain_metadata["safeDeploymentTopUp"] if not safe_exists else chain_metadata["operationalFundReq"]
+        safe_exists = wallet.safes.get(chain_type) is not None        
+
+        agent_fund_requirement = fetch_agent_fund_requirement(chain_config.ledger_config.rpc)
+        if agent_fund_requirement is None:
+            agent_fund_requirement = chain_config.chain_data.user_params.fund_requirements.agent
+
+        operational_fund_req = fetch_operator_fund_requirement(chain_config.ledger_config.rpc)
+        if operational_fund_req is None:
+            operational_fund_req = chain_metadata.get("operationalFundReq")
+
+        if service_exists:
+            if chain_id != 1:
+                agent_balance = ledger_api.get_balance(address=service.keys[0].get("address"))
+                #we only top up if current balance is less than 50% of required balance
+                if agent_balance < 0.5 * agent_fund_requirement:
+                    agent_fund_requirement = max(0, agent_fund_requirement - agent_balance)
+                else:
+                    agent_fund_requirement = 0
+
+                operator_balance = ledger_api.get_balance(wallet.crypto.address)
+                if operator_balance < 0.5 * operational_fund_req:
+                    operational_fund_req = max(0, operational_fund_req - operator_balance)
+                else:
+                    operational_fund_req = 0
+            else:
+                operational_fund_req = 0
+                agent_fund_requirement = 0  
+
+        safety_margin = 100_000_000_000_000
+        required_balance = operational_fund_req + agent_fund_requirement
+        
+        if not safe_exists:
+            required_balance += chain_metadata["initialFundsRequirement"]
+
+        if required_balance > 0:
+            required_balance += safety_margin
+
         print(
             f"[{chain_name}] Please make sure main wallet {wallet.crypto.address} has at least {wei_to_token(required_balance, token)}",
         )
@@ -707,7 +746,6 @@ def main() -> None:
             time.sleep(1)
 
         spinner.succeed(f"[{chain_name}] Main wallet updated balance: {wei_to_token(ledger_api.get_balance(wallet.crypto.address), token)}.")
-        print()
 
         if not safe_exists:
             print(f"[{chain_name}] Creating Safe")
@@ -724,9 +762,13 @@ def main() -> None:
 
         address = wallet.safes[chain_type]
         if not service_exists:
-            first_time_top_up = chain_metadata["firstTimeTopUp"]
+            top_up = chain_metadata["initialFundsRequirement"] + agent_fund_requirement
+        else:
+            top_up = agent_fund_requirement + safety_margin
+
+        if top_up > 0:
             print(
-                f"[{chain_name}] Please make sure address {address} has at least {wei_to_token(first_time_top_up, token)}."
+                f"[{chain_name}] Please make sure address {address} has at least {wei_to_token(top_up, token)}."
             )
             spinner = Halo(
                 text=f"[{chain_name}] Waiting for funds...",
@@ -734,11 +776,11 @@ def main() -> None:
             )
             spinner.start()
 
-            while ledger_api.get_balance(address) < first_time_top_up:
+            while ledger_api.get_balance(address) < top_up:
                 print(f"[{chain_name}] Funding Safe")
                 wallet.transfer(
                     to=t.cast(str, wallet.safes[chain_type]),
-                    amount=int(chain_metadata["firstTimeTopUp"]),
+                    amount=int(top_up+safety_margin),
                     chain_type=chain_type,
                     from_safe=False,
                     rpc=chain_config.ledger_config.rpc,
@@ -784,16 +826,12 @@ def main() -> None:
         )
         if chain_id == '1' and not service_exists:
             safe_fund_threshold=INITIAL_FUNDS_REQUIREMENT['ETH']
-            service = get_service(manager, template)
-            chain_config = service.chain_configs[chain_id]
-            service_safe = chain_config.chain_data.multisig
-            safe_balance = ledger_api.get_balance(service_safe)
-            safe_topup = safe_fund_threshold - safe_balance
+            safe_topup = safe_fund_threshold
         else:
             safe_fund_threshold = None
             safe_topup = None
 
-        manager.fund_service(hash=service.hash, chain_id=chain_id, safe_fund_treshold=safe_fund_threshold, safe_topup=safe_topup)
+        manager.fund_service(hash=service.hash, chain_id=chain_id, safe_fund_treshold=safe_fund_threshold, safe_topup=safe_topup, agent_fund_threshold=agent_fund_requirement)
 
         usdc_balance = get_erc20_balance(ledger_api, USDC_ADDRESS, address) if chain_metadata.get("usdcRequired", False) else 0
         if usdc_balance > 0:
