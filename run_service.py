@@ -613,12 +613,18 @@ def calculate_fund_requirement(rpc, fee_history_blocks: int, gas_amount: int) ->
     fund_requirement = int((average_gas_price * gas_amount) + safety_margin)
     return fund_requirement
 
-def fetch_agent_fund_requirement(rpc, fee_history_blocks: int = 100000000) -> int:
-    gas_amount = 5_000_000
+def fetch_agent_fund_requirement(chain_id, rpc, fee_history_blocks: int = 100000000) -> int:
+    if int(chain_id) == 1:
+        gas_amount = 1_000_000
+    else:
+        gas_amount = 5_000_000
     return calculate_fund_requirement(rpc, fee_history_blocks, gas_amount)
 
-def fetch_operator_fund_requirement(rpc, fee_history_blocks: int = 100000000) -> int:
-    gas_amount = 2_000_000
+def fetch_operator_fund_requirement(chain_id, rpc, fee_history_blocks: int = 100000000) -> int:
+    if int(chain_id) == 1:
+        gas_amount = 2_000_000
+    else:
+        gas_amount = 3_000_000
     return calculate_fund_requirement(rpc, fee_history_blocks, gas_amount)
 
 def main() -> None:
@@ -677,6 +683,8 @@ def main() -> None:
         service_exists = manager._get_on_chain_state(chain_config) != OnChainState.NON_EXISTENT
 
         if chain_name.lower() not in optimus_config.allowed_chains and chain_name != DEFAULT_START_CHAIN:
+            # this is to ensure backward-compatibility i.e. if someone deployed the services before the user-selectable chains feature was released
+            # we add those chains to allowed chains 
             if service_exists:
                 optimus_config.allowed_chains.append(chain_name.lower())
             else:
@@ -698,11 +706,11 @@ def main() -> None:
         )
         safe_exists = wallet.safes.get(chain_type) is not None        
 
-        agent_fund_requirement = fetch_agent_fund_requirement(chain_config.ledger_config.rpc)
+        agent_fund_requirement = fetch_agent_fund_requirement(chain_id, chain_config.ledger_config.rpc)
         if agent_fund_requirement is None:
             agent_fund_requirement = chain_config.chain_data.user_params.fund_requirements.agent
 
-        operational_fund_req = fetch_operator_fund_requirement(chain_config.ledger_config.rpc)
+        operational_fund_req = fetch_operator_fund_requirement(chain_id, chain_config.ledger_config.rpc)
         if operational_fund_req is None:
             operational_fund_req = chain_metadata.get("operationalFundReq")
 
@@ -762,7 +770,7 @@ def main() -> None:
 
         address = wallet.safes[chain_type]
         if not service_exists:
-            top_up = chain_metadata["initialFundsRequirement"] + agent_fund_requirement
+            top_up = chain_metadata["initialFundsRequirement"] + agent_fund_requirement + safety_margin
         else:
             top_up = agent_fund_requirement + safety_margin
 
@@ -780,7 +788,7 @@ def main() -> None:
                 print(f"[{chain_name}] Funding Safe")
                 wallet.transfer(
                     to=t.cast(str, wallet.safes[chain_type]),
-                    amount=int(top_up+safety_margin),
+                    amount=int(top_up),
                     chain_type=chain_type,
                     from_safe=False,
                     rpc=chain_config.ledger_config.rpc,
