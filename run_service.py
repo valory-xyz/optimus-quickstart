@@ -88,23 +88,23 @@ CHAIN_ID_TO_METADATA = {
         "token": "ETH",
         "usdcRequired": False,
         "initialFundsRequirement": 0,
-        "operationalFundReq": SUGGESTED_TOP_UP_DEFAULT / 10,
+        "operationalFundReq": SUGGESTED_TOP_UP_DEFAULT * 5,
         "gasParams": {
             # this means default values will be used
-            "MAX_PRIORITY_FEE_PER_GAS": "",
-            "MAX_FEE_PER_GAS": "",
+            "MAX_PRIORITY_FEE_PER_GAS": "500",
+            "MAX_FEE_PER_GAS": "1000000000",
         }
     },
     8453: {
         "name": "Base",
         "token": "ETH",
         "initialFundsRequirement": 0,
-        "operationalFundReq": SUGGESTED_TOP_UP_DEFAULT / 10,
+        "operationalFundReq": SUGGESTED_TOP_UP_DEFAULT * 5,
         "usdcRequired": False,
         "gasParams": {
             # this means default values will be used
-            "MAX_PRIORITY_FEE_PER_GAS": "",
-            "MAX_FEE_PER_GAS": "",
+            "MAX_PRIORITY_FEE_PER_GAS": "500",
+            "MAX_FEE_PER_GAS": "1000000000",
         }
     },
 }
@@ -435,7 +435,7 @@ def get_service_template(config: OptimusConfig) -> ServiceTemplate:
                     "use_staking": config.use_staking,
                     "fund_requirements": FundRequirementsTemplate(
                         {
-                            "agent": SUGGESTED_TOP_UP_DEFAULT,
+                            "agent": SUGGESTED_TOP_UP_DEFAULT * 5,
                             "safe": 0,
                         }
                     ),
@@ -451,7 +451,7 @@ def get_service_template(config: OptimusConfig) -> ServiceTemplate:
                     "use_staking": False,
                     "fund_requirements": FundRequirementsTemplate(
                         {
-                            "agent": SUGGESTED_TOP_UP_DEFAULT,
+                            "agent": SUGGESTED_TOP_UP_DEFAULT * 5,
                             "safe": 0,
                         }
                     ),
