@@ -12,6 +12,7 @@ from run_service import (
     CHAIN_ID_TO_METADATA,
     USDC_ADDRESS,
     OPERATE_HOME,
+    DEFAULT_START_CHAIN
 )
 
 from utils import (
@@ -87,6 +88,7 @@ class DecimalEncoder(json.JSONEncoder):
 
 def save_wallet_info():
     config = load_config()
+    optimus_config = get_local_config()
     if not config:
         print("Error: Configuration could not be loaded.")
         return
@@ -100,6 +102,10 @@ def save_wallet_info():
     safe_balances = {}
 
     for chain_id, chain_config in config.get('chain_configs', {}).items():
+        chain_name = get_chain_name(chain_id, CHAIN_ID_TO_METADATA)
+        if optimus_config.allowed_chains and chain_name.lower() not in optimus_config.allowed_chains and chain_name != DEFAULT_START_CHAIN:
+            continue
+
         rpc_url = chain_config.get('ledger_config', {}).get('rpc')
         if not rpc_url:
             print(f"Error: RPC URL not found for chain ID {chain_id}.")
@@ -109,8 +115,6 @@ def save_wallet_info():
             web3 = Web3(Web3.HTTPProvider(rpc_url))
             if chain_id != "1":  # Ethereum Mainnet
                 web3.middleware_onion.inject(geth_poa_middleware, layer=0)
-
-            chain_name = get_chain_name(chain_id, CHAIN_ID_TO_METADATA)
 
             # Get main wallet balance
             main_balance = get_balance(web3, main_wallet_address)
