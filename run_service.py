@@ -385,7 +385,7 @@ def get_service_template(config: OptimusConfig) -> ServiceTemplate:
         "hash": "bafybeibiiuhqronhgkxjo7x5xve24lkbqom5rqcjxg7vrl6jwavfyypmhu",
 
         "description": "Optimus",
-        "image": "https://operate.olas.network/_next/image?url=%2Fimages%2Fprediction-agent.png&w=3840&q=75",
+        "image": "https://gateway.autonolas.tech/ipfs/bafybeiaakdeconw7j5z76fgghfdjmsr6tzejotxcwnvmp3nroaw3glgyve",
         "service_version": 'v0.18.1',
         "home_chain_id": "10",
         "configurations": {
@@ -393,7 +393,7 @@ def get_service_template(config: OptimusConfig) -> ServiceTemplate:
                 {
                     "staking_program_id": "optimus_alpha",
                     "rpc": config.ethereum_rpc,
-                    "nft": "bafybeig64atqaladigoc3ds4arltdu63wkdrk3gesjfvnfdmz35amv7faq",
+                    "nft": "bafybeiaakdeconw7j5z76fgghfdjmsr6tzejotxcwnvmp3nroaw3glgyve",
                     "cost_of_bond": COST_OF_BOND,
                     "threshold": 1,
                     "use_staking": False,
@@ -409,7 +409,7 @@ def get_service_template(config: OptimusConfig) -> ServiceTemplate:
                 {
                     "staking_program_id": "optimus_alpha",
                     "rpc": config.optimism_rpc,
-                    "nft": "bafybeig64atqaladigoc3ds4arltdu63wkdrk3gesjfvnfdmz35amv7faq",
+                    "nft": "bafybeiaakdeconw7j5z76fgghfdjmsr6tzejotxcwnvmp3nroaw3glgyve",
                     "cost_of_bond": COST_OF_BOND_STAKING,
                     "threshold": 1,
                     "use_staking": config.use_staking,
@@ -425,7 +425,7 @@ def get_service_template(config: OptimusConfig) -> ServiceTemplate:
                 {
                     "staking_program_id": "optimus_alpha",
                     "rpc": config.base_rpc,
-                    "nft": "bafybeig64atqaladigoc3ds4arltdu63wkdrk3gesjfvnfdmz35amv7faq",
+                    "nft": "bafybeiaakdeconw7j5z76fgghfdjmsr6tzejotxcwnvmp3nroaw3glgyve",
                     "cost_of_bond": COST_OF_BOND,
                     "threshold": 1,
                     "use_staking": False,
@@ -465,7 +465,7 @@ def get_erc20_balance(ledger_api: LedgerApi, token: str, account: str) -> int:
     return balance
 
 FALLBACK_STAKING_PARAMS = dict(
-    agent_ids=[25],
+    agent_ids=[40],
     service_registry="0x9338b5153AE39BB89f50468E608eD9d764B755fD",  # nosec
     staking_token="0xcE11e14225575945b8E6Dc0D4F2dD4C570f79d9f",  # nosec
     service_registry_token_utility="0xa45E64d13A30a51b91ae0eb182e88a40e9b18eD8",  # nosec
