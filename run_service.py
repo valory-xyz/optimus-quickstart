@@ -105,6 +105,18 @@ CHAIN_ID_TO_METADATA = {
             "MAX_FEE_PER_GAS": "",
         }
     },
+    34443: {
+        "name": "Mode",
+        "token": "ETH",
+        "firstTimeTopUp": SUGGESTED_TOP_UP_DEFAULT * 5,
+        "operationalFundReq": SUGGESTED_TOP_UP_DEFAULT / 10,
+        "usdcRequired": False,
+        "gasParams": {
+            # this means default values will be used
+            "MAX_PRIORITY_FEE_PER_GAS": "",
+            "MAX_FEE_PER_GAS": "",
+        }
+    },
 }
 
 
@@ -158,6 +170,7 @@ class OptimusConfig(LocalResource):
     optimism_rpc: t.Optional[str] = None
     ethereum_rpc: t.Optional[str] = None
     base_rpc: t.Optional[str] = None
+    mode_rpc: t.Optional[str] = None
     tenderly_access_key: t.Optional[str] = None
     tenderly_account_slug: t.Optional[str] = None
     tenderly_project_slug: t.Optional[str] = None
@@ -303,6 +316,9 @@ def get_local_config() -> OptimusConfig:
     if optimus_config.base_rpc is None:
         optimus_config.base_rpc = input("Please enter a Base RPC URL: ")
 
+    if optimus_config.mode_rpc is None:
+        optimus_config.mode_rpc = input("Please enter a Mode RPC URL: ")
+
     if optimus_config.tenderly_access_key is None:
         optimus_config.tenderly_access_key = input(
             "Please enter your Tenderly API Key. Get one at https://dashboard.tenderly.co/: "
@@ -425,6 +441,22 @@ def get_service_template(config: OptimusConfig) -> ServiceTemplate:
                 {
                     "staking_program_id": "optimus_alpha",
                     "rpc": config.base_rpc,
+                    "nft": "bafybeiaakdeconw7j5z76fgghfdjmsr6tzejotxcwnvmp3nroaw3glgyve",
+                    "cost_of_bond": COST_OF_BOND,
+                    "threshold": 1,
+                    "use_staking": False,
+                    "fund_requirements": FundRequirementsTemplate(
+                        {
+                            "agent": SUGGESTED_TOP_UP_DEFAULT,
+                            "safe": 0,
+                        }
+                    ),
+                }
+            ),
+            "34443": ConfigurationTemplate(
+                {
+                    "staking_program_id": "optimus_alpha",
+                    "rpc": config.mode_rpc,
                     "nft": "bafybeiaakdeconw7j5z76fgghfdjmsr6tzejotxcwnvmp3nroaw3glgyve",
                     "cost_of_bond": COST_OF_BOND,
                     "threshold": 1,
