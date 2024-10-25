@@ -581,7 +581,7 @@ def fetch_initial_funding_requirements() -> None:
     usdc_required_in_decimals = int((usdc_required_rounded * 10 ** 6) + safety_margin)
     INITIAL_FUNDS_REQUIREMENT['USDC'] = usdc_required_in_decimals
 
-def calculate_fund_requirement(rpc, fee_history_blocks: int, gas_amount: int) -> int:
+def calculate_fund_requirement(rpc, fee_history_blocks: int, gas_amount: int, fee_history_percentile: int = 50) -> int:
     if rpc is None:
         return None
     
@@ -589,7 +589,7 @@ def calculate_fund_requirement(rpc, fee_history_blocks: int, gas_amount: int) ->
     block_number = web3.eth.block_number
     # Fetch fee history
     fee_history = web3.eth.fee_history(
-        fee_history_blocks, block_number, [50]
+        fee_history_blocks, block_number, [fee_history_percentile]
     )
 
     if fee_history is None:
@@ -613,14 +613,14 @@ def calculate_fund_requirement(rpc, fee_history_blocks: int, gas_amount: int) ->
     fund_requirement = int((average_gas_price * gas_amount) + safety_margin)
     return fund_requirement
 
-def fetch_agent_fund_requirement(chain_id, rpc, fee_history_blocks: int = 100000000) -> int:
+def fetch_agent_fund_requirement(chain_id, rpc, fee_history_blocks: int = 20) -> int:
     if int(chain_id) == 1:
         gas_amount = 1_000_000
     else:
         gas_amount = 5_000_000
     return calculate_fund_requirement(rpc, fee_history_blocks, gas_amount)
 
-def fetch_operator_fund_requirement(chain_id, rpc, fee_history_blocks: int = 100000000) -> int:
+def fetch_operator_fund_requirement(chain_id, rpc, fee_history_blocks: int = 20) -> int:
     if int(chain_id) == 1:
         gas_amount = 2_000_000
     else:
