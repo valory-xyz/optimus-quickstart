@@ -60,39 +60,25 @@ SUGGESTED_SAFE_TOP_UP_DEFAULT = 5_000_000_000_000_000
 MASTER_WALLET_MIMIMUM_BALANCE = 6_001_000_000_000_000
 COST_OF_BOND = 1
 COST_OF_BOND_STAKING = 2 * 10 ** 19
-STAKED_BONDING_TOKEN = "OLAS"
 INITIAL_FUNDS_REQUIREMENT = {"USDC": 15_000_000, "ETH": 6_000_000_000_000_000}
 USDC_ADDRESS = "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48"
 WARNING_ICON = colored('\u26A0', 'yellow')
 OPERATE_HOME = Path.cwd() / ".memeooorr"
-DEFAULT_MIN_SWAP_AMOUNT_THRESHOLD = 15
 
 CHAIN_ID_TO_METADATA = {
-    1: {
-        "name": "Ethereum Mainnet",
-        "token": "ETH",
-        "native_token_balance": MASTER_WALLET_MIMIMUM_BALANCE,
-        "usdcRequired": True,
-        "firstTimeTopUp": SUGGESTED_TOP_UP_DEFAULT * 10 * 2,
-        "operationalFundReq": 0,
-        "gasParams": {
-            # this means default values will be used
-            "MAX_PRIORITY_FEE_PER_GAS": "",
-            "MAX_FEE_PER_GAS": "",
-        }
-    },
-    10: {
-        "name": "Optimism",
-        "token": "ETH",
-        "usdcRequired": False,
-        "firstTimeTopUp": SUGGESTED_TOP_UP_DEFAULT * 5,
-        "operationalFundReq": SUGGESTED_TOP_UP_DEFAULT / 10,
-        "gasParams": {
-            # this means default values will be used
-            "MAX_PRIORITY_FEE_PER_GAS": "",
-            "MAX_FEE_PER_GAS": "",
-        }
-    },
+    # 1: {
+    #     "name": "Ethereum Mainnet",
+    #     "token": "ETH",
+    #     "native_token_balance": MASTER_WALLET_MIMIMUM_BALANCE,
+    #     "usdcRequired": True,
+    #     "firstTimeTopUp": SUGGESTED_TOP_UP_DEFAULT * 10 * 2,
+    #     "operationalFundReq": 0,
+    #     "gasParams": {
+    #         # this means default values will be used
+    #         "MAX_PRIORITY_FEE_PER_GAS": "",
+    #         "MAX_FEE_PER_GAS": "",
+    #     }
+    # },
     8453: {
         "name": "Base",
         "token": "ETH",
@@ -155,14 +141,7 @@ class MemeooorrConfig(LocalResource):
     """Local configuration."""
 
     path: Path
-    optimism_rpc: t.Optional[str] = None
-    ethereum_rpc: t.Optional[str] = None
     base_rpc: t.Optional[str] = None
-    tenderly_access_key: t.Optional[str] = None
-    tenderly_account_slug: t.Optional[str] = None
-    tenderly_project_slug: t.Optional[str] = None
-    coingecko_api_key: t.Optional[str] = None
-    min_swap_amount_threshold: t.Optional[int] = None
     password_migrated: t.Optional[bool] = None
     use_staking: t.Optional[bool] = None
 
@@ -294,60 +273,11 @@ def get_local_config() -> MemeooorrConfig:
 
     print_section("API Key Configuration")
 
-    if memeooorr_config.ethereum_rpc is None:
-        memeooorr_config.ethereum_rpc = input("Please enter an Ethereum RPC URL: ")
-
-    if memeooorr_config.optimism_rpc is None:
-        memeooorr_config.optimism_rpc = input("Please enter an Optimism RPC URL: ")
-
     if memeooorr_config.base_rpc is None:
         memeooorr_config.base_rpc = input("Please enter a Base RPC URL: ")
 
-    if memeooorr_config.tenderly_access_key is None:
-        memeooorr_config.tenderly_access_key = input(
-            "Please enter your Tenderly API Key. Get one at https://dashboard.tenderly.co/: "
-        )
-
-    if memeooorr_config.tenderly_account_slug is None:
-        memeooorr_config.tenderly_account_slug = input(
-            "Please enter your Tenderly Account Slug: "
-        )
-
-    if memeooorr_config.tenderly_project_slug is None:
-        memeooorr_config.tenderly_project_slug = input(
-            "Please enter your Tenderly Project Slug: "
-        )
-
-    if memeooorr_config.coingecko_api_key is None:
-        memeooorr_config.coingecko_api_key = input(
-            "Please enter your CoinGecko API Key. Get one at https://www.coingecko.com/: "
-        )
-
-    if memeooorr_config.min_swap_amount_threshold is None:
-        update_min_swap = input(f"Do you want to update the minimum swap amount threshold (set to {DEFAULT_MIN_SWAP_AMOUNT_THRESHOLD} USD)? (y/n): ").lower() == 'y'
-        if update_min_swap:
-            while True:
-                user_input = input(
-                    f"Please enter the minimum swap amount threshold (at least {DEFAULT_MIN_SWAP_AMOUNT_THRESHOLD} USD): "
-                )
-                min_swap_amount = user_input
-                if not min_swap_amount.isdigit():
-                    print("Error: Please enter a valid integer.")
-                    continue
-
-                if int(min_swap_amount) >= DEFAULT_MIN_SWAP_AMOUNT_THRESHOLD:
-                    memeooorr_config.min_swap_amount_threshold = min_swap_amount
-                    break
-                else:
-                    print(f"Error: The minimum swap amount must be at least {DEFAULT_MIN_SWAP_AMOUNT_THRESHOLD} USD.")
-        else:
-            memeooorr_config.min_swap_amount_threshold = str(DEFAULT_MIN_SWAP_AMOUNT_THRESHOLD)
-
     if memeooorr_config.password_migrated is None:
         memeooorr_config.password_migrated = False
-
-    if memeooorr_config.use_staking is None:
-        memeooorr_config.use_staking = input("Do you want to stake your service? (y/n): ").lower() == 'y'
 
     memeooorr_config.store()
     return memeooorr_config
@@ -386,41 +316,25 @@ def get_service_template(config: MemeooorrConfig) -> ServiceTemplate:
 
         "description": "Memeooorr",
         "image": "https://gateway.autonolas.tech/ipfs/bafybeiaakdeconw7j5z76fgghfdjmsr6tzejotxcwnvmp3nroaw3glgyve",
-        "service_version": 'v0.18.1',
-        "home_chain_id": "10",
+        "service_version": 'v0.0.1',
+        "home_chain_id": "8453",
         "configurations": {
-            "1": ConfigurationTemplate(
-                {
-                    "staking_program_id": "memeooorr_alpha",
-                    "rpc": config.ethereum_rpc,
-                    "nft": "bafybeiaakdeconw7j5z76fgghfdjmsr6tzejotxcwnvmp3nroaw3glgyve",
-                    "cost_of_bond": COST_OF_BOND,
-                    "threshold": 1,
-                    "use_staking": False,
-                    "fund_requirements": FundRequirementsTemplate(
-                        {
-                            "agent": SUGGESTED_TOP_UP_DEFAULT * 5,
-                            "safe": 0,
-                        }
-                    ),
-                }
-            ),
-            "10": ConfigurationTemplate(
-                {
-                    "staking_program_id": "memeooorr_alpha",
-                    "rpc": config.optimism_rpc,
-                    "nft": "bafybeiaakdeconw7j5z76fgghfdjmsr6tzejotxcwnvmp3nroaw3glgyve",
-                    "cost_of_bond": COST_OF_BOND_STAKING,
-                    "threshold": 1,
-                    "use_staking": config.use_staking,
-                    "fund_requirements": FundRequirementsTemplate(
-                        {
-                            "agent": SUGGESTED_TOP_UP_DEFAULT,
-                            "safe": 0,
-                        }
-                    ),
-                }
-            ),
+            # "1": ConfigurationTemplate(
+            #     {
+            #         "staking_program_id": "memeooorr_alpha",
+            #         "rpc": config.ethereum_rpc,
+            #         "nft": "bafybeiaakdeconw7j5z76fgghfdjmsr6tzejotxcwnvmp3nroaw3glgyve",
+            #         "cost_of_bond": COST_OF_BOND,
+            #         "threshold": 1,
+            #         "use_staking": False,
+            #         "fund_requirements": FundRequirementsTemplate(
+            #             {
+            #                 "agent": SUGGESTED_TOP_UP_DEFAULT * 5,
+            #                 "safe": 0,
+            #             }
+            #         ),
+            #     }
+            # ),
             "8453": ConfigurationTemplate(
                 {
                     "staking_program_id": "memeooorr_alpha",
@@ -523,45 +437,6 @@ def fetch_token_price(url: str, headers: dict) -> t.Optional[float]:
         print(f"Error fetching token price: {e}")
         return None
 
-def fetch_initial_funding_requirements() -> None:
-    """Fetch initial funding requirements based on min_swap_amount_threshold."""
-    global INITIAL_FUNDS_REQUIREMENT
-    global CHAIN_ID_TO_METADATA
-
-    memeooorr_config = get_local_config()
-    fetch_operational_fund_requirement(memeooorr_config.ethereum_rpc)
-    headers = {
-        "accept": "application/json",
-        "x-cg-api-key": memeooorr_config.coingecko_api_key
-    }
-
-    # Fetch ETH price
-    eth_url = "https://api.coingecko.com/api/v3/simple/price?ids=ethereum&vs_currencies=usd"
-    eth_price = fetch_token_price(eth_url, headers)
-    if eth_price is None:
-        print("Error: Could not fetch price for ETH.")
-        return
-
-    safety_margin = 500_000_000_000_000
-    eth_required = (int(memeooorr_config.min_swap_amount_threshold) / eth_price)
-    eth_required_rounded = float(Decimal(eth_required).quantize(Decimal('0.0001'), rounding=ROUND_UP))
-    eth_required_in_wei = int((eth_required_rounded * 10 ** 18) + safety_margin)
-    INITIAL_FUNDS_REQUIREMENT['ETH'] = eth_required_in_wei
-    operational_fund_requirement = fetch_operational_fund_requirement(memeooorr_config.ethereum_rpc)
-    CHAIN_ID_TO_METADATA[1]['firstTimeTopUp'] = eth_required_in_wei + operational_fund_requirement
-    # Fetch USDC price
-    usdc_url = f"https://api.coingecko.com/api/v3/simple/token_price/ethereum?contract_addresses={USDC_ADDRESS}&vs_currencies=usd"
-    usdc_price = fetch_token_price(usdc_url, headers)
-    if usdc_price is None:
-        print("Error: Could not fetch price for USDC.")
-        return
-
-    safety_margin = 1_000_000
-    usdc_required = (int(memeooorr_config.min_swap_amount_threshold) / usdc_price)
-    usdc_required_rounded = math.ceil(usdc_required)
-    usdc_required_in_decimals = int((usdc_required_rounded * 10 ** 6) + safety_margin)
-    INITIAL_FUNDS_REQUIREMENT['USDC'] = usdc_required_in_decimals
-
 def fetch_operational_fund_requirement(rpc, fee_history_blocks: int = 7000) -> int:
     web3 = Web3(Web3.HTTPProvider(rpc))
     block_number = web3.eth.block_number
@@ -631,7 +506,6 @@ def main() -> None:
         wallet = operate.wallet_manager.load(ledger_type=LedgerType.ETHEREUM)
 
     manager = operate.service_manager()
-    fetch_initial_funding_requirements()
 
     for chain_id, configuration in service.chain_configs.items():
         chain_metadata = CHAIN_ID_TO_METADATA[int(chain_id)]
@@ -707,21 +581,6 @@ def main() -> None:
 
             spinner.succeed(f"[{chain_name}] Safe updated balance: {wei_to_token(ledger_api.get_balance(address), token)}.")
 
-        if chain_config.chain_data.user_params.use_staking and not service_exists:
-            print(f"[{chain_name}] Please make sure address {address} has at least {wei_to_token(2 * COST_OF_BOND_STAKING, STAKED_BONDING_TOKEN)}")
-
-            spinner = Halo(
-                text=f"[{chain_name}] Waiting for {STAKED_BONDING_TOKEN}...",
-                spinner="dots",
-            )
-            spinner.start()
-            olas_address = OLAS[chain_type]
-            while get_erc20_balance(ledger_api, olas_address, address) < 2 * COST_OF_BOND_STAKING:
-                time.sleep(1)
-
-            balance = get_erc20_balance(ledger_api, olas_address, address) / 10 ** 18
-            spinner.succeed(f"[{chain_name}] Safe updated balance: {balance} {STAKED_BONDING_TOKEN}")
-
         if chain_metadata.get("usdcRequired", False) and not service_exists:
             print(f"[{chain_name}] Please make sure address {address} has at least 15 USDC")
 
@@ -774,12 +633,6 @@ def main() -> None:
     target_staking_program_id = service.chain_configs[home_chain_id].chain_data.user_params.staking_program_id
     env_vars = {
         "SAFE_CONTRACT_ADDRESSES": json.dumps(safes, separators=(',', ':')),
-        "TENDERLY_ACCESS_KEY": memeooorr_config.tenderly_access_key,
-        "TENDERLY_ACCOUNT_SLUG": memeooorr_config.tenderly_account_slug,
-        "TENDERLY_PROJECT_SLUG": memeooorr_config.tenderly_project_slug,
-        "STAKING_TOKEN_CONTRACT_ADDRESS": STAKING[home_chain_type][target_staking_program_id],
-        "COINGECKO_API_KEY": memeooorr_config.coingecko_api_key,
-        "MIN_SWAP_AMOUNT_THRESHOLD": memeooorr_config.min_swap_amount_threshold,
     }
     apply_env_vars(env_vars)
     print("Skipping local deployment")
