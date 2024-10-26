@@ -56,12 +56,12 @@ from operate.types import (
 load_dotenv()
 
 SUGGESTED_TOP_UP_DEFAULT = 1_000_000_000_000_000
-SUGGESTED_SAFE_TOP_UP_DEFAULT = 5_000_000_000_000_000
+SUGGESTED_SAFE_TOP_UP_DEFAULT = 10_000_000_000_000_000
 MASTER_WALLET_MIMIMUM_BALANCE = 6_001_000_000_000_000
 COST_OF_BOND = 1
 COST_OF_BOND_STAKING = 2 * 10 ** 19
-INITIAL_FUNDS_REQUIREMENT = {"USDC": 15_000_000, "ETH": 6_000_000_000_000_000}
-USDC_ADDRESS = "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48"
+INITIAL_FUNDS_REQUIREMENT = {"OLAS": 15_000_000, "ETH": 6_000_000_000_000_000}
+OLAS_ADDRESS = "0x54330d28ca3357F294334BDC454a032e7f353416"
 WARNING_ICON = colored('\u26A0', 'yellow')
 OPERATE_HOME = Path.cwd() / ".memeooorr"
 
@@ -70,7 +70,7 @@ CHAIN_ID_TO_METADATA = {
     #     "name": "Ethereum Mainnet",
     #     "token": "ETH",
     #     "native_token_balance": MASTER_WALLET_MIMIMUM_BALANCE,
-    #     "usdcRequired": True,
+    #     "olasRequired": True,
     #     "firstTimeTopUp": SUGGESTED_TOP_UP_DEFAULT * 10 * 2,
     #     "operationalFundReq": 0,
     #     "gasParams": {
@@ -84,7 +84,7 @@ CHAIN_ID_TO_METADATA = {
         "token": "ETH",
         "firstTimeTopUp": SUGGESTED_TOP_UP_DEFAULT * 5,
         "operationalFundReq": SUGGESTED_TOP_UP_DEFAULT / 10,
-        "usdcRequired": False,
+        "olasRequired": True,
         "gasParams": {
             # this means default values will be used
             "MAX_PRIORITY_FEE_PER_GAS": "",
@@ -196,7 +196,7 @@ def wei_to_unit(wei: int) -> float:
     return wei / 1e18
 
 
-def wei_to_token(wei: int, token: str = "xDAI") -> str:
+def wei_to_token(wei: int, token: str = "ETH") -> str:
     """Convert Wei to token."""
     return f"{wei_to_unit(wei):.6f} {token}"
 
@@ -582,20 +582,20 @@ def main() -> None:
 
             spinner.succeed(f"[{chain_name}] Safe updated balance: {wei_to_token(ledger_api.get_balance(address), token)}.")
 
-        if chain_metadata.get("usdcRequired", False) and not service_exists:
-            print(f"[{chain_name}] Please make sure address {address} has at least 15 USDC")
+        if chain_metadata.get("olasRequired", False) and not service_exists:
+            print(f"[{chain_name}] Please make sure address {address} has at least 15 OLAS")
 
             spinner = Halo(
-                text=f"[{chain_name}] Waiting for USDC...",
+                text=f"[{chain_name}] Waiting for OLAS...",
                 spinner="dots",
             )
             spinner.start()
 
-            while get_erc20_balance(ledger_api, USDC_ADDRESS, address) < INITIAL_FUNDS_REQUIREMENT['USDC']:
+            while get_erc20_balance(ledger_api, OLAS_ADDRESS, address) < INITIAL_FUNDS_REQUIREMENT['OLAS']:
                 time.sleep(1)
 
-            usdc_balance = get_erc20_balance(ledger_api, USDC_ADDRESS, address) / 10 ** 6
-            spinner.succeed(f"[{chain_name}] Safe updated balance: {usdc_balance} USDC.")
+            olas_balance = get_erc20_balance(ledger_api, OLAS_ADDRESS, address) / 10 ** 6
+            spinner.succeed(f"[{chain_name}] Safe updated balance: {olas_balance} OLAS.")
 
         manager.deploy_service_onchain_from_safe_single_chain(
             hash=service.hash,
@@ -613,16 +613,16 @@ def main() -> None:
 
         manager.fund_service(hash=service.hash, chain_id=chain_id, safe_fund_treshold=safe_fund_threshold, safe_topup=safe_topup)
 
-        usdc_balance = get_erc20_balance(ledger_api, USDC_ADDRESS, address) if chain_metadata.get("usdcRequired", False) else 0
-        if usdc_balance > 0:
-            # transfer all the usdc balance into the service safe
+        olas_balance = get_erc20_balance(ledger_api, OLAS_ADDRESS, address) if chain_metadata.get("olasRequired", False) else 0
+        if olas_balance > 0:
+            # transfer all the olas balance into the service safe
             manager.fund_service_erc20(
                 hash=service.hash,
                 chain_id=chain_id,
-                token=USDC_ADDRESS,
-                safe_topup=usdc_balance,
+                token=OLAS_ADDRESS,
+                safe_topup=olas_balance,
                 agent_topup=0,
-                safe_fund_treshold=INITIAL_FUNDS_REQUIREMENT['USDC'] + usdc_balance,
+                safe_fund_treshold=INITIAL_FUNDS_REQUIREMENT['OLAS'] + olas_balance,
             )
 
     safes = {
@@ -630,12 +630,10 @@ def main() -> None:
         for chain, config in service.chain_configs.items()
     }
     home_chain_id = service.home_chain_id
-    home_chain_type = ChainType.from_id(int(home_chain_id))
-    target_staking_program_id = service.chain_configs[home_chain_id].chain_data.user_params.staking_program_id
     env_vars = {
         "SAFE_CONTRACT_ADDRESSES": json.dumps(safes, separators=(',', ':')),
         "DB_PATH": "/logs/memeooorr.db",
-        "ON_CHAIN_SERVICE_ID": 34,
+        "ON_CHAIN_SERVICE_ID": "34",
 
     }
     apply_env_vars(env_vars)
