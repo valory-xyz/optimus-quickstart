@@ -312,7 +312,8 @@ def get_service_template(config: MemeooorrConfig) -> ServiceTemplate:
     """Get the service template"""
     return ServiceTemplate({
         "name": "Memeooorr",
-        "hash": "bafybeibiiuhqronhgkxjo7x5xve24lkbqom5rqcjxg7vrl6jwavfyypmhu",
+        # "hash": "bafybeibiiuhqronhgkxjo7x5xve24lkbqom5rqcjxg7vrl6jwavfyypmhu",
+        "hash": "bafybeiaftcp2jcxe7sdrzmj2oa3u6hyl7evvrjqlrhcnlbv6g33dxz3vma",
 
         "description": "Memeooorr",
         "image": "https://gateway.autonolas.tech/ipfs/bafybeiaakdeconw7j5z76fgghfdjmsr6tzejotxcwnvmp3nroaw3glgyve",
@@ -633,6 +634,9 @@ def main() -> None:
     target_staking_program_id = service.chain_configs[home_chain_id].chain_data.user_params.staking_program_id
     env_vars = {
         "SAFE_CONTRACT_ADDRESSES": json.dumps(safes, separators=(',', ':')),
+        "DB_PATH": "/logs/memeooorr.db",
+        "ON_CHAIN_SERVICE_ID": 34,
+
     }
     apply_env_vars(env_vars)
     print("Skipping local deployment")
