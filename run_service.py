@@ -24,25 +24,20 @@ import os
 import sys
 import time
 import typing as t
-import math
 from dataclasses import dataclass
 from pathlib import Path
-from decimal import Decimal, ROUND_UP
-
+import shutil
 import requests
 import yaml
 from aea.crypto.base import LedgerApi
-from aea_ledger_ethereum import EthereumApi, EIP1559, get_base_fee_multiplier
+from aea_ledger_ethereum import EthereumApi
 from dotenv import load_dotenv
-from eth_utils import to_wei
 from halo import Halo
 from termcolor import colored
 from web3 import Web3
-from web3.types import Wei, TxParams
 
 from operate.account.user import UserAccount
 from operate.cli import OperateApp
-from operate.ledger.profiles import OLAS, STAKING
 from operate.resource import LocalResource, deserialize
 from operate.services.manage import ServiceManager
 from operate.services.service import Service
@@ -661,6 +656,8 @@ def main() -> None:
         for chain, config in service.chain_configs.items()
     }
     home_chain_id = service.home_chain_id
+
+    # Apply env cars
     env_vars = {
         "SAFE_CONTRACT_ADDRESSES": json.dumps(safes, separators=(',', ':')),
         # "ON_CHAIN_SERVICE_ID": "34",
@@ -673,12 +670,30 @@ def main() -> None:
         "TOTAL_SUPPLY": memeooorr_config.total_supply,
     }
     apply_env_vars(env_vars)
+
+    # Build the deployment
     print("Skipping local deployment")
     service.deployment.build(use_docker=True, force=True, chain_id=home_chain_id)
+
+    # Add docker volumes
     docker_compose_path = service.path / "deployment" / "docker-compose.yaml"
     add_volumes(docker_compose_path, str(OPERATE_HOME), "/data")
-    service.deployment.start(use_docker=True)
 
+    # Copy the database and cookies if they exist
+    database_source = service.path / "memeooorr.db"
+    database_target = service.path / "memeooorr" / "abci_build" / "persistent_data" / "logs" / "memeooorr.db"
+    if database_source.is_file():
+        print("Loaded a backup of the db")
+        shutil.copy(database_source, database_target)
+
+    cookies_source = service.path / "twikit_cookies.json"
+    cookies_target = service.path / "memeooorr" / "abci_build" / "persistent_data" / "logs" / "twikit_cookies.json"
+    if cookies_source.is_file():
+        print("Loaded a backup of the cookies")
+        shutil.copy(cookies_source, cookies_target)
+
+    # Run the deployment
+    service.deployment.start(use_docker=True)
     print()
     print_section("Running the service")
 
