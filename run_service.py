@@ -84,7 +84,7 @@ CHAIN_ID_TO_METADATA = {
         "token": "ETH",
         "firstTimeTopUp": SUGGESTED_TOP_UP_DEFAULT * 5,
         "operationalFundReq": SUGGESTED_TOP_UP_DEFAULT / 10,
-        "olasRequired": True,
+        "olasRequired": False,
         "gasParams": {
             # this means default values will be used
             "MAX_PRIORITY_FEE_PER_GAS": "",
@@ -144,6 +144,13 @@ class MemeooorrConfig(LocalResource):
     base_rpc: t.Optional[str] = None
     password_migrated: t.Optional[bool] = None
     use_staking: t.Optional[bool] = None
+    twikit_username: t.Optional[str] = None
+    twikit_email: t.Optional[str] = None
+    twikit_password: t.Optional[str] = None
+    feedback_period_hours: t.Optional[int] = None
+    genai_api_key: t.Optional[str] = None
+    min_feedback_replies: t.Optional[int] = None
+    total_supply: t.Optional[int] = None
 
     @classmethod
     def from_json(cls, obj: t.Dict) -> "LocalResource":
@@ -262,6 +269,10 @@ def check_rpc(rpc_url: str) -> None:
         print("Terminating script.")
         sys.exit(1)
 
+def input_with_default_value(prompt: str, default_value: t.Any):
+    user_input = input(f"{prompt} [{default_value}]: ")
+    return user_input if user_input else default_value
+
 
 def get_local_config() -> MemeooorrConfig:
     """Get local memeooorr configuration."""
@@ -278,6 +289,28 @@ def get_local_config() -> MemeooorrConfig:
 
     if memeooorr_config.password_migrated is None:
         memeooorr_config.password_migrated = False
+
+    if memeooorr_config.twikit_username is None:
+        memeooorr_config.twikit_username = input("Please enter the Twitter username for Memeooorr's account: ")
+
+    if memeooorr_config.twikit_email is None:
+        memeooorr_config.twikit_email = input("Please enter the Twitter email for Memeooorr's account: ")
+
+    if memeooorr_config.twikit_password is None:
+        memeooorr_config.twikit_password = input("Please enter the Twitter password for Memeooorr's account: ")
+
+    if memeooorr_config.genai_api_key is None:
+        memeooorr_config.genai_api_key = input("Please enter the GenAI API key for Memeooorr's account: ")
+
+    if memeooorr_config.feedback_period_hours is None:
+        memeooorr_config.feedback_period_hours = input_with_default_value("How many hours should Memeooorr wait after sending a tweet and before analysing its responses?", 1)
+
+    if memeooorr_config.min_feedback_replies is None:
+        memeooorr_config.min_feedback_replies = input_with_default_value("What's the minimum amount of replies to a tweet before Memeooorr analyses them?", 10)
+
+    if memeooorr_config.total_supply is None:
+        total_supply = input_with_default_value("What's the token supply Memeooorr should use when deploying a token? (not wei, but token units)", 1000000)
+        memeooorr_config.total_supply = total_supply * 1E18
 
     memeooorr_config.store()
     return memeooorr_config
@@ -313,8 +346,7 @@ def get_service_template(config: MemeooorrConfig) -> ServiceTemplate:
     return ServiceTemplate({
         "name": "Memeooorr",
         # "hash": "bafybeibiiuhqronhgkxjo7x5xve24lkbqom5rqcjxg7vrl6jwavfyypmhu",
-        "hash": "bafybeiaftcp2jcxe7sdrzmj2oa3u6hyl7evvrjqlrhcnlbv6g33dxz3vma",
-
+        "hash": "bafybeiezfwhkeswfvgzizx5iaonkfakebdsjm75nqqmcu3x57pe32wkmhe",
         "description": "Memeooorr",
         "image": "https://gateway.autonolas.tech/ipfs/bafybeiaakdeconw7j5z76fgghfdjmsr6tzejotxcwnvmp3nroaw3glgyve",
         "service_version": 'v0.0.1',
@@ -632,9 +664,14 @@ def main() -> None:
     home_chain_id = service.home_chain_id
     env_vars = {
         "SAFE_CONTRACT_ADDRESSES": json.dumps(safes, separators=(',', ':')),
-        "DB_PATH": "/logs/memeooorr.db",
-        "ON_CHAIN_SERVICE_ID": "34",
-
+        # "ON_CHAIN_SERVICE_ID": "34",
+        "TWIKIT_USERNAME": memeooorr_config.twikit_username,
+        "TWIKIT_EMAIL": memeooorr_config.twikit_email,
+        "TWIKIT_PASSWORD": memeooorr_config.twikit_password,
+        "FEEDBACK_PERIOD_HOURS": memeooorr_config.feedback_period_hours,
+        "GENAI_API_KEY": memeooorr_config.genai_api_key,
+        "MIN_FEEDBACK_REPLIES": memeooorr_config.min_feedback_replies,
+        "TOTAL_SUPPLY": memeooorr_config.total_supply,
     }
     apply_env_vars(env_vars)
     print("Skipping local deployment")
