@@ -16,7 +16,7 @@
 #   limitations under the License.
 #
 # ------------------------------------------------------------------------------
-"""Optimus Quickstart script."""
+"""Memeooorr Quickstart script."""
 
 import sys
 
@@ -29,21 +29,21 @@ from run_service import (
 def main() -> None:
     """Run service."""
 
-    print_title("Stop Optimus Quickstart")
+    print_title("Stop Memeooorr Quickstart")
 
     operate = OperateApp(
         home=OPERATE_HOME,
     )
     operate.setup()
 
-    # check if optimus was started before
+    # Check if Memeooorr was started before
     path = OPERATE_HOME / "local_config.json"
     if not path.exists():
         print("Nothing to clean. Exiting.")
         sys.exit(0)
 
-    optimus_config = get_local_config()
-    template = get_service_template(optimus_config)
+    memeooorr_config = get_local_config()
+    template = get_service_template(memeooorr_config)
     manager = operate.service_manager()
     service = get_service(manager, template)
     manager.stop_service_locally(hash=service.hash, delete=True)

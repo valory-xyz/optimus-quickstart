@@ -147,10 +147,10 @@ class MemeooorrConfig(LocalResource):
     twikit_username: t.Optional[str] = None
     twikit_email: t.Optional[str] = None
     twikit_password: t.Optional[str] = None
-    feedback_period_hours: t.Optional[int] = None
+    feedback_period_hours: t.Optional[str] = None
     genai_api_key: t.Optional[str] = None
-    min_feedback_replies: t.Optional[int] = None
-    total_supply: t.Optional[int] = None
+    min_feedback_replies: t.Optional[str] = None
+    total_supply: t.Optional[str] = None
 
     @classmethod
     def from_json(cls, obj: t.Dict) -> "LocalResource":
@@ -269,9 +269,9 @@ def check_rpc(rpc_url: str) -> None:
         print("Terminating script.")
         sys.exit(1)
 
-def input_with_default_value(prompt: str, default_value: t.Any):
+def input_with_default_value(prompt: str, default_value: str) -> str:
     user_input = input(f"{prompt} [{default_value}]: ")
-    return user_input if user_input else default_value
+    return str(user_input) if user_input else default_value
 
 
 def get_local_config() -> MemeooorrConfig:
@@ -297,7 +297,7 @@ def get_local_config() -> MemeooorrConfig:
         memeooorr_config.twikit_email = input("Please enter the Twitter email for Memeooorr's account: ")
 
     if memeooorr_config.twikit_password is None:
-        memeooorr_config.twikit_password = input("Please enter the Twitter password for Memeooorr's account: ")
+        memeooorr_config.twikit_password = input("Please enter the Twitter password for Memeooorr's account (avoid passwords that include the $ character): ")
 
     if memeooorr_config.genai_api_key is None:
         memeooorr_config.genai_api_key = input("Please enter the GenAI API key for Memeooorr's account: ")
@@ -310,7 +310,7 @@ def get_local_config() -> MemeooorrConfig:
 
     if memeooorr_config.total_supply is None:
         total_supply = input_with_default_value("What's the token supply Memeooorr should use when deploying a token? (not wei, but token units)", 1000000)
-        memeooorr_config.total_supply = total_supply * 1E18
+        memeooorr_config.total_supply = str(int(total_supply) * 1E18)
 
     memeooorr_config.store()
     return memeooorr_config
@@ -320,7 +320,7 @@ def apply_env_vars(env_vars: t.Dict[str, str]) -> None:
     """Apply environment variables."""
     for key, value in env_vars.items():
         if value is not None:
-            os.environ[key] = value
+            os.environ[key] = str(value)
 
 def handle_password_migration(operate: OperateApp, config: MemeooorrConfig) -> t.Optional[str]:
     """Handle password migration."""
@@ -345,8 +345,7 @@ def get_service_template(config: MemeooorrConfig) -> ServiceTemplate:
     """Get the service template"""
     return ServiceTemplate({
         "name": "Memeooorr",
-        # "hash": "bafybeibiiuhqronhgkxjo7x5xve24lkbqom5rqcjxg7vrl6jwavfyypmhu",
-        "hash": "bafybeiezfwhkeswfvgzizx5iaonkfakebdsjm75nqqmcu3x57pe32wkmhe",
+        "hash": os.getenv("SERVICE_HASH", None) or "bafybeiecsjtnk4v4vxpflfzju7mrmnwafbxzwhgleeeynqmr274w44rppa",
         "description": "Memeooorr",
         "image": "https://gateway.autonolas.tech/ipfs/bafybeiaakdeconw7j5z76fgghfdjmsr6tzejotxcwnvmp3nroaw3glgyve",
         "service_version": 'v0.0.1',
