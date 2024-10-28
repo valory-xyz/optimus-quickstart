@@ -61,32 +61,19 @@ MASTER_WALLET_MIMIMUM_BALANCE = 6_001_000_000_000_000
 COST_OF_BOND = 1
 COST_OF_BOND_STAKING = 2 * 10 ** 19
 STAKED_BONDING_TOKEN = "OLAS"
-INITIAL_FUNDS_REQUIREMENT = {"USDC": 15_000_000, "ETH": 6_000_000_000_000_000}
+INITIAL_FUNDS_REQUIREMENT = {"USDC": 15_000_000, "ETH": 7_000_000_000_000_000}
 USDC_ADDRESS = "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48"
 WARNING_ICON = colored('\u26A0', 'yellow')
 OPERATE_HOME = Path.cwd() / ".optimus"
 DEFAULT_MIN_SWAP_AMOUNT_THRESHOLD = 15
 
 CHAIN_ID_TO_METADATA = {
-    1: {
-        "name": "Ethereum Mainnet",
-        "token": "ETH",
-        "native_token_balance": MASTER_WALLET_MIMIMUM_BALANCE,
-        "usdcRequired": True,
-        "firstTimeTopUp": SUGGESTED_TOP_UP_DEFAULT * 10 * 2,
-        "operationalFundReq": 0,
-        "gasParams": {
-            # this means default values will be used
-            "MAX_PRIORITY_FEE_PER_GAS": "",
-            "MAX_FEE_PER_GAS": "",
-        }
-    },
     10: {
         "name": "Optimism",
         "token": "ETH",
         "usdcRequired": False,
         "firstTimeTopUp": SUGGESTED_TOP_UP_DEFAULT * 5,
-        "operationalFundReq": SUGGESTED_TOP_UP_DEFAULT / 10,
+        "operationalFundReq": SUGGESTED_TOP_UP_DEFAULT * 3,
         "gasParams": {
             # this means default values will be used
             "MAX_PRIORITY_FEE_PER_GAS": "",
@@ -97,7 +84,7 @@ CHAIN_ID_TO_METADATA = {
         "name": "Base",
         "token": "ETH",
         "firstTimeTopUp": SUGGESTED_TOP_UP_DEFAULT * 5,
-        "operationalFundReq": SUGGESTED_TOP_UP_DEFAULT / 10,
+        "operationalFundReq": SUGGESTED_TOP_UP_DEFAULT * 3,
         "usdcRequired": False,
         "gasParams": {
             # this means default values will be used
@@ -109,11 +96,24 @@ CHAIN_ID_TO_METADATA = {
         "name": "Mode",
         "token": "ETH",
         "firstTimeTopUp": SUGGESTED_TOP_UP_DEFAULT * 5,
-        "operationalFundReq": SUGGESTED_TOP_UP_DEFAULT / 10,
+        "operationalFundReq": SUGGESTED_TOP_UP_DEFAULT * 3,
         "usdcRequired": False,
-        "gasParams": {
+         "gasParams": {
             # this means default values will be used
             "MAX_PRIORITY_FEE_PER_GAS": "",
+            "MAX_FEE_PER_GAS": "",
+        }
+    },
+    1: {
+        "name": "Ethereum Mainnet",
+        "token": "ETH",
+        "native_token_balance": MASTER_WALLET_MIMIMUM_BALANCE,
+        "usdcRequired": True,
+        "firstTimeTopUp": SUGGESTED_TOP_UP_DEFAULT * 10,
+        "operationalFundReq": SUGGESTED_TOP_UP_DEFAULT * 10,
+        "gasParams": {
+            # this means default values will be used
+           "MAX_PRIORITY_FEE_PER_GAS": "",
             "MAX_FEE_PER_GAS": "",
         }
     },
@@ -398,7 +398,7 @@ def get_service_template(config: OptimusConfig) -> ServiceTemplate:
     """Get the service template"""
     return ServiceTemplate({
         "name": "Optimus",
-        "hash": "bafybeibiiuhqronhgkxjo7x5xve24lkbqom5rqcjxg7vrl6jwavfyypmhu",
+        "hash": "bafybeifrozusw4yujcjzmlaufm4tsj5xgibw6bfe6pgsnm5jcv7gw7zyce",
 
         "description": "Optimus",
         "image": "https://gateway.autonolas.tech/ipfs/bafybeiaakdeconw7j5z76fgghfdjmsr6tzejotxcwnvmp3nroaw3glgyve",
@@ -409,7 +409,7 @@ def get_service_template(config: OptimusConfig) -> ServiceTemplate:
                 {
                     "staking_program_id": "optimus_alpha",
                     "rpc": config.ethereum_rpc,
-                    "nft": "bafybeiaakdeconw7j5z76fgghfdjmsr6tzejotxcwnvmp3nroaw3glgyve",
+                    "nft": "bafybeifrozusw4yujcjzmlaufm4tsj5xgibw6bfe6pgsnm5jcv7gw7zyce",
                     "cost_of_bond": COST_OF_BOND,
                     "threshold": 1,
                     "use_staking": False,
@@ -561,7 +561,6 @@ def fetch_initial_funding_requirements() -> None:
     global CHAIN_ID_TO_METADATA
 
     optimus_config = get_local_config()
-    fetch_operational_fund_requirement(optimus_config.ethereum_rpc)
     headers = {
         "accept": "application/json",
         "x-cg-api-key": optimus_config.coingecko_api_key
@@ -579,8 +578,7 @@ def fetch_initial_funding_requirements() -> None:
     eth_required_rounded = float(Decimal(eth_required).quantize(Decimal('0.0001'), rounding=ROUND_UP))
     eth_required_in_wei = int((eth_required_rounded * 10 ** 18) + safety_margin)
     INITIAL_FUNDS_REQUIREMENT['ETH'] = eth_required_in_wei
-    operational_fund_requirement = fetch_operational_fund_requirement(optimus_config.ethereum_rpc)
-    CHAIN_ID_TO_METADATA[1]['firstTimeTopUp'] = eth_required_in_wei + operational_fund_requirement
+
     # Fetch USDC price
     usdc_url = f"https://api.coingecko.com/api/v3/simple/token_price/ethereum?contract_addresses={USDC_ADDRESS}&vs_currencies=usd"
     usdc_price = fetch_token_price(usdc_url, headers)
@@ -593,28 +591,6 @@ def fetch_initial_funding_requirements() -> None:
     usdc_required_rounded = math.ceil(usdc_required)
     usdc_required_in_decimals = int((usdc_required_rounded * 10 ** 6) + safety_margin)
     INITIAL_FUNDS_REQUIREMENT['USDC'] = usdc_required_in_decimals
-
-def fetch_operational_fund_requirement(rpc, fee_history_blocks: int = 7000) -> int:
-    web3 = Web3(Web3.HTTPProvider(rpc))
-    block_number = web3.eth.block_number
-
-    # Fetch fee history
-    fee_history = web3.eth.fee_history(
-        fee_history_blocks, block_number, [50]
-    )
-    base_fees = fee_history['baseFeePerGas']
-    priority_fees = [reward[0] for reward in fee_history['reward'] if reward]
-
-    # Calculate average fees
-    average_base_fee = sum(base_fees) / len(base_fees)
-    average_priority_fee = sum(priority_fees) / len(priority_fees)
-
-    average_gas_price = average_base_fee + average_priority_fee
-
-    gas_amount = 1_000_000 
-    safety_margin = 1_000_000_000_000_000
-    operational_fund_requirement = int((average_gas_price * gas_amount) + safety_margin)
-    return operational_fund_requirement
 
 def main() -> None:
     """Run service."""
@@ -677,6 +653,7 @@ def main() -> None:
         os.environ["OPEN_AUTONOMY_SUBGRAPH_URL"] = "https://subgraph.autonolas.tech/subgraphs/name/autonolas-staging"
         os.environ["MAX_PRIORITY_FEE_PER_GAS"] = chain_metadata["gasParams"]["MAX_PRIORITY_FEE_PER_GAS"]
         os.environ["MAX_FEE_PER_GAS"] = chain_metadata["gasParams"]["MAX_FEE_PER_GAS"]
+        os.environ["FEE_HISTORY_PERCENTILE"] = "50"
         service_exists = manager._get_on_chain_state(chain_config) != OnChainState.NON_EXISTENT
 
         chain_name, token = chain_metadata['name'], chain_metadata["token"]
@@ -685,7 +662,11 @@ def main() -> None:
             f"[{chain_name}] Main wallet balance: {balance_str}",
         )
         safe_exists = wallet.safes.get(chain_type) is not None
-        required_balance = chain_metadata["firstTimeTopUp"] if not safe_exists else chain_metadata["operationalFundReq"]
+        required_balance = chain_metadata["firstTimeTopUp"] + chain_metadata["operationalFundReq"] if not safe_exists else chain_metadata["operationalFundReq"]
+
+        if int(chain_id) == 1 and not service_exists:
+            required_balance += INITIAL_FUNDS_REQUIREMENT['ETH']
+
         print(
             f"[{chain_name}] Please make sure main wallet {wallet.crypto.address} has at least {wei_to_token(required_balance, token)}",
         )
@@ -755,7 +736,7 @@ def main() -> None:
             spinner.succeed(f"[{chain_name}] Safe updated balance: {balance} {STAKED_BONDING_TOKEN}")
 
         if chain_metadata.get("usdcRequired", False) and not service_exists:
-            print(f"[{chain_name}] Please make sure address {address} has at least 15 USDC")
+            print(f"[{chain_name}] Please make sure address {address} has at least {INITIAL_FUNDS_REQUIREMENT['USDC'] / 10 ** 6} USDC")
 
             spinner = Halo(
                 text=f"[{chain_name}] Waiting for USDC...",
@@ -776,9 +757,7 @@ def main() -> None:
         )
         if chain_id == '1' and not service_exists:
             safe_fund_threshold=INITIAL_FUNDS_REQUIREMENT['ETH']
-            service_safe = chain_config.chain_data.multisig
-            safe_balance = ledger_api.get_balance(service_safe)
-            safe_topup = safe_fund_threshold - safe_balance
+            safe_topup = safe_fund_threshold
         else:
             safe_fund_threshold = None
             safe_topup = None
