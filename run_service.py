@@ -16,7 +16,7 @@
 #   limitations under the License.
 #
 # ------------------------------------------------------------------------------
-"""Optimus Quickstart script."""
+"""Meme-ooorr Quickstart script."""
 
 import getpass
 import json
@@ -24,25 +24,20 @@ import os
 import sys
 import time
 import typing as t
-import math
 from dataclasses import dataclass
 from pathlib import Path
-from decimal import Decimal, ROUND_UP
-
+import shutil
 import requests
 import yaml
 from aea.crypto.base import LedgerApi
-from aea_ledger_ethereum import EthereumApi, EIP1559, get_base_fee_multiplier
+from aea_ledger_ethereum import EthereumApi
 from dotenv import load_dotenv
-from eth_utils import to_wei
 from halo import Halo
 from termcolor import colored
 from web3 import Web3
-from web3.types import Wei, TxParams
 
 from operate.account.user import UserAccount
 from operate.cli import OperateApp
-from operate.ledger.profiles import OLAS, STAKING
 from operate.resource import LocalResource, deserialize
 from operate.services.manage import ServiceManager
 from operate.services.service import Service
@@ -55,50 +50,36 @@ from operate.types import (
 
 load_dotenv()
 
-SUGGESTED_TOP_UP_DEFAULT = 1_000_000_000_000_000
-SUGGESTED_SAFE_TOP_UP_DEFAULT = 5_000_000_000_000_000
+SUGGESTED_TOP_UP_DEFAULT = 5_000_000_000_000_000
+SUGGESTED_SAFE_TOP_UP_DEFAULT = 50_000_000_000_000_000
 MASTER_WALLET_MIMIMUM_BALANCE = 6_001_000_000_000_000
 COST_OF_BOND = 1
 COST_OF_BOND_STAKING = 2 * 10 ** 19
-STAKED_BONDING_TOKEN = "OLAS"
-INITIAL_FUNDS_REQUIREMENT = {"USDC": 15_000_000, "ETH": 6_000_000_000_000_000}
-USDC_ADDRESS = "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48"
+INITIAL_FUNDS_REQUIREMENT = {"OLAS": 15_000_000, "ETH": 6_000_000_000_000_000}
+OLAS_ADDRESS = "0x54330d28ca3357F294334BDC454a032e7f353416"
 WARNING_ICON = colored('\u26A0', 'yellow')
-OPERATE_HOME = Path.cwd() / ".optimus"
-DEFAULT_MIN_SWAP_AMOUNT_THRESHOLD = 15
+OPERATE_HOME = Path.cwd() / ".memeooorr"
 
 CHAIN_ID_TO_METADATA = {
-    1: {
-        "name": "Ethereum Mainnet",
-        "token": "ETH",
-        "native_token_balance": MASTER_WALLET_MIMIMUM_BALANCE,
-        "usdcRequired": True,
-        "firstTimeTopUp": SUGGESTED_TOP_UP_DEFAULT * 10 * 2,
-        "operationalFundReq": 0,
-        "gasParams": {
-            # this means default values will be used
-            "MAX_PRIORITY_FEE_PER_GAS": "",
-            "MAX_FEE_PER_GAS": "",
-        }
-    },
-    10: {
-        "name": "Optimism",
-        "token": "ETH",
-        "usdcRequired": False,
-        "firstTimeTopUp": SUGGESTED_TOP_UP_DEFAULT * 5,
-        "operationalFundReq": SUGGESTED_TOP_UP_DEFAULT / 10,
-        "gasParams": {
-            # this means default values will be used
-            "MAX_PRIORITY_FEE_PER_GAS": "",
-            "MAX_FEE_PER_GAS": "",
-        }
-    },
+    # 1: {
+    #     "name": "Ethereum Mainnet",
+    #     "token": "ETH",
+    #     "native_token_balance": MASTER_WALLET_MIMIMUM_BALANCE,
+    #     "olasRequired": True,
+    #     "firstTimeTopUp": SUGGESTED_TOP_UP_DEFAULT * 10 * 2,
+    #     "operationalFundReq": 0,
+    #     "gasParams": {
+    #         # this means default values will be used
+    #         "MAX_PRIORITY_FEE_PER_GAS": "",
+    #         "MAX_FEE_PER_GAS": "",
+    #     }
+    # },
     8453: {
         "name": "Base",
         "token": "ETH",
         "firstTimeTopUp": SUGGESTED_TOP_UP_DEFAULT * 5,
         "operationalFundReq": SUGGESTED_TOP_UP_DEFAULT / 10,
-        "usdcRequired": False,
+        "olasRequired": False,
         "gasParams": {
             # this means default values will be used
             "MAX_PRIORITY_FEE_PER_GAS": "",
@@ -151,20 +132,21 @@ def estimate_priority_fee(
 
 
 @dataclass
-class OptimusConfig(LocalResource):
+class MemeooorrConfig(LocalResource):
     """Local configuration."""
 
     path: Path
-    optimism_rpc: t.Optional[str] = None
-    ethereum_rpc: t.Optional[str] = None
     base_rpc: t.Optional[str] = None
-    tenderly_access_key: t.Optional[str] = None
-    tenderly_account_slug: t.Optional[str] = None
-    tenderly_project_slug: t.Optional[str] = None
-    coingecko_api_key: t.Optional[str] = None
-    min_swap_amount_threshold: t.Optional[int] = None
     password_migrated: t.Optional[bool] = None
     use_staking: t.Optional[bool] = None
+    twikit_username: t.Optional[str] = None
+    twikit_email: t.Optional[str] = None
+    twikit_password: t.Optional[str] = None
+    feedback_period_hours: t.Optional[str] = None
+    genai_api_key: t.Optional[str] = None
+    min_feedback_replies: t.Optional[str] = None
+    total_supply: t.Optional[str] = None
+    deployment_amount_eth: t.Optional[str] = None
 
     @classmethod
     def from_json(cls, obj: t.Dict) -> "LocalResource":
@@ -217,7 +199,7 @@ def wei_to_unit(wei: int) -> float:
     return wei / 1e18
 
 
-def wei_to_token(wei: int, token: str = "xDAI") -> str:
+def wei_to_token(wei: int, token: str = "ETH") -> str:
     """Convert Wei to token."""
     return f"{wei_to_unit(wei):.6f} {token}"
 
@@ -283,83 +265,63 @@ def check_rpc(rpc_url: str) -> None:
         print("Terminating script.")
         sys.exit(1)
 
+def input_with_default_value(prompt: str, default_value: str) -> str:
+    user_input = input(f"{prompt} [{default_value}]: ")
+    return str(user_input) if user_input else default_value
 
-def get_local_config() -> OptimusConfig:
-    """Get local optimus configuration."""
+
+def get_local_config() -> MemeooorrConfig:
+    """Get local memeooorr configuration."""
     path = OPERATE_HOME / "local_config.json"
     if path.exists():
-        optimus_config = OptimusConfig.load(path)
+        memeooorr_config = MemeooorrConfig.load(path)
     else:
-        optimus_config = OptimusConfig(path)
+        memeooorr_config = MemeooorrConfig(path)
 
     print_section("API Key Configuration")
 
-    if optimus_config.ethereum_rpc is None:
-        optimus_config.ethereum_rpc = input("Please enter an Ethereum RPC URL: ")
+    if memeooorr_config.base_rpc is None:
+        memeooorr_config.base_rpc = input("Please enter a Base RPC URL: ")
 
-    if optimus_config.optimism_rpc is None:
-        optimus_config.optimism_rpc = input("Please enter an Optimism RPC URL: ")
+    if memeooorr_config.password_migrated is None:
+        memeooorr_config.password_migrated = False
 
-    if optimus_config.base_rpc is None:
-        optimus_config.base_rpc = input("Please enter a Base RPC URL: ")
+    if memeooorr_config.twikit_username is None:
+        memeooorr_config.twikit_username = input("Please enter the Twitter username for Memeooorr's account: ")
 
-    if optimus_config.tenderly_access_key is None:
-        optimus_config.tenderly_access_key = input(
-            "Please enter your Tenderly API Key. Get one at https://dashboard.tenderly.co/: "
-        )
+    if memeooorr_config.twikit_email is None:
+        memeooorr_config.twikit_email = input("Please enter the Twitter email for Memeooorr's account: ")
 
-    if optimus_config.tenderly_account_slug is None:
-        optimus_config.tenderly_account_slug = input(
-            "Please enter your Tenderly Account Slug: "
-        )
+    if memeooorr_config.twikit_password is None:
+        memeooorr_config.twikit_password = input("Please enter the Twitter password for Memeooorr's account (avoid passwords that include the $ character): ")
 
-    if optimus_config.tenderly_project_slug is None:
-        optimus_config.tenderly_project_slug = input(
-            "Please enter your Tenderly Project Slug: "
-        )
+    if memeooorr_config.genai_api_key is None:
+        memeooorr_config.genai_api_key = input("Please enter the GenAI API key for Memeooorr's account: ")
 
-    if optimus_config.coingecko_api_key is None:
-        optimus_config.coingecko_api_key = input(
-            "Please enter your CoinGecko API Key. Get one at https://www.coingecko.com/: "
-        )
+    if memeooorr_config.feedback_period_hours is None:
+        memeooorr_config.feedback_period_hours = input_with_default_value("How many hours should Memeooorr wait after sending a tweet and before analysing its responses?", 1)
 
-    if optimus_config.min_swap_amount_threshold is None:
-        update_min_swap = input(f"Do you want to update the minimum swap amount threshold (set to {DEFAULT_MIN_SWAP_AMOUNT_THRESHOLD} USD)? (y/n): ").lower() == 'y'
-        if update_min_swap:
-            while True:
-                user_input = input(
-                    f"Please enter the minimum swap amount threshold (at least {DEFAULT_MIN_SWAP_AMOUNT_THRESHOLD} USD): "
-                )
-                min_swap_amount = user_input
-                if not min_swap_amount.isdigit():
-                    print("Error: Please enter a valid integer.")
-                    continue
-                
-                if int(min_swap_amount) >= DEFAULT_MIN_SWAP_AMOUNT_THRESHOLD:
-                    optimus_config.min_swap_amount_threshold = min_swap_amount
-                    break
-                else:
-                    print(f"Error: The minimum swap amount must be at least {DEFAULT_MIN_SWAP_AMOUNT_THRESHOLD} USD.")
-        else:
-            optimus_config.min_swap_amount_threshold = str(DEFAULT_MIN_SWAP_AMOUNT_THRESHOLD)
+    if memeooorr_config.min_feedback_replies is None:
+        memeooorr_config.min_feedback_replies = input_with_default_value("What's the minimum amount of replies to a tweet before Memeooorr analyses them?", 10)
 
-    if optimus_config.password_migrated is None:
-        optimus_config.password_migrated = False
+    if memeooorr_config.total_supply is None:
+        total_supply = input_with_default_value("What's the token supply Memeooorr should use when deploying a token? (not wei, but token units. 1000000 min)", 1000000)
+        memeooorr_config.total_supply = str(int(total_supply) * int(1E18))
 
-    if optimus_config.use_staking is None:
-        optimus_config.use_staking = input("Do you want to stake your service? (y/n): ").lower() == 'y'
+    if memeooorr_config.deployment_amount_eth is None:
+        memeooorr_config.deployment_amount_eth = input_with_default_value("What's the amount of ETH that you want to invest in each token? (0.01 min)", 0.01)
 
-    optimus_config.store()
-    return optimus_config
+    memeooorr_config.store()
+    return memeooorr_config
 
 
 def apply_env_vars(env_vars: t.Dict[str, str]) -> None:
     """Apply environment variables."""
     for key, value in env_vars.items():
         if value is not None:
-            os.environ[key] = value
+            os.environ[key] = str(value)
 
-def handle_password_migration(operate: OperateApp, config: OptimusConfig) -> t.Optional[str]:
+def handle_password_migration(operate: OperateApp, config: MemeooorrConfig) -> t.Optional[str]:
     """Handle password migration."""
     if not config.password_migrated:
         print("Add password...")
@@ -378,52 +340,35 @@ def handle_password_migration(operate: OperateApp, config: OptimusConfig) -> t.O
     return None
 
 
-def get_service_template(config: OptimusConfig) -> ServiceTemplate:
+def get_service_template(config: MemeooorrConfig) -> ServiceTemplate:
     """Get the service template"""
     return ServiceTemplate({
-        "name": "Optimus",
-        "hash": "bafybeibiiuhqronhgkxjo7x5xve24lkbqom5rqcjxg7vrl6jwavfyypmhu",
-
-        "description": "Optimus",
+        "name": "Memeooorr",
+        "hash": os.getenv("SERVICE_HASH", None) or "bafybeidox3oktommehcm53n5ozpiqzar555b6zsmozu5o6ybnhhv4h3z5i",
+        "description": "Memeooorr",
         "image": "https://gateway.autonolas.tech/ipfs/bafybeiaakdeconw7j5z76fgghfdjmsr6tzejotxcwnvmp3nroaw3glgyve",
-        "service_version": 'v0.18.1',
-        "home_chain_id": "10",
+        "service_version": 'v0.0.1',
+        "home_chain_id": "8453",
         "configurations": {
-            "1": ConfigurationTemplate(
-                {
-                    "staking_program_id": "optimus_alpha",
-                    "rpc": config.ethereum_rpc,
-                    "nft": "bafybeiaakdeconw7j5z76fgghfdjmsr6tzejotxcwnvmp3nroaw3glgyve",
-                    "cost_of_bond": COST_OF_BOND,
-                    "threshold": 1,
-                    "use_staking": False,
-                    "fund_requirements": FundRequirementsTemplate(
-                        {
-                            "agent": SUGGESTED_TOP_UP_DEFAULT * 5,
-                            "safe": 0,
-                        }
-                    ),
-                }
-            ),
-            "10": ConfigurationTemplate(
-                {
-                    "staking_program_id": "optimus_alpha",
-                    "rpc": config.optimism_rpc,
-                    "nft": "bafybeiaakdeconw7j5z76fgghfdjmsr6tzejotxcwnvmp3nroaw3glgyve",
-                    "cost_of_bond": COST_OF_BOND_STAKING,
-                    "threshold": 1,
-                    "use_staking": config.use_staking,
-                    "fund_requirements": FundRequirementsTemplate(
-                        {
-                            "agent": SUGGESTED_TOP_UP_DEFAULT,
-                            "safe": 0,
-                        }
-                    ),
-                }
-            ),
+            # "1": ConfigurationTemplate(
+            #     {
+            #         "staking_program_id": "memeooorr_alpha",
+            #         "rpc": config.ethereum_rpc,
+            #         "nft": "bafybeiaakdeconw7j5z76fgghfdjmsr6tzejotxcwnvmp3nroaw3glgyve",
+            #         "cost_of_bond": COST_OF_BOND,
+            #         "threshold": 1,
+            #         "use_staking": False,
+            #         "fund_requirements": FundRequirementsTemplate(
+            #             {
+            #                 "agent": SUGGESTED_TOP_UP_DEFAULT * 5,
+            #                 "safe": 0,
+            #             }
+            #         ),
+            #     }
+            # ),
             "8453": ConfigurationTemplate(
                 {
-                    "staking_program_id": "optimus_alpha",
+                    "staking_program_id": "memeooorr_alpha",
                     "rpc": config.base_rpc,
                     "nft": "bafybeiaakdeconw7j5z76fgghfdjmsr6tzejotxcwnvmp3nroaw3glgyve",
                     "cost_of_bond": COST_OF_BOND,
@@ -432,7 +377,7 @@ def get_service_template(config: OptimusConfig) -> ServiceTemplate:
                     "fund_requirements": FundRequirementsTemplate(
                         {
                             "agent": SUGGESTED_TOP_UP_DEFAULT,
-                            "safe": 0,
+                            "safe": SUGGESTED_SAFE_TOP_UP_DEFAULT,
                         }
                     ),
                 }
@@ -478,7 +423,7 @@ def add_volumes(docker_compose_path: Path, host_path: str, container_path: str) 
     with open(docker_compose_path, "r") as f:
         docker_compose = yaml.safe_load(f)
 
-    docker_compose["services"]["optimus_abci_0"]["volumes"].append(f"{host_path}:{container_path}:Z")
+    docker_compose["services"]["memeooorr_abci_0"]["volumes"].append(f"{host_path}:{container_path}:Z")
 
     with open(docker_compose_path, "w") as f:
         yaml.dump(docker_compose, f)
@@ -508,7 +453,7 @@ def get_service(manager: ServiceManager, template: ServiceTemplate) -> Service:
         )
 
     return service
-    
+
 def fetch_token_price(url: str, headers: dict) -> t.Optional[float]:
     """Fetch the price of a token from a given URL."""
     try:
@@ -517,50 +462,11 @@ def fetch_token_price(url: str, headers: dict) -> t.Optional[float]:
             print(f"Error fetching info from url {url}. Failed with status code: {response.status_code}")
             return None
         prices = response.json()
-        token = next(iter(prices)) 
+        token = next(iter(prices))
         return prices[token].get('usd', None)
     except Exception as e:
         print(f"Error fetching token price: {e}")
         return None
-
-def fetch_initial_funding_requirements() -> None:
-    """Fetch initial funding requirements based on min_swap_amount_threshold."""
-    global INITIAL_FUNDS_REQUIREMENT
-    global CHAIN_ID_TO_METADATA
-
-    optimus_config = get_local_config()
-    fetch_operational_fund_requirement(optimus_config.ethereum_rpc)
-    headers = {
-        "accept": "application/json",
-        "x-cg-api-key": optimus_config.coingecko_api_key
-    }
-
-    # Fetch ETH price
-    eth_url = "https://api.coingecko.com/api/v3/simple/price?ids=ethereum&vs_currencies=usd"
-    eth_price = fetch_token_price(eth_url, headers)
-    if eth_price is None:
-        print("Error: Could not fetch price for ETH.")
-        return
-
-    safety_margin = 500_000_000_000_000
-    eth_required = (int(optimus_config.min_swap_amount_threshold) / eth_price)
-    eth_required_rounded = float(Decimal(eth_required).quantize(Decimal('0.0001'), rounding=ROUND_UP))
-    eth_required_in_wei = int((eth_required_rounded * 10 ** 18) + safety_margin)
-    INITIAL_FUNDS_REQUIREMENT['ETH'] = eth_required_in_wei
-    operational_fund_requirement = fetch_operational_fund_requirement(optimus_config.ethereum_rpc)
-    CHAIN_ID_TO_METADATA[1]['firstTimeTopUp'] = eth_required_in_wei + operational_fund_requirement
-    # Fetch USDC price
-    usdc_url = f"https://api.coingecko.com/api/v3/simple/token_price/ethereum?contract_addresses={USDC_ADDRESS}&vs_currencies=usd"
-    usdc_price = fetch_token_price(usdc_url, headers)
-    if usdc_price is None:
-        print("Error: Could not fetch price for USDC.")
-        return
-      
-    safety_margin = 1_000_000
-    usdc_required = (int(optimus_config.min_swap_amount_threshold) / usdc_price)
-    usdc_required_rounded = math.ceil(usdc_required)
-    usdc_required_in_decimals = int((usdc_required_rounded * 10 ** 6) + safety_margin)
-    INITIAL_FUNDS_REQUIREMENT['USDC'] = usdc_required_in_decimals
 
 def fetch_operational_fund_requirement(rpc, fee_history_blocks: int = 7000) -> int:
     web3 = Web3(Web3.HTTPProvider(rpc))
@@ -579,7 +485,7 @@ def fetch_operational_fund_requirement(rpc, fee_history_blocks: int = 7000) -> i
 
     average_gas_price = average_base_fee + average_priority_fee
 
-    gas_amount = 1_000_000 
+    gas_amount = 1_000_000
     safety_margin = 1_000_000_000_000_000
     operational_fund_requirement = int((average_gas_price * gas_amount) + safety_margin)
     return operational_fund_requirement
@@ -587,8 +493,8 @@ def fetch_operational_fund_requirement(rpc, fee_history_blocks: int = 7000) -> i
 def main() -> None:
     """Run service."""
 
-    print_title("Optimus Quickstart")
-    print("This script will assist you in setting up and running the Optimus service.")
+    print_title("Memeooorr Quickstart")
+    print("This script will assist you in setting up and running the Memeooorr service.")
     print()
 
     print_section("Set up local user account")
@@ -597,8 +503,8 @@ def main() -> None:
     )
     operate.setup()
 
-    optimus_config = get_local_config()
-    template = get_service_template(optimus_config)
+    memeooorr_config = get_local_config()
+    template = get_service_template(memeooorr_config)
     manager = operate.service_manager()
     service = get_service(manager, template)
 
@@ -609,10 +515,10 @@ def main() -> None:
             password=password,
             path=operate._path / "user.json",
         )
-        optimus_config.password_migrated = True
-        optimus_config.store()
+        memeooorr_config.password_migrated = True
+        memeooorr_config.store()
     else:
-        password = handle_password_migration(operate, optimus_config)
+        password = handle_password_migration(operate, memeooorr_config)
         if password is None:
             password = getpass.getpass("Enter local user account password: ")
         if not operate.user_account.is_valid(password=password):
@@ -631,7 +537,6 @@ def main() -> None:
         wallet = operate.wallet_manager.load(ledger_type=LedgerType.ETHEREUM)
 
     manager = operate.service_manager()
-    fetch_initial_funding_requirements()
 
     for chain_id, configuration in service.chain_configs.items():
         chain_metadata = CHAIN_ID_TO_METADATA[int(chain_id)]
@@ -707,35 +612,20 @@ def main() -> None:
 
             spinner.succeed(f"[{chain_name}] Safe updated balance: {wei_to_token(ledger_api.get_balance(address), token)}.")
 
-        if chain_config.chain_data.user_params.use_staking and not service_exists:
-            print(f"[{chain_name}] Please make sure address {address} has at least {wei_to_token(2 * COST_OF_BOND_STAKING, STAKED_BONDING_TOKEN)}")
+        if chain_metadata.get("olasRequired", False) and not service_exists:
+            print(f"[{chain_name}] Please make sure address {address} has at least 15 OLAS")
 
             spinner = Halo(
-                text=f"[{chain_name}] Waiting for {STAKED_BONDING_TOKEN}...",
-                spinner="dots",
-            )
-            spinner.start()
-            olas_address = OLAS[chain_type]
-            while get_erc20_balance(ledger_api, olas_address, address) < 2 * COST_OF_BOND_STAKING:
-                time.sleep(1)
-
-            balance = get_erc20_balance(ledger_api, olas_address, address) / 10 ** 18
-            spinner.succeed(f"[{chain_name}] Safe updated balance: {balance} {STAKED_BONDING_TOKEN}")
-
-        if chain_metadata.get("usdcRequired", False) and not service_exists:
-            print(f"[{chain_name}] Please make sure address {address} has at least 15 USDC")
-
-            spinner = Halo(
-                text=f"[{chain_name}] Waiting for USDC...",
+                text=f"[{chain_name}] Waiting for OLAS...",
                 spinner="dots",
             )
             spinner.start()
 
-            while get_erc20_balance(ledger_api, USDC_ADDRESS, address) < INITIAL_FUNDS_REQUIREMENT['USDC']:
+            while get_erc20_balance(ledger_api, OLAS_ADDRESS, address) < INITIAL_FUNDS_REQUIREMENT['OLAS']:
                 time.sleep(1)
 
-            usdc_balance = get_erc20_balance(ledger_api, USDC_ADDRESS, address) / 10 ** 6
-            spinner.succeed(f"[{chain_name}] Safe updated balance: {usdc_balance} USDC.")
+            olas_balance = get_erc20_balance(ledger_api, OLAS_ADDRESS, address) / 10 ** 6
+            spinner.succeed(f"[{chain_name}] Safe updated balance: {olas_balance} OLAS.")
 
         manager.deploy_service_onchain_from_safe_single_chain(
             hash=service.hash,
@@ -753,16 +643,16 @@ def main() -> None:
 
         manager.fund_service(hash=service.hash, chain_id=chain_id, safe_fund_treshold=safe_fund_threshold, safe_topup=safe_topup)
 
-        usdc_balance = get_erc20_balance(ledger_api, USDC_ADDRESS, address) if chain_metadata.get("usdcRequired", False) else 0
-        if usdc_balance > 0:
-            # transfer all the usdc balance into the service safe
+        olas_balance = get_erc20_balance(ledger_api, OLAS_ADDRESS, address) if chain_metadata.get("olasRequired", False) else 0
+        if olas_balance > 0:
+            # transfer all the olas balance into the service safe
             manager.fund_service_erc20(
                 hash=service.hash,
                 chain_id=chain_id,
-                token=USDC_ADDRESS,
-                safe_topup=usdc_balance,
+                token=OLAS_ADDRESS,
+                safe_topup=olas_balance,
                 agent_topup=0,
-                safe_fund_treshold=INITIAL_FUNDS_REQUIREMENT['USDC'] + usdc_balance,
+                safe_fund_treshold=INITIAL_FUNDS_REQUIREMENT['OLAS'] + olas_balance,
             )
 
     safes = {
@@ -770,24 +660,50 @@ def main() -> None:
         for chain, config in service.chain_configs.items()
     }
     home_chain_id = service.home_chain_id
-    home_chain_type = ChainType.from_id(int(home_chain_id))
-    target_staking_program_id = service.chain_configs[home_chain_id].chain_data.user_params.staking_program_id
+
+    # Apply env cars
     env_vars = {
         "SAFE_CONTRACT_ADDRESSES": json.dumps(safes, separators=(',', ':')),
-        "TENDERLY_ACCESS_KEY": optimus_config.tenderly_access_key,
-        "TENDERLY_ACCOUNT_SLUG": optimus_config.tenderly_account_slug,
-        "TENDERLY_PROJECT_SLUG": optimus_config.tenderly_project_slug,
-        "STAKING_TOKEN_CONTRACT_ADDRESS": STAKING[home_chain_type][target_staking_program_id],
-        "COINGECKO_API_KEY": optimus_config.coingecko_api_key,
-        "MIN_SWAP_AMOUNT_THRESHOLD": optimus_config.min_swap_amount_threshold,
+        # "ON_CHAIN_SERVICE_ID": "34",
+        "TWIKIT_USERNAME": memeooorr_config.twikit_username,
+        "TWIKIT_EMAIL": memeooorr_config.twikit_email,
+        "TWIKIT_PASSWORD": memeooorr_config.twikit_password,
+        "FEEDBACK_PERIOD_HOURS": memeooorr_config.feedback_period_hours,
+        "GENAI_API_KEY": memeooorr_config.genai_api_key,
+        "MIN_FEEDBACK_REPLIES": memeooorr_config.min_feedback_replies,
+        "TOTAL_SUPPLY": memeooorr_config.total_supply,
+        "DEPLOYMENT_AMOUNT_ETH": memeooorr_config.deployment_amount_eth,
+        "RESET_PAUSE_DURATION": 10,
+        "MEME_FACTORY_ADDRESS": "0x1Aa15a8A751c601BbE31390dbb8711013BFD013d",
+        "MINIMUM_GAS_BALANCE": 0.02,
+        "DB_PATH": "/logs/memeooorr.db",
+        "TWIKIT_COOKIES_PATH": "/logs/twikit_cookies.json",
     }
     apply_env_vars(env_vars)
+
+    # Build the deployment
     print("Skipping local deployment")
     service.deployment.build(use_docker=True, force=True, chain_id=home_chain_id)
+
+    # Add docker volumes
     docker_compose_path = service.path / "deployment" / "docker-compose.yaml"
     add_volumes(docker_compose_path, str(OPERATE_HOME), "/data")
-    service.deployment.start(use_docker=True)
 
+    # Copy the database and cookies if they exist
+    database_source = service.path / "memeooorr.db"
+    database_target = service.path / "deployment" / "persistent_data" / "logs" / "memeooorr.db"
+    if database_source.is_file():
+        print("Loaded a backup of the db")
+        shutil.copy(database_source, database_target)
+
+    cookies_source = service.path / "twikit_cookies.json"
+    cookies_target = service.path / "deployment" / "persistent_data" / "logs" / "twikit_cookies.json"
+    if cookies_source.is_file():
+        print("Loaded a backup of the cookies")
+        shutil.copy(cookies_source, cookies_target)
+
+    # Run the deployment
+    service.deployment.start(use_docker=True)
     print()
     print_section("Running the service")
 

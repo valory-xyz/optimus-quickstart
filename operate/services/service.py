@@ -223,7 +223,7 @@ class ServiceBuilder(BaseServiceBuilder):
                     has_multiple_overrides=has_multiple_overrides,
                 )
                 if service_id is not None:
-                    override["models"]["params"]["args"][
+                    override[0]["models"]["params"]["args"][
                         "on_chain_service_id"
                     ] = service_id
 
