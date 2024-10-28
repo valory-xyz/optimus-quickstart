@@ -50,8 +50,8 @@ from operate.types import (
 
 load_dotenv()
 
-SUGGESTED_TOP_UP_DEFAULT = 1_000_000_000_000_000
-SUGGESTED_SAFE_TOP_UP_DEFAULT = 10_000_000_000_000_000
+SUGGESTED_TOP_UP_DEFAULT = 5_000_000_000_000_000
+SUGGESTED_SAFE_TOP_UP_DEFAULT = 50_000_000_000_000_000
 MASTER_WALLET_MIMIMUM_BALANCE = 6_001_000_000_000_000
 COST_OF_BOND = 1
 COST_OF_BOND_STAKING = 2 * 10 ** 19
@@ -377,7 +377,7 @@ def get_service_template(config: MemeooorrConfig) -> ServiceTemplate:
                     "fund_requirements": FundRequirementsTemplate(
                         {
                             "agent": SUGGESTED_TOP_UP_DEFAULT,
-                            "safe": 0,
+                            "safe": SUGGESTED_SAFE_TOP_UP_DEFAULT,
                         }
                     ),
                 }
@@ -674,8 +674,10 @@ def main() -> None:
         "TOTAL_SUPPLY": memeooorr_config.total_supply,
         "DEPLOYMENT_AMOUNT_ETH": memeooorr_config.deployment_amount_eth,
         "RESET_PAUSE_DURATION": 10,
-        "MEME_FACTORY_ADDRESS": "0x0991e5A1b734c874329C3dAE40f79DDF780406e5",
+        "MEME_FACTORY_ADDRESS": "0x1Aa15a8A751c601BbE31390dbb8711013BFD013d",
         "MINIMUM_GAS_BALANCE": 0.02,
+        "DB_PATH": "/logs/memeooorr.db",
+        "TWIKIT_COOKIES_PATH": "/logs/twikit_cookies.json",
     }
     apply_env_vars(env_vars)
 
@@ -689,13 +691,13 @@ def main() -> None:
 
     # Copy the database and cookies if they exist
     database_source = service.path / "memeooorr.db"
-    database_target = service.path / "memeooorr" / "abci_build" / "persistent_data" / "logs" / "memeooorr.db"
+    database_target = service.path / "deployment" / "persistent_data" / "logs" / "memeooorr.db"
     if database_source.is_file():
         print("Loaded a backup of the db")
         shutil.copy(database_source, database_target)
 
     cookies_source = service.path / "twikit_cookies.json"
-    cookies_target = service.path / "memeooorr" / "abci_build" / "persistent_data" / "logs" / "twikit_cookies.json"
+    cookies_target = service.path / "deployment" / "persistent_data" / "logs" / "twikit_cookies.json"
     if cookies_source.is_file():
         print("Loaded a backup of the cookies")
         shutil.copy(cookies_source, cookies_target)

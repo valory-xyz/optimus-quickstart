@@ -46,21 +46,21 @@ def main() -> None:
     template = get_service_template(memeooorr_config)
     manager = operate.service_manager()
     service = get_service(manager, template)
-    manager.stop_service_locally(hash=service.hash, delete=True)
 
     # Backup the database and cookies if they exist
-    database_source = service.path / "memeooorr" / "abci_build" / "persistent_data" / "logs" / "memeooorr.db"
+    database_source = service.path / "deployment" / "persistent_data" / "logs" / "memeooorr.db"
     database_target = service.path / "memeooorr.db"
     if database_source.is_file():
         print("Created a backup of the db")
         shutil.copy(database_source, database_target)
 
-    cookies_source = service.path / "memeooorr" / "abci_build" / "persistent_data" / "logs" / "twikit_cookies.json"
+    cookies_source = service.path / "deployment" / "persistent_data" / "logs" / "twikit_cookies.json"
     cookies_target = service.path / "twikit_cookies.json"
     if cookies_source.is_file():
         print("Created a backup of the cookies")
         shutil.copy(cookies_source, cookies_target)
 
+    manager.stop_service_locally(hash=service.hash, delete=True)
     print()
     print_section("Service stopped")
 
