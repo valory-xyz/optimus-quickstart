@@ -146,6 +146,7 @@ class MemeooorrConfig(LocalResource):
     genai_api_key: t.Optional[str] = None
     min_feedback_replies: t.Optional[str] = None
     total_supply: t.Optional[str] = None
+    deployment_amount_eth: t.Optional[str] = None
 
     @classmethod
     def from_json(cls, obj: t.Dict) -> "LocalResource":
@@ -304,8 +305,11 @@ def get_local_config() -> MemeooorrConfig:
         memeooorr_config.min_feedback_replies = input_with_default_value("What's the minimum amount of replies to a tweet before Memeooorr analyses them?", 10)
 
     if memeooorr_config.total_supply is None:
-        total_supply = input_with_default_value("What's the token supply Memeooorr should use when deploying a token? (not wei, but token units)", 1000000)
+        total_supply = input_with_default_value("What's the token supply Memeooorr should use when deploying a token? (not wei, but token units. 1000000 min)", 1000000)
         memeooorr_config.total_supply = str(int(total_supply) * 1E18)
+
+    if memeooorr_config.deployment_amount_eth is None:
+        memeooorr_config.deployment_amount_eth = input_with_default_value("What's the amount of ETH that you want to invest in each token? (0.01 min)", 0.01)
 
     memeooorr_config.store()
     return memeooorr_config
@@ -668,6 +672,7 @@ def main() -> None:
         "GENAI_API_KEY": memeooorr_config.genai_api_key,
         "MIN_FEEDBACK_REPLIES": memeooorr_config.min_feedback_replies,
         "TOTAL_SUPPLY": memeooorr_config.total_supply,
+        "DEPLOYMENT_AMOUNT_ETH": memeooorr_config.deployment_amount_eth,
     }
     apply_env_vars(env_vars)
 
