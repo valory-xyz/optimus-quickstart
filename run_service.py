@@ -306,7 +306,7 @@ def get_local_config() -> MemeooorrConfig:
 
     if memeooorr_config.total_supply is None:
         total_supply = input_with_default_value("What's the token supply Memeooorr should use when deploying a token? (not wei, but token units. 1000000 min)", 1000000)
-        memeooorr_config.total_supply = str(int(total_supply) * 1E18)
+        memeooorr_config.total_supply = str(int(total_supply) * int(1E18))
 
     if memeooorr_config.deployment_amount_eth is None:
         memeooorr_config.deployment_amount_eth = input_with_default_value("What's the amount of ETH that you want to invest in each token? (0.01 min)", 0.01)
@@ -344,7 +344,7 @@ def get_service_template(config: MemeooorrConfig) -> ServiceTemplate:
     """Get the service template"""
     return ServiceTemplate({
         "name": "Memeooorr",
-        "hash": os.getenv("SERVICE_HASH", None) or "bafybeiecsjtnk4v4vxpflfzju7mrmnwafbxzwhgleeeynqmr274w44rppa",
+        "hash": os.getenv("SERVICE_HASH", None) or "bafybeidox3oktommehcm53n5ozpiqzar555b6zsmozu5o6ybnhhv4h3z5i",
         "description": "Memeooorr",
         "image": "https://gateway.autonolas.tech/ipfs/bafybeiaakdeconw7j5z76fgghfdjmsr6tzejotxcwnvmp3nroaw3glgyve",
         "service_version": 'v0.0.1',
@@ -673,6 +673,9 @@ def main() -> None:
         "MIN_FEEDBACK_REPLIES": memeooorr_config.min_feedback_replies,
         "TOTAL_SUPPLY": memeooorr_config.total_supply,
         "DEPLOYMENT_AMOUNT_ETH": memeooorr_config.deployment_amount_eth,
+        "RESET_PAUSE_DURATION": 10,
+        "MEME_FACTORY_ADDRESS": "0x0991e5A1b734c874329C3dAE40f79DDF780406e5",
+        "MINIMUM_GAS_BALANCE": 0.02,
     }
     apply_env_vars(env_vars)
 
