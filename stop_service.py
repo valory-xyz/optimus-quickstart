@@ -24,6 +24,7 @@ from operate.cli import OperateApp
 from run_service import (
     print_title, OPERATE_HOME, get_local_config, get_service_template, print_section, get_service,
 )
+from pathlib import Path
 
 
 def main() -> None:
@@ -49,13 +50,13 @@ def main() -> None:
 
     # Backup the database and cookies if they exist
     database_source = service.path / "deployment" / "persistent_data" / "logs" / "memeooorr.db"
-    database_target = service.path / "memeooorr.db"
+    database_target = Path.cwd() / "memeooorr.db"
     if database_source.is_file():
         print("Created a backup of the db")
         shutil.copy(database_source, database_target)
 
     cookies_source = service.path / "deployment" / "persistent_data" / "logs" / "twikit_cookies.json"
-    cookies_target = service.path / "twikit_cookies.json"
+    cookies_target = Path.cwd() / "twikit_cookies.json"
     if cookies_source.is_file():
         print("Created a backup of the cookies")
         shutil.copy(cookies_source, cookies_target)

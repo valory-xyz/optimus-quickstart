@@ -50,3 +50,9 @@ leak_report
 /.optimus/
 
 .memeooorr/
+
+local_config.json
+
+memeooorr.db
+
+twikit_cookies.json
