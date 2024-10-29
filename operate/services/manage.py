@@ -1129,6 +1129,7 @@ class ServiceManager:
         chain_id: str = "10",
     ) -> None:
         """Fund service if required."""
+        from_safe = False # hack
         service = self.load_or_create(hash=hash)
         chain_config = service.chain_configs[chain_id]
         ledger_config = chain_config.ledger_config
@@ -1166,7 +1167,7 @@ class ServiceManager:
         self.logger.info(f"Safe {chain_data.multisig} balance: {safe_balance}")
         self.logger.info(f"Required balance: {safe_fund_treshold}")
         if safe_balance < safe_fund_treshold:
-            self.logger.info("Funding safe")
+            self.logger.info(f"Funding service safe {chain_data.multisig}")
             to_transfer = safe_topup or chain_data.user_params.fund_requirements.safe
             self.logger.info(
                 f"Transferring {to_transfer} units to {chain_data.multisig}"
@@ -1176,6 +1177,7 @@ class ServiceManager:
                 amount=int(to_transfer),
                 chain_type=ledger_config.chain,
                 rpc=rpc or ledger_config.rpc,
+                from_safe=False  # hack
             )
 
     def fund_service_erc20(  # pylint: disable=too-many-arguments,too-many-locals
