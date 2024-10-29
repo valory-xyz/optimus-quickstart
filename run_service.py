@@ -405,7 +405,7 @@ def get_service_template(config: OptimusConfig) -> ServiceTemplate:
         "hash": "bafybeidlfxklqbwrba5xdbigchkl5dcqcrlpzbrkem62jbzr5yghwe7tgu",
 
         "description": "Optimus",
-        "image": "https://operate.olas.network/_next/image?url=%2Fimages%2Fprediction-agent.png&w=3840&q=75",
+        "image": "https://gateway.autonolas.tech/ipfs/bafybeiaakdeconw7j5z76fgghfdjmsr6tzejotxcwnvmp3nroaw3glgyve",
         "service_version": 'v0.18.1',
         "home_chain_id": "10",
         "configurations": {
@@ -413,7 +413,7 @@ def get_service_template(config: OptimusConfig) -> ServiceTemplate:
                 {
                     "staking_program_id": "optimus_alpha",
                     "rpc": config.ethereum_rpc,
-                    "nft": "bafybeig64atqaladigoc3ds4arltdu63wkdrk3gesjfvnfdmz35amv7faq",
+                    "nft": "bafybeiaakdeconw7j5z76fgghfdjmsr6tzejotxcwnvmp3nroaw3glgyve",
                     "cost_of_bond": COST_OF_BOND,
                     "threshold": 1,
                     "use_staking": False,
@@ -429,7 +429,7 @@ def get_service_template(config: OptimusConfig) -> ServiceTemplate:
                 {
                     "staking_program_id": "optimus_alpha",
                     "rpc": config.optimism_rpc,
-                    "nft": "bafybeig64atqaladigoc3ds4arltdu63wkdrk3gesjfvnfdmz35amv7faq",
+                    "nft": "bafybeiaakdeconw7j5z76fgghfdjmsr6tzejotxcwnvmp3nroaw3glgyve",
                     "cost_of_bond": COST_OF_BOND_STAKING,
                     "threshold": 1,
                     "use_staking": config.use_staking,
@@ -445,7 +445,7 @@ def get_service_template(config: OptimusConfig) -> ServiceTemplate:
                 {
                     "staking_program_id": "optimus_alpha",
                     "rpc": config.base_rpc,
-                    "nft": "bafybeig64atqaladigoc3ds4arltdu63wkdrk3gesjfvnfdmz35amv7faq",
+                    "nft": "bafybeiaakdeconw7j5z76fgghfdjmsr6tzejotxcwnvmp3nroaw3glgyve",
                     "cost_of_bond": COST_OF_BOND,
                     "threshold": 1,
                     "use_staking": False,
@@ -485,7 +485,7 @@ def get_erc20_balance(ledger_api: LedgerApi, token: str, account: str) -> int:
     return balance
 
 FALLBACK_STAKING_PARAMS = dict(
-    agent_ids=[25],
+    agent_ids=[40],
     service_registry="0x9338b5153AE39BB89f50468E608eD9d764B755fD",  # nosec
     staking_token="0xcE11e14225575945b8E6Dc0D4F2dD4C570f79d9f",  # nosec
     service_registry_token_utility="0xa45E64d13A30a51b91ae0eb182e88a40e9b18eD8",  # nosec
@@ -581,7 +581,7 @@ def fetch_initial_funding_requirements() -> None:
     usdc_required_in_decimals = int((usdc_required_rounded * 10 ** 6) + safety_margin)
     INITIAL_FUNDS_REQUIREMENT['USDC'] = usdc_required_in_decimals
 
-def calculate_fund_requirement(rpc, fee_history_blocks: int, gas_amount: int) -> int:
+def calculate_fund_requirement(rpc, fee_history_blocks: int, gas_amount: int, fee_history_percentile: int = 50) -> int:
     if rpc is None:
         return None
     
@@ -589,7 +589,7 @@ def calculate_fund_requirement(rpc, fee_history_blocks: int, gas_amount: int) ->
     block_number = web3.eth.block_number
     # Fetch fee history
     fee_history = web3.eth.fee_history(
-        fee_history_blocks, block_number, [50]
+        fee_history_blocks, block_number, [fee_history_percentile]
     )
 
     if fee_history is None:
@@ -613,14 +613,14 @@ def calculate_fund_requirement(rpc, fee_history_blocks: int, gas_amount: int) ->
     fund_requirement = int((average_gas_price * gas_amount) + safety_margin)
     return fund_requirement
 
-def fetch_agent_fund_requirement(chain_id, rpc, fee_history_blocks: int = 100000000) -> int:
+def fetch_agent_fund_requirement(chain_id, rpc, fee_history_blocks: int = 20) -> int:
     if int(chain_id) == 1:
         gas_amount = 1_000_000
     else:
         gas_amount = 5_000_000
     return calculate_fund_requirement(rpc, fee_history_blocks, gas_amount)
 
-def fetch_operator_fund_requirement(chain_id, rpc, fee_history_blocks: int = 100000000) -> int:
+def fetch_operator_fund_requirement(chain_id, rpc, fee_history_blocks: int = 20) -> int:
     if int(chain_id) == 1:
         gas_amount = 2_000_000
     else:
@@ -680,6 +680,11 @@ def main() -> None:
         chain_metadata = CHAIN_ID_TO_METADATA[int(chain_id)]
         chain_name, token = chain_metadata['name'], chain_metadata["token"]
         chain_config = service.chain_configs[chain_id]
+        os.environ["CUSTOM_CHAIN_RPC"] = chain_config.ledger_config.rpc
+        os.environ["OPEN_AUTONOMY_SUBGRAPH_URL"] = "https://subgraph.autonolas.tech/subgraphs/name/autonolas-staging"
+        os.environ["MAX_PRIORITY_FEE_PER_GAS"] = chain_metadata["gasParams"]["MAX_PRIORITY_FEE_PER_GAS"]
+        os.environ["MAX_FEE_PER_GAS"] = chain_metadata["gasParams"]["MAX_FEE_PER_GAS"]
+
         service_exists = manager._get_on_chain_state(chain_config) != OnChainState.NON_EXISTENT
 
         if chain_name.lower() not in optimus_config.allowed_chains and chain_name != DEFAULT_START_CHAIN:
@@ -695,10 +700,6 @@ def main() -> None:
             chain_type=chain_type,
             rpc=chain_config.ledger_config.rpc,
         )
-        os.environ["CUSTOM_CHAIN_RPC"] = chain_config.ledger_config.rpc
-        os.environ["OPEN_AUTONOMY_SUBGRAPH_URL"] = "https://subgraph.autonolas.tech/subgraphs/name/autonolas-staging"
-        os.environ["MAX_PRIORITY_FEE_PER_GAS"] = chain_metadata["gasParams"]["MAX_PRIORITY_FEE_PER_GAS"]
-        os.environ["MAX_FEE_PER_GAS"] = chain_metadata["gasParams"]["MAX_FEE_PER_GAS"]
         
         balance_str = wei_to_token(ledger_api.get_balance(wallet.crypto.address), token)
         print(
@@ -716,21 +717,21 @@ def main() -> None:
 
         if service_exists:
             if chain_id != 1:
-                agent_balance = ledger_api.get_balance(address=service.keys[0].get("address"))
+                agent_balance = ledger_api.get_balance(address=service.keys[0].address)
                 #we only top up if current balance is less than 50% of required balance
                 if agent_balance < 0.5 * agent_fund_requirement:
-                    agent_fund_requirement = max(0, agent_fund_requirement - agent_balance)
+                    agent_fund_requirement = agent_fund_requirement - agent_balance
                 else:
                     agent_fund_requirement = 0
 
                 operator_balance = ledger_api.get_balance(wallet.crypto.address)
                 if operator_balance < 0.5 * operational_fund_req:
-                    operational_fund_req = max(0, operational_fund_req - operator_balance)
+                    operational_fund_req = operational_fund_req - operator_balance
                 else:
                     operational_fund_req = 0
             else:
                 operational_fund_req = 0
-                agent_fund_requirement = 0  
+                agent_fund_requirement = 0
 
         safety_margin = 100_000_000_000_000
         required_balance = operational_fund_req + agent_fund_requirement
