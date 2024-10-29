@@ -50,36 +50,28 @@ from operate.types import (
 
 load_dotenv()
 
-SUGGESTED_TOP_UP_DEFAULT = 5_000_000_000_000_000
-SUGGESTED_SAFE_TOP_UP_DEFAULT = 50_000_000_000_000_000
-MASTER_WALLET_MIMIMUM_BALANCE = 6_001_000_000_000_000
+def unit_to_wei(unit: float) -> int:
+    """Convert unit to Wei."""
+    return int(unit * 1e18)
+
+WALLET_TOPUP = unit_to_wei(0.05)
+MASTER_SAFE_TOPUP = unit_to_wei(0.01)
+SAFE_TOPUP = unit_to_wei(0.02)
+AGENT_TOPUP = unit_to_wei(0.01)
+
+INITIAL_FUNDS_REQUIREMENT = {"ETH": 6_000_000_000_000_000}  # not used for the memeooorr: initial funds required for the service to operate
+# MASTER_WALLET_MIMIMUM_BALANCE = 6_001_000_000_000_000  # minimum balance that should always be maintained in the master wallet to ensure it remains operational
+
 COST_OF_BOND = 1
 COST_OF_BOND_STAKING = 2 * 10 ** 19
-INITIAL_FUNDS_REQUIREMENT = {"OLAS": 15_000_000, "ETH": 6_000_000_000_000_000}
 OLAS_ADDRESS = "0x54330d28ca3357F294334BDC454a032e7f353416"
 WARNING_ICON = colored('\u26A0', 'yellow')
 OPERATE_HOME = Path.cwd() / ".memeooorr"
 
 CHAIN_ID_TO_METADATA = {
-    # 1: {
-    #     "name": "Ethereum Mainnet",
-    #     "token": "ETH",
-    #     "native_token_balance": MASTER_WALLET_MIMIMUM_BALANCE,
-    #     "olasRequired": True,
-    #     "firstTimeTopUp": SUGGESTED_TOP_UP_DEFAULT * 10 * 2,
-    #     "operationalFundReq": 0,
-    #     "gasParams": {
-    #         # this means default values will be used
-    #         "MAX_PRIORITY_FEE_PER_GAS": "",
-    #         "MAX_FEE_PER_GAS": "",
-    #     }
-    # },
     8453: {
         "name": "Base",
         "token": "ETH",
-        "firstTimeTopUp": SUGGESTED_TOP_UP_DEFAULT * 5,
-        "operationalFundReq": SUGGESTED_TOP_UP_DEFAULT / 10,
-        "olasRequired": False,
         "gasParams": {
             # this means default values will be used
             "MAX_PRIORITY_FEE_PER_GAS": "",
@@ -198,7 +190,6 @@ def wei_to_unit(wei: int) -> float:
     """Convert Wei to unit."""
     return wei / 1e18
 
-
 def wei_to_token(wei: int, token: str = "ETH") -> str:
     """Convert Wei to token."""
     return f"{wei_to_unit(wei):.6f} {token}"
@@ -273,6 +264,12 @@ def input_with_default_value(prompt: str, default_value: str) -> str:
 def get_local_config() -> MemeooorrConfig:
     """Get local memeooorr configuration."""
     path = OPERATE_HOME / "local_config.json"
+
+    # REMOVE
+    if not path.exists():
+        config_backup = Path("/home/david/Valory/repos/meme-ooorr-quickstart/local_config.json")
+        shutil.copy(config_backup, path)
+
     if path.exists():
         memeooorr_config = MemeooorrConfig.load(path)
     else:
@@ -344,28 +341,12 @@ def get_service_template(config: MemeooorrConfig) -> ServiceTemplate:
     """Get the service template"""
     return ServiceTemplate({
         "name": "Memeooorr",
-        "hash": os.getenv("SERVICE_HASH", None) or "bafybeidox3oktommehcm53n5ozpiqzar555b6zsmozu5o6ybnhhv4h3z5i",
+        "hash": os.getenv("SERVICE_HASH", None) or "bafybeid7l6bna5tm7bi47xrrtz2wpoetuyuudlymhs4s7vrklnsonhahie",
         "description": "Memeooorr",
         "image": "https://gateway.autonolas.tech/ipfs/bafybeiaakdeconw7j5z76fgghfdjmsr6tzejotxcwnvmp3nroaw3glgyve",
         "service_version": 'v0.0.1',
         "home_chain_id": "8453",
         "configurations": {
-            # "1": ConfigurationTemplate(
-            #     {
-            #         "staking_program_id": "memeooorr_alpha",
-            #         "rpc": config.ethereum_rpc,
-            #         "nft": "bafybeiaakdeconw7j5z76fgghfdjmsr6tzejotxcwnvmp3nroaw3glgyve",
-            #         "cost_of_bond": COST_OF_BOND,
-            #         "threshold": 1,
-            #         "use_staking": False,
-            #         "fund_requirements": FundRequirementsTemplate(
-            #             {
-            #                 "agent": SUGGESTED_TOP_UP_DEFAULT * 5,
-            #                 "safe": 0,
-            #             }
-            #         ),
-            #     }
-            # ),
             "8453": ConfigurationTemplate(
                 {
                     "staking_program_id": "memeooorr_alpha",
@@ -376,8 +357,8 @@ def get_service_template(config: MemeooorrConfig) -> ServiceTemplate:
                     "use_staking": False,
                     "fund_requirements": FundRequirementsTemplate(
                         {
-                            "agent": SUGGESTED_TOP_UP_DEFAULT,
-                            "safe": SUGGESTED_SAFE_TOP_UP_DEFAULT,
+                            "agent": AGENT_TOPUP,
+                            "safe": SAFE_TOPUP,
                         }
                     ),
                 }
@@ -468,27 +449,6 @@ def fetch_token_price(url: str, headers: dict) -> t.Optional[float]:
         print(f"Error fetching token price: {e}")
         return None
 
-def fetch_operational_fund_requirement(rpc, fee_history_blocks: int = 7000) -> int:
-    web3 = Web3(Web3.HTTPProvider(rpc))
-    block_number = web3.eth.block_number
-
-    # Fetch fee history
-    fee_history = web3.eth.fee_history(
-        fee_history_blocks, block_number, [50]
-    )
-    base_fees = fee_history['baseFeePerGas']
-    priority_fees = [reward[0] for reward in fee_history['reward'] if reward]
-
-    # Calculate average fees
-    average_base_fee = sum(base_fees) / len(base_fees)
-    average_priority_fee = sum(priority_fees) / len(priority_fees)
-
-    average_gas_price = average_base_fee + average_priority_fee
-
-    gas_amount = 1_000_000
-    safety_margin = 1_000_000_000_000_000
-    operational_fund_requirement = int((average_gas_price * gas_amount) + safety_margin)
-    return operational_fund_requirement
 
 def main() -> None:
     """Run service."""
@@ -508,6 +468,7 @@ def main() -> None:
     manager = operate.service_manager()
     service = get_service(manager, template)
 
+    # Create a new account
     if operate.user_account is None:
         print("Creating a new local user account...")
         password = ask_confirm_password()
@@ -517,6 +478,8 @@ def main() -> None:
         )
         memeooorr_config.password_migrated = True
         memeooorr_config.store()
+
+    # Load account
     else:
         password = handle_password_migration(operate, memeooorr_config)
         if password is None:
@@ -526,6 +489,8 @@ def main() -> None:
             sys.exit(1)
 
     operate.password = password
+
+    # Create the main wallet
     if not operate.wallet_manager.exists(ledger_type=LedgerType.ETHEREUM):
         print("Creating the main wallet...")
         wallet, mnemonic = operate.wallet_manager.create(ledger_type=LedgerType.ETHEREUM)
@@ -533,11 +498,14 @@ def main() -> None:
         print()
         print_box(f"Please save the mnemonic phrase for the main wallet:\n{', '.join(mnemonic)}", 0, '-')
         input("Press enter to continue...")
+
+    # Load the main wallet
     else:
         wallet = operate.wallet_manager.load(ledger_type=LedgerType.ETHEREUM)
 
     manager = operate.service_manager()
 
+    # Iterate the chain configs
     for chain_id, configuration in service.chain_configs.items():
         chain_metadata = CHAIN_ID_TO_METADATA[int(chain_id)]
         chain_config = service.chain_configs[chain_id]
@@ -558,7 +526,9 @@ def main() -> None:
             f"[{chain_name}] Main wallet balance: {balance_str}",
         )
         safe_exists = wallet.safes.get(chain_type) is not None
-        required_balance = chain_metadata["firstTimeTopUp"] if not safe_exists else chain_metadata["operationalFundReq"]
+
+        # Check the main wallet balance
+        required_balance = WALLET_TOPUP
         print(
             f"[{chain_name}] Please make sure main wallet {wallet.crypto.address} has at least {wei_to_token(required_balance, token)}",
         )
@@ -574,6 +544,7 @@ def main() -> None:
         spinner.succeed(f"[{chain_name}] Main wallet updated balance: {wei_to_token(ledger_api.get_balance(wallet.crypto.address), token)}.")
         print()
 
+        # Create the master safe
         if not safe_exists:
             print(f"[{chain_name}] Creating Safe")
             ledger_type = LedgerType.ETHEREUM
@@ -589,9 +560,9 @@ def main() -> None:
 
         address = wallet.safes[chain_type]
         if not service_exists:
-            first_time_top_up = chain_metadata["firstTimeTopUp"]
+            first_time_top_up = MASTER_SAFE_TOPUP
             print(
-                f"[{chain_name}] Please make sure address {address} has at least {wei_to_token(first_time_top_up, token)}."
+                f"[{chain_name}] Please make sure master safe address {address} has at least {wei_to_token(first_time_top_up, token)}."
             )
             spinner = Halo(
                 text=f"[{chain_name}] Waiting for funds...",
@@ -600,60 +571,32 @@ def main() -> None:
             spinner.start()
 
             while ledger_api.get_balance(address) < first_time_top_up:
-                print(f"[{chain_name}] Funding Safe")
+                amount = MASTER_SAFE_TOPUP
+                print(f"[{chain_name}] Funding Safe with {wei_to_unit(amount)} units")
                 wallet.transfer(
                     to=t.cast(str, wallet.safes[chain_type]),
-                    amount=int(chain_metadata["firstTimeTopUp"]),
+                    amount=amount,
                     chain_type=chain_type,
                     from_safe=False,
                     rpc=chain_config.ledger_config.rpc,
                 )
                 time.sleep(1)
 
-            spinner.succeed(f"[{chain_name}] Safe updated balance: {wei_to_token(ledger_api.get_balance(address), token)}.")
-
-        if chain_metadata.get("olasRequired", False) and not service_exists:
-            print(f"[{chain_name}] Please make sure address {address} has at least 15 OLAS")
-
-            spinner = Halo(
-                text=f"[{chain_name}] Waiting for OLAS...",
-                spinner="dots",
-            )
-            spinner.start()
-
-            while get_erc20_balance(ledger_api, OLAS_ADDRESS, address) < INITIAL_FUNDS_REQUIREMENT['OLAS']:
-                time.sleep(1)
-
-            olas_balance = get_erc20_balance(ledger_api, OLAS_ADDRESS, address) / 10 ** 6
-            spinner.succeed(f"[{chain_name}] Safe updated balance: {olas_balance} OLAS.")
+            spinner.succeed(f"[{chain_name}] Safe updated balance: {wei_to_token(ledger_api.get_balance(address), token)} [{address}].")
 
         manager.deploy_service_onchain_from_safe_single_chain(
             hash=service.hash,
             chain_id=chain_id,
             fallback_staking_params=FALLBACK_STAKING_PARAMS,
         )
-        if chain_id == '1' and not service_exists:
-            safe_fund_threshold=INITIAL_FUNDS_REQUIREMENT['ETH']
-            service_safe = chain_config.chain_data.multisig
-            safe_balance = ledger_api.get_balance(service_safe)
-            safe_topup = safe_fund_threshold - safe_balance
-        else:
-            safe_fund_threshold = None
-            safe_topup = None
 
-        manager.fund_service(hash=service.hash, chain_id=chain_id, safe_fund_treshold=safe_fund_threshold, safe_topup=safe_topup)
-
-        olas_balance = get_erc20_balance(ledger_api, OLAS_ADDRESS, address) if chain_metadata.get("olasRequired", False) else 0
-        if olas_balance > 0:
-            # transfer all the olas balance into the service safe
-            manager.fund_service_erc20(
-                hash=service.hash,
-                chain_id=chain_id,
-                token=OLAS_ADDRESS,
-                safe_topup=olas_balance,
-                agent_topup=0,
-                safe_fund_treshold=INITIAL_FUNDS_REQUIREMENT['OLAS'] + olas_balance,
-            )
+        # Fund the service
+        manager.fund_service(
+            hash=service.hash,
+            chain_id=chain_id,
+            safe_fund_treshold=SAFE_TOPUP,
+            safe_topup=SAFE_TOPUP
+        )
 
     safes = {
         ChainType.from_id(int(chain)).name.lower(): config.chain_data.multisig
@@ -690,13 +633,13 @@ def main() -> None:
     add_volumes(docker_compose_path, str(OPERATE_HOME), "/data")
 
     # Copy the database and cookies if they exist
-    database_source = service.path / "memeooorr.db"
+    database_source = Path.cwd() / "memeooorr.db"
     database_target = service.path / "deployment" / "persistent_data" / "logs" / "memeooorr.db"
     if database_source.is_file():
         print("Loaded a backup of the db")
         shutil.copy(database_source, database_target)
 
-    cookies_source = service.path / "twikit_cookies.json"
+    cookies_source = Path.cwd() / "twikit_cookies.json"
     cookies_target = service.path / "deployment" / "persistent_data" / "logs" / "twikit_cookies.json"
     if cookies_source.is_file():
         print("Loaded a backup of the cookies")
