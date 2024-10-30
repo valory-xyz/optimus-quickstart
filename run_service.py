@@ -91,8 +91,8 @@ CHAIN_ID_TO_METADATA = {
         "operationalFundReq": SUGGESTED_TOP_UP_DEFAULT * 5,
         "gasParams": {
             # this means default values will be used
-            "MAX_PRIORITY_FEE_PER_GAS": "500",
-            "MAX_FEE_PER_GAS": "1000000000",
+            "MAX_PRIORITY_FEE_PER_GAS": "",
+            "MAX_FEE_PER_GAS": "",
         }
     },
     8453: {
@@ -103,8 +103,8 @@ CHAIN_ID_TO_METADATA = {
         "usdcRequired": False,
         "gasParams": {
             # this means default values will be used
-            "MAX_PRIORITY_FEE_PER_GAS": "500",
-            "MAX_FEE_PER_GAS": "1000000000",
+            "MAX_PRIORITY_FEE_PER_GAS": "",
+            "MAX_FEE_PER_GAS": "",
         }
     },
 }
@@ -719,13 +719,13 @@ def main() -> None:
             if chain_id != 1:
                 agent_balance = ledger_api.get_balance(address=service.keys[0].address)
                 #we only top up if current balance is less than 50% of required balance
-                if agent_balance < 0.5 * agent_fund_requirement:
+                if agent_balance < 0.3 * agent_fund_requirement:
                     agent_fund_requirement = agent_fund_requirement - agent_balance
                 else:
                     agent_fund_requirement = 0
 
                 operator_balance = ledger_api.get_balance(wallet.crypto.address)
-                if operator_balance < 0.5 * operational_fund_req:
+                if operator_balance < 0.3 * operational_fund_req:
                     operational_fund_req = operational_fund_req - operator_balance
                 else:
                     operational_fund_req = 0
