@@ -510,7 +510,16 @@ def add_volumes(docker_compose_path: Path, host_path: str, container_path: str) 
     with open(docker_compose_path, "r") as f:
         docker_compose = yaml.safe_load(f)
 
-    docker_compose["services"]["optimus_abci_0"]["volumes"].append(f"{host_path}:{container_path}:Z")
+    abci_service_name = None
+    for service_name in docker_compose["services"]:
+        if "abci" in service_name:
+            abci_service_name = service_name
+            break
+
+    if abci_service_name is None:
+        raise ValueError("No service containing 'abci' found in the docker-compose file.")
+
+    docker_compose["services"][abci_service_name]["volumes"].append(f"{host_path}:{container_path}:Z")
 
     with open(docker_compose_path, "w") as f:
         yaml.dump(docker_compose, f)
