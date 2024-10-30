@@ -398,7 +398,7 @@ def get_service_template(config: OptimusConfig) -> ServiceTemplate:
     """Get the service template"""
     return ServiceTemplate({
         "name": "Optimus",
-        "hash": "bafybeifrozusw4yujcjzmlaufm4tsj5xgibw6bfe6pgsnm5jcv7gw7zyce",
+        "hash": "bafybeicyi4htfakt6tkuxxyb3frj3jbecptkfkb4cuzh5iwpyns722gooa",
 
         "description": "Optimus",
         "image": "https://gateway.autonolas.tech/ipfs/bafybeiaakdeconw7j5z76fgghfdjmsr6tzejotxcwnvmp3nroaw3glgyve",
@@ -657,13 +657,18 @@ def main() -> None:
         service_exists = manager._get_on_chain_state(chain_config) != OnChainState.NON_EXISTENT
 
         chain_name, token = chain_metadata['name'], chain_metadata["token"]
-        balance_str = wei_to_token(ledger_api.get_balance(wallet.crypto.address), token)
+        wallet_balance = ledger_api.get_balance(wallet.crypto.address)
+        balance_str = wei_to_token(wallet_balance, token)
         print(
             f"[{chain_name}] Main wallet balance: {balance_str}",
         )
         safe_exists = wallet.safes.get(chain_type) is not None
         required_balance = chain_metadata["firstTimeTopUp"] + chain_metadata["operationalFundReq"] if not safe_exists else chain_metadata["operationalFundReq"]
 
+        if safe_exists:
+            if wallet_balance > 0.3 * required_balance:
+                required_balance = 0
+                
         if int(chain_id) == 1 and not service_exists:
             required_balance += INITIAL_FUNDS_REQUIREMENT['ETH']
 
