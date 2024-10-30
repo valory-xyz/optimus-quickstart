@@ -470,19 +470,20 @@ class Deployment(LocalResource):
             (build / volume).mkdir(exist_ok=True)
             _volumes.append(f"./{volume}:{mount}:Z")
 
-        for node in deployment["services"]:
-            if "abci" in node:
-                deployment["services"][node]["volumes"].extend(_volumes)
-                if (
-                    "SKILL_TRADER_ABCI_MODELS_PARAMS_ARGS_MECH_REQUEST_PRICE=0"
-                    in deployment["services"][node]["environment"]
-                ):
-                    deployment["services"][node]["environment"].remove(
-                        "SKILL_TRADER_ABCI_MODELS_PARAMS_ARGS_MECH_REQUEST_PRICE=0"
-                    )
-                    deployment["services"][node]["environment"].append(
-                        "SKILL_TRADER_ABCI_MODELS_PARAMS_ARGS_MECH_REQUEST_PRICE=10000000000000000"
-                    )
+        #TO-DO: this is no longer valid because of the breaking change in v0.18.0, this is not required in optimus
+        # for node in deployment["services"]:
+        #     if "abci" in node:
+        #         deployment["services"][node]["volumes"].extend(_volumes)
+        #         if (
+        #             "SKILL_TRADER_ABCI_MODELS_PARAMS_ARGS_MECH_REQUEST_PRICE=0"
+        #             in deployment["services"][node]["environment"]
+        #         ):
+        #             deployment["services"][node]["environment"].remove(
+        #                 "SKILL_TRADER_ABCI_MODELS_PARAMS_ARGS_MECH_REQUEST_PRICE=0"
+        #             )
+        #             deployment["services"][node]["environment"].append(
+        #                 "SKILL_TRADER_ABCI_MODELS_PARAMS_ARGS_MECH_REQUEST_PRICE=10000000000000000"
+        #             )
 
         with (build / DOCKER_COMPOSE_YAML).open("w", encoding="utf-8") as stream:
             yaml_dump(data=deployment, stream=stream)
