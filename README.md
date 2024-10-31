@@ -1,5 +1,5 @@
 <h1 align="center">
-<b>Optimus Quickstart</b>
+<b>Memeooorr Quickstart</b>
 </h1>
 
 ## Terms and Conditions Disclaimer
@@ -25,30 +25,14 @@ Ensure your machine satisfies the requirements:
 - [Docker Engine](https://docs.docker.com/engine/install/)
 - [Docker Compose](https://docs.docker.com/compose/install/)
 
-## Optimus Agent: Functionality Overview
+## Memeooorr Agent: Functionality Overview
 
 **Supported Chains:**
-The Optimus agent currently operates on the following chains:
-- Optimism
+The Memeooorr agent currently operates on the following chains:
 - Base
-- Ethereum
+- Celo
 
-**Supported DEXs:**
-The Optimus agent trades on the following decentralized exchanges (DEXs):
-- Balancer
-- Uniswap
-
-**Operational Process:**
-Within a typical epoch of 24 hours, the Optimus agent performs the following tasks:
-
-1. **Opportunity Identification:** It identifies trading opportunities through campaigns advertised on the Merkl platform across the supported DEXs.
-  
-2. **Liquidity Pool Investment:** When a suitable liquidity pool is found, the agent takes the following actions:
-   - **First Opportunity:** If this is the first opportunity encountered, the agent will add liquidity to the pool if its Annual Percentage Rate (APR) is higher than 5%.
-   - **Subsequent Opportunities:** If the agent has already invested in a liquidity pool, it will consider the next opportunity only if its APR exceeds that of the previously invested pool.
-
-3. **Transaction Tracking:** The agent tracks the number of transactions performed on the Optimism chain, which serves as key performance indicators (KPIs) for Olas Staking Rewards.
-## Minimal Funding Requirements
+See [here](https://github.com/dvilelaf/meme-ooorr?tab=readme-ov-file#user-flow) for what it does.
 
 - For the initial setup you will need to fund certain addresses with the following funds when requested: 0.08 ETH (Ethereum mainnet) + 20 USDC (Ethereum mainnet) + 0.04 ETH (Optimism chain) + 0.04 ETH (Base chain). These quantities are based on the gas prices seen on the 1st half of Sept 2024 and may need to be revised. Additionally some quantity of OLAS bridged to Optimism if you want to stake.
 
@@ -59,13 +43,6 @@ Please enter an Optimism RPC URL:
 Please enter a Base RPC URL:
   ```
 
-- You will need your Tenderly Access Key, Tenderly account Slug, and Tenderly Project Slug. Get one at https://dashboard.tenderly.co/ under settings. 
-```bash
-Please enter your Tenderly API Key:
-Please enter your Tenderly Account Slug:
-Please enter your Tenderly Project Slug: 
-  ```
-Refer to the Tenderly Documentation for more info https://docs.tenderly.co/account/projects
 ## Run the Service
 
 Clone this repository locally and execute:
@@ -73,7 +50,7 @@ Clone this repository locally and execute:
 chmod +x run_service.sh
 ./run_service.sh
 ```
-When prompted, add the corresponding RPCs and Tenderly info, send funds to the prompted address and you're good to go!
+When prompted, add the corresponding RPCs info, send funds to the prompted address and you're good to go!
 
 ### Creating a local user account
 
@@ -141,23 +118,7 @@ Then continue above with "Run the script".
 
 ## What's New
 
-### Release v0.2.8
-New report script added `suggest_funding_report.py`.
-For every chain it reports to the user
-- Balance in ETH
-- the gas cost, gas price per transaction (avg over last 10 transactions)
-- Forecast of gas consumption cost for next 10 transactions in ETH
-- Potentially a call to action to fund the agent
-
-### Release v0.2.7
-
-Introduces a minimum swap amount threshold (traded assets limit) configurable via script. It dynamically adjusts the initial ETH and USDC funding requirements based on this limit.
-
-### Release v0.2.6
-Token swap and bridging process is improved so that if an issue arises, the agent automatically switches to an alternative route without re-starting the bridging process. It ensures costs, such as gas fees, remain within set limits.
-
-### Release v0.2.5
-Optimus agent only proceeds with a bridge or swap transaction when both the relayer fee and gas costs are kept within reasonable limits, helping to control transaction costs.
+...
 
 ## Advice for Windows users on installing Windows Subsystem for Linux version 2 (WSL2)
 
