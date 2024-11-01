@@ -266,9 +266,9 @@ def get_local_config() -> MemeooorrConfig:
     path = OPERATE_HOME / "local_config.json"
 
     # REMOVE
-    if not path.exists():
-        config_backup = Path("/home/david/Valory/repos/meme-ooorr-quickstart/local_config.json")
-        shutil.copy(config_backup, path)
+    # if not path.exists():
+    #     config_backup = Path("/home/david/Valory/repos/meme-ooorr-quickstart/local_config.json")
+    #     shutil.copy(config_backup, path)
 
     if path.exists():
         memeooorr_config = MemeooorrConfig.load(path)
@@ -341,7 +341,7 @@ def get_service_template(config: MemeooorrConfig) -> ServiceTemplate:
     """Get the service template"""
     return ServiceTemplate({
         "name": "Memeooorr",
-        "hash": os.getenv("SERVICE_HASH", None) or "bafybeid7l6bna5tm7bi47xrrtz2wpoetuyuudlymhs4s7vrklnsonhahie",
+        "hash": os.getenv("SERVICE_HASH", None) or "bafybeidfnv53f3umc42rsr3v3sui64pz7wqfp3b3ibluan4mbmsocn2lma",
         "description": "Memeooorr",
         "image": "https://gateway.autonolas.tech/ipfs/bafybeiaakdeconw7j5z76fgghfdjmsr6tzejotxcwnvmp3nroaw3glgyve",
         "service_version": 'v0.0.1',
