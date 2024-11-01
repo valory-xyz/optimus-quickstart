@@ -68,6 +68,9 @@ OLAS_ADDRESS = "0x54330d28ca3357F294334BDC454a032e7f353416"
 WARNING_ICON = colored('\u26A0', 'yellow')
 OPERATE_HOME = Path.cwd() / ".memeooorr"
 
+MEME_FACTORY_BASE = "0x42156841253f428cb644ea1230d4fddfb70f8891"
+MEME_FACTORY_FORK = "0x1Aa15a8A751c601BbE31390dbb8711013BFD013d"
+
 CHAIN_ID_TO_METADATA = {
     8453: {
         "name": "Base",
@@ -623,7 +626,7 @@ def main() -> None:
         "DEPLOYMENT_AMOUNT_ETH": memeooorr_config.deployment_amount_eth,
         "PERSONA": memeooorr_config.persona,
         "RESET_PAUSE_DURATION": 10,
-        "MEME_FACTORY_ADDRESS": "0x1Aa15a8A751c601BbE31390dbb8711013BFD013d",
+        "MEME_FACTORY_ADDRESS": MEME_FACTORY_BASE,
         "MINIMUM_GAS_BALANCE": 0.02,
         "DB_PATH": "/logs/memeooorr.db",
         "TWIKIT_COOKIES_PATH": "/logs/twikit_cookies.json",
