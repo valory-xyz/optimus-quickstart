@@ -140,9 +140,6 @@ class MemeooorrConfig(LocalResource):
     feedback_period_hours: t.Optional[str] = None
     genai_api_key: t.Optional[str] = None
     min_feedback_replies: t.Optional[str] = None
-    total_supply: t.Optional[str] = None
-    deployment_amount_eth: t.Optional[str] = None
-    hearth_amount_eth: t.Optional[str] = None
     persona: t.Optional[str] = None
 
     @classmethod
@@ -305,16 +302,6 @@ def get_local_config() -> MemeooorrConfig:
 
     if memeooorr_config.min_feedback_replies is None:
         memeooorr_config.min_feedback_replies = input_with_default_value("What's the minimum amount of replies to a tweet before Memeooorr analyses them?", 10)
-
-    if memeooorr_config.total_supply is None:
-        total_supply = input_with_default_value("What's the token supply Memeooorr should use when deploying a token? (not wei, but token units. 1000000 min)", 1000000)
-        memeooorr_config.total_supply = str(int(total_supply) * int(1E18))
-
-    if memeooorr_config.deployment_amount_eth is None:
-        memeooorr_config.deployment_amount_eth = input_with_default_value("What's the amount of ETH that you want to invest in each token deployed by this agent? (0.01 min)", 0.01)
-
-    if memeooorr_config.hearth_amount_eth is None:
-        memeooorr_config.hearth_amount_eth = input_with_default_value("What's the amount of ETH that you want to invest in each token deployed by others?", 0.001)
 
     if memeooorr_config.persona is None:
         memeooorr_config.persona = input_with_default_value("What's the agent persona", "a cat lover that is crazy about all-things cats")
@@ -626,10 +613,7 @@ def main() -> None:
         "FEEDBACK_PERIOD_HOURS": memeooorr_config.feedback_period_hours,
         "GENAI_API_KEY": memeooorr_config.genai_api_key,
         "MIN_FEEDBACK_REPLIES": memeooorr_config.min_feedback_replies,
-        "TOTAL_SUPPLY": memeooorr_config.total_supply,
-        "DEPLOYMENT_AMOUNT_ETH": memeooorr_config.deployment_amount_eth,
         "PERSONA": memeooorr_config.persona,
-        "HEARTH_AMOUNT_ETH": memeooorr_config.hearth_amount_eth,
         "RESET_PAUSE_DURATION": 10,
         "MEME_FACTORY_ADDRESS": MEME_FACTORY_BASE,
         "MINIMUM_GAS_BALANCE": 0.02,

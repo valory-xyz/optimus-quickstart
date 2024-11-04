@@ -34,33 +34,46 @@ The Memeooorr agent currently operates on the following chains:
 
 See [here](https://github.com/dvilelaf/meme-ooorr?tab=readme-ov-file#user-flow) for what it does.
 
-- For the initial setup you will need to fund certain addresses with the following funds when requested: 0.08 ETH (Ethereum mainnet) + 20 USDC (Ethereum mainnet) + 0.04 ETH (Optimism chain) + 0.04 ETH (Base chain). These quantities are based on the gas prices seen on the 1st half of Sept 2024 and may need to be revised. Additionally some quantity of OLAS bridged to Optimism if you want to stake.
+Some thing you will need:
 
-- You need 3 RPCs for your agent instance for respectively Ethereum, Optimism, and Base.
-```bash
-Please enter an Ethereum RPC URL:
-Please enter an Optimism RPC URL:
-Please enter a Base RPC URL:
-  ```
+- For the initial setup you will need to fund certain addresses with some funds when requested.
+
+- An RPC for your agent instance for the chain you decide to run your agen on: Base or Celo.
+
+- A [Gemini API key](https://ai.google.dev/gemini-api/docs/api-key)
+
+- An X account
 
 ## Run the Service
 
-Clone this repository locally and execute:
-```bash
-chmod +x run_service.sh
-./run_service.sh
-```
-When prompted, add the corresponding RPCs info, send funds to the prompted address and you're good to go!
+1. Clone this repository:
+
+    ```
+    git clone git@github.com:dvilelaf/meme-ooorr-quickstart.git
+    ```
+
+2. Create the virtual environment:
+    ```
+    cd meme-ooorr-quickstart
+    poetry shell
+    poetry install
+    ```
+3. Run the quickstart:
+
+    ```bash
+    python run_service.py
+    ```
+When prompted, add the requested info, send funds to the prompted address and you're good to go!
 
 ### Creating a local user account
 
-When run for the first time, the agent will setup for you a password protected local account. You will be asked to enter and confirm a password as below. 
+When run for the first time, the agent will setup for you a password protected local account. You will be asked to enter and confirm a password as below.
 Please be mindful of storing it in a secure space, for future use. **Hint:** If you do not want to use a password just press Enter when asked to enter and confirm your password.
 
 ```bash
 Creating a new local user account...
-Please enter a password: 
-Please confirm your password: 
+Please enter a password:
+Please confirm your password:
 Creating the main wallet...
 ```
 
@@ -83,21 +96,7 @@ Do you want to stake your service? (y/n):
 Once the command has completed, i.e. the service is running, you can see the live logs with:
 
 ```bash
-docker logs optimus_abci_0 --follow
-```
-Execute the report command to view a summary of the service status:
-
-```bash
-poetry run python report.py
-```
-To inspect the tree state transition of the current run of the agent run:
-```bash
-poetry run autonomy analyse logs --from-dir .optimus/services/[service-hash]/deployment/persistent_data/logs/  --agent aea_0 --fsm --reset-db
-```
-where `[service-hash]` is the onchain representation of the agent code that you're running and can be found by doing
-
-```bash
-ls .optimus/services
+docker logs memeooorr_abci_0 --follow
 ```
 
 To stop your agent, use:
