@@ -31,6 +31,7 @@ import requests
 import yaml
 from aea.crypto.base import LedgerApi
 from aea_ledger_ethereum import EthereumApi
+from autonomy.chain.constants import CHAIN_PROFILES
 from dotenv import load_dotenv
 from halo import Halo
 from termcolor import colored
@@ -38,6 +39,7 @@ from web3 import Web3
 
 from operate.account.user import UserAccount
 from operate.cli import OperateApp
+from operate.ledger.profiles import CONTRACTS, STAKING, OLAS
 from operate.resource import LocalResource, deserialize
 from operate.services.manage import ServiceManager
 from operate.services.service import Service
@@ -47,6 +49,7 @@ from operate.types import (
     ConfigurationTemplate,
     FundRequirementsTemplate, ChainType, OnChainState,
 )
+from utils import wei_to_eth
 
 load_dotenv()
 
@@ -75,6 +78,21 @@ CHAIN_ID_TO_METADATA = {
     8453: {
         "name": "Base",
         "token": "ETH",
+        "firstTimeTopUp": unit_to_wei(0.01),
+        "operationalFundReq": unit_to_wei(0.001),
+        "usdcRequired": False,
+        "gasParams": {
+            # this means default values will be used
+            "MAX_PRIORITY_FEE_PER_GAS": "",
+            "MAX_FEE_PER_GAS": "",
+        }
+    },
+    42220: {
+        "name": "Celo",
+        "token": "ETH",
+        "usdcRequired": False,
+        "firstTimeTopUp": unit_to_wei(0.01),
+        "operationalFundReq": unit_to_wei(0.001),
         "gasParams": {
             # this means default values will be used
             "MAX_PRIORITY_FEE_PER_GAS": "",
@@ -141,6 +159,7 @@ class MemeooorrConfig(LocalResource):
     genai_api_key: t.Optional[str] = None
     min_feedback_replies: t.Optional[str] = None
     persona: t.Optional[str] = None
+    home_chain_id: t.Optional[int] = None
 
     @classmethod
     def from_json(cls, obj: t.Dict) -> "LocalResource":
@@ -262,6 +281,14 @@ def input_with_default_value(prompt: str, default_value: str) -> str:
     user_input = input(f"{prompt} [{default_value}]: ")
     return str(user_input) if user_input else default_value
 
+def input_select_chain(options: t.List[ChainType]):
+    """Chose a single option from the offered ones"""
+    user_input = input(f"Chose one of the following options {[option.name for option in options]}: ")
+    try:
+     return ChainType.from_string(user_input.upper())
+    except ValueError:
+        print("Invalid option selected. Please try again.")
+        return input_select_chain(options)
 
 def get_local_config() -> MemeooorrConfig:
     """Get local memeooorr configuration."""
@@ -279,8 +306,12 @@ def get_local_config() -> MemeooorrConfig:
 
     print_section("API Key Configuration")
 
+    if memeooorr_config.home_chain_id is None:
+        print("Select the chain for you service")
+        memeooorr_config.home_chain_id = input_select_chain([ChainType.BASE, ChainType.CELO]).id
+
     if memeooorr_config.base_rpc is None:
-        memeooorr_config.base_rpc = input("Please enter a Base RPC URL: ")
+        memeooorr_config.base_rpc = input(f"Please enter a {ChainType.from_id(memeooorr_config.home_chain_id).name} RPC URL: ")
 
     if memeooorr_config.password_migrated is None:
         memeooorr_config.password_migrated = False
@@ -344,16 +375,16 @@ def get_service_template(config: MemeooorrConfig) -> ServiceTemplate:
         "description": "Memeooorr",
         "image": "https://gateway.autonolas.tech/ipfs/bafybeiaakdeconw7j5z76fgghfdjmsr6tzejotxcwnvmp3nroaw3glgyve",
         "service_version": 'v0.0.1',
-        "home_chain_id": "8453",
+        "home_chain_id": str(config.home_chain_id),
         "configurations": {
-            "8453": ConfigurationTemplate(
+            str(config.home_chain_id): ConfigurationTemplate(
                 {
-                    "staking_program_id": "memeooorr_alpha",
+                    "staking_program_id": "meme_alpha",
                     "rpc": config.base_rpc,
                     "nft": "bafybeiaakdeconw7j5z76fgghfdjmsr6tzejotxcwnvmp3nroaw3glgyve",
                     "cost_of_bond": COST_OF_BOND,
                     "threshold": 1,
-                    "use_staking": False,
+                    "use_staking": True,
                     "fund_requirements": FundRequirementsTemplate(
                         {
                             "agent": AGENT_TOPUP,
@@ -389,14 +420,27 @@ def get_erc20_balance(ledger_api: LedgerApi, token: str, account: str) -> int:
 
     return balance
 
-FALLBACK_STAKING_PARAMS = dict(
-    agent_ids=[40],
-    service_registry="0x9338b5153AE39BB89f50468E608eD9d764B755fD",  # nosec
-    staking_token="0xcE11e14225575945b8E6Dc0D4F2dD4C570f79d9f",  # nosec
-    service_registry_token_utility="0xa45E64d13A30a51b91ae0eb182e88a40e9b18eD8",  # nosec
+celo_staking_fallback = dict(
+    agent_ids=[43],
+    service_registry=CONTRACTS[ChainType.CELO]["service_registry"],  # nosec
+    staking_token=STAKING[ChainType.CELO]["meme_alpha"],  # nosec
+    service_registry_token_utility=CONTRACTS[ChainType.CELO]["service_registry_token_utility"],  # nosec
     min_staking_deposit=20000000000000000000,
-    activity_checker="0x155547857680A6D51bebC5603397488988DEb1c8"  # nosec
+    activity_checker="0xAe2f766506F6BDF740Cc348a90139EF317Fa7Faf"  # nosec
 )
+base_staking_fallback = dict(
+    agent_ids=[43],
+    service_registry=CONTRACTS[ChainType.BASE]["service_registry"],  # nosec
+    staking_token=STAKING[ChainType.BASE]["meme_alpha"],  # nosec
+    service_registry_token_utility=CONTRACTS[ChainType.BASE]["service_registry_token_utility"],  # nosec
+    min_staking_deposit=20000000000000000000,
+    activity_checker="0xAe2f766506F6BDF740Cc348a90139EF317Fa7Faf"  # nosec
+)
+
+FALLBACK_STAKING_PARAMS = {
+    ChainType.CELO: celo_staking_fallback,
+    ChainType.BASE: base_staking_fallback,
+}
 
 def add_volumes(docker_compose_path: Path, host_path: str, container_path: str) -> None:
     """Add volumes to the docker-compose."""
@@ -525,9 +569,7 @@ def main() -> None:
             f"[{chain_name}] Main wallet balance: {balance_str}",
         )
         safe_exists = wallet.safes.get(chain_type) is not None
-
-        # Check the main wallet balance
-        required_balance = WALLET_TOPUP
+        required_balance = chain_metadata["firstTimeTopUp"] if not safe_exists else chain_metadata["operationalFundReq"]
         print(
             f"[{chain_name}] Please make sure main wallet {wallet.crypto.address} has at least {wei_to_token(required_balance, token)}",
         )
@@ -559,7 +601,7 @@ def main() -> None:
 
         address = wallet.safes[chain_type]
         if not service_exists:
-            first_time_top_up = MASTER_SAFE_TOPUP
+            first_time_top_up = chain_metadata["firstTimeTopUp"]
             print(
                 f"[{chain_name}] Please make sure master safe address {address} has at least {wei_to_token(first_time_top_up, token)}."
             )
@@ -570,23 +612,38 @@ def main() -> None:
             spinner.start()
 
             while ledger_api.get_balance(address) < first_time_top_up:
-                amount = MASTER_SAFE_TOPUP
-                print(f"[{chain_name}] Funding Safe with {wei_to_unit(amount)} units")
+                print(f"[{chain_name}] Funding Safe")
                 wallet.transfer(
                     to=t.cast(str, wallet.safes[chain_type]),
-                    amount=amount,
+                    amount=int(chain_metadata["firstTimeTopUp"]),
                     chain_type=chain_type,
                     from_safe=False,
                     rpc=chain_config.ledger_config.rpc,
                 )
                 time.sleep(1)
 
-            spinner.succeed(f"[{chain_name}] Safe updated balance: {wei_to_token(ledger_api.get_balance(address), token)} [{address}].")
+            spinner.succeed(f"[{chain_name}] Safe updated balance: {wei_to_token(ledger_api.get_balance(address), token)}.")
+
+        if chain_config.chain_data.user_params.use_staking and not service_exists:
+            olas_address = OLAS[chain_type]
+            print(f"[{chain_name}] Please make sure address {address} has at least {wei_to_token(2 * COST_OF_BOND_STAKING, olas_address)}")
+
+            spinner = Halo(
+                text=f"[{chain_name}] Waiting for {olas_address}...",
+                spinner="dots",
+            )
+            spinner.start()
+
+            while get_erc20_balance(ledger_api, olas_address, address) < 2 * COST_OF_BOND_STAKING:
+                time.sleep(1)
+
+            balance = get_erc20_balance(ledger_api, olas_address, address) / 10 ** 18
+            spinner.succeed(f"[{chain_name}] Safe updated balance: {balance} {olas_address}")
 
         manager.deploy_service_onchain_from_safe_single_chain(
             hash=service.hash,
             chain_id=chain_id,
-            fallback_staking_params=FALLBACK_STAKING_PARAMS,
+            fallback_staking_params=FALLBACK_STAKING_PARAMS[chain_type],
         )
 
         # Fund the service
@@ -602,6 +659,7 @@ def main() -> None:
         for chain, config in service.chain_configs.items()
     }
     home_chain_id = service.home_chain_id
+    home_chain_type = ChainType.from_id(int(home_chain_id))
 
     # Apply env cars
     env_vars = {
@@ -619,6 +677,7 @@ def main() -> None:
         "MINIMUM_GAS_BALANCE": 0.02,
         "DB_PATH": "/logs/memeooorr.db",
         "TWIKIT_COOKIES_PATH": "/logs/twikit_cookies.json",
+        "STAKING_TOKEN_CONTRACT_ADDRESS": STAKING[home_chain_type]["meme_alpha"],
     }
     apply_env_vars(env_vars)
 

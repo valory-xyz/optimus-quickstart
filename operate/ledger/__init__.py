@@ -39,6 +39,7 @@ GOERLI_RPC = os.environ.get("DEV_RPC", "https://ethereum-goerli.publicnode.com")
 SOLANA_RPC = os.environ.get("DEV_RPC", "https://api.mainnet-beta.solana.com")
 OPTIMISM_RPC = os.environ.get("OPTIMISM_RPC", "https://optimism-rpc.publicnode.com")
 BASE_RPC = os.environ.get("BASE_RPC", "https://base-rpc.publicnode.com")
+CELO_RPC = os.environ.get("CELO_RPC", "https://forno.celo.org")
 
 PUBLIC_RPCS = {
     ChainType.ETHEREUM: ETHEREUM_PUBLIC_RPC,
@@ -54,6 +55,7 @@ DEFAULT_RPCS = {
     ChainType.SOLANA: SOLANA_RPC,
     ChainType.OPTIMISM: OPTIMISM_RPC,
     ChainType.BASE: BASE_RPC,
+    ChainType.CELO: CELO_RPC,
 }
 
 CHAIN_HELPERS: t.Dict[ChainType, t.Type[LedgerHelper]] = {
@@ -62,6 +64,7 @@ CHAIN_HELPERS: t.Dict[ChainType, t.Type[LedgerHelper]] = {
     ChainType.GOERLI: Ethereum,
     ChainType.BASE: Ethereum,
     ChainType.OPTIMISM: Ethereum,
+    ChainType.CELO: Ethereum,
     ChainType.SOLANA: Solana,
 }
 
@@ -75,6 +78,7 @@ CURRENCY_DENOMS = {
     ChainType.GNOSIS: "xDai",
     ChainType.GOERLI: "GWei",
     ChainType.SOLANA: "Lamp",
+    ChainType.CELO: "CELO",
 }
 
 
