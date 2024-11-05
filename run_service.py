@@ -305,9 +305,18 @@ def check_rpc(rpc_url: str) -> None:
         print("Terminating script.")
         sys.exit(1)
 
+def load_local_config() -> OptimusConfig:
+    """Load the local optimus configuration."""
+    path = OPERATE_HOME / "local_config.json"
+    if path.exists():
+        optimus_config = OptimusConfig.load(path)
+    else:
+        optimus_config = OptimusConfig(path)
+    
+    return optimus_config
 
-def get_local_config() -> OptimusConfig:
-    """Get local optimus configuration."""
+def configure_local_config() -> OptimusConfig:
+    """Configure local optimus configuration."""
     path = OPERATE_HOME / "local_config.json"
     if path.exists():
         optimus_config = OptimusConfig.load(path)
@@ -382,18 +391,17 @@ def get_local_config() -> OptimusConfig:
         else:
             optimus_config.allowed_chains = DEFAULT_CHAINS
 
-    if optimus_config.target_investment_chains is None:
-        update_chains = input("Do you want to test the agent on specific chains? (y/n): ").lower() == 'y'
-        if update_chains:
-            target_investment_chains = []
-            for chain in DEFAULT_CHAINS:   
-                operate_on_chain = input(f"Do you wish the agent to find investment opportunities on {chain}? (y/n): ").lower() == 'y'
-                if operate_on_chain:
-                    target_investment_chains.append(chain)
+    update_chains = input("Do you want to test the agent on specific chains? (y/n): ").lower() == 'y'
+    if update_chains:
+        target_investment_chains = []
+        for chain in optimus_config.allowed_chains:   
+            operate_on_chain = input(f"Do you wish the agent to find investment opportunities on {chain}? (y/n): ").lower() == 'y'
+            if operate_on_chain:
+                target_investment_chains.append(chain)
 
-            optimus_config.target_investment_chains = target_investment_chains
-        else:
-            optimus_config.target_investment_chains = DEFAULT_CHAINS
+        optimus_config.target_investment_chains = target_investment_chains
+    else:
+        optimus_config.target_investment_chains = optimus_config.allowed_chains
 
     if optimus_config.ethereum_rpc is None:
         optimus_config.ethereum_rpc = input("Please enter an Ethereum RPC URL: ")
@@ -613,7 +621,7 @@ def fetch_initial_funding_requirements() -> None:
     global INITIAL_FUNDS_REQUIREMENT
     global CHAIN_ID_TO_METADATA
 
-    optimus_config = get_local_config()
+    optimus_config = load_local_config()
     headers = {
         "accept": "application/json",
         "x-cg-api-key": optimus_config.coingecko_api_key
@@ -678,14 +686,14 @@ def calculate_fund_requirement(rpc, fee_history_blocks: int, gas_amount: int, fe
     fund_requirement = int((average_gas_price * gas_amount) + safety_margin)
     return fund_requirement
 
-def fetch_agent_fund_requirement(chain_id, rpc, fee_history_blocks: int = 20) -> int:
+def fetch_agent_fund_requirement(chain_id, rpc, fee_history_blocks: int = 500000) -> int:
     if int(chain_id) == 1:
         gas_amount = 1_000_000
     else:
         gas_amount = 5_000_000
     return calculate_fund_requirement(rpc, fee_history_blocks, gas_amount)
 
-def fetch_operator_fund_requirement(chain_id, rpc, fee_history_blocks: int = 20) -> int:
+def fetch_operator_fund_requirement(chain_id, rpc, fee_history_blocks: int = 500000) -> int:
     if int(chain_id) == 1:
         gas_amount = 2_000_000
     else:
@@ -705,7 +713,7 @@ def main() -> None:
     )
     operate.setup()
 
-    optimus_config = get_local_config()
+    optimus_config = configure_local_config()
     template = get_service_template(optimus_config)
     manager = operate.service_manager()
     service = get_service(manager, template)

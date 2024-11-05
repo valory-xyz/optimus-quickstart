@@ -7,7 +7,6 @@ from decimal import Decimal, getcontext
 import logging
 
 from run_service import (
-    get_local_config,
     get_service_template,
     FALLBACK_STAKING_PARAMS,
     CHAIN_ID_TO_METADATA,

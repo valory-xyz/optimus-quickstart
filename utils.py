@@ -30,7 +30,7 @@ class StakingState(Enum):
     EVICTED = 2
 
 from run_service import (
-    get_local_config,
+    load_local_config,
     get_service_template,
     get_service,
     OPERATE_HOME
@@ -116,7 +116,7 @@ def _get_agent_status() -> str:
     )
     operate.setup()
 
-    optimus_config = get_local_config()
+    optimus_config = load_local_config()
     template = get_service_template(optimus_config)
     manager = operate.service_manager()
     service = get_service(manager, template)

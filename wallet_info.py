@@ -7,7 +7,7 @@ from decimal import Decimal, getcontext
 import logging
 
 from run_service import (
-    get_local_config,
+    load_local_config,
     get_service_template,
     CHAIN_ID_TO_METADATA,
     USDC_ADDRESS,
@@ -43,7 +43,7 @@ USDC_ABI = [{
 
 def load_config():
     try:
-        optimus_config = get_local_config()
+        optimus_config = load_local_config()
         service_template = get_service_template(optimus_config)
         service_hash = service_template.get("hash")
         if not service_hash:
@@ -88,7 +88,7 @@ class DecimalEncoder(json.JSONEncoder):
 
 def save_wallet_info():
     config = load_config()
-    optimus_config = get_local_config()
+    optimus_config = load_local_config()
     if not config:
         print("Error: Configuration could not be loaded.")
         return

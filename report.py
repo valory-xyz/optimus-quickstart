@@ -5,7 +5,7 @@ import logging
 from decimal import Decimal, getcontext
 
 from run_service import (
-    get_local_config,
+    load_local_config,
     get_service_template,
     CHAIN_ID_TO_METADATA,
     OPERATE_HOME,
@@ -67,7 +67,7 @@ def generate_report():
         if not validate_config(config):
             return
 
-        optimus_config = get_local_config()
+        optimus_config = load_local_config()
         # Service Report Header
         print("")
         print("==============")
