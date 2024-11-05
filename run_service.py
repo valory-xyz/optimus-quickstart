@@ -391,6 +391,13 @@ def configure_local_config() -> OptimusConfig:
         else:
             optimus_config.allowed_chains = DEFAULT_CHAINS
 
+    unselected_chains = [chain for chain in DEFAULT_CHAINS if chain not in optimus_config.allowed_chains]
+    if unselected_chains:
+        for chain in unselected_chains:
+            deploy_on_chain = input(f"Do you wish the service to operate on {chain}? (y/n): ").lower() == 'y'
+            if deploy_on_chain:
+                optimus_config.allowed_chains.append(chain)
+
     update_chains = input("Do you want to test the agent on specific chains? (y/n): ").lower() == 'y'
     if update_chains:
         target_investment_chains = []
