@@ -35,7 +35,7 @@ from dotenv import load_dotenv
 from halo import Halo
 from termcolor import colored
 from web3 import Web3
-
+from scripts.twitter_verify import get_twitter_cookies
 from operate.account.user import UserAccount
 from operate.cli import OperateApp
 from operate.resource import LocalResource, deserialize
@@ -137,6 +137,7 @@ class MemeooorrConfig(LocalResource):
     twikit_username: t.Optional[str] = None
     twikit_email: t.Optional[str] = None
     twikit_password: t.Optional[str] = None
+    twikit_cookies: t.Optional[str] = None
     feedback_period_hours: t.Optional[str] = None
     genai_api_key: t.Optional[str] = None
     min_feedback_replies: t.Optional[str] = None
@@ -285,6 +286,18 @@ def get_local_config() -> MemeooorrConfig:
     if memeooorr_config.password_migrated is None:
         memeooorr_config.password_migrated = False
 
+    if memeooorr_config.persona is None:
+        memeooorr_config.persona = input_with_default_value("What's the agent persona", "a cat lover that is crazy about all-things cats")
+
+    if memeooorr_config.feedback_period_hours is None:
+        memeooorr_config.feedback_period_hours = input_with_default_value("How many hours should Memeooorr wait after sending a tweet and before analysing its responses?", 1)
+
+    if memeooorr_config.min_feedback_replies is None:
+        memeooorr_config.min_feedback_replies = input_with_default_value("What's the minimum amount of replies to a tweet before Memeooorr analyses them?", 10)
+
+    if memeooorr_config.genai_api_key is None:
+        memeooorr_config.genai_api_key = input("Please enter the GenAI API key for Memeooorr's account: ")
+
     if memeooorr_config.twikit_username is None:
         memeooorr_config.twikit_username = input("Please enter the Twitter username for Memeooorr's account: ")
 
@@ -294,18 +307,11 @@ def get_local_config() -> MemeooorrConfig:
     if memeooorr_config.twikit_password is None:
         memeooorr_config.twikit_password = input("Please enter the Twitter password for Memeooorr's account (avoid passwords that include the $ character): ")
 
-    if memeooorr_config.genai_api_key is None:
-        memeooorr_config.genai_api_key = input("Please enter the GenAI API key for Memeooorr's account: ")
-
-    if memeooorr_config.feedback_period_hours is None:
-        memeooorr_config.feedback_period_hours = input_with_default_value("How many hours should Memeooorr wait after sending a tweet and before analysing its responses?", 1)
-
-    if memeooorr_config.min_feedback_replies is None:
-        memeooorr_config.min_feedback_replies = input_with_default_value("What's the minimum amount of replies to a tweet before Memeooorr analyses them?", 10)
-
-    if memeooorr_config.persona is None:
-        memeooorr_config.persona = input_with_default_value("What's the agent persona", "a cat lover that is crazy about all-things cats")
-
+    memeooorr_config.twikit_cookies = get_twitter_cookies(
+        memeooorr_config.twikit_username,
+        memeooorr_config.twikit_email,
+        memeooorr_config.twikit_password
+    )
 
     memeooorr_config.store()
     return memeooorr_config
@@ -610,6 +616,7 @@ def main() -> None:
         "TWIKIT_USERNAME": memeooorr_config.twikit_username,
         "TWIKIT_EMAIL": memeooorr_config.twikit_email,
         "TWIKIT_PASSWORD": memeooorr_config.twikit_password,
+        "TWIKIT_COOKIES": memeooorr_config.twikit_cookies,
         "FEEDBACK_PERIOD_HOURS": memeooorr_config.feedback_period_hours,
         "GENAI_API_KEY": memeooorr_config.genai_api_key,
         "MIN_FEEDBACK_REPLIES": memeooorr_config.min_feedback_replies,
