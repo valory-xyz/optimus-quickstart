@@ -63,6 +63,16 @@ CONTRACTS = {
             "multisend": "0x40A2aCCbd92BCA938b02010E17A5b8929b49130D",
         }
     ),
+    ChainType.CELO: ContractAddresses(
+        {
+            "service_manager": "0x34C895f302D0b5cf52ec0Edd3945321EB0f83dd5",
+            "service_registry": "0xE3607b00E75f6405248323A9417ff6b39B244b50",
+            "service_registry_token_utility": "0x3d77596beb0f130a4415df3D2D8232B3d3D31e44",
+            "gnosis_safe_proxy_factory": "0xC22834581EbC8527d974F8a1c97E1bEA4EF910BC",
+            "gnosis_safe_same_address_multisig": "0xBb7e1D6Cb6F243D6bdE81CE92a9f2aFF7Fbe7eac",
+            "multisend": "0x40A2aCCbd92BCA938b02010E17A5b8929b49130D",
+        }
+    ),
 }
 
 STAKING = {
@@ -74,7 +84,12 @@ STAKING = {
         "optimus_alpha": "0x88996bbdE7f982D93214881756840cE2c77C4992",
     },
     ChainType.ETHEREUM: {},
-    ChainType.BASE: {},
+    ChainType.BASE: {
+        "meme_alpha": "0x06702A05312091013FdB50C8b60B98ca30762931"
+    },
+    ChainType.CELO: {
+        "meme_alpha": "0xf39cd0eE4C502Df7D26F28cFAdd579724A3CFCe8",
+    },
 }
 
 OLAS = {
@@ -82,4 +97,5 @@ OLAS = {
     ChainType.OPTIMISM: "0xFC2E6e6BCbd49ccf3A5f029c79984372DcBFE527",
     ChainType.BASE: "0x54330d28ca3357F294334BDC454a032e7f353416",
     ChainType.ETHEREUM: "0x0001A500A6B18995B03f44bb040A5fFc28E45CB0",
+    ChainType.CELO: "0xaCFfAe8e57Ec6E394Eb1b41939A8CF7892DbDc51",
 }
