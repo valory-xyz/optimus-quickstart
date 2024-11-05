@@ -8,7 +8,8 @@ import docker
 from web3 import Web3
 from web3.middleware import geth_poa_middleware
 from enum import Enum
-
+from operate.cli import OperateApp
+import yaml
 # Set decimal precision
 getcontext().prec = 18
 
@@ -27,6 +28,13 @@ class StakingState(Enum):
     UNSTAKED = 0
     STAKED = 1
     EVICTED = 2
+
+from run_service import (
+    get_local_config,
+    get_service_template,
+    get_service,
+    OPERATE_HOME
+)
 
 def _color_string(text: str, color_code: str) -> str:
     return f"{color_code}{text}{ColorCode.RESET}"
@@ -103,11 +111,32 @@ def validate_config(config):
     return True
 
 def _get_agent_status() -> str:
+    operate = OperateApp(
+        home=OPERATE_HOME,
+    )
+    operate.setup()
+
+    optimus_config = get_local_config()
+    template = get_service_template(optimus_config)
+    manager = operate.service_manager()
+    service = get_service(manager, template)
+    docker_compose_path = service.path / "deployment" / "docker-compose.yaml"
     try:
+        with open(docker_compose_path, "r") as f:
+            docker_compose = yaml.safe_load(f)
+
+        abci_service_name = None
+        for service_name in docker_compose["services"]:
+            if "abci" in service_name:
+                abci_service_name = service_name
+                break
+
         client = docker.from_env()
-        container = client.containers.get("optimus_abci_0")
+        container = client.containers.get(abci_service_name)
         is_running = container.status == "running"
         return _color_bool(is_running, "Running", "Stopped")
+    except FileNotFoundError:
+        return _color_string("Stopped", ColorCode.RED)
     except docker.errors.NotFound:
         return _color_string("Not Found", ColorCode.RED)
     except docker.errors.DockerException as e:
