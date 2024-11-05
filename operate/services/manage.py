@@ -93,7 +93,6 @@ class ServiceManager:
         self.keys_manager = keys_manager
         self.wallet_manager = wallet_manager
         self.logger = logger or setup_logger(name="operate.manager")
-        self._log_directories()
 
     def setup(self) -> None:
         """Setup service manager."""
