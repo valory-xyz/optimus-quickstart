@@ -9,6 +9,7 @@ from run_service import (
     get_service_template,
     CHAIN_ID_TO_METADATA,
     OPERATE_HOME,
+    DEFAULT_START_CHAIN
 )
 
 from utils import (
@@ -66,6 +67,7 @@ def generate_report():
         if not validate_config(config):
             return
 
+        optimus_config = get_local_config()
         # Service Report Header
         print("")
         print("==============")
@@ -92,6 +94,8 @@ def generate_report():
 
         for chain_id, chain_config in config.get("chain_configs", {}).items():
             chain_name = get_chain_name(chain_id, CHAIN_ID_TO_METADATA)
+            if  optimus_config.allowed_chains and chain_name.lower() not in optimus_config.allowed_chains and chain_name != DEFAULT_START_CHAIN:
+                continue
             balance_info = wallet_info.get('main_wallet_balances', {}).get(chain_name, {})
             balance_formatted = balance_info.get('balance_formatted', 'N/A')
             _print_status(f"{chain_name} Balance", balance_formatted)
@@ -114,6 +118,8 @@ def generate_report():
         safe_balances = wallet_info.get('safe_balances', {})
         for chain_id, chain_config in config.get("chain_configs", {}).items():
             chain_name = get_chain_name(chain_id, CHAIN_ID_TO_METADATA)
+            if  optimus_config.allowed_chains and chain_name.lower() not in optimus_config.allowed_chains and chain_name != DEFAULT_START_CHAIN:
+                continue
             safe_info = safe_balances.get(chain_name, {})
             _print_status(f"Address ({chain_name})", safe_info.get('address', 'N/A'))
             _print_status(f"{safe_info.get('token', 'ETH')} Balance", safe_info.get('balance_formatted', 'N/A'))
