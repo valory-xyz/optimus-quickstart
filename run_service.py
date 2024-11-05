@@ -88,7 +88,7 @@ CHAIN_ID_TO_METADATA = {
         "token": "ETH",
         "usdcRequired": False,
         "initialFundsRequirement": 0,
-        "operationalFundReq": SUGGESTED_TOP_UP_DEFAULT * 5,
+        "operationalFundReq": SUGGESTED_TOP_UP_DEFAULT * 10,
         "gasParams": {
             # this means default values will be used
             "MAX_PRIORITY_FEE_PER_GAS": "",
@@ -99,7 +99,7 @@ CHAIN_ID_TO_METADATA = {
         "name": "Base",
         "token": "ETH",
         "initialFundsRequirement": 0,
-        "operationalFundReq": SUGGESTED_TOP_UP_DEFAULT * 5,
+        "operationalFundReq": SUGGESTED_TOP_UP_DEFAULT * 10,
         "usdcRequired": False,
         "gasParams": {
             # this means default values will be used
@@ -108,10 +108,10 @@ CHAIN_ID_TO_METADATA = {
         }
     },
     34443: {
-        "name": "Base",
+        "name": "Mode",
         "token": "ETH",
         "initialFundsRequirement": 0,
-        "operationalFundReq": SUGGESTED_TOP_UP_DEFAULT * 5,
+        "operationalFundReq": SUGGESTED_TOP_UP_DEFAULT * 10,
         "usdcRequired": False,
         "gasParams": {
             # this means default values will be used
@@ -121,6 +121,12 @@ CHAIN_ID_TO_METADATA = {
     },
 }
 
+DEFAULT_RPC = {
+    "1": "https://ethereum-rpc.publicnode.com",
+    "10": "https://mainnet.optimism.io",
+    "8453": "https://base-rpc.publicnode.com",
+    "34443": "https://mainnet.mode.network"
+}
 
 def estimate_priority_fee(
     web3_object: Web3,
@@ -310,18 +316,6 @@ def get_local_config() -> OptimusConfig:
 
     print_section("API Key Configuration")
 
-    if optimus_config.ethereum_rpc is None:
-        optimus_config.ethereum_rpc = input("Please enter an Ethereum RPC URL: ")
-
-    if optimus_config.optimism_rpc is None:
-        optimus_config.optimism_rpc = input("Please enter an Optimism RPC URL: ")
-
-    if optimus_config.base_rpc is None:
-        optimus_config.base_rpc = input("Please enter a Base RPC URL: ")
-
-    if optimus_config.mode_rpc is None:
-        optimus_config.mode_rpc = input("Please enter a Mode RPC URL: ")
-
     if optimus_config.tenderly_access_key is None:
         optimus_config.tenderly_access_key = input(
             "Please enter your Tenderly API Key. Get one at https://dashboard.tenderly.co/: "
@@ -383,7 +377,17 @@ def get_local_config() -> OptimusConfig:
             optimus_config.allowed_chains = allowed_chains
         else:
             optimus_config.allowed_chains = DEFAULT_CHAINS
-            
+
+    if optimus_config.ethereum_rpc is None:
+        optimus_config.ethereum_rpc = input("Please enter an Ethereum RPC URL: ")
+
+    for chain in optimus_config.allowed_chains:
+        if chain == "optimism" and optimus_config.optimism_rpc is None:
+            optimus_config.optimism_rpc = input("Please enter an Optimism RPC URL: ")
+        elif chain == "base" and optimus_config.base_rpc is None:
+            optimus_config.base_rpc = input("Please enter a Base RPC URL: ")
+        elif chain == "mode" and optimus_config.mode_rpc is None:
+            optimus_config.mode_rpc = input("Please enter a Mode RPC URL: ")
 
     optimus_config.store()
     return optimus_config
@@ -721,6 +725,10 @@ def main() -> None:
         chain_metadata = CHAIN_ID_TO_METADATA[int(chain_id)]
         chain_name, token = chain_metadata['name'], chain_metadata["token"]
         chain_config = service.chain_configs[chain_id]
+
+        if chain_config.ledger_config.rpc is None:
+            chain_config.ledger_config.rpc = DEFAULT_RPC.get(chain_id)
+
         os.environ["CUSTOM_CHAIN_RPC"] = chain_config.ledger_config.rpc
         os.environ["OPEN_AUTONOMY_SUBGRAPH_URL"] = "https://subgraph.autonolas.tech/subgraphs/name/autonolas-staging"
         os.environ["MAX_PRIORITY_FEE_PER_GAS"] = chain_metadata["gasParams"]["MAX_PRIORITY_FEE_PER_GAS"]
@@ -759,8 +767,7 @@ def main() -> None:
         if service_exists:
             if chain_id != 1:
                 agent_balance = ledger_api.get_balance(address=service.keys[0].address)
-                #we only top up if current balance is less than 50% of required balance
-                if agent_balance < 0.3 * agent_fund_requirement:
+                if agent_balance < 0.1 * agent_fund_requirement:
                     agent_fund_requirement = agent_fund_requirement - agent_balance
                 else:
                     agent_fund_requirement = 0
