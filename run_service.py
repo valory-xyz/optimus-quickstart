@@ -186,6 +186,7 @@ class OptimusConfig(LocalResource):
     password_migrated: t.Optional[bool] = None
     use_staking: t.Optional[bool] = None
     allowed_chains: t.Optional[list[str]] = None
+    target_investment_chains: t.Optional[list[str]] = None
 
     @classmethod
     def from_json(cls, obj: t.Dict) -> "LocalResource":
@@ -381,6 +382,19 @@ def get_local_config() -> OptimusConfig:
         else:
             optimus_config.allowed_chains = DEFAULT_CHAINS
 
+    if optimus_config.target_investment_chains is None:
+        update_chains = input("Do you want to test the agent on specific chains? (y/n): ").lower() == 'y'
+        if update_chains:
+            target_investment_chains = []
+            for chain in DEFAULT_CHAINS:   
+                operate_on_chain = input(f"Do you wish the agent to find investment opportunities on {chain}? (y/n): ").lower() == 'y'
+                if operate_on_chain:
+                    target_investment_chains.append(chain)
+
+            optimus_config.target_investment_chains = target_investment_chains
+        else:
+            optimus_config.target_investment_chains = DEFAULT_CHAINS
+
     if optimus_config.ethereum_rpc is None:
         optimus_config.ethereum_rpc = input("Please enter an Ethereum RPC URL: ")
 
@@ -425,7 +439,7 @@ def get_service_template(config: OptimusConfig) -> ServiceTemplate:
     """Get the service template"""
     return ServiceTemplate({
         "name": "Optimus",
-        "hash": "bafybeidwkzv7pylpstbrhwtlbwrxs3svumwfagxhp2eb7qqq6py6wbtrou",
+        "hash": "bafybeiathc6kfimiro4qt4oldnfdrkxjeznudqlygvitfaoekgxnxx4nna",
 
         "description": "Optimus",
         "image": "https://gateway.autonolas.tech/ipfs/bafybeiaakdeconw7j5z76fgghfdjmsr6tzejotxcwnvmp3nroaw3glgyve",
@@ -759,7 +773,11 @@ def main() -> None:
         )
         safe_exists = wallet.safes.get(chain_type) is not None        
 
-        agent_fund_requirement = fetch_agent_fund_requirement(chain_id, chain_config.ledger_config.rpc)
+        if service_exists and chain_name == DEFAULT_START_CHAIN:
+            agent_fund_requirement = 0
+        else:
+            agent_fund_requirement = fetch_agent_fund_requirement(chain_id, chain_config.ledger_config.rpc)
+
         if agent_fund_requirement is None:
             agent_fund_requirement = chain_config.chain_data.user_params.fund_requirements.agent
 
@@ -776,7 +794,7 @@ def main() -> None:
                     agent_fund_requirement = 0
 
                 operator_balance = ledger_api.get_balance(wallet.crypto.address)
-                if operator_balance < 0.3 * operational_fund_req:
+                if operator_balance < 0.1 * operational_fund_req:
                     operational_fund_req = operational_fund_req - operator_balance
                 else:
                     operational_fund_req = 0
@@ -920,7 +938,8 @@ def main() -> None:
         "STAKING_TOKEN_CONTRACT_ADDRESS": STAKING[home_chain_type][target_staking_program_id],
         "COINGECKO_API_KEY": optimus_config.coingecko_api_key,
         "MIN_SWAP_AMOUNT_THRESHOLD": optimus_config.min_swap_amount_threshold,
-        "ALLOWED_CHAINS": json.dumps(optimus_config.allowed_chains)
+        "ALLOWED_CHAINS": json.dumps(optimus_config.allowed_chains),
+        "TARGET_INVESTMENT_CHAINS": json.dumps(optimus_config.target_investment_chains)
     }
     apply_env_vars(env_vars)
     print("Skipping local deployment")
