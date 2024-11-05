@@ -107,6 +107,18 @@ CHAIN_ID_TO_METADATA = {
             "MAX_FEE_PER_GAS": "",
         }
     },
+    34443: {
+        "name": "Base",
+        "token": "ETH",
+        "initialFundsRequirement": 0,
+        "operationalFundReq": SUGGESTED_TOP_UP_DEFAULT * 5,
+        "usdcRequired": False,
+        "gasParams": {
+            # this means default values will be used
+            "MAX_PRIORITY_FEE_PER_GAS": "",
+            "MAX_FEE_PER_GAS": "",
+        }
+    },
 }
 
 
