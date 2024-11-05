@@ -152,3 +152,21 @@ Then continue above with "Run the script".
 7. Follow the on-screen instructions and set a username and password for your Ubuntu installation.
 
 8. Install Docker Desktop and enable the WSL 2 backend by following the instructions from Docker [here](https://docs.docker.com/desktop/wsl/).
+
+
+## Known issues
+
+### Twitter login failed due to a known issue with the login flow
+This is a known issue coming from the Twikit library, which we use in order to communicate with Twitter. While the issue is being solved, if you experience this error you will need to extract Twitter cookies from your Twitter session following these steps:
+
+1. Visit [this link](https://github.com/ktty1220/export-cookie-for-puppeteer) to install the "Export cookie JSON file for Puppeteer" browser extension (it is open-source).
+
+2. In the install section, click on either Google Chrome or Firefox and proceed to install the extension. You will need to install one of those browsers if you are using something else like Safari or Opera.
+
+3. Once the extension is installed, login into the desired Twitter account.
+
+4. With the Twitter tab open, go into the browser extension menu and click on `Export cookie JSON file for Puppeteer`.
+
+5. Click on `Export cookies as JSON`. A file caller `x.com.cookies.json` will be downloaded. If the name is different, please rename it to that.
+
+6. Paste the file into the Memeooorr repo root. The quickstart should extract your cookies, login into Twitter and continue.
