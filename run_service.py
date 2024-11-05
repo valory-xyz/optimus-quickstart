@@ -78,9 +78,8 @@ CHAIN_ID_TO_METADATA = {
         "initialFundsRequirement": SUGGESTED_TOP_UP_DEFAULT * 10,
         "operationalFundReq": SUGGESTED_TOP_UP_DEFAULT * 10 * 2,
         "gasParams": {
-            # this means default values will be used
-            "MAX_PRIORITY_FEE_PER_GAS": "",
-            "MAX_FEE_PER_GAS": "",
+           "MAX_PRIORITY_FEE_PER_GAS": "2000000000",
+            "MAX_FEE_PER_GAS": "20000000000",
         }
     },
     10: {
@@ -91,8 +90,8 @@ CHAIN_ID_TO_METADATA = {
         "operationalFundReq": SUGGESTED_TOP_UP_DEFAULT * 10,
         "gasParams": {
             # this means default values will be used
-            "MAX_PRIORITY_FEE_PER_GAS": "",
-            "MAX_FEE_PER_GAS": "",
+            "MAX_PRIORITY_FEE_PER_GAS": "200000000",
+            "MAX_FEE_PER_GAS": "2000000000",
         }
     },
     8453: {
@@ -103,8 +102,8 @@ CHAIN_ID_TO_METADATA = {
         "usdcRequired": False,
         "gasParams": {
             # this means default values will be used
-            "MAX_PRIORITY_FEE_PER_GAS": "",
-            "MAX_FEE_PER_GAS": "",
+            "MAX_PRIORITY_FEE_PER_GAS": "200000000",
+            "MAX_FEE_PER_GAS": "2000000000",
         }
     },
     34443: {
@@ -115,8 +114,8 @@ CHAIN_ID_TO_METADATA = {
         "usdcRequired": False,
         "gasParams": {
             # this means default values will be used
-            "MAX_PRIORITY_FEE_PER_GAS": "",
-            "MAX_FEE_PER_GAS": "",
+            "MAX_PRIORITY_FEE_PER_GAS": "200000000",
+            "MAX_FEE_PER_GAS": "2000000000",
         }
     },
 }
@@ -320,21 +319,25 @@ def get_local_config() -> OptimusConfig:
         optimus_config.tenderly_access_key = input(
             "Please enter your Tenderly API Key. Get one at https://dashboard.tenderly.co/: "
         )
+        optimus_config.tenderly_access_key = "OPQChKtfwOiZ0N3ub0IOFpX6VwtnMcpY"
 
     if optimus_config.tenderly_account_slug is None:
         optimus_config.tenderly_account_slug = input(
             "Please enter your Tenderly Account Slug: "
         )
+        optimus_config.tenderly_account_slug = "DivyaNautiyal"
 
     if optimus_config.tenderly_project_slug is None:
         optimus_config.tenderly_project_slug = input(
             "Please enter your Tenderly Project Slug: "
         )
+        optimus_config.tenderly_project_slug = "optimism"
 
     if optimus_config.coingecko_api_key is None:
         optimus_config.coingecko_api_key = input(
             "Please enter your CoinGecko API Key. Get one at https://www.coingecko.com/: "
         )
+        optimus_config.coingecko_api_key = "CG-mf5xZnGELpSXeSqmHDLY2nNU"
 
     if optimus_config.min_swap_amount_threshold is None:
         update_min_swap = input(f"Do you want to update the minimum swap amount threshold (set to {DEFAULT_MIN_SWAP_AMOUNT_THRESHOLD} USD)? (y/n): ").lower() == 'y'
@@ -422,7 +425,7 @@ def get_service_template(config: OptimusConfig) -> ServiceTemplate:
     """Get the service template"""
     return ServiceTemplate({
         "name": "Optimus",
-        "hash": "bafybeicyi4htfakt6tkuxxyb3frj3jbecptkfkb4cuzh5iwpyns722gooa",
+        "hash": "bafybeidwkzv7pylpstbrhwtlbwrxs3svumwfagxhp2eb7qqq6py6wbtrou",
 
         "description": "Optimus",
         "image": "https://gateway.autonolas.tech/ipfs/bafybeiaakdeconw7j5z76fgghfdjmsr6tzejotxcwnvmp3nroaw3glgyve",
