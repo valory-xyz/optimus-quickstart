@@ -386,41 +386,30 @@ def configure_local_config() -> OptimusConfig:
     if optimus_config.use_staking is None:
         optimus_config.use_staking = input("Do you want to stake your service? (y/n): ").lower() == 'y'
 
-    if optimus_config.allowed_chains is None:
-        update_chains = input("Do you want to restrict the operability to specific chains? (y/n): ").lower() == 'y'
-        if update_chains:
-            allowed_chains = []
-            for chain in DEFAULT_CHAINS:
+    print("All available chains for liquidity pool opportunities:", ", ".join(DEFAULT_CHAINS))
+    print("Current setting for liquidity pool opportunities--chains:", ", ".join(optimus_config.target_investment_chains or DEFAULT_CHAINS))
+
+    update_chains = input("Do you want to expand/restrict agent's operability (y/n): ").lower() == 'y'
+    optimus_config.allowed_chains = DEFAULT_CHAINS
+    optimus_config.target_investment_chains = DEFAULT_CHAINS
+    if update_chains:
+        for chain in DEFAULT_CHAINS:
+            operate_on_chain = input(f"Do you wish the service to operate on {chain}? (y/n): ").lower() == 'y'
+            if not operate_on_chain:
+                optimus_config.allowed_chains.remove(chain)
+                if chain in optimus_config.target_investment_chains:
+                    optimus_config.target_investment_chains.remove(chain)
                 if chain in STAKING_CHAINS:
-                    allowed_chains.append(chain)
-                    continue      
-                operate_on_chain = input(f"Do you wish the service to operate on {chain}? (y/n): ").lower() == 'y'
-                if operate_on_chain:
-                    allowed_chains.append(chain)
-
-            optimus_config.allowed_chains = allowed_chains
-        else:
-            optimus_config.allowed_chains = DEFAULT_CHAINS
-
-    unselected_chains = [chain for chain in DEFAULT_CHAINS if chain not in optimus_config.allowed_chains]
-    if unselected_chains:
+                    optimus_config.allowed_chains.append(chain)
+    else:
+        unselected_chains = [chain for chain in DEFAULT_CHAINS if chain not in optimus_config.allowed_chains]
         for chain in unselected_chains:
             deploy_on_chain = input(f"Do you wish the service to operate on {chain}? (y/n): ").lower() == 'y'
             if deploy_on_chain:
                 optimus_config.allowed_chains.append(chain)
+                optimus_config.target_investment_chains.append(chain)
 
-    update_chains = input("Do you want to test the agent on specific chains? (y/n): ").lower() == 'y'
-    if update_chains:
-        target_investment_chains = []
-        for chain in optimus_config.allowed_chains:   
-            operate_on_chain = input(f"Do you wish the agent to find investment opportunities on {chain}? (y/n): ").lower() == 'y'
-            if operate_on_chain:
-                target_investment_chains.append(chain)
-
-        optimus_config.target_investment_chains = target_investment_chains
-    else:
-        optimus_config.target_investment_chains = optimus_config.allowed_chains
-
+    print("optimus_config.allowed_chains", optimus_config.allowed_chains, "optimus_config.target_investment_chains", optimus_config.target_investment_chains)
     if optimus_config.ethereum_rpc is None:
         optimus_config.ethereum_rpc = input("Please enter an Ethereum RPC URL: ")
         optimus_config.ethereum_rpc = "https://virtual.mainnet.rpc.tenderly.co/1b530d82-5dbb-44f3-a46b-09f06ff79cc9"
