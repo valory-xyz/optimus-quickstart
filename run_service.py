@@ -115,6 +115,8 @@ CHAIN_ID_TO_METADATA = {
         "usdcRequired": False,
         "gasParams": {
             # this means default values will be used
+            "FEE_HISTORY_PERCENTILE": "50",
+            "DEFAULT_PRIORITY_FEE": "2000000",
             "MAX_PRIORITY_FEE_PER_GAS": "",
             "MAX_FEE_PER_GAS": "",
         }
@@ -133,10 +135,9 @@ original_strategy = EthereumApi._gas_price_strategy_callables['eip1559']
 
 def custom_gas_price_strategy(*args, **kwargs):
     # Override the parameters here
-    kwargs['fee_history_percentile'] = DEFAULT_FEE_HISTORY_PERCENTILE 
+    kwargs['fee_history_percentile'] = int(CHAIN_ID_TO_METADATA[34443]["gasParams"]["FEE_HISTORY_PERCENTILE"])
+    kwargs['default_priority_fee'] = int(CHAIN_ID_TO_METADATA[34443]["gasParams"]["DEFAULT_PRIORITY_FEE"])
     return original_strategy(*args, **kwargs)
-
-EthereumApi._gas_price_strategy_callables['eip1559'] = custom_gas_price_strategy
 
 def estimate_priority_fee(
     web3_object: Web3,
@@ -178,7 +179,6 @@ def estimate_priority_fee(
         values = values[highest_increase_index:]
 
     return values[len(values) // 2]
-
 
 @dataclass
 class OptimusConfig(LocalResource):
@@ -390,26 +390,27 @@ def configure_local_config() -> OptimusConfig:
     print("Current setting for liquidity pool opportunities--chains:", ", ".join(optimus_config.target_investment_chains or DEFAULT_CHAINS))
 
     update_chains = input("Do you want to expand/restrict agent's operability (y/n): ").lower() == 'y'
-    optimus_config.allowed_chains = DEFAULT_CHAINS
-    optimus_config.target_investment_chains = DEFAULT_CHAINS
     if update_chains:
+        allowed_chains = DEFAULT_CHAINS.copy()
+        target_investment_chains = DEFAULT_CHAINS.copy()
         for chain in DEFAULT_CHAINS:
             operate_on_chain = input(f"Do you wish the service to operate on {chain}? (y/n): ").lower() == 'y'
             if not operate_on_chain:
-                optimus_config.allowed_chains.remove(chain)
-                if chain in optimus_config.target_investment_chains:
-                    optimus_config.target_investment_chains.remove(chain)
+                allowed_chains.remove(chain)
+                if chain in target_investment_chains:
+                    target_investment_chains.remove(chain)
                 if chain in STAKING_CHAINS:
-                    optimus_config.allowed_chains.append(chain)
-    else:
-        unselected_chains = [chain for chain in DEFAULT_CHAINS if chain not in optimus_config.allowed_chains]
-        for chain in unselected_chains:
-            deploy_on_chain = input(f"Do you wish the service to operate on {chain}? (y/n): ").lower() == 'y'
-            if deploy_on_chain:
-                optimus_config.allowed_chains.append(chain)
-                optimus_config.target_investment_chains.append(chain)
+                    allowed_chains.append(chain)
+        
+        optimus_config.allowed_chains = allowed_chains
+        optimus_config.target_investment_chains = target_investment_chains
+    
+    if optimus_config.allowed_chains is None:
+        optimus_config.allowed_chains = DEFAULT_CHAINS.copy()
+    
+    if optimus_config.target_investment_chains is None:
+        optimus_config.target_investment_chains = DEFAULT_CHAINS.copy()
 
-    print("optimus_config.allowed_chains", optimus_config.allowed_chains, "optimus_config.target_investment_chains", optimus_config.target_investment_chains)
     if optimus_config.ethereum_rpc is None:
         optimus_config.ethereum_rpc = input("Please enter an Ethereum RPC URL: ")
         optimus_config.ethereum_rpc = "https://virtual.mainnet.rpc.tenderly.co/1b530d82-5dbb-44f3-a46b-09f06ff79cc9"
@@ -457,7 +458,7 @@ def get_service_template(config: OptimusConfig) -> ServiceTemplate:
     """Get the service template"""
     return ServiceTemplate({
         "name": "Optimus",
-        "hash": "bafybeiathc6kfimiro4qt4oldnfdrkxjeznudqlygvitfaoekgxnxx4nna",
+        "hash": "bafybeidrj3yzsk6dguxyancjau6q7pn6qaehvcymy2yclkelrb6nsdg6xm",
 
         "description": "Optimus",
         "image": "https://gateway.autonolas.tech/ipfs/bafybeiaakdeconw7j5z76fgghfdjmsr6tzejotxcwnvmp3nroaw3glgyve",
@@ -760,6 +761,11 @@ def main() -> None:
         chain_metadata = CHAIN_ID_TO_METADATA[int(chain_id)]
         chain_name, token = chain_metadata['name'], chain_metadata["token"]
         chain_config = service.chain_configs[chain_id]
+
+        if int(chain_id) == 34443:
+            EthereumApi._gas_price_strategy_callables['eip1559'] = custom_gas_price_strategy
+        else:
+            EthereumApi._gas_price_strategy_callables['eip1559'] = original_strategy
 
         if chain_config.ledger_config.rpc is None:
             chain_config.ledger_config.rpc = DEFAULT_RPC.get(chain_id)
