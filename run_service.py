@@ -828,20 +828,19 @@ def main() -> None:
 
         if required_balance > 0:
             required_balance += safety_margin
+            print(
+                f"[{chain_name}] Please make sure main wallet {wallet.crypto.address} has at least {wei_to_token(required_balance, token)}",
+            )
+            spinner = Halo(
+                text=f"[{chain_name}] Waiting for funds...",
+                spinner="dots"
+            )
+            spinner.start()
 
-        print(
-            f"[{chain_name}] Please make sure main wallet {wallet.crypto.address} has at least {wei_to_token(required_balance, token)}",
-        )
-        spinner = Halo(
-            text=f"[{chain_name}] Waiting for funds...",
-            spinner="dots"
-        )
-        spinner.start()
+            while ledger_api.get_balance(wallet.crypto.address) < required_balance:
+                time.sleep(1)
 
-        while ledger_api.get_balance(wallet.crypto.address) < required_balance:
-            time.sleep(1)
-
-        spinner.succeed(f"[{chain_name}] Main wallet updated balance: {wei_to_token(ledger_api.get_balance(wallet.crypto.address), token)}.")
+            spinner.succeed(f"[{chain_name}] Main wallet updated balance: {wei_to_token(ledger_api.get_balance(wallet.crypto.address), token)}.")
 
         if not safe_exists:
             print(f"[{chain_name}] Creating Safe")
