@@ -69,6 +69,7 @@ DEFAULT_MIN_SWAP_AMOUNT_THRESHOLD = 15
 DEFAULT_CHAINS = ["optimism","base","mode"]
 STAKING_CHAINS = ["optimism"]
 DEFAULT_START_CHAIN = "Ethereum Mainnet"
+DEFAULT_FEE_HISTORY_PERCENTILE = 50
 CHAIN_ID_TO_METADATA = {
     1: {
         "name": "Ethereum Mainnet",
@@ -126,6 +127,16 @@ DEFAULT_RPC = {
     "8453": "https://base-rpc.publicnode.com",
     "34443": "https://mainnet.mode.network"
 }
+
+
+original_strategy = EthereumApi._gas_price_strategy_callables['eip1559']
+
+def custom_gas_price_strategy(*args, **kwargs):
+    # Override the parameters here
+    kwargs['fee_history_percentile'] = DEFAULT_FEE_HISTORY_PERCENTILE 
+    return original_strategy(*args, **kwargs)
+
+EthereumApi._gas_price_strategy_callables['eip1559'] = custom_gas_price_strategy
 
 def estimate_priority_fee(
     web3_object: Web3,
