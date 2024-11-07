@@ -945,6 +945,8 @@ def main() -> None:
                 safe_fund_treshold=INITIAL_FUNDS_REQUIREMENT['USDC'] + usdc_balance,
             )
 
+
+    service = get_service(manager, template)
     safes = {
         ChainType.from_id(int(chain)).name.lower(): config.chain_data.multisig
         for chain, config in service.chain_configs.items()
