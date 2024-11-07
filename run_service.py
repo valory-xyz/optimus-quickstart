@@ -332,25 +332,21 @@ def configure_local_config() -> OptimusConfig:
         optimus_config.tenderly_access_key = input(
             "Please enter your Tenderly API Key. Get one at https://dashboard.tenderly.co/: "
         )
-        optimus_config.tenderly_access_key = "OPQChKtfwOiZ0N3ub0IOFpX6VwtnMcpY"
 
     if optimus_config.tenderly_account_slug is None:
         optimus_config.tenderly_account_slug = input(
             "Please enter your Tenderly Account Slug: "
         )
-        optimus_config.tenderly_account_slug = "DivyaNautiyal"
 
     if optimus_config.tenderly_project_slug is None:
         optimus_config.tenderly_project_slug = input(
             "Please enter your Tenderly Project Slug: "
         )
-        optimus_config.tenderly_project_slug = "optimism"
 
     if optimus_config.coingecko_api_key is None:
         optimus_config.coingecko_api_key = input(
             "Please enter your CoinGecko API Key. Get one at https://www.coingecko.com/: "
         )
-        optimus_config.coingecko_api_key = "CG-mf5xZnGELpSXeSqmHDLY2nNU"
 
     if optimus_config.min_swap_amount_threshold is None:
         update_min_swap = input(f"Do you want to update the minimum swap amount threshold (set to {DEFAULT_MIN_SWAP_AMOUNT_THRESHOLD} USD)? (y/n): ").lower() == 'y'
