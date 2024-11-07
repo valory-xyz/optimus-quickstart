@@ -405,17 +405,14 @@ def configure_local_config() -> OptimusConfig:
 
     if optimus_config.ethereum_rpc is None:
         optimus_config.ethereum_rpc = input("Please enter an Ethereum RPC URL: ")
-        optimus_config.ethereum_rpc = "https://virtual.mainnet.rpc.tenderly.co/1b530d82-5dbb-44f3-a46b-09f06ff79cc9"
 
     for chain in optimus_config.allowed_chains:
         if chain == "optimism" and optimus_config.optimism_rpc is None:
             optimus_config.optimism_rpc = input("Please enter an Optimism RPC URL: ")
-            optimus_config.optimism_rpc = "https://virtual.optimism.rpc.tenderly.co/705dda28-50ee-490e-a6dd-04c5e2dce398"
         elif chain == "base" and optimus_config.base_rpc is None:
             optimus_config.base_rpc = input("Please enter a Base RPC URL: ")
         elif chain == "mode" and optimus_config.mode_rpc is None:
             optimus_config.mode_rpc = input("Please enter a Mode RPC URL: ")
-            optimus_config.mode_rpc = "https://virtual.mode.rpc.tenderly.co/7301e6b6-cd59-4bab-9aeb-2edf45dd3151"
 
     optimus_config.store()
     return optimus_config
@@ -971,8 +968,6 @@ def main() -> None:
         "TARGET_INVESTMENT_CHAINS": json.dumps(optimus_config.target_investment_chains)
     }
     apply_env_vars(env_vars)
-    print("------------ENV VARS---------------")
-    print(env_vars)
     print("Skipping local deployment")
     service.deployment.build(use_docker=True, force=True, chain_id=home_chain_id)
     docker_compose_path = service.path / "deployment" / "docker-compose.yaml"
