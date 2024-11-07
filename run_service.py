@@ -701,7 +701,7 @@ def fetch_agent_fund_requirement(chain_id, rpc, fee_history_blocks: int = 500000
     else:
         default_priority_fee = None
         
-    return calculate_fund_requirement(rpc, fee_history_blocks, default_priority_fee, gas_amount)
+    return calculate_fund_requirement(rpc, fee_history_blocks, gas_amount, default_priority_fee)
 
 def fetch_operator_fund_requirement(chain_id, rpc, fee_history_blocks: int = 500000) -> int:
     if int(chain_id) == 1:
@@ -714,7 +714,7 @@ def fetch_operator_fund_requirement(chain_id, rpc, fee_history_blocks: int = 500
     else:
         default_priority_fee = None
 
-    return calculate_fund_requirement(rpc, fee_history_blocks, default_priority_fee, gas_amount)
+    return calculate_fund_requirement(rpc, fee_history_blocks, gas_amount, default_priority_fee)
 
 def main() -> None:
     """Run service."""
