@@ -808,6 +808,7 @@ class Service(LocalResource):
             self.chain_configs[
                 chain
             ].chain_data.user_params = OnChainUserParams.from_json(dict(config))
+            self.chain_configs[chain].ledger_config.rpc = config.get("rpc")
 
         self.store()
 

@@ -123,14 +123,6 @@ CHAIN_ID_TO_METADATA = {
     },
 }
 
-DEFAULT_RPC = {
-    "1": "https://ethereum-rpc.publicnode.com",
-    "10": "https://mainnet.optimism.io",
-    "8453": "https://base-rpc.publicnode.com",
-    "34443": "https://mainnet.mode.network"
-}
-
-
 original_strategy = EthereumApi._gas_price_strategy_callables['eip1559']
 
 def custom_gas_price_strategy(*args, **kwargs):
@@ -767,13 +759,11 @@ def main() -> None:
         else:
             EthereumApi._gas_price_strategy_callables['eip1559'] = original_strategy
 
-        if chain_config.ledger_config.rpc is None:
-            chain_config.ledger_config.rpc = DEFAULT_RPC.get(chain_id)
-
-        os.environ["CUSTOM_CHAIN_RPC"] = chain_config.ledger_config.rpc
-        os.environ["OPEN_AUTONOMY_SUBGRAPH_URL"] = "https://subgraph.autonolas.tech/subgraphs/name/autonolas-staging"
-        os.environ["MAX_PRIORITY_FEE_PER_GAS"] = chain_metadata["gasParams"]["MAX_PRIORITY_FEE_PER_GAS"]
-        os.environ["MAX_FEE_PER_GAS"] = chain_metadata["gasParams"]["MAX_FEE_PER_GAS"]
+        if chain_config.ledger_config.rpc is not None:
+            os.environ["CUSTOM_CHAIN_RPC"] = chain_config.ledger_config.rpc
+            os.environ["OPEN_AUTONOMY_SUBGRAPH_URL"] = "https://subgraph.autonolas.tech/subgraphs/name/autonolas-staging"
+            os.environ["MAX_PRIORITY_FEE_PER_GAS"] = chain_metadata["gasParams"]["MAX_PRIORITY_FEE_PER_GAS"]
+            os.environ["MAX_FEE_PER_GAS"] = chain_metadata["gasParams"]["MAX_FEE_PER_GAS"]
 
         service_exists = manager._get_on_chain_state(chain_config) != OnChainState.NON_EXISTENT
 
