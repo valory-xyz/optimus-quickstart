@@ -654,7 +654,7 @@ def fetch_initial_funding_requirements() -> None:
     usdc_required_in_decimals = int((usdc_required_rounded * 10 ** 6) + safety_margin)
     INITIAL_FUNDS_REQUIREMENT['USDC'] = usdc_required_in_decimals
 
-def calculate_fund_requirement(rpc, fee_history_blocks: int, gas_amount: int, fee_history_percentile: int = 50) -> int:
+def calculate_fund_requirement(rpc, fee_history_blocks: int, gas_amount: int, default_priority_fee = None, fee_history_percentile: int = 50) -> int:
     if rpc is None:
         return None
     
@@ -672,7 +672,11 @@ def calculate_fund_requirement(rpc, fee_history_blocks: int, gas_amount: int, fe
     if base_fees is None:
         return None
 
-    priority_fees = [reward[0] for reward in fee_history.get('reward', []) if reward]
+    if default_priority_fee is not None:
+        priority_fees = [default_priority_fee]
+    else:
+        priority_fees = [reward[0] for reward in fee_history.get('reward', []) if reward]
+        
     if not priority_fees:
         return None
     
@@ -691,14 +695,26 @@ def fetch_agent_fund_requirement(chain_id, rpc, fee_history_blocks: int = 500000
         gas_amount = 1_000_000
     else:
         gas_amount = 5_000_000
-    return calculate_fund_requirement(rpc, fee_history_blocks, gas_amount)
+    
+    if int(chain_id) == 34443:
+        default_priority_fee = int(CHAIN_ID_TO_METADATA[34443]["gasParams"]["DEFAULT_PRIORITY_FEE"])
+    else:
+        default_priority_fee = None
+        
+    return calculate_fund_requirement(rpc, fee_history_blocks, default_priority_fee, gas_amount)
 
 def fetch_operator_fund_requirement(chain_id, rpc, fee_history_blocks: int = 500000) -> int:
     if int(chain_id) == 1:
         gas_amount = 2_000_000
     else:
         gas_amount = 3_000_000
-    return calculate_fund_requirement(rpc, fee_history_blocks, gas_amount)
+    
+    if int(chain_id) == 34443:
+        default_priority_fee = int(CHAIN_ID_TO_METADATA[34443]["gasParams"]["DEFAULT_PRIORITY_FEE"])
+    else:
+        default_priority_fee = None
+
+    return calculate_fund_requirement(rpc, fee_history_blocks, default_priority_fee, gas_amount)
 
 def main() -> None:
     """Run service."""
