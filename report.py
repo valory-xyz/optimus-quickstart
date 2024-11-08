@@ -145,7 +145,7 @@ def generate_report():
         # Owner/Operator Section
         _print_subsection_header("Owner/Operator")
         _print_status("Address", operator_address)
-        for chain_name, balance_info in wallet_info.get('main_wallet_balances', {}).items():
+        for chain_name, balance_info in wallet_info.get('operator_balances', {}).items():
             _print_status(f"{chain_name} Balance", balance_info.get('balance_formatted', 'N/A'))
 
     except Exception as e:
