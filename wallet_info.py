@@ -94,12 +94,14 @@ def save_wallet_info():
         return
 
     main_wallet_address = config.get('keys', [{}])[0].get('address')
+    operator_wallet_address = load_operator_address(OPERATE_HOME)
     if not main_wallet_address:
         print("Error: Main wallet address not found in configuration.")
         return
 
     main_balances = {}
     safe_balances = {}
+    operator_balances = {}
 
     for chain_id, chain_config in config.get('chain_configs', {}).items():
         chain_name = get_chain_name(chain_id, CHAIN_ID_TO_METADATA)
@@ -118,11 +120,17 @@ def save_wallet_info():
 
             # Get main wallet balance
             main_balance = get_balance(web3, main_wallet_address)
+            operator_balance = get_balance(web3, operator_wallet_address)
             main_balances[chain_name] = {
                 "token": "ETH",
                 "balance": main_balance,
                 "balance_formatted": f"{main_balance:.6f} ETH"
             }
+            operator_balances[chain_name] = {
+                "token": "ETH",
+                "balance": operator_balance,
+                "balance_formatted": f"{operator_balance:.6f} ETH"
+            }    
 
             # Get Safe balance
             safe_address = chain_config.get('chain_data', {}).get('multisig')
@@ -150,7 +158,9 @@ def save_wallet_info():
 
     wallet_info = {
         "main_wallet_address": main_wallet_address,
+        "operator_wallet_address": operator_wallet_address,
         "main_wallet_balances": main_balances,
+        "operator_balances": operator_balances,
         "safe_addresses": {
             chain_id: chain_config.get('chain_data', {}).get('multisig', 'N/A')
             for chain_id, chain_config in config.get('chain_configs', {}).items()

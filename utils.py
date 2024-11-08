@@ -90,9 +90,9 @@ def load_operator_address(operate_home):
     try:
         with open(ethereum_json_path, "r") as f:
             ethereum_data = json.load(f)
-        operator_address = ethereum_data.get("safes", {}).get("4")
+        operator_address = ethereum_data.get("address")
         if not operator_address:
-            print("Error: Operator address not found for chain ID 4 in the wallet file.")
+            print("Error: Operator address not found in the wallet file.")
             return None
         return operator_address
     except FileNotFoundError:
