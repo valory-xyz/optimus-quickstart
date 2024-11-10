@@ -2,6 +2,12 @@
 <b>Memeooorr Quickstart</b>
 </h1>
 
+The Memeooorr agent currently operates on the following chains:
+- Base
+- Celo
+
+See [here](https://agents.fun) and [here](https://github.com/dvilelaf/meme-ooorr?tab=readme-ov-file#user-flow) for what it does.
+
 ## Terms and Conditions Disclaimer
 
 > :warning: **Warning** <br />
@@ -25,24 +31,15 @@ Ensure your machine satisfies the requirements:
 - [Docker Engine](https://docs.docker.com/engine/install/)
 - [Docker Compose](https://docs.docker.com/compose/install/)
 
-## Memeooorr Agent: Functionality Overview
+## Setup Requirements
 
-**Supported Chains:**
-The Memeooorr agent currently operates on the following chains:
-- Base
-- Celo
+- For the initial setup you will need to fund certain addresses with the following funds when requested: 0.05 ETH (Base chain) or x CELO (Celo chain). These quantities are based on the gas prices seen on the 1st half of Sept 2024 and may need to be revised. Additionally some quantity of OLAS bridged to Base or Celo if you want to stake.
 
-See [here](https://github.com/dvilelaf/meme-ooorr?tab=readme-ov-file#user-flow) for what it does.
-
-Some thing you will need:
-
-- For the initial setup you will need to fund certain addresses with some funds when requested.
-
-- An RPC for your agent instance for the chain you decide to run your agen on: Base or Celo.
+- You need 1 RPC for your agent instance for either Base or Celo.
 
 - A [Gemini API key](https://ai.google.dev/gemini-api/docs/api-key)
 
-- An X account
+- An X account including email and password
 
 ## Run the Service
 
