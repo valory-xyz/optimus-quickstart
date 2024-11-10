@@ -57,10 +57,10 @@ def unit_to_wei(unit: float) -> int:
     """Convert unit to Wei."""
     return int(unit * 1e18)
 
-WALLET_TOPUP = unit_to_wei(0.05)
-MASTER_SAFE_TOPUP = unit_to_wei(0.01)
-SAFE_TOPUP = unit_to_wei(0.02)
-AGENT_TOPUP = unit_to_wei(0.01)
+WALLET_TOPUP = unit_to_wei(0.005)
+MASTER_SAFE_TOPUP = unit_to_wei(0.001)
+SAFE_TOPUP = unit_to_wei(0.002)
+AGENT_TOPUP = unit_to_wei(0.001)
 
 INITIAL_FUNDS_REQUIREMENT = {"ETH": 6_000_000_000_000_000}  # not used for the memeooorr: initial funds required for the service to operate
 # MASTER_WALLET_MIMIMUM_BALANCE = 6_001_000_000_000_000  # minimum balance that should always be maintained in the master wallet to ensure it remains operational
