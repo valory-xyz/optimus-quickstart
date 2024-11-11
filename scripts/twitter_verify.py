@@ -25,7 +25,7 @@ def await_for_cookies() -> dict:
     return cookies_dict
 
 
-async def get_twitter_cookies(username, email, password) -> Optional[str]:
+async def async_get_twitter_cookies(username, email, password) -> Optional[str]:
     """Verifies that the Twitter credentials are correct and get the cookies"""
 
     client = twikit.Client(
@@ -46,3 +46,8 @@ async def get_twitter_cookies(username, email, password) -> Optional[str]:
     finally:
         client.save_cookies(SAVED_COOKIES_PATH)
         return json.dumps(client.get_cookies()).replace(" ", "")
+
+
+def get_twitter_cookies(username, email, password) -> Optional[str]:
+    """get_twitter_cookies"""
+    return asyncio.run(async_get_twitter_cookies(username, email, password))
