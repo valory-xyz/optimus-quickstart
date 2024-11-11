@@ -379,7 +379,7 @@ def get_service_template(config: MemeooorrConfig) -> ServiceTemplate:
         "name": "Memeooorr",
         "hash": "bafybeiavtxkmqcsfifdepcpehfzidwpj3qofixitoxkrc757l5nlwkr4vq",
         "description": "Memeooorr",
-        "image": "https://gateway.autonolas.tech/ipfs/bafybeiaakdeconw7j5z76fgghfdjmsr6tzejotxcwnvmp3nroaw3glgyve",
+        "image": "https://gateway.autonolas.tech/ipfs/QmQYDGMg8m91QQkTWSSmANs5tZwKrmvUCawXZfXVVWQPcu",
         "service_version": 'v0.0.1',
         "home_chain_id": str(config.home_chain_id),
         "configurations": {
