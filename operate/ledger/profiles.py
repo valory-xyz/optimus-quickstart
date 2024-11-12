@@ -85,7 +85,9 @@ STAKING = {
     },
     ChainType.ETHEREUM: {},
     ChainType.BASE: {},
-    ChainType.MODE: {}
+    ChainType.MODE: {
+        "optimus_alpha": "0x5fc25f50E96857373C64dC0eDb1AbCBEd4587e91",
+    }
 }
 
 OLAS = {

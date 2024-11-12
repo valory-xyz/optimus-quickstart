@@ -42,7 +42,7 @@ from web3.types import Wei, TxParams
 
 from operate.account.user import UserAccount
 from operate.cli import OperateApp
-from operate.ledger.profiles import OLAS, STAKING
+from operate.ledger.profiles import OLAS, STAKING, CONTRACTS
 from operate.resource import LocalResource, deserialize
 from operate.services.manage import ServiceManager
 from operate.services.service import Service
@@ -67,7 +67,7 @@ WARNING_ICON = colored('\u26A0', 'yellow')
 OPERATE_HOME = Path.cwd() / ".optimus"
 DEFAULT_MIN_SWAP_AMOUNT_THRESHOLD = 15
 DEFAULT_CHAINS = ["optimism","base","mode"]
-STAKING_CHAINS = ["optimism"]
+STAKING_CHAINS = ["optimism","mode"]
 DEFAULT_START_CHAIN = "Ethereum Mainnet"
 DEFAULT_FEE_HISTORY_PERCENTILE = 50
 CHAIN_ID_TO_METADATA = {
@@ -190,6 +190,7 @@ class OptimusConfig(LocalResource):
     use_staking: t.Optional[bool] = None
     allowed_chains: t.Optional[list[str]] = None
     target_investment_chains: t.Optional[list[str]] = None
+    staking_chain: t.Optional[str] = None
 
     @classmethod
     def from_json(cls, obj: t.Dict) -> "LocalResource":
@@ -374,6 +375,15 @@ def configure_local_config() -> OptimusConfig:
     if optimus_config.use_staking is None:
         optimus_config.use_staking = input("Do you want to stake your service? (y/n): ").lower() == 'y'
 
+    if optimus_config.staking_chain is None:
+        print("Possible staking chains are Mode and Optimism, with Mode being the default setting.")
+        switch_staking = input("Do you want to switch such setting to Optimism (y/n)?: ").lower() == 'y'
+        if switch_staking:
+            optimus_config.staking_chain = "optimism"
+            print("The staking chain has changed to Optimism.")
+        else:
+            optimus_config.staking_chain = "mode"
+
     print("All available chains for liquidity pool opportunities:", ", ".join(DEFAULT_CHAINS))
     print("Current setting for liquidity pool opportunities--chains:", ", ".join(optimus_config.target_investment_chains or DEFAULT_CHAINS))
 
@@ -440,6 +450,7 @@ def handle_password_migration(operate: OperateApp, config: OptimusConfig) -> t.O
 
 
 def get_service_template(config: OptimusConfig) -> ServiceTemplate:
+    home_chain_id = "10" if config.staking_chain == "optimism" else "34443"
     """Get the service template"""
     return ServiceTemplate({
         "name": "Optimus",
@@ -448,7 +459,7 @@ def get_service_template(config: OptimusConfig) -> ServiceTemplate:
         "description": "Optimus",
         "image": "https://gateway.autonolas.tech/ipfs/bafybeiaakdeconw7j5z76fgghfdjmsr6tzejotxcwnvmp3nroaw3glgyve",
         "service_version": 'v0.18.1',
-        "home_chain_id": "10",
+        "home_chain_id": home_chain_id,
         "configurations": {
             "1": ConfigurationTemplate(
                 {
@@ -471,9 +482,9 @@ def get_service_template(config: OptimusConfig) -> ServiceTemplate:
                     "staking_program_id": "optimus_alpha",
                     "rpc": config.optimism_rpc,
                     "nft": "bafybeiaakdeconw7j5z76fgghfdjmsr6tzejotxcwnvmp3nroaw3glgyve",
-                    "cost_of_bond": COST_OF_BOND_STAKING,
+                    "cost_of_bond": COST_OF_BOND_STAKING if config.staking_chain == "optimism" else COST_OF_BOND,
                     "threshold": 1,
-                    "use_staking": config.use_staking,
+                    "use_staking": config.use_staking and config.staking_chain == "optimism",
                     "fund_requirements": FundRequirementsTemplate(
                         {
                             "agent": SUGGESTED_TOP_UP_DEFAULT * 5,
@@ -503,9 +514,9 @@ def get_service_template(config: OptimusConfig) -> ServiceTemplate:
                     "staking_program_id": "optimus_alpha",
                     "rpc": config.mode_rpc,
                     "nft": "bafybeiaakdeconw7j5z76fgghfdjmsr6tzejotxcwnvmp3nroaw3glgyve",
-                    "cost_of_bond": COST_OF_BOND,
+                    "cost_of_bond": COST_OF_BOND_STAKING if config.staking_chain == "mode" else COST_OF_BOND,
                     "threshold": 1,
-                    "use_staking": False,
+                    "use_staking": config.use_staking and config.staking_chain == "mode", ###
                     "fund_requirements": FundRequirementsTemplate(
                         {
                             "agent": SUGGESTED_TOP_UP_DEFAULT * 5,
@@ -953,14 +964,20 @@ def main() -> None:
     }
     home_chain_id = service.home_chain_id
     home_chain_type = ChainType.from_id(int(home_chain_id))
-    target_staking_program_id = service.chain_configs[home_chain_id].chain_data.user_params.staking_program_id
+    target_staking_program_id = service.chain_configs[home_chain_id].chain_data.user_params.staking_program_id #### to-do
+    activity_checker_dict = {
+        "optimism": "0x7Fd1F4b764fA41d19fe3f63C85d12bf64d2bbf68",
+        "mode": "0x07bc3C23DbebEfBF866Ca7dD9fAA3b7356116164"
+    }
     env_vars = {
         "SAFE_CONTRACT_ADDRESSES": json.dumps(safes, separators=(',', ':')),
         "TENDERLY_ACCESS_KEY": optimus_config.tenderly_access_key,
         "TENDERLY_ACCOUNT_SLUG": optimus_config.tenderly_account_slug,
         "TENDERLY_PROJECT_SLUG": optimus_config.tenderly_project_slug,
-        "STAKING_TOKEN_CONTRACT_ADDRESS": STAKING[home_chain_type][target_staking_program_id],
+        "STAKING_TOKEN_CONTRACT_ADDRESS": STAKING[home_chain_type][target_staking_program_id], #### and add params staking_token_activity_checker --> in service default values and staking_chain
         "COINGECKO_API_KEY": optimus_config.coingecko_api_key,
+        "STAKING_CHAIN": optimus_config.staking_chain,
+        "STAKING_ACTIVITY_CHECKER_CONTRACT_ADDRESS": activity_checker_dict.get(home_chain_type.name.lower(), ""),
         "MIN_SWAP_AMOUNT_THRESHOLD": optimus_config.min_swap_amount_threshold,
         "ALLOWED_CHAINS": json.dumps(optimus_config.allowed_chains),
         "TARGET_INVESTMENT_CHAINS": json.dumps(optimus_config.target_investment_chains)
