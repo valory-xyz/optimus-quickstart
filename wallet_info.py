@@ -29,9 +29,6 @@ getcontext().prec = 18
 # Configure logging
 logging.basicConfig(level=logging.INFO, format='%(message)s')
 
-# Ensure USDC_ADDRESS is set (if not, define it here)
-USDC_ADDRESS = USDC_ADDRESS or "0xA0b86991c6218b36c1d19d4a2e9Eb0cE3606eB48"  # Ethereum Mainnet USDC address
-
 USDC_ABI = [{
     "constant": True,
     "inputs": [{"name": "_owner", "type": "address"}],
@@ -70,9 +67,10 @@ def get_balance(web3, address):
         print(f"Error getting balance for address {address}: {e}")
         return Decimal(0)
 
-def get_usdc_balance(web3, address):
+def get_usdc_balance(web3, address, chain_name):
     try:
-        usdc_contract = web3.eth.contract(address=USDC_ADDRESS, abi=USDC_ABI)
+        usdc_address = USDC_ADDRESS[chain_name]
+        usdc_contract = web3.eth.contract(address=usdc_address, abi=USDC_ABI)
         balance = usdc_contract.functions.balanceOf(address).call()
         return Decimal(balance) / Decimal(1e6)  # USDC has 6 decimal places
     except Exception as e:
@@ -137,9 +135,9 @@ def save_wallet_info():
                 "balance_formatted": f"{safe_balance:.6f} ETH"
             }
 
-            # Get USDC balance for Ethereum Mainnet (chain ID 1)
-            if chain_id == "1":
-                usdc_balance = get_usdc_balance(web3, safe_address)
+            # Get USDC balance for Principal Chain
+            if chain_name.lower() == optimus_config.principal_chain:
+                usdc_balance = get_usdc_balance(web3, safe_address, chain_name.lower())
                 safe_balances[chain_name]["usdc_balance"] = usdc_balance
                 safe_balances[chain_name]["usdc_balance_formatted"] = f"{usdc_balance:.2f} USDC"
 

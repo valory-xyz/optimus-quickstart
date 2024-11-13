@@ -126,8 +126,8 @@ def generate_report():
             _print_status(f"Address ({chain_name})", safe_info.get('address', 'N/A'))
             _print_status(f"{safe_info.get('token', 'ETH')} Balance", safe_info.get('balance_formatted', 'N/A'))
 
-            # Check for USDC balance on Ethereum Mainnet
-            if chain_id == "1":
+            # Check for USDC balance on Principal Chain
+            if chain_name.lower() == optimus_config.principal_chain:
                 usdc_balance_formatted = safe_info.get('usdc_balance_formatted', 'N/A')
                 _print_status("USDC Balance", usdc_balance_formatted)
             
