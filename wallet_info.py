@@ -11,8 +11,7 @@ from run_service import (
     get_service_template,
     CHAIN_ID_TO_METADATA,
     USDC_ADDRESS,
-    OPERATE_HOME,
-    DEFAULT_START_CHAIN
+    OPERATE_HOME
 )
 
 from utils import (
@@ -103,7 +102,7 @@ def save_wallet_info():
 
     for chain_id, chain_config in config.get('chain_configs', {}).items():
         chain_name = get_chain_name(chain_id, CHAIN_ID_TO_METADATA)
-        if optimus_config.allowed_chains and chain_name.lower() not in optimus_config.allowed_chains and chain_name != DEFAULT_START_CHAIN:
+        if optimus_config.allowed_chains and chain_name.lower() not in optimus_config.allowed_chains:
             continue
 
         rpc_url = chain_config.get('ledger_config', {}).get('rpc')

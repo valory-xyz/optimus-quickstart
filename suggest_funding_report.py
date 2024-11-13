@@ -9,8 +9,7 @@ from web3 import Web3
 from run_service import (
     load_local_config,
     CHAIN_ID_TO_METADATA,
-    OPERATE_HOME,
-    DEFAULT_START_CHAIN
+    OPERATE_HOME
 )
 
 from utils import (
@@ -80,8 +79,12 @@ def generate_gas_cost_report():
 
         for chain_id, _ in config.get("chain_configs", {}).items():
             chain_name = get_chain_name(chain_id, CHAIN_ID_TO_METADATA)
-            if optimus_config.allowed_chains and chain_name.lower() not in optimus_config.allowed_chains and chain_name != DEFAULT_START_CHAIN:
+            if optimus_config.allowed_chains and chain_name.lower() not in optimus_config.allowed_chains:
                 continue
+            if optimus_config.target_investment_chains and chain_name.lower() not in optimus_config.target_investment_chains:
+                print(f"WARNING: In the current setting, operability is restricted over {chain_name}")
+                continue
+
             balance_info = wallet_info.get('main_wallet_balances', {}).get(chain_name, {})
             agent_address = wallet_info.get('main_wallet_address', 'N/A')
             chain_rpc = wallet_info.get("chain_configs").get(str(chain_id)).get('rpc')
