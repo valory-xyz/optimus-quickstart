@@ -767,14 +767,15 @@ def main() -> None:
         )
         
         balance_str = wei_to_token(ledger_api.get_balance(wallet.crypto.address), token)
-        usdc_address = USDC_ADDRESS[chain_name.lower()]
         is_principal_chain = chain_name.lower() == optimus_config.principal_chain 
         if is_principal_chain:
             eth_investment_fund_requirement = optimus_config.investment_funding_requirements[optimus_config.principal_chain]["ETH"]
             usdc_investment_fund_requirement = optimus_config.investment_funding_requirements[optimus_config.principal_chain]["USDC"]
+            usdc_address = USDC_ADDRESS[chain_name.lower()]
         else:
             eth_investment_fund_requirement = 0
             usdc_investment_fund_requirement = 0
+            usdc_address = None
                 
         print(
             f"[{chain_name}] Main wallet balance: {balance_str}",
