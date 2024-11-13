@@ -89,7 +89,9 @@ def staking_report(config: dict) -> None:
 
         w3 = Web3(HTTPProvider(rpc))
 
-        staking_token_address = STAKING.get(ChainType.OPTIMISM, {}).get("optimus_alpha")
+        home_chain_type = ChainType.from_id(int(home_chain_id))
+        
+        staking_token_address = STAKING.get(home_chain_type, {}).get("optimus_alpha")
         if not staking_token_address:
             print("Error: Staking token address not found for OPTIMISM ChainType.")
             return
