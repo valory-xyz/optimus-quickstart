@@ -424,7 +424,7 @@ def get_service_template(config: OptimusConfig) -> ServiceTemplate:
     """Get the service template"""
     return ServiceTemplate({
         "name": "Optimus",
-        "hash": "bafybeiho4b7ad7ysrllfq6smv6rirp5m3enytbwyn5jw2xtvs7tdjgtgwa",
+        "hash": "bafybeidwfhipcyi7lczfc6ug7kjw2a7vcwdeeunbmwo7atqibhbfycklsu",
 
         "description": "Optimus",
         "image": "https://gateway.autonolas.tech/ipfs/bafybeiaakdeconw7j5z76fgghfdjmsr6tzejotxcwnvmp3nroaw3glgyve",
