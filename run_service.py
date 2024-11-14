@@ -687,7 +687,7 @@ def main() -> None:
 
         service_exists = manager._get_on_chain_state(chain_config) != OnChainState.NON_EXISTENT
 
-        if chain_name.lower() not in optimus_config.allowed_chains and chain_name != DEFAULT_START_CHAIN:
+        if chain_name.lower() not in optimus_config.allowed_chains:
             # this is to ensure backward-compatibility i.e. if someone deployed the services before the user-selectable chains feature was released
             # we add those chains to allowed chains 
             if service_exists:
