@@ -39,6 +39,7 @@ from halo import Halo
 from termcolor import colored
 from web3 import Web3
 from web3.types import Wei, TxParams
+from typing import Dict, Any
 
 from operate.account.user import UserAccount
 from operate.cli import OperateApp
@@ -61,34 +62,22 @@ MASTER_WALLET_MIMIMUM_BALANCE = 6_001_000_000_000_000
 COST_OF_BOND = 1
 COST_OF_BOND_STAKING = 2 * 10 ** 19
 STAKED_BONDING_TOKEN = "OLAS"
-INITIAL_FUNDS_REQUIREMENT = {"USDC": 15_000_000, "ETH": 6_000_000_000_000_000}
-USDC_ADDRESS = "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48"
+FALLBACK_INVESTMENT_FUNDS_REQUIREMENT = {"USDC": 18_000_000, "ETH": 7_000_000_000_000_000}
+USDC_ADDRESS = {
+    "optimism": "0x0b2C639c533813f4Aa9D7837CAf62653d097Ff85",
+    "mode": "0xd988097fb8612cc24eeC14542bC03424c656005f"
+}
 WARNING_ICON = colored('\u26A0', 'yellow')
 OPERATE_HOME = Path.cwd() / ".optimus"
 DEFAULT_MIN_SWAP_AMOUNT_THRESHOLD = 15
 DEFAULT_CHAINS = ["optimism","base"]
-STAKING_CHAINS = ["optimism"]
-DEFAULT_START_CHAIN = "Ethereum Mainnet"
+STAKING_CHAIN = ["optimism"]
+DEFAULT_FEE_HISTORY_PERCENTILE = 50
 CHAIN_ID_TO_METADATA = {
-    1: {
-        "name": "Ethereum Mainnet",
-        "token": "ETH",
-        "native_token_balance": MASTER_WALLET_MIMIMUM_BALANCE,
-        "usdcRequired": True,
-        "initialFundsRequirement": SUGGESTED_TOP_UP_DEFAULT * 10,
-        "operationalFundReq": SUGGESTED_TOP_UP_DEFAULT * 10 * 2,
-        "gasParams": {
-            # this means default values will be used
-            "MAX_PRIORITY_FEE_PER_GAS": "",
-            "MAX_FEE_PER_GAS": "",
-        }
-    },
     10: {
         "name": "Optimism",
         "token": "ETH",
-        "usdcRequired": False,
-        "initialFundsRequirement": 0,
-        "operationalFundReq": SUGGESTED_TOP_UP_DEFAULT * 5,
+        "operationalFundReq": SUGGESTED_TOP_UP_DEFAULT * 10,
         "gasParams": {
             # this means default values will be used
             "MAX_PRIORITY_FEE_PER_GAS": "",
@@ -98,9 +87,7 @@ CHAIN_ID_TO_METADATA = {
     8453: {
         "name": "Base",
         "token": "ETH",
-        "initialFundsRequirement": 0,
-        "operationalFundReq": SUGGESTED_TOP_UP_DEFAULT * 5,
-        "usdcRequired": False,
+        "operationalFundReq": SUGGESTED_TOP_UP_DEFAULT * 10,
         "gasParams": {
             # this means default values will be used
             "MAX_PRIORITY_FEE_PER_GAS": "",
@@ -108,6 +95,11 @@ CHAIN_ID_TO_METADATA = {
         }
     },
 }
+COINGECKO_CHAIN_TO_PLATFORM_ID_MAPPING = {
+    "optimism":"optimistic-ethereum",
+    "base":"base",
+}
+ZERO_ADDRESS = "0x0000000000000000000000000000000000000000"
 
 
 def estimate_priority_fee(
@@ -137,7 +129,7 @@ def estimate_priority_fee(
     percentage_increases = [
         ((j - i) / i) * 100 if i != 0 else 0 for i, j in zip(rewards[:-1], rewards[1:])
     ]
-    highest_increase = max(*percentage_increases)
+    highest_increase = max(percentage_increases)
     highest_increase_index = percentage_increases.index(highest_increase)
 
     values = rewards.copy()
@@ -168,6 +160,10 @@ class OptimusConfig(LocalResource):
     password_migrated: t.Optional[bool] = None
     use_staking: t.Optional[bool] = None
     allowed_chains: t.Optional[list[str]] = None
+    target_investment_chains: t.Optional[list[str]] = None
+    staking_chain: t.Optional[str] = None
+    principal_chain: t.Optional[str] = None
+    investment_funding_requirements: t.Optional[Dict[str, Any]] = None
 
     @classmethod
     def from_json(cls, obj: t.Dict) -> "LocalResource":
@@ -286,8 +282,17 @@ def check_rpc(rpc_url: str) -> None:
         print("Terminating script.")
         sys.exit(1)
 
+def load_local_config() -> OptimusConfig:
+    """Load the local optimus configuration."""
+    path = OPERATE_HOME / "local_config.json"
+    if path.exists():
+        optimus_config = OptimusConfig.load(path)
+    else:
+        optimus_config = OptimusConfig(path)
+    
+    return optimus_config
 
-def get_local_config() -> OptimusConfig:
+def configure_local_config() -> OptimusConfig:
     """Get local optimus configuration."""
     path = OPERATE_HOME / "local_config.json"
     if path.exists():
@@ -296,15 +301,6 @@ def get_local_config() -> OptimusConfig:
         optimus_config = OptimusConfig(path)
 
     print_section("API Key Configuration")
-
-    if optimus_config.ethereum_rpc is None:
-        optimus_config.ethereum_rpc = input("Please enter an Ethereum RPC URL: ")
-
-    if optimus_config.optimism_rpc is None:
-        optimus_config.optimism_rpc = input("Please enter an Optimism RPC URL: ")
-
-    if optimus_config.base_rpc is None:
-        optimus_config.base_rpc = input("Please enter a Base RPC URL: ")
 
     if optimus_config.tenderly_access_key is None:
         optimus_config.tenderly_access_key = input(
@@ -351,27 +347,53 @@ def get_local_config() -> OptimusConfig:
 
     if optimus_config.use_staking is None:
         optimus_config.use_staking = input("Do you want to stake your service? (y/n): ").lower() == 'y'
+    
+    if optimus_config.staking_chain is None:
+        optimus_config.staking_chain = "optimism"
 
+    if optimus_config.principal_chain is None:
+        optimus_config.principal_chain = optimus_config.staking_chain
+
+    if optimus_config.investment_funding_requirements is None:
+        optimus_config.investment_funding_requirements = {
+            optimus_config.principal_chain : {
+                "USDC": 0,
+                "ETH": 0
+            }
+        }
+
+    print("All available chains for liquidity pool opportunities:", ", ".join(DEFAULT_CHAINS))
+    print("Current setting for liquidity pool opportunities--chains:", ", ".join(optimus_config.target_investment_chains or DEFAULT_CHAINS))
+    update_chains = input("Do you want to expand/restrict agent's operability (y/n): ").lower() == 'y'
+    if update_chains:
+        allowed_chains = DEFAULT_CHAINS.copy()
+        target_investment_chains = DEFAULT_CHAINS.copy()
+        for chain in DEFAULT_CHAINS:
+            operate_on_chain = input(f"Do you wish the service to operate on {chain}? (y/n): ").lower() == 'y'
+            if not operate_on_chain:
+                allowed_chains.remove(chain)
+                if chain in target_investment_chains:
+                    target_investment_chains.remove(chain)
+                if chain==optimus_config.staking_chain:
+                    allowed_chains.append(chain)
+        
+        optimus_config.allowed_chains = allowed_chains
+        optimus_config.target_investment_chains = target_investment_chains
+    
     if optimus_config.allowed_chains is None:
-        update_chains = input("Do you want to restrict the operability to specific chains? (y/n): ").lower() == 'y'
-        if update_chains:
-            allowed_chains = []
-            for chain in DEFAULT_CHAINS:
-                if chain in STAKING_CHAINS:
-                    allowed_chains.append(chain)
-                    continue      
-                operate_on_chain = input(f"Do you wish the service to operate on {chain}? (y/n): ").lower() == 'y'
-                if operate_on_chain:
-                    allowed_chains.append(chain)
-
-            optimus_config.allowed_chains = allowed_chains
-        else:
-            optimus_config.allowed_chains = DEFAULT_CHAINS
+        optimus_config.allowed_chains = DEFAULT_CHAINS.copy()
+    
+    if optimus_config.target_investment_chains is None:
+        optimus_config.target_investment_chains = DEFAULT_CHAINS.copy()
             
+    for chain in optimus_config.allowed_chains:
+        if chain == "optimism" and optimus_config.optimism_rpc is None:
+            optimus_config.optimism_rpc = input("Please enter an Optimism RPC URL: ")
+        elif chain == "base" and optimus_config.base_rpc is None:
+            optimus_config.base_rpc = input("Please enter a Base RPC URL: ")
 
     optimus_config.store()
     return optimus_config
-
 
 def apply_env_vars(env_vars: t.Dict[str, str]) -> None:
     """Apply environment variables."""
@@ -402,29 +424,13 @@ def get_service_template(config: OptimusConfig) -> ServiceTemplate:
     """Get the service template"""
     return ServiceTemplate({
         "name": "Optimus",
-        "hash": "bafybeidlfxklqbwrba5xdbigchkl5dcqcrlpzbrkem62jbzr5yghwe7tgu",
+        "hash": "bafybeiho4b7ad7ysrllfq6smv6rirp5m3enytbwyn5jw2xtvs7tdjgtgwa",
 
         "description": "Optimus",
         "image": "https://gateway.autonolas.tech/ipfs/bafybeiaakdeconw7j5z76fgghfdjmsr6tzejotxcwnvmp3nroaw3glgyve",
         "service_version": 'v0.18.1',
         "home_chain_id": "10",
         "configurations": {
-            "1": ConfigurationTemplate(
-                {
-                    "staking_program_id": "optimus_alpha",
-                    "rpc": config.ethereum_rpc,
-                    "nft": "bafybeiaakdeconw7j5z76fgghfdjmsr6tzejotxcwnvmp3nroaw3glgyve",
-                    "cost_of_bond": COST_OF_BOND,
-                    "threshold": 1,
-                    "use_staking": False,
-                    "fund_requirements": FundRequirementsTemplate(
-                        {
-                            "agent": SUGGESTED_TOP_UP_DEFAULT * 5,
-                            "safe": 0,
-                        }
-                    ),
-                }
-            ),
             "10": ConfigurationTemplate(
                 {
                     "staking_program_id": "optimus_alpha",
@@ -498,7 +504,16 @@ def add_volumes(docker_compose_path: Path, host_path: str, container_path: str) 
     with open(docker_compose_path, "r") as f:
         docker_compose = yaml.safe_load(f)
 
-    docker_compose["services"]["optimus_abci_0"]["volumes"].append(f"{host_path}:{container_path}:Z")
+    abci_service_name = None
+    for service_name in docker_compose["services"]:
+        if "abci" in service_name:
+            abci_service_name = service_name
+            break
+
+    if abci_service_name is None:
+        raise ValueError("No service containing 'abci' found in the docker-compose file.")
+
+    docker_compose["services"][abci_service_name]["volumes"].append(f"{host_path}:{container_path}:Z")
 
     with open(docker_compose_path, "w") as f:
         yaml.dump(docker_compose, f)
@@ -543,12 +558,9 @@ def fetch_token_price(url: str, headers: dict) -> t.Optional[float]:
         print(f"Error fetching token price: {e}")
         return None
 
-def fetch_initial_funding_requirements() -> None:
+def fetch_investing_funding_requirements(chain_name: str) -> None:
     """Fetch initial funding requirements based on min_swap_amount_threshold."""
-    global INITIAL_FUNDS_REQUIREMENT
-    global CHAIN_ID_TO_METADATA
-
-    optimus_config = get_local_config()
+    optimus_config = load_local_config()
     headers = {
         "accept": "application/json",
         "x-cg-api-key": optimus_config.coingecko_api_key
@@ -558,73 +570,59 @@ def fetch_initial_funding_requirements() -> None:
     eth_url = "https://api.coingecko.com/api/v3/simple/price?ids=ethereum&vs_currencies=usd"
     eth_price = fetch_token_price(eth_url, headers)
     if eth_price is None:
-        print("Error: Could not fetch price for ETH.")
-        return
-
-    safety_margin = 500_000_000_000_000
-    eth_required = (int(optimus_config.min_swap_amount_threshold) / eth_price)
-    eth_required_rounded = float(Decimal(eth_required).quantize(Decimal('0.0001'), rounding=ROUND_UP))
-    eth_required_in_wei = int((eth_required_rounded * 10 ** 18) + safety_margin)
-    INITIAL_FUNDS_REQUIREMENT['ETH'] = eth_required_in_wei
-    CHAIN_ID_TO_METADATA[1]['initialFundsRequirement'] = eth_required_in_wei
+        print("Error: Could not fetch price for ETH. Using fallback value")
+        optimus_config.investment_funding_requirements[chain_name]["ETH"] = FALLBACK_INVESTMENT_FUNDS_REQUIREMENT["ETH"]
+    else:
+        safety_margin = 500_000_000_000_000
+        eth_required = (int(optimus_config.min_swap_amount_threshold) / eth_price)
+        eth_required_rounded = float(Decimal(eth_required).quantize(Decimal('0.0001'), rounding=ROUND_UP))
+        eth_required_in_wei = int((eth_required_rounded * 10 ** 18) + safety_margin)
+        optimus_config.investment_funding_requirements[chain_name]["ETH"] = eth_required_in_wei
 
     # Fetch USDC price
-    usdc_url = f"https://api.coingecko.com/api/v3/simple/token_price/ethereum?contract_addresses={USDC_ADDRESS}&vs_currencies=usd"
+    platform_id = COINGECKO_CHAIN_TO_PLATFORM_ID_MAPPING[chain_name]
+    usdc_address = USDC_ADDRESS[chain_name]
+    usdc_url = f"https://api.coingecko.com/api/v3/simple/token_price/{platform_id}?contract_addresses={usdc_address}&vs_currencies=usd"
     usdc_price = fetch_token_price(usdc_url, headers)
     if usdc_price is None:
         print("Error: Could not fetch price for USDC.")
-        return
-      
-    safety_margin = 1_000_000
-    usdc_required = (int(optimus_config.min_swap_amount_threshold) / usdc_price)
-    usdc_required_rounded = math.ceil(usdc_required)
-    usdc_required_in_decimals = int((usdc_required_rounded * 10 ** 6) + safety_margin)
-    INITIAL_FUNDS_REQUIREMENT['USDC'] = usdc_required_in_decimals
+        optimus_config.investment_funding_requirements[chain_name]["USDC"] = FALLBACK_INVESTMENT_FUNDS_REQUIREMENT["USDC"]
+    else:
+        safety_margin = 1_000_000
+        usdc_required = (int(optimus_config.min_swap_amount_threshold) / usdc_price)
+        usdc_required_rounded = math.ceil(usdc_required)
+        usdc_required_in_decimals = int((usdc_required_rounded * 10 ** 6) + safety_margin)
+        optimus_config.investment_funding_requirements[chain_name]["USDC"] = usdc_required_in_decimals
 
-def calculate_fund_requirement(rpc, fee_history_blocks: int, gas_amount: int, fee_history_percentile: int = 50) -> int:
+    optimus_config.store()
+
+def calculate_fund_requirement(rpc, fee_history_blocks: int, gas_amount: int, default_priority_fee = None, fee_history_percentile: int = 50, priority_fee_increase_boundary: int = 200) -> int:
     if rpc is None:
         return None
     
     web3 = Web3(Web3.HTTPProvider(rpc))
     block_number = web3.eth.block_number
-    # Fetch fee history
-    fee_history = web3.eth.fee_history(
-        fee_history_blocks, block_number, [fee_history_percentile]
-    )
-
-    if fee_history is None:
+    latest_block = web3.eth.get_block("latest")
+    base_fee = latest_block.get("baseFeePerGas")
+    
+    if base_fee is None or block_number is None:
         return None
     
-    base_fees = fee_history.get('baseFeePerGas')
-    if base_fees is None:
-        return None
-
-    priority_fees = [reward[0] for reward in fee_history.get('reward', []) if reward]
-    if not priority_fees:
+    priority_fee = estimate_priority_fee(web3, block_number, default_priority_fee, fee_history_blocks, fee_history_percentile, priority_fee_increase_boundary)
+    if priority_fee is None:
         return None
     
-    # Calculate average fees
-    average_base_fee = sum(base_fees) / len(base_fees)
-    average_priority_fee = sum(priority_fees) / len(priority_fees)
-
-    average_gas_price = average_base_fee + average_priority_fee
-
+    gas_price = base_fee + priority_fee
     safety_margin = 500_000_000_000_000
-    fund_requirement = int((average_gas_price * gas_amount) + safety_margin)
+    fund_requirement = int((gas_price * gas_amount) + safety_margin)
     return fund_requirement
 
-def fetch_agent_fund_requirement(chain_id, rpc, fee_history_blocks: int = 20) -> int:
-    if int(chain_id) == 1:
-        gas_amount = 1_000_000
-    else:
-        gas_amount = 5_000_000
+def fetch_agent_fund_requirement(chain_id, rpc, fee_history_blocks: int = 500000) -> int:
+    gas_amount = 50_000_000 
     return calculate_fund_requirement(rpc, fee_history_blocks, gas_amount)
 
-def fetch_operator_fund_requirement(chain_id, rpc, fee_history_blocks: int = 20) -> int:
-    if int(chain_id) == 1:
-        gas_amount = 2_000_000
-    else:
-        gas_amount = 3_000_000
+def fetch_operator_fund_requirement(chain_id, rpc, fee_history_blocks: int = 500000) -> int:
+    gas_amount = 10_000_000
     return calculate_fund_requirement(rpc, fee_history_blocks, gas_amount)
 
 def main() -> None:
@@ -640,7 +638,7 @@ def main() -> None:
     )
     operate.setup()
 
-    optimus_config = get_local_config()
+    optimus_config = configure_local_config()
     template = get_service_template(optimus_config)
     manager = operate.service_manager()
     service = get_service(manager, template)
@@ -674,16 +672,18 @@ def main() -> None:
         wallet = operate.wallet_manager.load(ledger_type=LedgerType.ETHEREUM)
 
     manager = operate.service_manager()
-    fetch_initial_funding_requirements()
+    fetch_investing_funding_requirements(optimus_config.principal_chain)
+    optimus_config = load_local_config()
 
     for chain_id, configuration in service.chain_configs.items():
         chain_metadata = CHAIN_ID_TO_METADATA[int(chain_id)]
         chain_name, token = chain_metadata['name'], chain_metadata["token"]
         chain_config = service.chain_configs[chain_id]
-        os.environ["CUSTOM_CHAIN_RPC"] = chain_config.ledger_config.rpc
-        os.environ["OPEN_AUTONOMY_SUBGRAPH_URL"] = "https://subgraph.autonolas.tech/subgraphs/name/autonolas-staging"
-        os.environ["MAX_PRIORITY_FEE_PER_GAS"] = chain_metadata["gasParams"]["MAX_PRIORITY_FEE_PER_GAS"]
-        os.environ["MAX_FEE_PER_GAS"] = chain_metadata["gasParams"]["MAX_FEE_PER_GAS"]
+        if chain_config.ledger_config.rpc is not None:
+            os.environ["CUSTOM_CHAIN_RPC"] = chain_config.ledger_config.rpc
+            os.environ["OPEN_AUTONOMY_SUBGRAPH_URL"] = "https://subgraph.autonolas.tech/subgraphs/name/autonolas-staging"
+            os.environ["MAX_PRIORITY_FEE_PER_GAS"] = chain_metadata["gasParams"]["MAX_PRIORITY_FEE_PER_GAS"]
+            os.environ["MAX_FEE_PER_GAS"] = chain_metadata["gasParams"]["MAX_FEE_PER_GAS"]
 
         service_exists = manager._get_on_chain_state(chain_config) != OnChainState.NON_EXISTENT
 
@@ -702,10 +702,20 @@ def main() -> None:
         )
         
         balance_str = wei_to_token(ledger_api.get_balance(wallet.crypto.address), token)
+        is_principal_chain = chain_name.lower() == optimus_config.principal_chain 
+        if is_principal_chain:
+            eth_investment_fund_requirement = optimus_config.investment_funding_requirements[optimus_config.principal_chain]["ETH"]
+            usdc_investment_fund_requirement = optimus_config.investment_funding_requirements[optimus_config.principal_chain]["USDC"]
+            usdc_address = USDC_ADDRESS[chain_name.lower()]
+        else:
+            eth_investment_fund_requirement = 0
+            usdc_investment_fund_requirement = 0
+            usdc_address = None
+                
         print(
             f"[{chain_name}] Main wallet balance: {balance_str}",
         )
-        safe_exists = wallet.safes.get(chain_type) is not None        
+        safe_exists = wallet.safes.get(chain_type) is not None
 
         agent_fund_requirement = fetch_agent_fund_requirement(chain_id, chain_config.ledger_config.rpc)
         if agent_fund_requirement is None:
@@ -716,45 +726,40 @@ def main() -> None:
             operational_fund_req = chain_metadata.get("operationalFundReq")
 
         if service_exists:
-            if chain_id != 1:
-                agent_balance = ledger_api.get_balance(address=service.keys[0].address)
-                #we only top up if current balance is less than 50% of required balance
-                if agent_balance < 0.3 * agent_fund_requirement:
-                    agent_fund_requirement = agent_fund_requirement - agent_balance
-                else:
-                    agent_fund_requirement = 0
+            agent_balance = ledger_api.get_balance(address=service.keys[0].address)
+            if agent_balance < 0.1 * agent_fund_requirement:
+                agent_fund_requirement = agent_fund_requirement - agent_balance
+            else:
+                agent_fund_requirement = 0
 
-                operator_balance = ledger_api.get_balance(wallet.crypto.address)
-                if operator_balance < 0.3 * operational_fund_req:
-                    operational_fund_req = operational_fund_req - operator_balance
-                else:
-                    operational_fund_req = 0
+            operator_balance = ledger_api.get_balance(wallet.crypto.address)
+            if operator_balance < 0.1 * operational_fund_req:
+                operational_fund_req = operational_fund_req - operator_balance
             else:
                 operational_fund_req = 0
-                agent_fund_requirement = 0
 
         safety_margin = 100_000_000_000_000
         required_balance = operational_fund_req + agent_fund_requirement
-        
         if not safe_exists:
-            required_balance += chain_metadata["initialFundsRequirement"]
+            required_balance += eth_investment_fund_requirement
 
         if required_balance > 0:
             required_balance += safety_margin
+            required_balance = (required_balance // 10**12) * 10**12
 
-        print(
-            f"[{chain_name}] Please make sure main wallet {wallet.crypto.address} has at least {wei_to_token(required_balance, token)}",
-        )
-        spinner = Halo(
-            text=f"[{chain_name}] Waiting for funds...",
-            spinner="dots"
-        )
-        spinner.start()
+            print(
+                f"[{chain_name}] Please make sure main wallet {wallet.crypto.address} has at least {wei_to_token(required_balance, token)}",
+            )
+            spinner = Halo(
+                text=f"[{chain_name}] Waiting for funds...",
+                spinner="dots"
+            )
+            spinner.start()
 
-        while ledger_api.get_balance(wallet.crypto.address) < required_balance:
-            time.sleep(1)
+            while ledger_api.get_balance(wallet.crypto.address) < required_balance:
+                time.sleep(1)
 
-        spinner.succeed(f"[{chain_name}] Main wallet updated balance: {wei_to_token(ledger_api.get_balance(wallet.crypto.address), token)}.")
+            spinner.succeed(f"[{chain_name}] Main wallet updated balance: {wei_to_token(ledger_api.get_balance(wallet.crypto.address), token)}.")
 
         if not safe_exists:
             print(f"[{chain_name}] Creating Safe")
@@ -771,7 +776,7 @@ def main() -> None:
 
         address = wallet.safes[chain_type]
         if not service_exists:
-            top_up = chain_metadata["initialFundsRequirement"] + agent_fund_requirement + safety_margin
+            top_up = eth_investment_fund_requirement + agent_fund_requirement + safety_margin
         else:
             top_up = agent_fund_requirement + safety_margin
 
@@ -813,19 +818,18 @@ def main() -> None:
             balance = get_erc20_balance(ledger_api, olas_address, address) / 10 ** 18
             spinner.succeed(f"[{chain_name}] Safe updated balance: {balance} {STAKED_BONDING_TOKEN}")
 
-        if chain_metadata.get("usdcRequired", False) and not service_exists:
-            print(f"[{chain_name}] Please make sure address {address} has at least {INITIAL_FUNDS_REQUIREMENT['USDC'] / 10 ** 6} USDC")
+        if chain_name.lower() == optimus_config.principal_chain and not service_exists:
+            print(f"[{chain_name}] Please make sure address {address} has at least {usdc_investment_fund_requirement / 10 ** 6} USDC")
 
             spinner = Halo(
                 text=f"[{chain_name}] Waiting for USDC...",
                 spinner="dots",
             )
             spinner.start()
-
-            while get_erc20_balance(ledger_api, USDC_ADDRESS, address) < INITIAL_FUNDS_REQUIREMENT['USDC']:
+            while get_erc20_balance(ledger_api, usdc_address, address) < usdc_investment_fund_requirement:
                 time.sleep(1)
 
-            usdc_balance = get_erc20_balance(ledger_api, USDC_ADDRESS, address) / 10 ** 6
+            usdc_balance = get_erc20_balance(ledger_api, usdc_address, address) / 10 ** 6
             spinner.succeed(f"[{chain_name}] Safe updated balance: {usdc_balance} USDC.")
 
         manager.deploy_service_onchain_from_safe_single_chain(
@@ -833,27 +837,29 @@ def main() -> None:
             chain_id=chain_id,
             fallback_staking_params=FALLBACK_STAKING_PARAMS,
         )
-        if chain_id == '1' and not service_exists:
-            safe_fund_threshold=INITIAL_FUNDS_REQUIREMENT['ETH']
+        if eth_investment_fund_requirement and not service_exists:
+            safe_fund_threshold=eth_investment_fund_requirement
             safe_topup = safe_fund_threshold
         else:
             safe_fund_threshold = None
             safe_topup = None
 
-        manager.fund_service(hash=service.hash, chain_id=chain_id, safe_fund_treshold=safe_fund_threshold, safe_topup=safe_topup, agent_fund_threshold=agent_fund_requirement)
+        manager.fund_service(hash=service.hash, chain_id=chain_id, safe_fund_treshold=safe_fund_threshold, safe_topup=safe_topup, agent_fund_threshold=agent_fund_requirement, agent_topup=agent_fund_requirement)
 
-        usdc_balance = get_erc20_balance(ledger_api, USDC_ADDRESS, address) if chain_metadata.get("usdcRequired", False) else 0
+        usdc_balance = get_erc20_balance(ledger_api, usdc_address, address) if usdc_investment_fund_requirement else 0
         if usdc_balance > 0:
             # transfer all the usdc balance into the service safe
             manager.fund_service_erc20(
                 hash=service.hash,
                 chain_id=chain_id,
-                token=USDC_ADDRESS,
+                token=usdc_address,
                 safe_topup=usdc_balance,
                 agent_topup=0,
-                safe_fund_treshold=INITIAL_FUNDS_REQUIREMENT['USDC'] + usdc_balance,
+                agent_fund_threshold=0,
+                safe_fund_treshold=usdc_investment_fund_requirement + usdc_balance,
             )
 
+    service = get_service(manager, template)
     safes = {
         ChainType.from_id(int(chain)).name.lower(): config.chain_data.multisig
         for chain, config in service.chain_configs.items()
@@ -861,6 +867,8 @@ def main() -> None:
     home_chain_id = service.home_chain_id
     home_chain_type = ChainType.from_id(int(home_chain_id))
     target_staking_program_id = service.chain_configs[home_chain_id].chain_data.user_params.staking_program_id
+    initial_assets = {optimus_config.principal_chain: {ZERO_ADDRESS: "ETH", USDC_ADDRESS[optimus_config.principal_chain]: "USDC"}}
+    
     env_vars = {
         "SAFE_CONTRACT_ADDRESSES": json.dumps(safes, separators=(',', ':')),
         "TENDERLY_ACCESS_KEY": optimus_config.tenderly_access_key,
@@ -868,8 +876,11 @@ def main() -> None:
         "TENDERLY_PROJECT_SLUG": optimus_config.tenderly_project_slug,
         "STAKING_TOKEN_CONTRACT_ADDRESS": STAKING[home_chain_type][target_staking_program_id],
         "COINGECKO_API_KEY": optimus_config.coingecko_api_key,
+        "STAKING_CHAIN": optimus_config.staking_chain,
         "MIN_SWAP_AMOUNT_THRESHOLD": optimus_config.min_swap_amount_threshold,
-        "ALLOWED_CHAINS": json.dumps(optimus_config.allowed_chains)
+        "ALLOWED_CHAINS": json.dumps(optimus_config.allowed_chains),
+        "TARGET_INVESTMENT_CHAINS": json.dumps(optimus_config.target_investment_chains),
+        "INITIAL_ASSETS": json.dumps(initial_assets)
     }
     apply_env_vars(env_vars)
     print("Skipping local deployment")

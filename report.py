@@ -5,11 +5,10 @@ import logging
 from decimal import Decimal, getcontext
 
 from run_service import (
-    get_local_config,
+    load_local_config,
     get_service_template,
     CHAIN_ID_TO_METADATA,
-    OPERATE_HOME,
-    DEFAULT_START_CHAIN
+    OPERATE_HOME
 )
 
 from utils import (
@@ -67,7 +66,7 @@ def generate_report():
         if not validate_config(config):
             return
 
-        optimus_config = get_local_config()
+        optimus_config = load_local_config()
         # Service Report Header
         print("")
         print("==============")
@@ -94,7 +93,7 @@ def generate_report():
 
         for chain_id, chain_config in config.get("chain_configs", {}).items():
             chain_name = get_chain_name(chain_id, CHAIN_ID_TO_METADATA)
-            if  optimus_config.allowed_chains and chain_name.lower() not in optimus_config.allowed_chains and chain_name != DEFAULT_START_CHAIN:
+            if  optimus_config.allowed_chains and chain_name.lower() not in optimus_config.allowed_chains:
                 continue
             balance_info = wallet_info.get('main_wallet_balances', {}).get(chain_name, {})
             balance_formatted = balance_info.get('balance_formatted', 'N/A')
@@ -118,14 +117,17 @@ def generate_report():
         safe_balances = wallet_info.get('safe_balances', {})
         for chain_id, chain_config in config.get("chain_configs", {}).items():
             chain_name = get_chain_name(chain_id, CHAIN_ID_TO_METADATA)
-            if  optimus_config.allowed_chains and chain_name.lower() not in optimus_config.allowed_chains and chain_name != DEFAULT_START_CHAIN:
+            if  optimus_config.allowed_chains and chain_name.lower() not in optimus_config.allowed_chains:
                 continue
+            if optimus_config.target_investment_chains and chain_name.lower() not in optimus_config.target_investment_chains:
+                print(f"WARNING: In the current setting, operability is restricted over {chain_name}")
+
             safe_info = safe_balances.get(chain_name, {})
             _print_status(f"Address ({chain_name})", safe_info.get('address', 'N/A'))
             _print_status(f"{safe_info.get('token', 'ETH')} Balance", safe_info.get('balance_formatted', 'N/A'))
 
-            # Check for USDC balance on Ethereum Mainnet
-            if chain_id == "1":
+            # Check for USDC balance on Principal Chain
+            if chain_name.lower() == optimus_config.principal_chain:
                 usdc_balance_formatted = safe_info.get('usdc_balance_formatted', 'N/A')
                 _print_status("USDC Balance", usdc_balance_formatted)
             
