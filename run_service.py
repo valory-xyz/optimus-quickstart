@@ -62,12 +62,10 @@ MASTER_SAFE_TOPUP = unit_to_wei(0.001)
 SAFE_TOPUP = unit_to_wei(0.002)
 AGENT_TOPUP = unit_to_wei(0.001)
 
-INITIAL_FUNDS_REQUIREMENT = {"ETH": 6_000_000_000_000_000}  # not used for the memeooorr: initial funds required for the service to operate
-# MASTER_WALLET_MIMIMUM_BALANCE = 6_001_000_000_000_000  # minimum balance that should always be maintained in the master wallet to ensure it remains operational
 
 COST_OF_BOND = 1
-COST_OF_BOND_STAKING = 2 * 10 ** 19
-OLAS_ADDRESS = "0x54330d28ca3357F294334BDC454a032e7f353416"
+COST_OF_STAKING = 10 ** 20 # 100 OLAS
+COST_OF_BOND_STAKING = 5 * 10 ** 19 # 50 OLAS
 WARNING_ICON = colored('\u26A0', 'yellow')
 OPERATE_HOME = Path.cwd() / ".memeooorr"
 
@@ -78,7 +76,7 @@ CHAIN_ID_TO_METADATA = {
     8453: {
         "name": "Base",
         "token": "ETH",
-        "firstTimeTopUp": unit_to_wei(0.01),
+        "firstTimeTopUp": unit_to_wei(0.001),
         "operationalFundReq": unit_to_wei(0.001),
         "usdcRequired": False,
         "gasParams": {
@@ -91,7 +89,7 @@ CHAIN_ID_TO_METADATA = {
         "name": "Celo",
         "token": "ETH",
         "usdcRequired": False,
-        "firstTimeTopUp": unit_to_wei(0.01),
+        "firstTimeTopUp": unit_to_wei(0.001),
         "operationalFundReq": unit_to_wei(0.001),
         "gasParams": {
             # this means default values will be used
@@ -314,35 +312,35 @@ def get_local_config() -> MemeooorrConfig:
     if memeooorr_config.base_rpc is None:
         memeooorr_config.base_rpc = input(f"Please enter a {ChainType.from_id(memeooorr_config.home_chain_id).name} RPC URL: ")
 
-    if memeooorr_config.password_migrated is None:
-        memeooorr_config.password_migrated = False
-
-    if memeooorr_config.persona is None:
-        memeooorr_config.persona = input_with_default_value("What's the agent persona", "a cat lover that is crazy about all-things cats")
-
-    if memeooorr_config.feedback_period_hours is None:
-        memeooorr_config.feedback_period_hours = input_with_default_value("How many hours should Memeooorr wait after sending a tweet and before analysing its responses?", 1)
-
-    if memeooorr_config.min_feedback_replies is None:
-        memeooorr_config.min_feedback_replies = input_with_default_value("What's the minimum amount of replies to a tweet before Memeooorr analyses them?", 10)
-
-    if memeooorr_config.genai_api_key is None:
-        memeooorr_config.genai_api_key = input("Please enter the GenAI API key for Memeooorr's account: ")
-
-    if memeooorr_config.twikit_username is None:
-        memeooorr_config.twikit_username = input("Please enter the Twitter username for Memeooorr's account: ")
-
-    if memeooorr_config.twikit_email is None:
-        memeooorr_config.twikit_email = input("Please enter the Twitter email for Memeooorr's account: ")
-
-    if memeooorr_config.twikit_password is None:
-        memeooorr_config.twikit_password = input("Please enter the Twitter password for Memeooorr's account (avoid passwords that include the $ character): ")
-
-    memeooorr_config.twikit_cookies = get_twitter_cookies(
-        memeooorr_config.twikit_username,
-        memeooorr_config.twikit_email,
-        memeooorr_config.twikit_password
-    )
+    # if memeooorr_config.password_migrated is None:
+    #     memeooorr_config.password_migrated = False
+    #
+    # if memeooorr_config.persona is None:
+    #     memeooorr_config.persona = input_with_default_value("What's the agent persona", "a cat lover that is crazy about all-things cats")
+    #
+    # if memeooorr_config.feedback_period_hours is None:
+    #     memeooorr_config.feedback_period_hours = input_with_default_value("How many hours should Memeooorr wait after sending a tweet and before analysing its responses?", 1)
+    #
+    # if memeooorr_config.min_feedback_replies is None:
+    #     memeooorr_config.min_feedback_replies = input_with_default_value("What's the minimum amount of replies to a tweet before Memeooorr analyses them?", 10)
+    #
+    # if memeooorr_config.genai_api_key is None:
+    #     memeooorr_config.genai_api_key = input("Please enter the GenAI API key for Memeooorr's account: ")
+    #
+    # if memeooorr_config.twikit_username is None:
+    #     memeooorr_config.twikit_username = input("Please enter the Twitter username for Memeooorr's account: ")
+    #
+    # if memeooorr_config.twikit_email is None:
+    #     memeooorr_config.twikit_email = input("Please enter the Twitter email for Memeooorr's account: ")
+    #
+    # if memeooorr_config.twikit_password is None:
+    #     memeooorr_config.twikit_password = input("Please enter the Twitter password for Memeooorr's account (avoid passwords that include the $ character): ")
+    #
+    # memeooorr_config.twikit_cookies = get_twitter_cookies(
+    #     memeooorr_config.twikit_username,
+    #     memeooorr_config.twikit_email,
+    #     memeooorr_config.twikit_password
+    # )
 
     memeooorr_config.store()
     return memeooorr_config
@@ -431,7 +429,7 @@ celo_staking_fallback = dict(
     service_registry=CONTRACTS[ChainType.CELO]["service_registry"],  # nosec
     staking_token=STAKING[ChainType.CELO]["meme_alpha"],  # nosec
     service_registry_token_utility=CONTRACTS[ChainType.CELO]["service_registry_token_utility"],  # nosec
-    min_staking_deposit=20000000000000000000,
+    min_staking_deposit=COST_OF_STAKING,
     activity_checker="0xAe2f766506F6BDF740Cc348a90139EF317Fa7Faf"  # nosec
 )
 base_staking_fallback = dict(
@@ -439,7 +437,7 @@ base_staking_fallback = dict(
     service_registry=CONTRACTS[ChainType.BASE]["service_registry"],  # nosec
     staking_token=STAKING[ChainType.BASE]["meme_alpha"],  # nosec
     service_registry_token_utility=CONTRACTS[ChainType.BASE]["service_registry_token_utility"],  # nosec
-    min_staking_deposit=20000000000000000000,
+    min_staking_deposit=COST_OF_STAKING,
     activity_checker="0xAe2f766506F6BDF740Cc348a90139EF317Fa7Faf"  # nosec
 )
 
@@ -632,7 +630,7 @@ def main() -> None:
 
         if chain_config.chain_data.user_params.use_staking and not service_exists:
             olas_address = OLAS[chain_type]
-            print(f"[{chain_name}] Please make sure address {address} has at least {wei_to_token(2 * COST_OF_BOND_STAKING, olas_address)}")
+            print(f"[{chain_name}] Please make sure address {address} has at least {wei_to_token(COST_OF_STAKING + COST_OF_BOND_STAKING, olas_address)}")
 
             spinner = Halo(
                 text=f"[{chain_name}] Waiting for {olas_address}...",
@@ -640,7 +638,7 @@ def main() -> None:
             )
             spinner.start()
 
-            while get_erc20_balance(ledger_api, olas_address, address) < 2 * COST_OF_BOND_STAKING:
+            while get_erc20_balance(ledger_api, olas_address, address) < COST_OF_STAKING + COST_OF_BOND_STAKING:
                 time.sleep(1)
 
             balance = get_erc20_balance(ledger_api, olas_address, address) / 10 ** 18
