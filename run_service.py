@@ -401,14 +401,10 @@ def configure_local_config() -> OptimusConfig:
             operate_on_chain = input(f"Do you wish the service to operate on {chain}? (y/n): ").lower() == 'y'
             if not operate_on_chain:
                 allowed_chains.remove(chain)
-                if chain in target_investment_chains:
+                if chain != optimus_config.principal_chain and chain in target_investment_chains:
                     target_investment_chains.remove(chain)
                 
-                if optimus_config.staking_chain:
-                    if chain == optimus_config.staking_chain:
-                        allowed_chains.append(chain)
-                else:
-                    if chain == DEFAULT_STAKING_CHAIN:
+                if chain == optimus_config.principal_chain:
                         allowed_chains.append(chain)
         
         optimus_config.allowed_chains = allowed_chains
