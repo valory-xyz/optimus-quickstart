@@ -368,16 +368,17 @@ def configure_local_config() -> OptimusConfig:
     if optimus_config.use_staking is None:
         optimus_config.use_staking = input("Do you want to stake your service? (y/n): ").lower() == 'y'
 
-    if optimus_config.use_staking and optimus_config.staking_chain is None:
-        print("Possible staking chains are Mode and Optimism, with Mode being the default setting.")
-        switch_staking = input("Do you want to switch such setting to Optimism (y/n)?: ").lower() == 'y'
-        if switch_staking:
-            optimus_config.staking_chain = "optimism"
-            print("The staking chain has changed to Optimism.")
+    if optimus_config.staking_chain is None:
+        if optimus_config.use_staking:
+            print("Possible staking chains are Mode and Optimism, with Mode being the default setting.")
+            switch_staking = input("Do you want to switch such setting to Optimism (y/n)?: ").lower() == 'y'
+            if switch_staking:
+                optimus_config.staking_chain = "optimism"
+                print("The staking chain has changed to Optimism.")
+            else:
+                optimus_config.staking_chain = "mode"
         else:
-            optimus_config.staking_chain = "mode"
-    else:
-        optimus_config.staking_chain = ""
+            optimus_config.staking_chain = ""
 
     if optimus_config.principal_chain is None:
         optimus_config.principal_chain = optimus_config.staking_chain if optimus_config.staking_chain else DEFAULT_STAKING_CHAIN
