@@ -31,7 +31,6 @@ import requests
 import yaml
 from aea.crypto.base import LedgerApi
 from aea_ledger_ethereum import EthereumApi
-from autonomy.chain.constants import CHAIN_PROFILES
 from dotenv import load_dotenv
 from halo import Halo
 from termcolor import colored
@@ -49,7 +48,6 @@ from operate.types import (
     ConfigurationTemplate,
     FundRequirementsTemplate, ChainType, OnChainState,
 )
-from utils import wei_to_eth
 
 load_dotenv()
 
@@ -292,12 +290,6 @@ def input_select_chain(options: t.List[ChainType]):
 def get_local_config() -> MemeooorrConfig:
     """Get local memeooorr configuration."""
     path = OPERATE_HOME / "local_config.json"
-
-    # REMOVE
-    # if not path.exists():
-    #     config_backup = Path("/home/david/Valory/repos/meme-ooorr-quickstart/local_config.json")
-    #     shutil.copy(config_backup, path)
-
     if path.exists():
         memeooorr_config = MemeooorrConfig.load(path)
     else:
@@ -312,35 +304,35 @@ def get_local_config() -> MemeooorrConfig:
     if memeooorr_config.base_rpc is None:
         memeooorr_config.base_rpc = input(f"Please enter a {ChainType.from_id(memeooorr_config.home_chain_id).name} RPC URL: ")
 
-    # if memeooorr_config.password_migrated is None:
-    #     memeooorr_config.password_migrated = False
-    #
-    # if memeooorr_config.persona is None:
-    #     memeooorr_config.persona = input_with_default_value("What's the agent persona", "a cat lover that is crazy about all-things cats")
-    #
-    # if memeooorr_config.feedback_period_hours is None:
-    #     memeooorr_config.feedback_period_hours = input_with_default_value("How many hours should Memeooorr wait after sending a tweet and before analysing its responses?", 1)
-    #
-    # if memeooorr_config.min_feedback_replies is None:
-    #     memeooorr_config.min_feedback_replies = input_with_default_value("What's the minimum amount of replies to a tweet before Memeooorr analyses them?", 10)
-    #
-    # if memeooorr_config.genai_api_key is None:
-    #     memeooorr_config.genai_api_key = input("Please enter the GenAI API key for Memeooorr's account: ")
-    #
-    # if memeooorr_config.twikit_username is None:
-    #     memeooorr_config.twikit_username = input("Please enter the Twitter username for Memeooorr's account: ")
-    #
-    # if memeooorr_config.twikit_email is None:
-    #     memeooorr_config.twikit_email = input("Please enter the Twitter email for Memeooorr's account: ")
-    #
-    # if memeooorr_config.twikit_password is None:
-    #     memeooorr_config.twikit_password = input("Please enter the Twitter password for Memeooorr's account (avoid passwords that include the $ character): ")
-    #
-    # memeooorr_config.twikit_cookies = get_twitter_cookies(
-    #     memeooorr_config.twikit_username,
-    #     memeooorr_config.twikit_email,
-    #     memeooorr_config.twikit_password
-    # )
+    if memeooorr_config.password_migrated is None:
+        memeooorr_config.password_migrated = False
+
+    if memeooorr_config.persona is None:
+        memeooorr_config.persona = input_with_default_value("What's the agent persona", "a cat lover that is crazy about all-things cats")
+
+    if memeooorr_config.feedback_period_hours is None:
+        memeooorr_config.feedback_period_hours = input_with_default_value("How many hours should Memeooorr wait after sending a tweet and before analysing its responses?", 1)
+
+    if memeooorr_config.min_feedback_replies is None:
+        memeooorr_config.min_feedback_replies = input_with_default_value("What's the minimum amount of replies to a tweet before Memeooorr analyses them?", 10)
+
+    if memeooorr_config.genai_api_key is None:
+        memeooorr_config.genai_api_key = input("Please enter the GenAI API key for Memeooorr's account: ")
+
+    if memeooorr_config.twikit_username is None:
+        memeooorr_config.twikit_username = input("Please enter the Twitter username for Memeooorr's account: ")
+
+    if memeooorr_config.twikit_email is None:
+        memeooorr_config.twikit_email = input("Please enter the Twitter email for Memeooorr's account: ")
+
+    if memeooorr_config.twikit_password is None:
+        memeooorr_config.twikit_password = input("Please enter the Twitter password for Memeooorr's account (avoid passwords that include the $ character): ")
+
+    memeooorr_config.twikit_cookies = get_twitter_cookies(
+        memeooorr_config.twikit_username,
+        memeooorr_config.twikit_email,
+        memeooorr_config.twikit_password
+    )
 
     memeooorr_config.store()
     return memeooorr_config
