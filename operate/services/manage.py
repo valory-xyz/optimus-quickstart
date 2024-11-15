@@ -1137,26 +1137,28 @@ class ServiceManager:
             chain_type=ledger_config.chain, rpc=rpc or ledger_config.rpc
         )
         agent_fund_threshold = (
-            agent_fund_threshold or chain_data.user_params.fund_requirements.agent
+            agent_fund_threshold if agent_fund_threshold is not None else chain_data.user_params.fund_requirements.agent
         )
 
         for key in service.keys:
             agent_balance = ledger_api.get_balance(address=key.address)
             self.logger.info(f"Agent {key.address} balance: {agent_balance}")
-            self.logger.info(f"Required balance: {agent_fund_threshold}")
-            if agent_balance < agent_fund_threshold:
-                self.logger.info("Funding agents")
-                to_transfer = (
-                    agent_topup or chain_data.user_params.fund_requirements.agent
-                )
-                self.logger.info(f"Transferring {to_transfer} units to {key.address}")
-                wallet.transfer(
-                    to=key.address,
-                    amount=int(to_transfer),
-                    chain_type=ledger_config.chain,
-                    from_safe=from_safe,
-                    rpc=rpc or ledger_config.rpc,
-                )
+            if agent_fund_threshold > 0:
+                self.logger.info(f"Required balance: {agent_fund_threshold}")
+                if agent_balance < agent_fund_threshold:
+                    self.logger.info("Funding agents")
+                    to_transfer = (
+                        agent_topup or chain_data.user_params.fund_requirements.agent
+                    )
+                    self.logger.info(f"Transferring {to_transfer} units to {key.address}")
+                    wallet.transfer(
+                        to=key.address,
+                        amount=int(to_transfer),
+                        chain_type=ledger_config.chain,
+                        from_safe=from_safe,
+                        rpc=rpc or ledger_config.rpc,
+                    )
+                    
 
         safe_balance = ledger_api.get_balance(chain_data.multisig)
         safe_fund_treshold = (
