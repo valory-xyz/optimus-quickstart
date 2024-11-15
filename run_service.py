@@ -71,7 +71,7 @@ WARNING_ICON = colored('\u26A0', 'yellow')
 OPERATE_HOME = Path.cwd() / ".optimus"
 DEFAULT_MIN_SWAP_AMOUNT_THRESHOLD = 15
 DEFAULT_CHAINS = ["optimism","base","mode"]
-STAKING_CHAINS = ["optimism","mode"]
+DEFAULT_STAKING_CHAIN = "mode"
 DEFAULT_FEE_HISTORY_PERCENTILE = 50
 CHAIN_ID_TO_METADATA = {
     10: {
@@ -368,7 +368,7 @@ def configure_local_config() -> OptimusConfig:
     if optimus_config.use_staking is None:
         optimus_config.use_staking = input("Do you want to stake your service? (y/n): ").lower() == 'y'
 
-    if optimus_config.staking_chain is None:
+    if optimus_config.use_staking and optimus_config.staking_chain is None:
         print("Possible staking chains are Mode and Optimism, with Mode being the default setting.")
         switch_staking = input("Do you want to switch such setting to Optimism (y/n)?: ").lower() == 'y'
         if switch_staking:
@@ -376,9 +376,11 @@ def configure_local_config() -> OptimusConfig:
             print("The staking chain has changed to Optimism.")
         else:
             optimus_config.staking_chain = "mode"
+    else:
+        optimus_config.staking_chain = ""
 
     if optimus_config.principal_chain is None:
-        optimus_config.principal_chain = optimus_config.staking_chain
+        optimus_config.principal_chain = optimus_config.staking_chain if optimus_config.staking_chain else DEFAULT_STAKING_CHAIN
 
     if optimus_config.investment_funding_requirements is None:
         optimus_config.investment_funding_requirements = {
@@ -401,8 +403,13 @@ def configure_local_config() -> OptimusConfig:
                 allowed_chains.remove(chain)
                 if chain in target_investment_chains:
                     target_investment_chains.remove(chain)
-                if chain==optimus_config.staking_chain:
-                    allowed_chains.append(chain)
+                
+                if optimus_config.staking_chain:
+                    if chain == optimus_config.staking_chain:
+                        allowed_chains.append(chain)
+                else:
+                    if chain == DEFAULT_STAKING_CHAIN:
+                        allowed_chains.append(chain)
         
         optimus_config.allowed_chains = allowed_chains
         optimus_config.target_investment_chains = target_investment_chains
@@ -455,7 +462,7 @@ def get_service_template(config: OptimusConfig) -> ServiceTemplate:
     home_chain_id = "10" if config.staking_chain == "optimism" else "34443"
     return ServiceTemplate({
         "name": "Optimus",
-        "hash": "bafybeihavnvrek6q33gvvdqd5zgnfpjlqp3tncs6bn4ma22njryoi2aod4",
+        "hash": "bafybeiepzxit2bfcgqfr4xm64ykcc4id4pjmg5colqwryv342wdmcqsxrm",
 
         "description": "Optimus",
         "image": "https://gateway.autonolas.tech/ipfs/bafybeiaakdeconw7j5z76fgghfdjmsr6tzejotxcwnvmp3nroaw3glgyve",
