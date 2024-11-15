@@ -89,7 +89,8 @@ def staking_report(config: dict) -> None:
 
         w3 = Web3(HTTPProvider(rpc))
 
-        staking_token_address = STAKING.get(ChainType.OPTIMISM, {}).get("optimus_alpha")
+        home_chain_type = ChainType.from_id(int(home_chain_id))
+        staking_token_address = STAKING.get(home_chain_type, {}).get("optimus_alpha")
         if not staking_token_address:
             print("Error: Staking token address not found for OPTIMISM ChainType.")
             return
@@ -108,7 +109,7 @@ def staking_report(config: dict) -> None:
         is_staked = staking_state in (StakingState.STAKED, StakingState.EVICTED)
         _print_status("Is service staked?", _color_bool(is_staked, "Yes", "No"))
         if is_staked:
-            _print_status("Staking program", str(staking_program_id))
+            _print_status("Staking program",(str(staking_program_id) + " " +str(home_chain_type).rsplit('.', maxsplit=1)[-1]))
             _print_status("Staking state", staking_state.name if staking_state == StakingState.STAKED else _color_string(staking_state.name, ColorCode.RED))
 
             # Activity Checker
