@@ -71,7 +71,7 @@ WARNING_ICON = colored('\u26A0', 'yellow')
 OPERATE_HOME = Path.cwd() / ".optimus"
 DEFAULT_MIN_SWAP_AMOUNT_THRESHOLD = 15
 DEFAULT_CHAINS = ["optimism","base"]
-STAKING_CHAIN = ["optimism"]
+STAKING_CHAIN = "optimism"
 DEFAULT_FEE_HISTORY_PERCENTILE = 50
 CHAIN_ID_TO_METADATA = {
     10: {
@@ -349,10 +349,13 @@ def configure_local_config() -> OptimusConfig:
         optimus_config.use_staking = input("Do you want to stake your service? (y/n): ").lower() == 'y'
     
     if optimus_config.staking_chain is None:
-        optimus_config.staking_chain = "optimism"
+        if optimus_config.use_staking:
+            optimus_config.staking_chain = STAKING_CHAIN
+        else:
+            optimus_config.staking_chain = ""
 
     if optimus_config.principal_chain is None:
-        optimus_config.principal_chain = optimus_config.staking_chain
+        optimus_config.principal_chain = STAKING_CHAIN
 
     if optimus_config.investment_funding_requirements is None:
         optimus_config.investment_funding_requirements = {
