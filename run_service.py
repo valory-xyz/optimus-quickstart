@@ -31,7 +31,6 @@ import requests
 import yaml
 from aea.crypto.base import LedgerApi
 from aea_ledger_ethereum import EthereumApi
-from autonomy.chain.constants import CHAIN_PROFILES
 from dotenv import load_dotenv
 from halo import Halo
 from termcolor import colored
@@ -49,7 +48,6 @@ from operate.types import (
     ConfigurationTemplate,
     FundRequirementsTemplate, ChainType, OnChainState,
 )
-from utils import wei_to_eth
 
 load_dotenv()
 
@@ -62,12 +60,10 @@ MASTER_SAFE_TOPUP = unit_to_wei(0.001)
 SAFE_TOPUP = unit_to_wei(0.002)
 AGENT_TOPUP = unit_to_wei(0.001)
 
-INITIAL_FUNDS_REQUIREMENT = {"ETH": 6_000_000_000_000_000}  # not used for the memeooorr: initial funds required for the service to operate
-# MASTER_WALLET_MIMIMUM_BALANCE = 6_001_000_000_000_000  # minimum balance that should always be maintained in the master wallet to ensure it remains operational
 
 COST_OF_BOND = 1
-COST_OF_BOND_STAKING = 2 * 10 ** 19
-OLAS_ADDRESS = "0x54330d28ca3357F294334BDC454a032e7f353416"
+COST_OF_STAKING = 10 ** 20 # 100 OLAS
+COST_OF_BOND_STAKING = 5 * 10 ** 19 # 50 OLAS
 WARNING_ICON = colored('\u26A0', 'yellow')
 OPERATE_HOME = Path.cwd() / ".memeooorr"
 
@@ -78,7 +74,7 @@ CHAIN_ID_TO_METADATA = {
     8453: {
         "name": "Base",
         "token": "ETH",
-        "firstTimeTopUp": unit_to_wei(0.01),
+        "firstTimeTopUp": unit_to_wei(0.001),
         "operationalFundReq": unit_to_wei(0.001),
         "usdcRequired": False,
         "gasParams": {
@@ -91,7 +87,7 @@ CHAIN_ID_TO_METADATA = {
         "name": "Celo",
         "token": "ETH",
         "usdcRequired": False,
-        "firstTimeTopUp": unit_to_wei(0.01),
+        "firstTimeTopUp": unit_to_wei(0.001),
         "operationalFundReq": unit_to_wei(0.001),
         "gasParams": {
             # this means default values will be used
@@ -294,12 +290,6 @@ def input_select_chain(options: t.List[ChainType]):
 def get_local_config() -> MemeooorrConfig:
     """Get local memeooorr configuration."""
     path = OPERATE_HOME / "local_config.json"
-
-    # REMOVE
-    # if not path.exists():
-    #     config_backup = Path("/home/david/Valory/repos/meme-ooorr-quickstart/local_config.json")
-    #     shutil.copy(config_backup, path)
-
     if path.exists():
         memeooorr_config = MemeooorrConfig.load(path)
     else:
@@ -431,7 +421,7 @@ celo_staking_fallback = dict(
     service_registry=CONTRACTS[ChainType.CELO]["service_registry"],  # nosec
     staking_token=STAKING[ChainType.CELO]["meme_alpha"],  # nosec
     service_registry_token_utility=CONTRACTS[ChainType.CELO]["service_registry_token_utility"],  # nosec
-    min_staking_deposit=20000000000000000000,
+    min_staking_deposit=COST_OF_STAKING,
     activity_checker="0xAe2f766506F6BDF740Cc348a90139EF317Fa7Faf"  # nosec
 )
 base_staking_fallback = dict(
@@ -439,7 +429,7 @@ base_staking_fallback = dict(
     service_registry=CONTRACTS[ChainType.BASE]["service_registry"],  # nosec
     staking_token=STAKING[ChainType.BASE]["meme_alpha"],  # nosec
     service_registry_token_utility=CONTRACTS[ChainType.BASE]["service_registry_token_utility"],  # nosec
-    min_staking_deposit=20000000000000000000,
+    min_staking_deposit=COST_OF_STAKING,
     activity_checker="0xAe2f766506F6BDF740Cc348a90139EF317Fa7Faf"  # nosec
 )
 
@@ -632,7 +622,7 @@ def main() -> None:
 
         if chain_config.chain_data.user_params.use_staking and not service_exists:
             olas_address = OLAS[chain_type]
-            print(f"[{chain_name}] Please make sure address {address} has at least {wei_to_token(2 * COST_OF_BOND_STAKING, olas_address)}")
+            print(f"[{chain_name}] Please make sure address {address} has at least {wei_to_token(COST_OF_STAKING + COST_OF_BOND_STAKING, olas_address)}")
 
             spinner = Halo(
                 text=f"[{chain_name}] Waiting for {olas_address}...",
@@ -640,7 +630,7 @@ def main() -> None:
             )
             spinner.start()
 
-            while get_erc20_balance(ledger_api, olas_address, address) < 2 * COST_OF_BOND_STAKING:
+            while get_erc20_balance(ledger_api, olas_address, address) < COST_OF_STAKING + COST_OF_BOND_STAKING:
                 time.sleep(1)
 
             balance = get_erc20_balance(ledger_api, olas_address, address) / 10 ** 18
