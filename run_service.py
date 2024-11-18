@@ -666,7 +666,7 @@ def main() -> None:
         "TWIKIT_PASSWORD": memeooorr_config.twikit_password,
         "TWIKIT_COOKIES": memeooorr_config.twikit_cookies,
         "FEEDBACK_PERIOD_HOURS": memeooorr_config.feedback_period_hours,
-        "gemini_API_KEY": memeooorr_config.gemini_api_key,
+        "GENAI_API_KEY": memeooorr_config.gemini_api_key,
         "MIN_FEEDBACK_REPLIES": memeooorr_config.min_feedback_replies,
         "PERSONA": memeooorr_config.persona,
         "RESET_PAUSE_DURATION": 10,
