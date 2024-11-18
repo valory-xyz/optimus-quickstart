@@ -153,7 +153,7 @@ class MemeooorrConfig(LocalResource):
     twikit_password: t.Optional[str] = None
     twikit_cookies: t.Optional[str] = None
     feedback_period_hours: t.Optional[str] = None
-    genai_api_key: t.Optional[str] = None
+    gemini_api_key: t.Optional[str] = None
     min_feedback_replies: t.Optional[str] = None
     persona: t.Optional[str] = None
     home_chain_id: t.Optional[int] = None
@@ -316,8 +316,8 @@ def get_local_config() -> MemeooorrConfig:
     if memeooorr_config.min_feedback_replies is None:
         memeooorr_config.min_feedback_replies = input_with_default_value("What's the minimum amount of replies to a tweet before Memeooorr analyses them?", 10)
 
-    if memeooorr_config.genai_api_key is None:
-        memeooorr_config.genai_api_key = input("Please enter the GenAI API key for Memeooorr's account: ")
+    if memeooorr_config.gemini_api_key is None:
+        memeooorr_config.gemini_api_key = input("Please enter the gemini API key for Memeooorr's account: ")
 
     if memeooorr_config.twikit_username is None:
         memeooorr_config.twikit_username = input("Please enter the Twitter username for Memeooorr's account: ")
@@ -666,7 +666,7 @@ def main() -> None:
         "TWIKIT_PASSWORD": memeooorr_config.twikit_password,
         "TWIKIT_COOKIES": memeooorr_config.twikit_cookies,
         "FEEDBACK_PERIOD_HOURS": memeooorr_config.feedback_period_hours,
-        "GENAI_API_KEY": memeooorr_config.genai_api_key,
+        "gemini_API_KEY": memeooorr_config.gemini_api_key,
         "MIN_FEEDBACK_REPLIES": memeooorr_config.min_feedback_replies,
         "PERSONA": memeooorr_config.persona,
         "RESET_PAUSE_DURATION": 10,
