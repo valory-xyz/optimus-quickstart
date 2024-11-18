@@ -25,9 +25,11 @@ from utils import (
     _warning_message,
     StakingState,
     get_chain_name,
-    load_operator_address,
+    load_operator_safe_balance,
     validate_config,
-    _color_bool
+    _color_bool,
+    _color_string
+
 )
 
 # Set decimal precision
@@ -45,7 +47,7 @@ def staking_report(config: dict) -> None:
     try:
         _print_section_header("Performance")
         _print_subsection_header("Staking")
-        operator_address = load_operator_address(OPERATE_HOME)
+        operator_address = load_operator_safe_balance(OPERATE_HOME)
         if not operator_address:
             print("Error: Operator address could not be loaded.")
             return

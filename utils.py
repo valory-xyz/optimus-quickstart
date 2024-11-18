@@ -102,6 +102,36 @@ def load_operator_address(operate_home):
         print("Error: Ethereum wallet file contains invalid JSON.")
         return None
 
+def load_operator_safe_balance(operate_home):
+    ethereum_json_path = operate_home / "wallets" / "ethereum.json"
+    try:
+        with open(ethereum_json_path, "r") as f:
+            ethereum_data = json.load(f)
+
+        safe_chains = ethereum_data.get("safe_chains", [])
+        if not safe_chains:
+            print("Error: Safe chains array is empty.")
+            return None
+
+        chain_id = safe_chains[0]
+
+        safes = ethereum_data.get("safes", {})
+        safe_address = safes.get(str(chain_id))
+        if not safe_address:
+            print(f"Error: Safe address for chain ID {chain_id} not found in the wallet file.")
+            return None
+
+        # Here, you should insert your logic to fetch the safe balance from the blockchain
+        # For illustrative purposes, we'll just return the safe address
+        return safe_address
+
+    except FileNotFoundError:
+        print(f"Error: Ethereum wallet file not found at {ethereum_json_path}")
+        return None
+    except json.JSONDecodeError:
+        print("Error: Ethereum wallet file contains invalid JSON.")
+        return None
+    
 def validate_config(config):
     required_keys = ['home_chain_id', 'chain_configs']
     for key in required_keys:
