@@ -114,26 +114,14 @@ COINGECKO_CHAIN_TO_PLATFORM_ID_MAPPING = {
 }
 ZERO_ADDRESS = "0x0000000000000000000000000000000000000000"
 
-original_strategy = EthereumApi._gas_price_strategy_callables['eip1559']
-
-def custom_gas_price_strategy(*args, **kwargs):
-    # Override the parameters here
-    kwargs['fee_history_percentile'] = int(CHAIN_ID_TO_METADATA[34443]["gasParams"]["FEE_HISTORY_PERCENTILE"])
-    kwargs['default_priority_fee'] = int(CHAIN_ID_TO_METADATA[34443]["gasParams"]["DEFAULT_PRIORITY_FEE"])
-    return original_strategy(*args, **kwargs)
-
 def estimate_priority_fee(
     web3_object: Web3,
     block_number: int,
-    default_priority_fee: t.Optional[int],
     fee_history_blocks: int,
     fee_history_percentile: int,
     priority_fee_increase_boundary: int,
 ) -> t.Optional[int]:
     """Estimate priority fee from base fee."""
-
-    if default_priority_fee is not None:
-        return default_priority_fee
 
     fee_history = web3_object.eth.fee_history(
         fee_history_blocks, block_number, [fee_history_percentile]  # type: ignore
@@ -169,7 +157,6 @@ class OptimusConfig(LocalResource):
 
     path: Path
     optimism_rpc: t.Optional[str] = None
-    ethereum_rpc: t.Optional[str] = None
     base_rpc: t.Optional[str] = None
     mode_rpc: t.Optional[str] = None
     tenderly_access_key: t.Optional[str] = None
@@ -242,7 +229,7 @@ def wei_to_token(wei: int, token: str = "xDAI") -> str:
 
 
 def ask_confirm_password() -> str:
-    password = getpass.getpass("Please enter a password: ")
+    password = getpass.getpass("Please input your password (or press enter): ")
     confirm_password = getpass.getpass("Please confirm your password: ")
 
     if password == confirm_password:
@@ -343,11 +330,12 @@ def configure_local_config() -> OptimusConfig:
         )
 
     if optimus_config.min_swap_amount_threshold is None:
-        update_min_swap = input(f"Do you want to update the minimum swap amount threshold (set to {DEFAULT_MIN_SWAP_AMOUNT_THRESHOLD} USD)? (y/n): ").lower() == 'y'
+        print(f"The minimum investment amount is {DEFAULT_MIN_SWAP_AMOUNT_THRESHOLD} USD on both USDC and ETH Tokens")
+        update_min_swap = input(f"Do you want to increase the minimum investment amount? (y/n): ").lower() == 'y'
         if update_min_swap:
             while True:
                 user_input = input(
-                    f"Please enter the minimum swap amount threshold (at least {DEFAULT_MIN_SWAP_AMOUNT_THRESHOLD} USD): "
+                    f"Please enter the minimum investment amount in USD (at least {DEFAULT_MIN_SWAP_AMOUNT_THRESHOLD} USD): "
                 )
                 min_swap_amount = user_input
                 if not min_swap_amount.isdigit():
@@ -358,9 +346,11 @@ def configure_local_config() -> OptimusConfig:
                     optimus_config.min_swap_amount_threshold = min_swap_amount
                     break
                 else:
-                    print(f"Error: The minimum swap amount must be at least {DEFAULT_MIN_SWAP_AMOUNT_THRESHOLD} USD.")
+                    print(f"Error: The minimum investment amount must be at least {DEFAULT_MIN_SWAP_AMOUNT_THRESHOLD} USD.")
         else:
             optimus_config.min_swap_amount_threshold = str(DEFAULT_MIN_SWAP_AMOUNT_THRESHOLD)
+
+
 
     if optimus_config.password_migrated is None:
         optimus_config.password_migrated = False
@@ -392,21 +382,20 @@ def configure_local_config() -> OptimusConfig:
         }
 
     print("All available chains for liquidity pool opportunities:", ", ".join(DEFAULT_CHAINS))
-    print("Current setting for liquidity pool opportunities--chains:", ", ".join(optimus_config.target_investment_chains or DEFAULT_CHAINS))
+    print("Current setting for liquidity pool opportunities--Chains:", ", ".join(optimus_config.target_investment_chains or DEFAULT_CHAINS))
 
-    update_chains = input("Do you want to expand/restrict agent's operability (y/n): ").lower() == 'y'
+    update_chains = input("Do you want to expand/restrict the agent’s operability in terms of investment chains (y/n): ").lower() == 'y'
     if update_chains:
         allowed_chains = DEFAULT_CHAINS.copy()
         target_investment_chains = DEFAULT_CHAINS.copy()
         for chain in DEFAULT_CHAINS:
-            operate_on_chain = input(f"Do you wish the service to operate on {chain}? (y/n): ").lower() == 'y'
+            operate_on_chain = input(f"DDo you wish the service to operate by investing on the {chain} chain? (y/n): ").lower() == 'y'
             if not operate_on_chain:
-                allowed_chains.remove(chain)
-                if chain != optimus_config.principal_chain and chain in target_investment_chains:
+                if chain in target_investment_chains:
                     target_investment_chains.remove(chain)
                 
-                if chain == optimus_config.principal_chain:
-                        allowed_chains.append(chain)
+                if chain != optimus_config.principal_chain and chain in allowed_chains:
+                        allowed_chains.remove(chain)
         
         optimus_config.allowed_chains = allowed_chains
         optimus_config.target_investment_chains = target_investment_chains
@@ -459,7 +448,7 @@ def get_service_template(config: OptimusConfig) -> ServiceTemplate:
     home_chain_id = "10" if config.staking_chain == "optimism" else "34443"
     return ServiceTemplate({
         "name": "Optimus",
-        "hash": "bafybeiepzxit2bfcgqfr4xm64ykcc4id4pjmg5colqwryv342wdmcqsxrm",
+        "hash": "bafybeicsbfw2g6gp3fyp434qgqjcy6gwe4fgz4kjhgg4gy5bb7lpt5w6n4",
 
         "description": "Optimus",
         "image": "https://gateway.autonolas.tech/ipfs/bafybeiaakdeconw7j5z76fgghfdjmsr6tzejotxcwnvmp3nroaw3glgyve",
@@ -647,7 +636,7 @@ def fetch_investing_funding_requirements(chain_name: str) -> None:
 
     optimus_config.store()
 
-def calculate_fund_requirement(rpc, fee_history_blocks: int, gas_amount: int, default_priority_fee = None, fee_history_percentile: int = 50, priority_fee_increase_boundary: int = 200) -> int:
+def calculate_fund_requirement(rpc, fee_history_blocks: int, gas_amount: int, fee_history_percentile: int = 50, priority_fee_increase_boundary: int = 200) -> int:
     if rpc is None:
         return None
     
@@ -659,7 +648,7 @@ def calculate_fund_requirement(rpc, fee_history_blocks: int, gas_amount: int, de
     if base_fee is None or block_number is None:
         return None
     
-    priority_fee = estimate_priority_fee(web3, block_number, default_priority_fee, fee_history_blocks, fee_history_percentile, priority_fee_increase_boundary)
+    priority_fee = estimate_priority_fee(web3, block_number, fee_history_blocks, fee_history_percentile, priority_fee_increase_boundary)
     if priority_fee is None:
         return None
     
@@ -670,23 +659,11 @@ def calculate_fund_requirement(rpc, fee_history_blocks: int, gas_amount: int, de
 
 def fetch_agent_fund_requirement(chain_id, rpc, fee_history_blocks: int = 500000) -> int:
     gas_amount = 50_000_000
-    
-    if int(chain_id) == 34443:
-        default_priority_fee = int(CHAIN_ID_TO_METADATA[34443]["gasParams"]["DEFAULT_PRIORITY_FEE"])
-    else:
-        default_priority_fee = None
-        
-    return calculate_fund_requirement(rpc, fee_history_blocks, gas_amount, default_priority_fee)
+    return calculate_fund_requirement(rpc, fee_history_blocks, gas_amount)
 
 def fetch_operator_fund_requirement(chain_id, rpc, fee_history_blocks: int = 500000) -> int:
     gas_amount = 10_000_000
-    
-    if int(chain_id) == 34443:
-        default_priority_fee = int(CHAIN_ID_TO_METADATA[34443]["gasParams"]["DEFAULT_PRIORITY_FEE"])
-    else:
-        default_priority_fee = None
-
-    return calculate_fund_requirement(rpc, fee_history_blocks, gas_amount, default_priority_fee)
+    return calculate_fund_requirement(rpc, fee_history_blocks, gas_amount)
 
 def main() -> None:
     """Run service."""
@@ -743,11 +720,6 @@ def main() -> None:
         chain_name, token = chain_metadata['name'], chain_metadata["token"]
         chain_config = service.chain_configs[chain_id]
 
-        if int(chain_id) == 34443:
-            EthereumApi._gas_price_strategy_callables['eip1559'] = custom_gas_price_strategy
-        else:
-            EthereumApi._gas_price_strategy_callables['eip1559'] = original_strategy
-
         if chain_config.ledger_config.rpc is not None:
             os.environ["CUSTOM_CHAIN_RPC"] = chain_config.ledger_config.rpc
             os.environ["OPEN_AUTONOMY_SUBGRAPH_URL"] = "https://subgraph.autonolas.tech/subgraphs/name/autonolas-staging"
@@ -756,14 +728,13 @@ def main() -> None:
 
         service_exists = manager._get_on_chain_state(chain_config) != OnChainState.NON_EXISTENT
 
-        if chain_name.lower() not in optimus_config.allowed_chains:
-            # this is to ensure backward-compatibility i.e. if someone deployed the services before the user-selectable chains feature was released
-            # we add those chains to allowed chains 
-            if service_exists:
-                optimus_config.allowed_chains.append(chain_name.lower())
+        if optimus_config.target_investment_chains and chain_name.lower() not in optimus_config.target_investment_chains:
+            if chain_name.lower() == optimus_config.principal_chain:
+                if service_exists:
+                    continue
             else:
                 continue
-
+            
         chain_type = chain_config.ledger_config.chain
         ledger_api = wallet.ledger_api(
             chain_type=chain_type,
@@ -796,13 +767,13 @@ def main() -> None:
 
         if service_exists:
             agent_balance = ledger_api.get_balance(address=service.keys[0].address)
-            if agent_balance < 0.1 * agent_fund_requirement:
+            if agent_balance < 0.3 * agent_fund_requirement:
                 agent_fund_requirement = agent_fund_requirement - agent_balance
             else:
                 agent_fund_requirement = 0
 
             operator_balance = ledger_api.get_balance(wallet.crypto.address)
-            if operator_balance < 0.1 * operational_fund_req:
+            if operator_balance < 0.3 * operational_fund_req:
                 operational_fund_req = operational_fund_req - operator_balance
             else:
                 operational_fund_req = 0
@@ -922,6 +893,8 @@ def main() -> None:
                 hash=service.hash,
                 chain_id=chain_id,
                 token=usdc_address,
+                token_symbol="USDC",
+                token_decimal=6,
                 safe_topup=usdc_balance,
                 agent_topup=0,
                 agent_fund_threshold=0,
