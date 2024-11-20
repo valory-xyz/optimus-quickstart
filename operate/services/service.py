@@ -257,7 +257,6 @@ class ServiceHelper:
                         chain=chain,
                         type=LedgerType.ETHEREUM,
                     )
-                    print(f"Adding {chain} {config['address']}")
         return ledger_configs
 
     def deployment_config(self) -> DeploymentConfig:

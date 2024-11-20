@@ -372,7 +372,7 @@ def configure_local_config() -> OptimusConfig:
             optimus_config.staking_chain = ""
 
     if optimus_config.principal_chain is None:
-        optimus_config.principal_chain = optimus_config.staking_chain if optimus_config.staking_chain else DEFAULT_STAKING_CHAIN
+        optimus_config.principal_chain = optimus_config.staking_chain if optimus_config.staking_chain else DEFAULT_STAKING_CHAIN.lower()
 
     if optimus_config.investment_funding_requirements is None:
         optimus_config.investment_funding_requirements = {
@@ -385,29 +385,32 @@ def configure_local_config() -> OptimusConfig:
 
     print_section("Investment Activity Chains & RPCs") 
     print("All available chains for liquidity pool opportunities:", ", ".join(DEFAULT_CHAINS))
-    print("Current setting for liquidity pool opportunities--Chains:", ", ".join(optimus_config.target_investment_chains or DEFAULT_CHAINS))
+    print("Current setting for liquidity pool opportunities--Chains:", ", ".join(optimus_config.target_investment_chains or [DEFAULT_STAKING_CHAIN]))
 
     update_chains = input("Do you want to expand/restrict the agent’s operability in terms of investment chains (y/n): ").lower() == 'y'
     if update_chains:
-        allowed_chains = DEFAULT_CHAINS.copy()
-        target_investment_chains = DEFAULT_CHAINS.copy()
+        allowed_chains = []
+        target_investment_chains = []
         for chain in DEFAULT_CHAINS:
             operate_on_chain = input(f"Do you wish the service to operate by investing on the {chain} chain? (y/n): ").lower() == 'y'
-            if not operate_on_chain:
-                if chain in target_investment_chains:
-                    target_investment_chains.remove(chain)
+            if operate_on_chain:
+                if chain not in target_investment_chains:
+                    target_investment_chains.append(chain)
                 
-                if chain.lower() != optimus_config.principal_chain and chain in allowed_chains:
-                        allowed_chains.remove(chain)
+                if chain not in allowed_chains:
+                        allowed_chains.append(chain)
         
+        if optimus_config.principal_chain not in allowed_chains:
+            allowed_chains.append(optimus_config.principal_chain)
+
         optimus_config.allowed_chains = [chain.lower() for chain in allowed_chains]
         optimus_config.target_investment_chains = [chain.lower() for chain in target_investment_chains]
     
     if optimus_config.allowed_chains is None:
-        optimus_config.allowed_chains = DEFAULT_CHAINS.copy()
+        optimus_config.allowed_chains = [optimus_config.principal_chain]
     
     if optimus_config.target_investment_chains is None:
-        optimus_config.target_investment_chains = DEFAULT_CHAINS.copy()
+        optimus_config.target_investment_chains = [optimus_config.principal_chain]
 
     for chain in optimus_config.allowed_chains:
         if chain == "optimism" and optimus_config.optimism_rpc is None:
