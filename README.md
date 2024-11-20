@@ -1,5 +1,5 @@
 <h1 align="center">
-<b>Optimus Quickstart</b>
+<b>Olas Modius Quickstart</b>
 </h1>
 
 
