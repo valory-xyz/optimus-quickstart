@@ -23,6 +23,7 @@ from utils import (
     _get_agent_status,
 )
 
+from run_service import fetch_agent_fund_requirement
 from wallet_info import save_wallet_info, load_config as load_wallet_config
 from staking_report import staking_report
 
@@ -44,6 +45,14 @@ def load_wallet_info():
     except json.JSONDecodeError:
         print("Error: Wallet info file contains invalid JSON.")
         return {}
+
+def get_chain_rpc(optimus_config, chain_name):
+    chain_name_to_rpc = {
+        'optimism': optimus_config.optimism_rpc,
+        'base': optimus_config.base_rpc,
+        'mode': optimus_config.mode_rpc
+    }
+    return chain_name_to_rpc.get(chain_name.lower())
 
 def generate_report():
     try:
@@ -100,7 +109,9 @@ def generate_report():
             _print_status(f"{chain_name} Balance", balance_formatted)
 
             # Low balance check
-            agent_threshold_wei = chain_config.get("chain_data", {}).get("user_params", {}).get("fund_requirements", {}).get("agent")
+            agent_threshold_wei = fetch_agent_fund_requirement(chain_id, get_chain_rpc(optimus_config, chain_name))
+            if agent_threshold_wei is None:
+                agent_threshold_wei = chain_config.get("chain_data", {}).get("user_params", {}).get("fund_requirements", {}).get("agent")
             if agent_threshold_wei:
                 agent_threshold_eth = wei_to_eth(agent_threshold_wei)
                 current_balance_str = balance_formatted.split()[0]
@@ -139,7 +150,7 @@ def generate_report():
                 try:
                     current_balance = Decimal(balance_str)
                     if current_balance < safe_threshold_eth:
-                        warning_msg = _warning_message(current_balance, safe_threshold_eth, f"Balance below threshold of {safe_threshold_eth:.2f} ETH")
+                        warning_msg = _warning_message(current_balance, safe_threshold_eth, f"Balance below threshold of {safe_threshold_eth:.5f} ETH")
                         _print_status("Warning", warning_msg)
                 except (ValueError, Exception):
                     print(f"Warning: Could not parse balance '{balance_str}' for chain '{chain_name}'.")
