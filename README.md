@@ -80,19 +80,20 @@ chmod +x run_service.sh
 ./run_service.sh
 ```
 
-**Testnet and Price Data Source**
+**Tenderly and Price Data Source**
 
-As part of its trading strategies, the agent uses testnets to simulate routes for bridges/swaps and pick the best available at the moment of investment. You can choose to use any testnet of preference but Tenderly is our testnet partner: 
+As part of its trading strategies, the agent uses Tenderly to simulate routes for bridges/swaps and pick the best available route at the moment of investment.
 
-- You will need your preferred testnet's API Key, account slug, and project slug. API Key (token), Tenderly account Slug, and Tenderly Project Slug. Get one at https://dashboard.tenderly.co/ under settings. 
+- You will need your Tenderly API Key, account slug, and project slug. (Get your own at https://dashboard.tenderly.co/ under settings.)
 ```bash
 Please enter your Tenderly API Key:
 Please enter your Tenderly Account Slug:
 Please enter your Tenderly Project Slug: 
   ```
-Refer to the Tenderly Documentation for more info https://docs.tenderly.co/account/projects
+Refer to the Tenderly Documentation for more info https://docs.tenderly.co/account/projects.
 
-CoinGecko is used as a price source to compute the initial investment assets you will need to provide the agent with. You will be asked for your CoinGecko API Key. You can get one at https://www.coingecko.com/ or press enter when prompted and the agent will use a default one.
+CoinGecko is used as a price source to compute the initial investment assets you will need to provide the agent with. You will be asked for your CoinGecko API Key. You can get your own at https://www.coingecko.com/. 
+Note that, you can also press enter to skip this step. In that case, the agent will fallback to pre-computed values as per the prices observed in Nov 2024.
 ```bash
 Please enter your CoinGecko API Key. Get one at https://www.coingecko.com/:
   ```
@@ -162,27 +163,43 @@ Once the ./run_service.sh has completed, i.e. the service is running, you can ch
 docker logs optimus_abci_0 --follow
 ```
 
-Additionally, you can execute the report command to view a summary of the service status, balances, and anything in relation to Olas Staking and accrual of rewards:
+To inspect the tree state transition of the current run of your agent run:
 
 ```bash
-poetry run python report.py
+poetry run autonomy analyse logs --from-dir .optimus/services/[service-hash]/deployment/persistent_data/logs/
+  --agent aea_0 --fsm --reset-db
 ```
-
-To inspect the tree state transition of the current run of the agent run:
-```bash
-poetry run autonomy analyse logs --from-dir .optimus/services/[service-hash]/deployment/persistent_data/logs/  --agent aea_0 --fsm --reset-db
-```
-where `[service-hash]` is the onchain representation of the agent code that you're running and can be found by doing
+where `[service-hash]` is the onchain representation of the agent code that you're running. You can get such hash through the following `ls` command:
 
 ```bash
 ls .optimus/services
 ```
 
+
+
+**Service Report**
+Additionally, you can execute the service report command to view a summary of the service status, balances, and anything in relation to Olas Staking and accrual of rewards:
+
+```bash
+poetry run python report.py
+```
+
+**Funding Report**
+Finally, you can execute the funding report command to check out balances for each of the chains your service is deployed onto. 
+
+```bash
+poetry run suggest_funding_report.py
+```
+The report will also give you insights on the latest observed gas prices per chain and, if necessary, suggest gas funding values to keep your agent active.  
+
+
+**Stoppping your agent**
 To stop your agent, use:
 
 ```bash
 ./stop_service.sh
 ```
+
 
 
 ## Update between versions
