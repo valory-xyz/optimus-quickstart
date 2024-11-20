@@ -16,7 +16,7 @@ Olas Modius currently operates trading-wise on the following chains:
 - Optimism
 - Base
 
-By default, the agent will be active on all three chains. But, its activity could be directed to a subset of chains only, should the user to choose so during runtime. This setting can be subsequently changed by the user in a successive run. 
+By default, the agent will be active on Mode. But, its activity could be directed to any subset of the three chains available, should the user to choose so during runtime. This setting can be subsequently changed by the user in a successive run. 
 
 
 **Supported DEXs:**
@@ -122,19 +122,18 @@ Do you want to switch such setting to Optimism (y/n)?:
 
 ## Investment Activity Chains & RPCs
 
-Finally, you will be asked to confirm the default list of active chains or restrict the agent's activity to a subset of available chains of your choice.
+Finally, you will be asked to confirm the default setting with regards to the investment activity chain (Mode). You can also decide to expand the agent's activity to a subset of available chains of your choice. This setting can be subsequently changed in future runs. 
+
 ```bash
 All available chains for liquidity pool opportunities: Optimism, Base, Mode
-Current setting for liquidity pool opportunities--Chains: Optimism, Base, Mode
-Do you want to expand/restrict the agent’s operability in terms of investment chains (y/n): n
+Current setting for liquidity pool opportunities--Chains: Mode
+Do you want to expand/restrict the agent’s operability in terms of investment chains (y/n):
 ```
 
-In accordance with your previous choice, you will be asked for the corresponding RPCs for your agent instance:
+In accordance with your previous choice, you will be asked for the corresponding RPCs for your agent instance. E.g., in case you confirm Mode as the only active chain for investment opportunities, you will be prompted with the following request: 
 
 ```bash
 Please enter an Mode RPC URL:
-Please enter an Optimism RPC URL:
-Please enter a Base RPC URL:
   ```
 
 
