@@ -1194,7 +1194,7 @@ class ServiceManager:
         self,
         hash: str,
         token: str,
-        token_symbol: Optional[str] = None,
+        token_symbol: t.Optional[str] = None,
         token_decimal: int = 18,
         rpc: t.Optional[str] = None,
         agent_topup: t.Optional[float] = None,
@@ -1400,9 +1400,8 @@ class ServiceManager:
         value = wei / 1e18
         return f"{value:.18f}"
 
-    def _convert_to_token_units(
-        self, amount: int, token_decimal: int = 18
-    ) -> str:  # pylint: disable=R0201
+    # pylint: disable=R0201
+    def _convert_to_token_units(self, amount: int, token_decimal: int = 18) -> str:
         """Convert smallest unit to token's base unit."""
         value = amount / 10**token_decimal
         return f"{value:.{token_decimal}f}"
