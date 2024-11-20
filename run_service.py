@@ -70,7 +70,7 @@ USDC_ADDRESS = {
 WARNING_ICON = colored('\u26A0', 'yellow')
 OPERATE_HOME = Path.cwd() / ".optimus"
 DEFAULT_MIN_SWAP_AMOUNT_THRESHOLD = 15
-DEFAULT_CHAINS = ["optimism","base","mode"]
+DEFAULT_CHAINS = ["Optimism","Base","Mode"]
 DEFAULT_STAKING_CHAIN = "mode"
 DEFAULT_FEE_HISTORY_PERCENTILE = 50
 CHAIN_ID_TO_METADATA = {
@@ -307,8 +307,7 @@ def configure_local_config() -> OptimusConfig:
     else:
         optimus_config = OptimusConfig(path)
 
-    print_section("API Key Configuration")
-
+    print_section("Tenderly API Configuration and Price Data Source")
     if optimus_config.tenderly_access_key is None:
         optimus_config.tenderly_access_key = input(
             "Please enter your Tenderly API Key. Get one at https://dashboard.tenderly.co/: "
@@ -328,7 +327,9 @@ def configure_local_config() -> OptimusConfig:
         optimus_config.coingecko_api_key = input(
             "Please enter your CoinGecko API Key. Get one at https://www.coingecko.com/: "
         )
+    print()
 
+    print_section("Minimum Investment") 
     if optimus_config.min_swap_amount_threshold is None:
         print(f"The minimum investment amount is {DEFAULT_MIN_SWAP_AMOUNT_THRESHOLD} USD on both USDC and ETH Tokens")
         update_min_swap = input(f"Do you want to increase the minimum investment amount? (y/n): ").lower() == 'y'
@@ -349,9 +350,9 @@ def configure_local_config() -> OptimusConfig:
                     print(f"Error: The minimum investment amount must be at least {DEFAULT_MIN_SWAP_AMOUNT_THRESHOLD} USD.")
         else:
             optimus_config.min_swap_amount_threshold = str(DEFAULT_MIN_SWAP_AMOUNT_THRESHOLD)
+    print()
 
-
-
+    print_section("Staking") 
     if optimus_config.password_migrated is None:
         optimus_config.password_migrated = False
 
@@ -380,7 +381,9 @@ def configure_local_config() -> OptimusConfig:
                 "ETH": 0
             }
         }
+    print()
 
+    print_section("Investment Activity Chains & RPCs") 
     print("All available chains for liquidity pool opportunities:", ", ".join(DEFAULT_CHAINS))
     print("Current setting for liquidity pool opportunities--Chains:", ", ".join(optimus_config.target_investment_chains or DEFAULT_CHAINS))
 
@@ -389,16 +392,16 @@ def configure_local_config() -> OptimusConfig:
         allowed_chains = DEFAULT_CHAINS.copy()
         target_investment_chains = DEFAULT_CHAINS.copy()
         for chain in DEFAULT_CHAINS:
-            operate_on_chain = input(f"DDo you wish the service to operate by investing on the {chain} chain? (y/n): ").lower() == 'y'
+            operate_on_chain = input(f"Do you wish the service to operate by investing on the {chain} chain? (y/n): ").lower() == 'y'
             if not operate_on_chain:
                 if chain in target_investment_chains:
                     target_investment_chains.remove(chain)
                 
-                if chain != optimus_config.principal_chain and chain in allowed_chains:
+                if chain.lower() != optimus_config.principal_chain and chain in allowed_chains:
                         allowed_chains.remove(chain)
         
-        optimus_config.allowed_chains = allowed_chains
-        optimus_config.target_investment_chains = target_investment_chains
+        optimus_config.allowed_chains = [chain.lower() for chain in allowed_chains]
+        optimus_config.target_investment_chains = [chain.lower() for chain in target_investment_chains]
     
     if optimus_config.allowed_chains is None:
         optimus_config.allowed_chains = DEFAULT_CHAINS.copy()
@@ -413,6 +416,7 @@ def configure_local_config() -> OptimusConfig:
             optimus_config.base_rpc = input("Please enter a Base RPC URL: ")
         elif chain == "mode" and optimus_config.mode_rpc is None:
             optimus_config.mode_rpc = input("Please enter a Mode RPC URL: ")
+    print()
 
     optimus_config.store()
     return optimus_config
@@ -662,7 +666,7 @@ def fetch_agent_fund_requirement(chain_id, rpc, fee_history_blocks: int = 500000
     return calculate_fund_requirement(rpc, fee_history_blocks, gas_amount)
 
 def fetch_operator_fund_requirement(chain_id, rpc, fee_history_blocks: int = 500000) -> int:
-    gas_amount = 10_000_000
+    gas_amount = 30_000_000
     return calculate_fund_requirement(rpc, fee_history_blocks, gas_amount)
 
 def main() -> None:
@@ -672,7 +676,6 @@ def main() -> None:
     print("This script will assist you in setting up and running the Optimus service.")
     print()
 
-    print_section("Set up local user account")
     operate = OperateApp(
         home=OPERATE_HOME,
     )
@@ -684,6 +687,7 @@ def main() -> None:
     service = get_service(manager, template)
 
     if operate.user_account is None:
+        print_section("Set up local user account")
         print("Creating a new local user account...")
         password = ask_confirm_password()
         UserAccount.new(
