@@ -367,7 +367,7 @@ def get_service_template(config: MemeooorrConfig) -> ServiceTemplate:
     """Get the service template"""
     return ServiceTemplate({
         "name": "Memeooorr",
-        "hash": "bafybeibtj4v7hzhiazilqn7iovil4tmbeddmqpudetn7rh6sn55clpoqei",
+        "hash": "bafybeihn5kkbntccrmycjhj5mhynsziymxr42gm4sya7urau4qmpvwcyim",
         "description": "Memeooorr",
         "image": "https://gateway.autonolas.tech/ipfs/QmQYDGMg8m91QQkTWSSmANs5tZwKrmvUCawXZfXVVWQPcu",
         "service_version": 'v0.0.1',
@@ -675,6 +675,7 @@ def main() -> None:
         "DB_PATH": "/logs/memeooorr.db",
         "TWIKIT_COOKIES_PATH": "/logs/twikit_cookies.json",
         "STAKING_TOKEN_CONTRACT_ADDRESS": STAKING[home_chain_type]["meme_alpha"],
+        "HOME_CHAIN_ID": home_chain_id.name
     }
     apply_env_vars(env_vars)
 
