@@ -71,7 +71,7 @@ WARNING_ICON = colored('\u26A0', 'yellow')
 OPERATE_HOME = Path.cwd() / ".optimus"
 DEFAULT_MIN_SWAP_AMOUNT_THRESHOLD = 15
 DEFAULT_CHAINS = ["Optimism","Base","Mode"]
-DEFAULT_STAKING_CHAIN = "mode"
+DEFAULT_STAKING_CHAIN = "Mode"
 DEFAULT_FEE_HISTORY_PERCENTILE = 50
 CHAIN_ID_TO_METADATA = {
     10: {
@@ -400,11 +400,14 @@ def configure_local_config() -> OptimusConfig:
                 if chain not in allowed_chains:
                         allowed_chains.append(chain)
         
+        allowed_chains = [chain.lower() for chain in allowed_chains]
+        target_investment_chains = [chain.lower() for chain in target_investment_chains]
+
         if optimus_config.principal_chain not in allowed_chains:
             allowed_chains.append(optimus_config.principal_chain)
 
-        optimus_config.allowed_chains = [chain.lower() for chain in allowed_chains]
-        optimus_config.target_investment_chains = [chain.lower() for chain in target_investment_chains]
+        optimus_config.allowed_chains = allowed_chains
+        optimus_config.target_investment_chains = target_investment_chains
     
     if optimus_config.allowed_chains is None:
         optimus_config.allowed_chains = [optimus_config.principal_chain]
