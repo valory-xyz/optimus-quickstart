@@ -1182,7 +1182,7 @@ class ServiceManager:
         self,
         hash: str,
         token: str,
-        token_symbol: str = "ETH", # nosec B107
+        token_symbol: Optional[str] = None, 
         token_decimal: int = 18,
         rpc: t.Optional[str] = None,
         agent_topup: t.Optional[float] = None,
@@ -1204,7 +1204,8 @@ class ServiceManager:
         agent_fund_threshold = (
             agent_fund_threshold if agent_fund_threshold is not None else chain_data.user_params.fund_requirements.agent
         )
-
+        token_symbol = token_symbol or "ETH"
+        
         for key in service.keys:
             agent_balance =  (
                 registry_contracts.erc20.get_instance(ledger_api, token)
