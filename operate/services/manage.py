@@ -1158,7 +1158,6 @@ class ServiceManager:
                         from_safe=from_safe,
                         rpc=rpc or ledger_config.rpc,
                     )
-                    
 
         safe_balance = ledger_api.get_balance(chain_data.multisig)
         safe_fund_treshold = (
@@ -1183,7 +1182,7 @@ class ServiceManager:
         self,
         hash: str,
         token: str,
-        token_symbol: str = "ETH",
+        token_symbol: str = "ETH", # nosec B107
         token_decimal: int = 18,
         rpc: t.Optional[str] = None,
         agent_topup: t.Optional[float] = None,
@@ -1371,12 +1370,12 @@ class ServiceManager:
         directories = [str(p) for p in self.path.iterdir() if p.is_dir()]
         self.logger.info(f"Directories in {self.path}: {', '.join(directories)}")
 
-    def _wei_to_unit(self, wei: int) -> float:
+    def _wei_to_unit(self, wei: int) -> float: # pylint: disable=R0201
         """Convert Wei to unit."""
         value = wei / 1e18
         return f"{value:.18f}"
-    
-    def _convert_to_token_units(self, amount: int, token_decimal: int = 18) -> str:
+
+    def _convert_to_token_units(self, amount: int, token_decimal: int = 18) -> str: # pylint: disable=R0201
         """Convert smallest unit to token's base unit."""
         value = amount / 10**token_decimal
         return f"{value:.{token_decimal}f}"

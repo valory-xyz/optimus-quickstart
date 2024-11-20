@@ -55,7 +55,7 @@ DEFAULT_RPCS = {
     ChainType.SOLANA: SOLANA_RPC,
     ChainType.OPTIMISM: OPTIMISM_RPC,
     ChainType.BASE: BASE_RPC,
-    ChainType.MODE: MODE_RPC
+    ChainType.MODE: MODE_RPC,
 }
 
 CHAIN_HELPERS: t.Dict[ChainType, t.Type[LedgerHelper]] = {
@@ -65,7 +65,7 @@ CHAIN_HELPERS: t.Dict[ChainType, t.Type[LedgerHelper]] = {
     ChainType.BASE: Ethereum,
     ChainType.OPTIMISM: Ethereum,
     ChainType.SOLANA: Solana,
-    ChainType.MODE: Ethereum
+    ChainType.MODE: Ethereum,
 }
 
 LEDGER_HELPERS: t.Dict[LedgerType, t.Type[LedgerHelper]] = {

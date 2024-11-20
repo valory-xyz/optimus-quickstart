@@ -43,7 +43,7 @@ _CHAIN_NAME_TO_ENUM = {
     "solana": 3,
     "optimism": 4,
     "base": 5,
-    "mode":6
+    "mode": 6,
 }
 
 _CHAIN_ID_TO_CHAIN_NAME = {
@@ -53,7 +53,7 @@ _CHAIN_ID_TO_CHAIN_NAME = {
     1399811149: "solana",
     10: "optimism",
     8453: "base",
-    34443: "mode"
+    34443: "mode",
 }
 
 _CHAIN_NAME_TO_ID = {val: key for key, val in _CHAIN_ID_TO_CHAIN_NAME.items()}
