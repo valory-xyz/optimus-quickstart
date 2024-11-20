@@ -6,7 +6,7 @@
 
 ## Olas Modius Agent: Functionality Overview
 
-Olas Modius is an autonomous trader that operates in the crypto echosystem on users' behalf. It requires minimum intervention by you as an end user--it is enough that you fund the agent with initial investment assets and let it run. Modius will intelligentely invest crypto assets in dexes on your behalf and grow your portfolio.
+Olas Modius is an autonomous trader that operates in the crypto echosystem on users' behalf. It requires minimum intervention by you as an end user--it is enough that you fund the agent with initial investment assets and let it run. Modius will intelligentely invest crypto assets in DEXs on your behalf and grow your portfolio.
 
 If you choose to run your Modius agent with staking, in addition to trading profits Modius will also accrue rewards in Olas.
 
