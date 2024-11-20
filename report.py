@@ -107,7 +107,7 @@ def generate_report():
                 try:
                     current_balance = Decimal(current_balance_str)
                     if current_balance < agent_threshold_eth:
-                        warning_msg = _warning_message(current_balance, agent_threshold_eth, f"Balance below threshold of {agent_threshold_eth:.2f} ETH")
+                        warning_msg = _warning_message(current_balance, agent_threshold_eth, f"Balance below threshold of {agent_threshold_eth:.5f} ETH")
                         _print_status("Warning", warning_msg)
                 except (ValueError, Exception):
                     print(f"Warning: Could not parse balance '{balance_formatted}' for chain '{chain_name}'.")
