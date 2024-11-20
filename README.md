@@ -41,14 +41,14 @@ Similar to its human user counterpart, Modius' time is divided in *epoch* days-p
 - Staking is currently in a testing phase, so the number of trader agents that can be staked is limited.
 - Within each staking period (24hrs) staking happens after the agent has reached its staking contract's KPIs. In the current agent's version, this takes approxiamtely 45 minutes of activity.
 - In case a service becomes inactive and remains so for more than 2 staking periods (approx. 48 hours), it faces temporary eviction from the staking program and ceases to accrue additional rewards.
-- The temporary eviction will last for a period of time such that, when added to the runtime of the agent from the last staking moment and onwards, sums up to 72 hours.
+  
 
 ## Minimal Funding Requirements
 
-For the initial setup you will need to fund your agent with assets for gas (to cover the costs of the transactions over the operating chains) and investment.
+For the initial setup you will need to provide your agent with assets for gas (to cover the costs of the transactions over the operating chains) and for investment funds.
 
-- Gas funds required for respectively Mode, Optimism, and Base are: X, Y, and Z **complete with nrs from Divya**. These quantities are based on the gas prices observed between Sept 2024 and Nov 2024 included, and may need to be revised. 
-- The investment fund suggested is of 20 USD and the primary chain is Mode.
+- Initial gas funds suggested for Mode, Optimism, and Base are respectively 0.00516 ETH, 0.0065 ETH, and 0.0013 ETH. These quantities are based on the gas prices observed between Sept 2024 and Nov 2024 included, and may need to be revised.
+- The investment fund suggested is of 20 USD (about 20 USDC at the time of the writing) and the primary investment chain is Mode.
 
 Additionally, if you choose to run your agent with staking, you will need 40 Olas bridged to Mode (or Optimism, if selected as staking chain).
 
