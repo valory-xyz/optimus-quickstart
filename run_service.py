@@ -367,7 +367,7 @@ def get_service_template(config: MemeooorrConfig) -> ServiceTemplate:
     """Get the service template"""
     return ServiceTemplate({
         "name": "Memeooorr",
-        "hash": "bafybeiafsw2gop4mdeghggr7ymnghhdqkccdi56cvvtf2ey7la6ltjjlaq",
+        "hash": "bafybeibtj4v7hzhiazilqn7iovil4tmbeddmqpudetn7rh6sn55clpoqei",
         "description": "Memeooorr",
         "image": "https://gateway.autonolas.tech/ipfs/QmQYDGMg8m91QQkTWSSmANs5tZwKrmvUCawXZfXVVWQPcu",
         "service_version": 'v0.0.1',
