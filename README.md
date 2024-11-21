@@ -104,7 +104,7 @@ Do you want to stake your service? (y/n):
 You will be asked for the corresponding RPC for your agent instance. Enter your Mode RPC of preference when you are be prompted with the following request: 
 
 ```bash
-Please enter an Mode RPC URL:
+Please enter a Mode RPC URL:
   ```
 
 
