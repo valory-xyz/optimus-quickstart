@@ -37,10 +37,22 @@ _ACTIONS = {
 
 
 _CHAIN_NAME_TO_ENUM = {
+    "ethereum": 0,
+    "goerli": 1,
+    "gnosis": 2,
+    "solana": 3,
+    "optimism": 4,
+    "base": 5,
     "mode": 6,
 }
 
 _CHAIN_ID_TO_CHAIN_NAME = {
+    1: "ethereum",
+    5: "goerli",
+    100: "gnosis",
+    1399811149: "solana",
+    10: "optimism",
+    8453: "base",
     34443: "mode",
 }
 
@@ -76,7 +88,13 @@ class LedgerType(enum.IntEnum):
 
 class ChainType(enum.IntEnum):
     """Chain type enum."""
-    
+
+    ETHEREUM = 0
+    GOERLI = 1
+    GNOSIS = 2
+    SOLANA = 3
+    OPTIMISM = 4
+    BASE = 5
     MODE = 6
 
     @property

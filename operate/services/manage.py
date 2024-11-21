@@ -1008,7 +1008,7 @@ class ServiceManager:
         self.logger.info(f"{staking_slots_available=}")
         self.logger.info(f"{on_chain_state=}")
         self.logger.info(f"{current_staking_program=}")
-        self.logger.info(f"{target_staking_program=}")
+        self.logger.info(f"modius_{target_staking_program=}")
 
         if (
             chain_config.chain_data.user_params.use_staking
@@ -1039,7 +1039,7 @@ class ServiceManager:
         current_staking_program = self._get_current_staking_program(
             chain_data, ledger_config, sftxb
         )
-        self.logger.info(f"{target_staking_program=}")
+        self.logger.info(f"modius_{target_staking_program=}")
         self.logger.info(f"{current_staking_program=}")
 
     def unstake_service_on_chain(self, hash: str) -> None:

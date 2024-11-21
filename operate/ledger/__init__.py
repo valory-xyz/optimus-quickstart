@@ -28,17 +28,43 @@ from operate.ledger.solana import Solana
 from operate.types import ChainType, LedgerType
 
 
+ETHEREUM_PUBLIC_RPC = os.environ.get("DEV_RPC", "https://ethereum.publicnode.com")
+GNOSIS_PUBLIC_RPC = os.environ.get("DEV_RPC", "https://gnosis-rpc.publicnode.com")
+GOERLI_PUBLIC_RPC = os.environ.get("DEV_RPC", "https://ethereum-goerli.publicnode.com")
+SOLANA_PUBLIC_RPC = os.environ.get("DEV_RPC", "https://api.mainnet-beta.solana.com")
+
+ETHEREUM_RPC = os.environ.get("ETHEREUM_RPC", "https://ethereum.publicnode.com")
+GNOSIS_RPC = os.environ.get("DEV_RPC", "https://rpc-gate.autonolas.tech/gnosis-rpc/")
+GOERLI_RPC = os.environ.get("DEV_RPC", "https://ethereum-goerli.publicnode.com")
+SOLANA_RPC = os.environ.get("DEV_RPC", "https://api.mainnet-beta.solana.com")
+OPTIMISM_RPC = os.environ.get("OPTIMISM_RPC", "https://optimism-rpc.publicnode.com")
+BASE_RPC = os.environ.get("BASE_RPC", "https://base-rpc.publicnode.com")
 MODE_RPC = os.environ.get("MODE_RPC", "https://mainnet.mode.network/")
 
 PUBLIC_RPCS = {
-    ChainType.MODE: MODE_RPC
+    ChainType.ETHEREUM: ETHEREUM_PUBLIC_RPC,
+    ChainType.GNOSIS: GNOSIS_PUBLIC_RPC,
+    ChainType.GOERLI: GOERLI_PUBLIC_RPC,
+    ChainType.SOLANA: SOLANA_PUBLIC_RPC,
 }
 
 DEFAULT_RPCS = {
+    ChainType.ETHEREUM: ETHEREUM_RPC,
+    ChainType.GNOSIS: GNOSIS_RPC,
+    ChainType.GOERLI: GOERLI_RPC,
+    ChainType.SOLANA: SOLANA_RPC,
+    ChainType.OPTIMISM: OPTIMISM_RPC,
+    ChainType.BASE: BASE_RPC,
     ChainType.MODE: MODE_RPC,
 }
 
 CHAIN_HELPERS: t.Dict[ChainType, t.Type[LedgerHelper]] = {
+    ChainType.ETHEREUM: Ethereum,
+    ChainType.GNOSIS: Ethereum,
+    ChainType.GOERLI: Ethereum,
+    ChainType.BASE: Ethereum,
+    ChainType.OPTIMISM: Ethereum,
+    ChainType.SOLANA: Solana,
     ChainType.MODE: Ethereum,
 }
 
@@ -48,17 +74,21 @@ LEDGER_HELPERS: t.Dict[LedgerType, t.Type[LedgerHelper]] = {
 }
 
 CURRENCY_DENOMS = {
-    ChainType.MODE: "Wei",
+    ChainType.ETHEREUM: "Wei",
+    ChainType.GNOSIS: "xDai",
+    ChainType.GOERLI: "GWei",
+    ChainType.SOLANA: "Lamp",
 }
+
 
 def get_default_rpc(chain: ChainType) -> str:
     """Get default RPC chain type."""
-    return DEFAULT_RPCS.get(chain, MODE_RPC)
+    return DEFAULT_RPCS.get(chain, ETHEREUM_RPC)
 
 
 def get_ledger_type_from_chain_type(chain: ChainType) -> LedgerType:
     """Get LedgerType from ChainType."""
-    if chain in (ChainType.MODE):
+    if chain in (ChainType.ETHEREUM, ChainType.GOERLI, ChainType.GNOSIS):
         return LedgerType.ETHEREUM
     return LedgerType.SOLANA
 

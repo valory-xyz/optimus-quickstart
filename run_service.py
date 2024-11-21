@@ -17,7 +17,8 @@
 #
 # ------------------------------------------------------------------------------
 """Olas Modius Quickstart script."""
-
+import warnings
+warnings.filterwarnings("ignore", category=UserWarning)
 import getpass
 import json
 import os
@@ -65,7 +66,7 @@ STAKED_BONDING_TOKEN = "OLAS"
 FALLBACK_INVESTMENT_FUNDS_REQUIREMENT = {"USDC": 18_000_000, "ETH": 7_000_000_000_000_000}
 USDC_ADDRESS = "0xd988097fb8612cc24eeC14542bC03424c656005f"
 WARNING_ICON = colored('\u26A0', 'yellow')
-OPERATE_HOME = Path.cwd() / ".optimus"
+OPERATE_HOME = Path.cwd() / ".olas-modius"
 DEFAULT_MIN_SWAP_AMOUNT_THRESHOLD = 15
 DEFAULT_STAKING_CHAIN = "mode"
 DEFAULT_FEE_HISTORY_PERCENTILE = 50
@@ -279,8 +280,8 @@ def configure_local_config() -> OptimusConfig:
     else:
         optimus_config = OptimusConfig(path)
 
-    print_section("Tenderly API Configuration and Price Data Source")
     if optimus_config.tenderly_access_key is None:
+        print_section("Tenderly API Configuration and Price Data Source")
         optimus_config.tenderly_access_key = input(
             "Please enter your Tenderly API Key. Get one at https://dashboard.tenderly.co/: "
         )
@@ -299,10 +300,10 @@ def configure_local_config() -> OptimusConfig:
         optimus_config.coingecko_api_key = input(
             "Please enter your CoinGecko API Key. Get one at https://www.coingecko.com/: "
         )
-    print()
+        print()
 
-    print_section("Minimum Investment") 
     if optimus_config.min_swap_amount_threshold is None:
+        print_section("Minimum Investment") 
         print(f"The minimum investment amount is {DEFAULT_MIN_SWAP_AMOUNT_THRESHOLD} USD on both USDC and ETH Tokens")
         update_min_swap = input("Do you want to increase the minimum investment amount? (y/n): ").lower() == 'y'
         if update_min_swap:
@@ -322,13 +323,13 @@ def configure_local_config() -> OptimusConfig:
                     print(f"Error: The minimum investment amount must be at least {DEFAULT_MIN_SWAP_AMOUNT_THRESHOLD} USD.")
         else:
             optimus_config.min_swap_amount_threshold = str(DEFAULT_MIN_SWAP_AMOUNT_THRESHOLD)
-    print()
+        print()
 
-    print_section("Staking") 
     if optimus_config.password_migrated is None:
         optimus_config.password_migrated = False
 
     if optimus_config.use_staking is None:
+        print_section("Staking") 
         optimus_config.use_staking = input("Do you want to stake your service? (y/n): ").lower() == 'y'
 
     if optimus_config.staking_chain is None:
@@ -345,17 +346,19 @@ def configure_local_config() -> OptimusConfig:
                 "ETH": 0
             }
         }
-    print()
+        print()
     
-    print_section("Chain RPC")
     if optimus_config.allowed_chains is None:
         optimus_config.allowed_chains = [optimus_config.principal_chain]
     
     if optimus_config.target_investment_chains is None:
         optimus_config.target_investment_chains = [optimus_config.principal_chain]
 
-    optimus_config.mode_rpc = input("Please enter a Mode RPC URL: ")
-    print()
+    if optimus_config.mode_rpc is None:
+        print_section("Chain RPC")
+        optimus_config.mode_rpc = input("Please enter a Mode RPC URL: ")
+
+        print()
 
     optimus_config.store()
     return optimus_config
@@ -782,8 +785,8 @@ def main() -> None:
 
         manager.fund_service(hash=service.hash, chain_id=chain_id, safe_fund_treshold=safe_fund_threshold, safe_topup=safe_topup, agent_fund_threshold=agent_fund_requirement, agent_topup=agent_fund_requirement)
 
-        usdc_balance = get_erc20_balance(ledger_api, USDC_ADDRESS, address) if usdc_investment_fund_requirement else 0
-        if usdc_balance > 0:
+        usdc_balance = get_erc20_balance(ledger_api, USDC_ADDRESS, address)
+        if usdc_investment_fund_requirement > 0:
             # transfer all the usdc balance into the service safe
             manager.fund_service_erc20(
                 hash=service.hash,
@@ -794,7 +797,7 @@ def main() -> None:
                 safe_topup=usdc_balance,
                 agent_topup=0,
                 agent_fund_threshold=0,
-                safe_fund_treshold=usdc_investment_fund_requirement + usdc_balance,
+                safe_fund_treshold=usdc_investment_fund_requirement,
             )
 
 

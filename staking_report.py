@@ -1,4 +1,6 @@
 # staking_report.py
+import warnings
+warnings.filterwarnings("ignore", category=UserWarning)
 import json
 import math
 from pathlib import Path
@@ -112,7 +114,7 @@ def staking_report(config: dict) -> None:
         is_staked = staking_state in (StakingState.STAKED, StakingState.EVICTED)
         _print_status("Is service staked?", _color_bool(is_staked, "Yes", "No"))
         if is_staked:
-            _print_status("Staking program",(str(staking_program_id) + " " +str(home_chain_type).rsplit('.', maxsplit=1)[-1]))
+            _print_status("Staking program",("modius_"+ str(staking_program_id) + " " +str(home_chain_type).rsplit('.', maxsplit=1)[-1]))
             _print_status("Staking state", staking_state.name if staking_state == StakingState.STAKED else _color_string(staking_state.name, ColorCode.RED))
 
             # Activity Checker

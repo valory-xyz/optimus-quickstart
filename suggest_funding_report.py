@@ -1,3 +1,6 @@
+import warnings
+warnings.filterwarnings("ignore", category=UserWarning)
+
 import json
 from datetime import datetime
 import logging
@@ -24,7 +27,7 @@ from wallet_info import save_wallet_info, load_config as load_wallet_config
 
 # Set decimal precision
 getcontext().prec = 18
-GAS_COSTS_JSON_PATH = Path(".optimus") / "gas_costs.json"
+GAS_COSTS_JSON_PATH = OPERATE_HOME / "gas_costs.json"
 FUNDING_MULTIPLIER = Decimal(10)
 ROUNDING_PRECISION = Decimal('0.0001')
 MIN_TRANSACTIONS_SUPPORTED = 5

@@ -47,4 +47,4 @@ leak_report
 
 # logs
 *.log
-/.optimus/
+/.olas-modius/
