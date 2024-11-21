@@ -48,8 +48,6 @@ def load_wallet_info():
 
 def get_chain_rpc(optimus_config, chain_name):
     chain_name_to_rpc = {
-        'optimism': optimus_config.optimism_rpc,
-        'base': optimus_config.base_rpc,
         'mode': optimus_config.mode_rpc
     }
     return chain_name_to_rpc.get(chain_name.lower())
