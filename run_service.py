@@ -337,7 +337,7 @@ def configure_local_config() -> OptimusConfig:
             optimus_config.staking_chain = DEFAULT_STAKING_CHAIN
 
     if optimus_config.principal_chain is None:
-        optimus_config.principal_chain = optimus_config.staking_chain
+        optimus_config.principal_chain = DEFAULT_STAKING_CHAIN
 
     if optimus_config.investment_funding_requirements is None:
         optimus_config.investment_funding_requirements = {
@@ -394,7 +394,7 @@ def get_service_template(config: OptimusConfig) -> ServiceTemplate:
     home_chain_id = "34443"
     return ServiceTemplate({
         "name": "Optimus",
-        "hash": "bafybeicsbfw2g6gp3fyp434qgqjcy6gwe4fgz4kjhgg4gy5bb7lpt5w6n4",
+        "hash": "bafybeifokbnipvf4epclritybmfjteqpyqhdhtyrol65j75qq5cv47he2m",
 
         "description": "Optimus",
         "image": "https://gateway.autonolas.tech/ipfs/bafybeiaakdeconw7j5z76fgghfdjmsr6tzejotxcwnvmp3nroaw3glgyve",
