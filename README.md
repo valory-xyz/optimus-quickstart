@@ -8,24 +8,7 @@
 
 Olas Modius is an autonomous trader that operates in the crypto echosystem on users' behalf. It requires minimum intervention by you as an end user--it is enough that you fund the agent with initial investment assets and let it run. Modius will intelligentely invest crypto assets in DEXs on your behalf and grow your portfolio.
 
-If you choose to run your Modius agent with staking, in addition to trading profits Modius will also accrue rewards in Olas.
-
-**Supported Chains:**
-Olas Modius currently operates trading-wise on the following chains:
-- Mode
-- Optimism
-- Base
-
-By default, the agent will be active on Mode. But, its activity could be directed to any subset of the three chains available, should the user to choose so during runtime. This setting can be subsequently changed by the user in a successive run. 
-
-
-**Supported DEXs:**
-Modius trades on the following decentralized exchanges (DEXs):
-- Balancer
-- Uniswap
-
-**Running with staking**
-When run with staking, Modius will be staked by default on Mode. The user can choose to stake the agent on Optimism instead, during the first run. 
+Modius trades on Balancer over the Mode chain. If you choose to run your Modius agent with staking, in addition to trading profits Modius will also accrue rewards in Olas.
 
 
 **Operational Process:**
@@ -33,7 +16,7 @@ Similar to its human user counterpart, Modius' time is divided in *epoch* days-p
 
 1. **Identifies trading opportunities** in investment pools advertised through campaigns on the Merkl platform across the supported DEXs.
 2. **Grabs the most interesting one and invests in it:** Starts off by picking the most convenient investment pool amongst the ones with Annual Percentage Rate (APR) higher than 5%. Switches from one investment pool to another when the corresponding APR exceeds that of the previous investment.    
-3. **Tracks transactions on the staking chain to accrue Olas staking rewards:** Transactions on the staking chain serve as key performance indicators (KPIs) for Olas Staking Rewards; in order to collect the corresponding rewards within each epoch, Modius needs to perform a well defined (as per the staking contract) number of them.
+3. **Tracks transactions on the staking chain to accrue Olas staking rewards:** Transactions on Mode serve as key performance indicators (KPIs) for Olas Staking Rewards; in order to collect the corresponding rewards within each epoch, Modius needs to perform a well defined (as per the staking contract) number of them.
 
 
 #### Notes:
@@ -45,12 +28,12 @@ Similar to its human user counterpart, Modius' time is divided in *epoch* days-p
 
 ## Minimal Funding Requirements
 
-For the initial setup you will need to provide your agent with assets for gas (to cover the costs of the transactions over the operating chains) and for investment funds.
+For the initial setup you will need to provide your agent with assets for gas (to cover the costs of the transactions over the operating chain) and for investment funds.
 
-- Initial gas funds suggested for Mode, Optimism, and Base are respectively 0.00516 ETH, 0.0065 ETH, and 0.0013 ETH. These quantities are based on the gas prices observed between Sept 2024 and Nov 2024 included, and may need to be revised.
-- The investment fund suggested is of 20 USD (about 20 USDC at the time of the writing) and the primary investment chain is Mode.
+- The initial gas funds amount suggested for Mode is 0.00516 ETH--based on the gas prices observed between Sept 2024 and Nov 2024 included, and may need to be revised.
+- The investment fund suggested is of 20 USD (about 20 USDC at the time of the writing).
 
-Additionally, if you choose to run your agent with staking, you will need 40 Olas bridged to Mode (or Optimism, if selected as staking chain).
+Additionally, if you choose to run your agent with staking, you will need a total of 40 Olas bridged to Mode.
 
 
 ## Compatible Systems
@@ -108,29 +91,17 @@ The minimum investment amount is 15 USD on both USDC and ETH Tokens
 Do you want to increase the minimum investment amount? (y/n):
 ```
 
-## Staking
+**Staking**
 
-The agent will need your answer on staking. If you plan to run it as a non staking agent, please answer _n_ to the question below. Otherwise, please answer _y_ and, consequently when prompted, select the staking chain.
-
- fund your agent with the required number of bridged Olas in the target staking chain.
+The agent will need your answer on staking. If you plan to run it as a non staking agent, please answer _n_ to the question below. Otherwise, please answer _y_ and, consequently when prompted, fund your agent with the required number of bridged Olas in the target staking chain.
 
 ```bash
-Do you want to stake your service? (y/n): y
-Possible staking chains are Mode and Optimism, with Mode being the default setting.
-Do you want to switch such setting to Optimism (y/n)?: 
+Do you want to stake your service? (y/n):
 ```
 
-## Investment Activity Chains & RPCs
+**Investment Activity Chain RPC**
 
-Finally, you will be asked to confirm the default setting with regards to the investment activity chain (Mode). You can also decide to expand the agent's activity to a subset of available chains of your choice. This setting can be subsequently changed in future runs. 
-
-```bash
-All available chains for liquidity pool opportunities: Optimism, Base, Mode
-Current setting for liquidity pool opportunities--Chains: Mode
-Do you want to expand/restrict the agent’s operability in terms of investment chains (y/n):
-```
-
-In accordance with your previous choice, you will be asked for the corresponding RPCs for your agent instance. E.g., in case you confirm Mode as the only active chain for investment opportunities, you will be prompted with the following request: 
+You will be asked for the corresponding RPC for your agent instance. Enter your Mode RPC of preference when you are be prompted with the following request: 
 
 ```bash
 Please enter an Mode RPC URL:
@@ -159,7 +130,7 @@ Finally, when prompted, send the corresponding funds for gas and investment to t
 Once the ./run_service.sh has completed, i.e. the service is running, you can check out the live logs of your Modius agent with:
 
 ```bash
-docker logs optimus_abci_0 --follow
+docker logs modius_abci_0 --follow
 ```
 
 To inspect the tree state transition of the current run of your agent run:
@@ -171,7 +142,7 @@ poetry run autonomy analyse logs --from-dir .optimus/services/[service-hash]/dep
 where `[service-hash]` is the onchain representation of the agent code that you're running. You can get such hash through the following `ls` command:
 
 ```bash
-ls .optimus/services
+ls .modius/services
 ```
 
 
@@ -231,8 +202,6 @@ Then run again your service with:
 ### Release v0.2.9???
 Introduces Olas Modius
 - Added Mode as default chain for staking and as primary chain for investment funds
-- Added feature to opt for Optimism
-- Added feature to restrict/expand activities onto selected chains
 - Removed Eth Mainnet from the pool of selectable chains due to gas costs
 - Added bridging to support Mode
 - Added investment strategy targeting Balancer investment pools on Mode
