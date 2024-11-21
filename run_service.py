@@ -16,7 +16,7 @@
 #   limitations under the License.
 #
 # ------------------------------------------------------------------------------
-"""Optimus Quickstart script."""
+"""Olas Modius Quickstart script."""
 
 import getpass
 import json
@@ -578,8 +578,8 @@ def fetch_operator_fund_requirement(chain_id, rpc, fee_history_blocks: int = 500
 def main() -> None:
     """Run service."""
 
-    print_title("Optimus Quickstart")
-    print("This script will assist you in setting up and running the Optimus service.")
+    print_title("Olas Modius Quickstart")
+    print("This script will assist you in setting up and running the olas modius service.")
     print()
 
     operate = OperateApp(
@@ -809,7 +809,7 @@ def main() -> None:
     activity_checker_dict = {
         "mode": "0x07bc3C23DbebEfBF866Ca7dD9fAA3b7356116164"
     }
-    initial_assets = {optimus_config.principal_chain: {ZERO_ADDRESS: "ETH", USDC_ADDRESS[optimus_config.principal_chain]: "USDC"}}
+    initial_assets = {optimus_config.principal_chain: {ZERO_ADDRESS: "ETH", USDC_ADDRESS: "USDC"}}
     env_vars = {
         "SAFE_CONTRACT_ADDRESSES": json.dumps(safes, separators=(',', ':')),
         "TENDERLY_ACCESS_KEY": optimus_config.tenderly_access_key,

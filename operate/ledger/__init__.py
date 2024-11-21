@@ -30,6 +30,10 @@ from operate.types import ChainType, LedgerType
 
 MODE_RPC = os.environ.get("MODE_RPC", "https://mainnet.mode.network/")
 
+PUBLIC_RPCS = {
+    ChainType.MODE: MODE_RPC
+}
+
 DEFAULT_RPCS = {
     ChainType.MODE: MODE_RPC,
 }

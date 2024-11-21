@@ -16,7 +16,7 @@
 #   limitations under the License.
 #
 # ------------------------------------------------------------------------------
-"""Optimus Quickstart script."""
+"""Olas Modius Quickstart script."""
 
 import sys
 
@@ -29,7 +29,7 @@ from run_service import (
 def main() -> None:
     """Run service."""
 
-    print_title("Stop Optimus Quickstart")
+    print_title("Stop Olas Modius Quickstart")
 
     operate = OperateApp(
         home=OPERATE_HOME,

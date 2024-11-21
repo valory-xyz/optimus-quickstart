@@ -69,8 +69,7 @@ def get_balance(web3, address):
 
 def get_usdc_balance(web3, address, chain_name):
     try:
-        usdc_address = USDC_ADDRESS[chain_name]
-        usdc_contract = web3.eth.contract(address=usdc_address, abi=USDC_ABI)
+        usdc_contract = web3.eth.contract(address=USDC_ADDRESS, abi=USDC_ABI)
         balance = usdc_contract.functions.balanceOf(address).call()
         return Decimal(balance) / Decimal(1e6)  # USDC has 6 decimal places
     except Exception as e:

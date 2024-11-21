@@ -77,7 +77,7 @@ def generate_report():
         # Service Report Header
         print("")
         print("==============")
-        print("Optimus Service Report")
+        print("Olas Modius Service Report")
         print("Generated on: ", datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
         print("==============")
 
