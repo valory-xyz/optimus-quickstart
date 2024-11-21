@@ -130,19 +130,19 @@ Finally, when prompted, send the corresponding funds for gas and investment to t
 Once the ./run_service.sh has completed, i.e. the service is running, you can check out the live logs of your Modius agent with:
 
 ```bash
-docker logs modius_abci_0 --follow
+docker logs optimus_abci_0 --follow
 ```
 
 To inspect the tree state transition of the current run of your agent run:
 
 ```bash
-poetry run autonomy analyse logs --from-dir .optimus/services/[service-hash]/deployment/persistent_data/logs/
+poetry run autonomy analyse logs --from-dir .olas-modius/services/[service-hash]/deployment/persistent_data/logs/
   --agent aea_0 --fsm --reset-db
 ```
 where `[service-hash]` is the onchain representation of the agent code that you're running. You can get such hash through the following `ls` command:
 
 ```bash
-ls .modius/services
+ls .olas-modius/services
 ```
 
 
