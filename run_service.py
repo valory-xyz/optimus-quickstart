@@ -322,7 +322,7 @@ def get_local_config() -> MemeooorrConfig:
     if memeooorr_config.twikit_username is None:
         twikit_username = input("Please enter the Twitter username for Memeooorr's account: ")
         twikit_username = twikit_username[1:] if twikit_username.startswith("@") else twikit_username
-    memeooorr_config.twikit_username = twikit_username
+        memeooorr_config.twikit_username = twikit_username
 
     if memeooorr_config.twikit_email is None:
         memeooorr_config.twikit_email = input("Please enter the Twitter email for Memeooorr's account: ")
