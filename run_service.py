@@ -320,7 +320,9 @@ def get_local_config() -> MemeooorrConfig:
         memeooorr_config.gemini_api_key = input("Please enter the gemini API key for Memeooorr's account: ")
 
     if memeooorr_config.twikit_username is None:
-        memeooorr_config.twikit_username = input("Please enter the Twitter username for Memeooorr's account: ")
+        twikit_username = input("Please enter the Twitter username for Memeooorr's account: ")
+        twikit_username = twikit_username[1:] if twikit_username.startswith("@") else twikit_username
+    memeooorr_config.twikit_username = twikit_username
 
     if memeooorr_config.twikit_email is None:
         memeooorr_config.twikit_email = input("Please enter the Twitter email for Memeooorr's account: ")
@@ -368,7 +370,7 @@ def get_service_template(config: MemeooorrConfig) -> ServiceTemplate:
     return ServiceTemplate({
         "name": "Memeooorr",
         "hash": "bafybeihn5kkbntccrmycjhj5mhynsziymxr42gm4sya7urau4qmpvwcyim",
-        "description": "Memeooorr",
+        "description": f"Memeooorr @{config.twikit_username}",
         "image": "https://gateway.autonolas.tech/ipfs/QmQYDGMg8m91QQkTWSSmANs5tZwKrmvUCawXZfXVVWQPcu",
         "service_version": 'v0.0.1',
         "home_chain_id": str(config.home_chain_id),
