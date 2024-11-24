@@ -578,7 +578,6 @@ def main() -> None:
         spinner.start()
 
         while ledger_api.get_balance(wallet.crypto.address) < required_balance:
-            print(f"balance for wallet.crypto.address{ledger_api.get_balance(wallet.crypto.address)}")
             time.sleep(1)
 
         spinner.succeed(f"[{chain_name}] Main wallet updated balance: {wei_to_token(ledger_api.get_balance(wallet.crypto.address), token)}.")
