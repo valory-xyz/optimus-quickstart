@@ -677,7 +677,7 @@ def main() -> None:
         "DB_PATH": "/logs/memeooorr.db",
         "TWIKIT_COOKIES_PATH": "/logs/twikit_cookies.json",
         "STAKING_TOKEN_CONTRACT_ADDRESS": STAKING[home_chain_type]["meme_alpha"],
-        "HOME_CHAIN_ID": home_chain_id.name
+        "HOME_CHAIN_ID": home_chain_id
     }
     apply_env_vars(env_vars)
 
