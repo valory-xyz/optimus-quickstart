@@ -578,6 +578,7 @@ def main() -> None:
         spinner.start()
 
         while ledger_api.get_balance(wallet.crypto.address) < required_balance:
+            print(f"balance for wallet.crypto.address{ledger_api.get_balance(wallet.crypto.address)}")
             time.sleep(1)
 
         spinner.succeed(f"[{chain_name}] Main wallet updated balance: {wei_to_token(ledger_api.get_balance(wallet.crypto.address), token)}.")
@@ -677,7 +678,7 @@ def main() -> None:
         "DB_PATH": "/logs/memeooorr.db",
         "TWIKIT_COOKIES_PATH": "/logs/twikit_cookies.json",
         "STAKING_TOKEN_CONTRACT_ADDRESS": STAKING[home_chain_type]["meme_alpha"],
-        "HOME_CHAIN_ID": home_chain_id.name
+        "HOME_CHAIN_ID": home_chain_id
     }
     apply_env_vars(env_vars)
 
