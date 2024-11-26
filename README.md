@@ -116,6 +116,13 @@ Then continue above with "Run the script".
 
 ...
 
+## Advice for Mac users
+
+In Docker Desktop make sure that in `Settings -> Advanced` the following boxes are ticked
+
+![Docker Desktop settings](images/docker.png)
+
+
 ## Advice for Windows users on installing Windows Subsystem for Linux version 2 (WSL2)
 
 1. Open a **Command Prompt** terminal as an Administrator.
