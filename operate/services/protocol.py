@@ -83,6 +83,11 @@ from operate.wallet.master import MasterWallet
 ETHEREUM_ERC20 = "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE"
 
 
+def _format_duration(seconds: float) -> str:
+    seconds = int(seconds)
+    return f"{seconds // 86400}d {seconds % 86400 // 3600}h {seconds % 3600 // 60}m"
+
+
 class StakingState(Enum):
     """Staking state enumeration for the staking."""
 
@@ -409,7 +414,11 @@ class StakingManager(OnChainHelper):
         )
         staked_duration = time.time() - ts_start
         if staked_duration < minimum_staking_duration and available_rewards > 0:
-            raise ValueError("Service cannot be unstaked yet.")
+            message = f"Service cannot be unstaked yet:\n\
+                Staked duration: {_format_duration(staked_duration)}\n\
+                Minimum staking duration: {_format_duration(minimum_staking_duration)}."
+            print(message)
+            raise ValueError(message)
 
     def unstake(self, service_id: int, staking_contract: str) -> None:
         """Unstake the service"""

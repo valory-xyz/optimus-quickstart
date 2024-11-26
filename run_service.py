@@ -18,6 +18,7 @@
 # ------------------------------------------------------------------------------
 """Meme-ooorr Quickstart script."""
 
+import argparse
 import getpass
 import json
 import os
@@ -494,6 +495,15 @@ def fetch_token_price(url: str, headers: dict) -> t.Optional[float]:
 def main() -> None:
     """Run service."""
 
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        '--terminate', 
+        action='store_true', 
+        help='Set this flag to terminate the process'
+    )
+
+    args = parser.parse_args()
+
     print_title("Memeooorr Quickstart")
     print("This script will assist you in setting up and running the Memeooorr service.")
     print()
@@ -545,6 +555,11 @@ def main() -> None:
         wallet = operate.wallet_manager.load(ledger_type=LedgerType.ETHEREUM)
 
     manager = operate.service_manager()
+
+    if args.terminate:
+        print_section("Terminating on-chain service")
+        manager._terminate_service_on_chain_from_safe(service.hash, service.home_chain_id)
+        return
 
     # Iterate the chain configs
     for chain_id, configuration in service.chain_configs.items():
