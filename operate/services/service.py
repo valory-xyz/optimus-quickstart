@@ -470,19 +470,27 @@ class Deployment(LocalResource):
             (build / volume).mkdir(exist_ok=True)
             _volumes.append(f"./{volume}:{mount}:Z")
 
-        for node in deployment["services"]:
-            if "abci" in node:
-                deployment["services"][node]["volumes"].extend(_volumes)
-                if (
-                    "SKILL_TRADER_ABCI_MODELS_PARAMS_ARGS_MECH_REQUEST_PRICE=0"
-                    in deployment["services"][node]["environment"]
-                ):
-                    deployment["services"][node]["environment"].remove(
-                        "SKILL_TRADER_ABCI_MODELS_PARAMS_ARGS_MECH_REQUEST_PRICE=0"
-                    )
-                    deployment["services"][node]["environment"].append(
-                        "SKILL_TRADER_ABCI_MODELS_PARAMS_ARGS_MECH_REQUEST_PRICE=10000000000000000"
-                    )
+        # for node in deployment["services"]:
+        #     if "abci" in node:
+        #         deployment["services"][node]["volumes"].extend(_volumes)
+        #         if (
+        #             "SKILL_TRADER_ABCI_MODELS_PARAMS_ARGS_MECH_REQUEST_PRICE=0"
+        #             in deployment["services"][node]["environment"]
+        #         ):
+        #             deployment["services"][node]["environment"].remove(
+        #                 "SKILL_TRADER_ABCI_MODELS_PARAMS_ARGS_MECH_REQUEST_PRICE=0"
+        #             )
+        #             deployment["services"][node]["environment"].append(
+        #                 "SKILL_TRADER_ABCI_MODELS_PARAMS_ARGS_MECH_REQUEST_PRICE=10000000000000000"
+        #             )
+
+        for service_name, service_data in deployment['services'].items():
+            if 'abci' in service_name:
+                # Access the volumes list in this service
+                volumes = service_data.get('volumes', [])
+                # Remove './data:/data:Z' if it's in the volumes list
+                if './data:/data:Z' in volumes:
+                    volumes.remove('./data:/data:Z')
 
         with (build / DOCKER_COMPOSE_YAML).open("w", encoding="utf-8") as stream:
             yaml_dump(data=deployment, stream=stream)
