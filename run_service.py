@@ -370,7 +370,7 @@ def get_service_template(config: MemeooorrConfig) -> ServiceTemplate:
     """Get the service template"""
     return ServiceTemplate({
         "name": "Memeooorr",
-        "hash": "bafybeibr57hvmbver4i4ev2tdzqesrmuv3nh46dcopumrrh7x7j2ej7jeu",
+        "hash": "bafybeiaechus7hayvypocxj7jweoheiubvsxi4bmvtwaycydaghtm5sq3i",
         "description": f"Memeooorr @{config.twikit_username}",
         "image": "https://gateway.autonolas.tech/ipfs/QmQYDGMg8m91QQkTWSSmANs5tZwKrmvUCawXZfXVVWQPcu",
         "service_version": 'v0.0.1',
@@ -686,7 +686,7 @@ def main() -> None:
         "GENAI_API_KEY": memeooorr_config.gemini_api_key,
         "MIN_FEEDBACK_REPLIES": memeooorr_config.min_feedback_replies,
         "PERSONA": memeooorr_config.persona,
-        "RESET_PAUSE_DURATION": 10,
+        "RESET_PAUSE_DURATION": 3600,
         "MEME_FACTORY_ADDRESS": MEME_FACTORY_BASE,
         "MINIMUM_GAS_BALANCE": 0.02,
         "DB_PATH": "/logs/memeooorr.db",
