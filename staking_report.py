@@ -49,7 +49,6 @@ SERVICE_REGISTRY_TOKEN_UTILITY_JSON_PATH = SCRIPT_PATH / "contracts" / "ServiceR
 def staking_report(config: dict) -> None:
     try:
         _print_section_header("Performance")
-        _print_subsection_header("Staking")
         operator_address = load_operator_safe_balance(OPERATE_HOME)
         if not operator_address:
             print("Error: Operator address could not be loaded.")
@@ -64,9 +63,9 @@ def staking_report(config: dict) -> None:
             None
         )
         if not chain_data:
-            print("No staking configuration found where 'use_staking' is true.")
             return
 
+        _print_subsection_header("Staking")
         rpc = chain_data.get("ledger_config", {}).get("rpc")
         if not rpc:
             print("Error: RPC endpoint not found in ledger configuration.")
