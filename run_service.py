@@ -36,7 +36,7 @@ from dotenv import load_dotenv
 from halo import Halo
 from termcolor import colored
 from web3 import Web3
-from scripts.twitter_verify import get_twitter_cookies
+from scripts.twitter_verify import get_twitter_cookies, validate_twitter_credentials
 from operate.account.user import UserAccount
 from operate.cli import OperateApp
 from operate.ledger.profiles import CONTRACTS, STAKING, OLAS
@@ -66,7 +66,8 @@ COST_OF_BOND = 1
 COST_OF_STAKING = 10 ** 20 # 100 OLAS
 COST_OF_BOND_STAKING = 5 * 10 ** 19 # 50 OLAS
 WARNING_ICON = colored('\u26A0', 'yellow')
-OPERATE_HOME = Path.cwd() / ".memeooorr"
+REPO_ROOT = Path(__file__).resolve().parent
+OPERATE_HOME = REPO_ROOT / ".memeooorr"
 
 MEME_FACTORY_BASE = "0x42156841253f428cb644ea1230d4fddfb70f8891"
 MEME_FACTORY_FORK = "0x1Aa15a8A751c601BbE31390dbb8711013BFD013d"
@@ -291,6 +292,7 @@ def input_select_chain(options: t.List[ChainType]):
 def get_local_config() -> MemeooorrConfig:
     """Get local memeooorr configuration."""
     path = OPERATE_HOME / "local_config.json"
+
     if path.exists():
         memeooorr_config = MemeooorrConfig.load(path)
     else:
@@ -497,8 +499,8 @@ def main() -> None:
 
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        '--terminate', 
-        action='store_true', 
+        '--terminate',
+        action='store_true',
         help='Set this flag to terminate the process'
     )
 
@@ -674,6 +676,10 @@ def main() -> None:
     home_chain_id = service.home_chain_id
     home_chain_type = ChainType.from_id(int(home_chain_id))
 
+    # Validate twitter cookies
+    memeooorr_config.twikit_cookies = validate_twitter_credentials()
+    memeooorr_config.store()
+
     # Apply env cars
     env_vars = {
         "SAFE_CONTRACT_ADDRESSES": json.dumps(safes, separators=(',', ':')),
@@ -705,13 +711,13 @@ def main() -> None:
     add_volumes(docker_compose_path, str(OPERATE_HOME), "/data")
 
     # Copy the database and cookies if they exist
-    database_source = Path.cwd() / "memeooorr.db"
+    database_source = REPO_ROOT / "memeooorr.db"
     database_target = service.path / "deployment" / "persistent_data" / "logs" / "memeooorr.db"
     if database_source.is_file():
         print("Loaded a backup of the db")
         shutil.copy(database_source, database_target)
 
-    cookies_source = Path.cwd() / "twikit_cookies.json"
+    cookies_source = REPO_ROOT / "twikit_cookies.json"
     cookies_target = service.path / "deployment" / "persistent_data" / "logs" / "twikit_cookies.json"
     if cookies_source.is_file():
         print("Loaded a backup of the cookies")

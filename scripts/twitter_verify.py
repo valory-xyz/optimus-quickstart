@@ -51,3 +51,37 @@ async def async_get_twitter_cookies(username, email, password) -> Optional[str]:
 def get_twitter_cookies(username, email, password) -> Optional[str]:
     """get_twitter_cookies"""
     return asyncio.run(async_get_twitter_cookies(username, email, password))
+
+
+async def async_validate_twitter_credentials():
+    """Test twitter credential validity"""
+
+    # Load cookies
+    with open(Path(".memeooorr", "local_config.json"), "r", encoding="utf-8") as config_file:
+        config = json.load(config_file)
+        cookies = json.loads(config["twikit_cookies"])
+
+    # Instantiate the client
+    client = twikit.Client(
+        language="en-US"
+    )
+
+    # Set cookies
+    client.set_cookies(cookies)
+
+    # Try to read using cookies
+    try:
+        tweet = await client.get_tweet_by_id("1741522811116753092")
+        return tweet.user.id == "1450081635559428107"
+    except twikit.errors.Forbidden:
+        cookies = await async_get_twitter_cookies(
+            config["twikit_username"],
+            config["twikit_email"],
+            config["twikit_password"]
+        )
+        return cookies
+
+
+def validate_twitter_credentials() -> Optional[str]:
+    """Validate twitter credentials"""
+    return asyncio.run(async_validate_twitter_credentials())
