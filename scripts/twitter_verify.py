@@ -72,14 +72,16 @@ async def async_validate_twitter_credentials():
     # Try to read using cookies
     try:
         tweet = await client.get_tweet_by_id("1741522811116753092")
-        return tweet.user.id == "1450081635559428107"
+        is_valid_cookies = tweet.user.id == "1450081635559428107"
+        return is_valid_cookies, None
     except twikit.errors.Forbidden:
+        is_valid_cookies = False
         cookies = await async_get_twitter_cookies(
             config["twikit_username"],
             config["twikit_email"],
             config["twikit_password"]
         )
-        return cookies
+        return is_valid_cookies, cookies
 
 
 def validate_twitter_credentials() -> Optional[str]:

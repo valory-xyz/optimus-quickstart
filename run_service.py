@@ -677,8 +677,10 @@ def main() -> None:
     home_chain_type = ChainType.from_id(int(home_chain_id))
 
     # Validate twitter cookies
-    memeooorr_config.twikit_cookies = validate_twitter_credentials()
-    memeooorr_config.store()
+    is_valid_cookies, new_cookies = validate_twitter_credentials()
+    if not is_valid_cookies:
+        memeooorr_config.twikit_cookies = new_cookies
+        memeooorr_config.store()
 
     # Apply env cars
     env_vars = {
