@@ -22,33 +22,41 @@ import argparse
 import getpass
 import json
 import os
+import re
+import shutil
+import subprocess
 import sys
 import time
 import typing as t
 from dataclasses import dataclass
 from pathlib import Path
-import shutil
+
 import requests
 import yaml
 from aea.crypto.base import LedgerApi
 from aea_ledger_ethereum import EthereumApi
 from dotenv import load_dotenv
+from git import Repo
 from halo import Halo
 from termcolor import colored
 from web3 import Web3
-from scripts.twitter_verify import get_twitter_cookies, validate_twitter_credentials
+
 from operate.account.user import UserAccount
 from operate.cli import OperateApp
-from operate.ledger.profiles import CONTRACTS, STAKING, OLAS
+from operate.ledger.profiles import CONTRACTS, OLAS, STAKING
 from operate.resource import LocalResource, deserialize
 from operate.services.manage import ServiceManager
 from operate.services.service import Service
 from operate.types import (
-    LedgerType,
-    ServiceTemplate,
+    ChainType,
     ConfigurationTemplate,
-    FundRequirementsTemplate, ChainType, OnChainState,
+    FundRequirementsTemplate,
+    LedgerType,
+    OnChainState,
+    ServiceTemplate,
 )
+from scripts.twitter_verify import get_twitter_cookies, validate_twitter_credentials
+
 
 load_dotenv()
 
@@ -372,7 +380,7 @@ def get_service_template(config: MemeooorrConfig) -> ServiceTemplate:
     """Get the service template"""
     return ServiceTemplate({
         "name": "Memeooorr",
-        "hash": "bafybeiaechus7hayvypocxj7jweoheiubvsxi4bmvtwaycydaghtm5sq3i",
+        "hash": "",
         "description": f"Memeooorr @{config.twikit_username}",
         "image": "https://gateway.autonolas.tech/ipfs/QmQYDGMg8m91QQkTWSSmANs5tZwKrmvUCawXZfXVVWQPcu",
         "service_version": 'v0.0.1',
@@ -494,6 +502,65 @@ def fetch_token_price(url: str, headers: dict) -> t.Optional[float]:
         return None
 
 
+def _update_yaml_field(file_path: Path, field: str, new_value: str) -> None:
+    """Updates a field in the first document of a YAML file."""
+
+    print(f"Updating field '{field}' in '{file_path}'...")
+
+    with open(file_path, 'r', encoding="utf-8") as file:
+        documents = list(yaml.safe_load_all(file))
+
+    if field in documents[0]:
+        documents[0][field] = new_value
+    else:
+        raise KeyError(f"Field '{field}' not found in the first document of {file_path}.")
+
+    with open(file_path, 'w', encoding="utf-8") as file:
+        yaml.dump_all(documents, file, default_flow_style=False, sort_keys=False)
+
+
+def _clone_or_update_git_repo(repo_url: str, tag: t.Optional[str] = None, path: t.Optional[Path] = None) -> None:
+    """Clones a GitHub repository at a specific tag or updates it if it already exists."""
+ 
+    repo_name = repo_url.split('/')[-1].replace('.git', '')
+    repo_path = (path or Path.cwd()) / repo_name
+
+    if repo_path.exists():
+        print(f"Repository '{repo_name}' exists. Fetching updates...")
+        repo = Repo(repo_path)
+        origin = repo.remotes.origin
+        origin.fetch()
+        branch_or_tag = tag or "main"
+        repo.git.checkout(branch_or_tag, force=True)
+        if tag is None:
+            origin.pull(branch_or_tag, force=True)
+    else:
+        print(f"Cloning repository '{repo_name}'...")
+        repo = Repo.clone_from(repo_url, repo_path)
+        if tag:
+            repo.git.checkout(tag)
+
+
+def _autonomy_publish(path: Path) -> t.Optional[str]:
+    """Execute autonomy publish command."""
+
+    print("Publishing service to IPFS...")
+    if not os.path.isdir(path):
+        print(f"The directory {path} does not exist.")
+        return None
+
+    result = subprocess.run(["autonomy", "publish"], capture_output=True, text=True, cwd=path, check=True)
+
+    match = re.search(r"Package hash: (\S+)", result.stdout)
+    if match:
+        package_hash = match.group(1)
+        print(f"Package hash: {package_hash}")
+        return package_hash
+    else:
+        print("Package hash not found in the output.")
+        return None
+
+
 def main() -> None:
     """Run service."""
 
@@ -518,6 +585,16 @@ def main() -> None:
 
     memeooorr_config = get_local_config()
     template = get_service_template(memeooorr_config)
+
+    # Customizing and publishing the Open Autonomy service
+    print_section("Customizing Open Autonomy service")
+    _clone_or_update_git_repo("https://github.com/dvilelaf/meme-ooorr", tag="v0.1.0", path=OPERATE_HOME / "git_repos")
+    service_path = OPERATE_HOME / "git_repos" / "meme-ooorr" / "packages" / "dvilela" / "services" / "memeooorr"
+    _update_yaml_field(service_path / "service.yaml", "description", template["description"])
+    package_hash = _autonomy_publish(service_path)
+    if package_hash:
+        template["hash"] = package_hash
+
     manager = operate.service_manager()
     service = get_service(manager, template)
 
