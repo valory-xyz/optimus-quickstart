@@ -502,7 +502,7 @@ def fetch_token_price(url: str, headers: dict) -> t.Optional[float]:
         return None
 
 
-def _update_yaml_field(file_path: Path, field: str, new_value: str) -> None:
+def update_yaml_field(file_path: Path, field: str, new_value: str) -> None:
     """Updates a field in the first document of a YAML file."""
 
     print(f"Updating field '{field}' in '{file_path}'...")
@@ -519,7 +519,7 @@ def _update_yaml_field(file_path: Path, field: str, new_value: str) -> None:
         yaml.dump_all(documents, file, default_flow_style=False, sort_keys=False)
 
 
-def _clone_or_update_git_repo(repo_url: str, tag: t.Optional[str] = None, path: t.Optional[Path] = None) -> None:
+def clone_or_update_git_repo(repo_url: str, tag: t.Optional[str] = None, path: t.Optional[Path] = None) -> None:
     """Clones a GitHub repository at a specific tag or updates it if it already exists."""
  
     repo_name = repo_url.split('/')[-1].replace('.git', '')
@@ -541,7 +541,7 @@ def _clone_or_update_git_repo(repo_url: str, tag: t.Optional[str] = None, path: 
             repo.git.checkout(tag)
 
 
-def _autonomy_publish(path: Path) -> t.Optional[str]:
+def autonomy_publish(path: Path) -> t.Optional[str]:
     """Execute autonomy publish command."""
 
     print("Publishing service to IPFS...")
@@ -588,10 +588,10 @@ def main() -> None:
 
     # Customizing and publishing the Open Autonomy service
     print_section("Customizing Open Autonomy service")
-    _clone_or_update_git_repo("https://github.com/dvilelaf/meme-ooorr", tag="v0.1.0", path=OPERATE_HOME / "git_repos")
+    clone_or_update_git_repo("https://github.com/dvilelaf/meme-ooorr", tag="v0.1.0", path=OPERATE_HOME / "git_repos")
     service_path = OPERATE_HOME / "git_repos" / "meme-ooorr" / "packages" / "dvilela" / "services" / "memeooorr"
-    _update_yaml_field(service_path / "service.yaml", "description", template["description"])
-    package_hash = _autonomy_publish(service_path)
+    update_yaml_field(service_path / "service.yaml", "description", template["description"])
+    package_hash = autonomy_publish(service_path)
     if package_hash:
         template["hash"] = package_hash
 
