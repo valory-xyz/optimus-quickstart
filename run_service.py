@@ -587,6 +587,7 @@ def main() -> None:
     template = get_service_template(memeooorr_config)
 
     # Customizing and publishing the Open Autonomy service
+    print("")
     print_section("Customizing Open Autonomy service")
     clone_or_update_git_repo("https://github.com/dvilelaf/meme-ooorr", tag="v0.1.0", path=OPERATE_HOME / "git_repos")
     service_path = OPERATE_HOME / "git_repos" / "meme-ooorr" / "packages" / "dvilela" / "services" / "memeooorr"
@@ -597,6 +598,7 @@ def main() -> None:
 
     manager = operate.service_manager()
     service = get_service(manager, template)
+    print("")
 
     # Create a new account
     if operate.user_account is None:
