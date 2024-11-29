@@ -380,7 +380,7 @@ def get_service_template(config: MemeooorrConfig) -> ServiceTemplate:
     """Get the service template"""
     return ServiceTemplate({
         "name": "Memeooorr",
-        "hash": "",
+        "hash": "bafybeidkucpzfjj3fd7md2el4jfsjfmxxmxsrv7ru4x6rzurnunbos2b6i",
         "description": f"Memeooorr @{config.twikit_username}",
         "image": "https://gateway.autonolas.tech/ipfs/QmQYDGMg8m91QQkTWSSmANs5tZwKrmvUCawXZfXVVWQPcu",
         "service_version": 'v0.0.1',
@@ -521,7 +521,7 @@ def update_yaml_field(file_path: Path, field: str, new_value: str) -> None:
 
 def clone_or_update_git_repo(repo_url: str, tag: t.Optional[str] = None, path: t.Optional[Path] = None) -> None:
     """Clones a GitHub repository at a specific tag or updates it if it already exists."""
- 
+
     repo_name = repo_url.split('/')[-1].replace('.git', '')
     repo_path = (path or Path.cwd()) / repo_name
 
