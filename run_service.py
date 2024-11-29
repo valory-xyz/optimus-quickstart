@@ -432,7 +432,7 @@ def configure_local_config() -> OptimusConfig:
         print()
 
     if optimus_config.selected_strategies is None:
-        optimus_config.selected_strategies = [Strategy.BalancerPoolSearchStrategy.value]
+        optimus_config.selected_strategies = [Strategy.MerklPoolSearchStrategy.value, Strategy.BalancerPoolSearchStrategy.value]
 
     optimus_config.store()
     return optimus_config
