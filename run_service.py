@@ -30,6 +30,7 @@ import math
 from dataclasses import dataclass
 from pathlib import Path
 from decimal import Decimal, ROUND_UP
+from enum import Enum
 
 import requests
 import yaml
@@ -117,6 +118,11 @@ COINGECKO_CHAIN_TO_PLATFORM_ID_MAPPING = {
 ZERO_ADDRESS = "0x0000000000000000000000000000000000000000"
 DEFAULT_MAX_FEE = 20000000
 
+class Strategy(Enum):
+    """Strategy type"""
+    MerklPoolSearchStrategy = "lp_strategy"
+    BalancerPoolSearchStrategy = "balancer_strategy"
+
 def estimate_priority_fee(
     web3_object: Web3,
     block_number: int,
@@ -174,6 +180,7 @@ class OptimusConfig(LocalResource):
     staking_chain: t.Optional[str] = None
     principal_chain: t.Optional[str] = None
     investment_funding_requirements: t.Optional[Dict[str, Any]] = None
+    selected_strategies: t.Optional[list[str]] = None
 
     @classmethod
     def from_json(cls, obj: t.Dict) -> "LocalResource":
@@ -423,6 +430,9 @@ def configure_local_config() -> OptimusConfig:
         elif chain == "mode" and optimus_config.mode_rpc is None:
             optimus_config.mode_rpc = input("Please enter a Mode RPC URL: ")
         print()
+
+    if optimus_config.selected_strategies is None:
+        optimus_config.selected_strategies = [Strategy.BalancerPoolSearchStrategy.value]
 
     optimus_config.store()
     return optimus_config
@@ -944,7 +954,8 @@ def main() -> None:
         "MIN_SWAP_AMOUNT_THRESHOLD": optimus_config.min_swap_amount_threshold,
         "ALLOWED_CHAINS": json.dumps(optimus_config.allowed_chains),
         "TARGET_INVESTMENT_CHAINS": json.dumps(optimus_config.target_investment_chains),
-        "INITIAL_ASSETS": json.dumps(initial_assets)
+        "INITIAL_ASSETS": json.dumps(initial_assets),
+        "SELECTED_STRATEGIES": json.dumps(optimus_config.selected_strategies)
     }
     apply_env_vars(env_vars)
     print("Skipping local deployment")
