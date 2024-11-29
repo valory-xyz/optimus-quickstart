@@ -623,8 +623,11 @@ def fetch_agent_fund_requirement(chain_id, rpc, fee_history_blocks: int = 500000
     gas_amount = 50_000_000 
     return calculate_fund_requirement(rpc, fee_history_blocks, gas_amount)
 
-def fetch_operator_fund_requirement(chain_id, rpc, fee_history_blocks: int = 500000) -> int:
-    gas_amount = 10_000_000
+def fetch_operator_fund_requirement(chain_id, rpc, service_exists: bool = True, fee_history_blocks: int = 500000) -> int:
+    if service_exists:
+        gas_amount = 5_000_000
+    else:
+        gas_amount = 30_000_000
     return calculate_fund_requirement(rpc, fee_history_blocks, gas_amount)
 
 def main() -> None:
@@ -723,7 +726,7 @@ def main() -> None:
         if agent_fund_requirement is None:
             agent_fund_requirement = chain_config.chain_data.user_params.fund_requirements.agent
 
-        operational_fund_req = fetch_operator_fund_requirement(chain_id, chain_config.ledger_config.rpc)
+        operational_fund_req = fetch_operator_fund_requirement(chain_id, chain_config.ledger_config.rpc, service_exists)
         if operational_fund_req is None:
             operational_fund_req = chain_metadata.get("operationalFundReq")
 
