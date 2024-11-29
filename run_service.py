@@ -120,8 +120,8 @@ DEFAULT_MAX_FEE = 20000000
 
 class Strategy(Enum):
     """Strategy type"""
-    MerklPoolSearchStrategy = "lp_strategy"
-    BalancerPoolSearchStrategy = "balancer_strategy"
+    MerklPoolSearchStrategy = "merkl_pools_search"
+    BalancerPoolSearchStrategy = "balancer_pools_search"
 
 def estimate_priority_fee(
     web3_object: Web3,
@@ -468,7 +468,7 @@ def get_service_template(config: OptimusConfig) -> ServiceTemplate:
     home_chain_id = "10" if config.staking_chain == "optimism" else "34443"
     return ServiceTemplate({
         "name": "Optimus",
-        "hash": "bafybeicgz4oqdnwitdm4m7ncz3qo7l6s4rosvdu2jvxezwx4c2ffzey6aq",
+        "hash": "bafybeibvdcz3j2bywodqap43suk5vkhhsa6s6ggvwif5mkp5adrnuxdjki",
 
         "description": "Optimus",
         "image": "https://gateway.autonolas.tech/ipfs/bafybeiaakdeconw7j5z76fgghfdjmsr6tzejotxcwnvmp3nroaw3glgyve",
