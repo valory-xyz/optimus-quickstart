@@ -589,7 +589,7 @@ def main() -> None:
     # Customizing and publishing the Open Autonomy service
     print("")
     print_section("Customizing Open Autonomy service")
-    clone_or_update_git_repo("https://github.com/dvilelaf/meme-ooorr", tag="v0.1.0", path=OPERATE_HOME / "git_repos")
+    clone_or_update_git_repo("https://github.com/dvilelaf/meme-ooorr", tag="v0.1.1", path=OPERATE_HOME / "git_repos")
     service_path = OPERATE_HOME / "git_repos" / "meme-ooorr" / "packages" / "dvilela" / "services" / "memeooorr"
     update_yaml_field(service_path / "service.yaml", "description", template["description"])
     package_hash = autonomy_publish(service_path)
