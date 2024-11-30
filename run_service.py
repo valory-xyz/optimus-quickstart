@@ -56,6 +56,7 @@ from operate.types import (
     ServiceTemplate,
 )
 from scripts.twitter_verify import get_twitter_cookies, validate_twitter_credentials
+from scripts.github import get_latest_tag
 
 
 load_dotenv()
@@ -76,6 +77,10 @@ COST_OF_BOND_STAKING = 5 * 10 ** 19 # 50 OLAS
 WARNING_ICON = colored('\u26A0', 'yellow')
 REPO_ROOT = Path(__file__).resolve().parent
 OPERATE_HOME = REPO_ROOT / ".memeooorr"
+
+MEMEOOORR_REPO = "https://github.com/dvilelaf/meme-ooorr"
+MEMEOOORR_REPO_DEFAULT_TAG = "v0.1.1"
+MEMEOOORR_REPO_TAG = get_latest_tag("dvilelaf/meme-ooorr", MEMEOOORR_REPO_DEFAULT_TAG)
 
 MEME_FACTORY_BASE = "0x42156841253f428cb644ea1230d4fddfb70f8891"
 MEME_FACTORY_FORK = "0x1Aa15a8A751c601BbE31390dbb8711013BFD013d"
@@ -589,7 +594,7 @@ def main() -> None:
     # Customizing and publishing the Open Autonomy service
     print("")
     print_section("Customizing Open Autonomy service")
-    clone_or_update_git_repo("https://github.com/dvilelaf/meme-ooorr", tag="v0.1.1", path=OPERATE_HOME / "git_repos")
+    clone_or_update_git_repo(MEMEOOORR_REPO, tag=MEMEOOORR_REPO_TAG, path=OPERATE_HOME / "git_repos")
     service_path = OPERATE_HOME / "git_repos" / "meme-ooorr" / "packages" / "dvilela" / "services" / "memeooorr"
     update_yaml_field(service_path / "service.yaml", "description", template["description"])
     package_hash = autonomy_publish(service_path)
