@@ -1,17 +1,17 @@
 <h1 align="center">
-<b>Olas Modius Quickstart</b>
+<b>Optimus Quickstart</b>
 </h1>
 
 
 
-## Olas Modius Agent: Functionality Overview
+## Optimus Agent: Functionality Overview
 
-Olas Modius is an autonomous trader that operates in the crypto echosystem on users' behalf. It requires minimum intervention by you as an end user--it is enough that you fund the agent with initial investment assets and let it run. Modius will intelligentely invest crypto assets in DEXs on your behalf and grow your portfolio.
+Optimus is an autonomous trader that operates in the crypto echosystem on users' behalf. It requires minimum intervention by you as an end user--it is enough that you fund the agent with initial investment assets and let it run. Optimus will intelligentely invest crypto assets in DEXs on your behalf and grow your portfolio.
 
-If you choose to run your Modius agent with staking, in addition to trading profits Modius will also accrue rewards in Olas.
+If you choose to run your Modius agent with staking, in addition to trading profits Optimus will also accrue rewards in Olas.
 
 **Supported Chains:**
-Olas Modius currently operates trading-wise on the following chains:
+Optimus currently operates trading-wise on the following chains:
 - Mode
 - Optimism
 - Base
@@ -29,11 +29,13 @@ When run with staking, Modius will be staked by default on Mode. The user can ch
 
 
 **Operational Process:**
-Similar to its human user counterpart, Modius' time is divided in *epoch* days-periods of 24 hours. Throughout one epoch the agent:
+Similar to its human user counterpart, Modius' time is divided in *epoch* days-periods of 24 hours. Throughout one epoch, the agent:
 
-1. **Identifies trading opportunities** in investment pools advertised through campaigns on the Merkl platform across the supported DEXs.
-2. **Grabs the most interesting one and invests in it:** Starts off by picking the most convenient investment pool amongst the ones with Annual Percentage Rate (APR) higher than 5%. Switches from one investment pool to another when the corresponding APR exceeds that of the previous investment.    
-3. **Tracks transactions on the staking chain to accrue Olas staking rewards:** Transactions on the staking chain serve as key performance indicators (KPIs) for Olas Staking Rewards; in order to collect the corresponding rewards within each epoch, Modius needs to perform a well defined (as per the staking contract) number of them.
+1. **Identifies trading opportunities** in investment pools:
+   - advertised on Balancer;
+   - advertised through campaigns on the Merkl platform across the supported DEXs--Uniswap and Balancer. (With regards to Balancer, these potential second type of investment opportunities are a subset of the first and include additional rewards coming from the corresponding Merkl campaign.)
+3. **Grabs the most interesting one and invests in it:** Starts off by picking the most convenient investment pool amongst the ones with Annual Percentage Rate (APR) higher than 5%. Switches from one investment pool to another when the corresponding APR exceeds that of the previous investment.    
+4. **Tracks transactions on the staking chain to accrue Olas staking rewards:** Transactions on the staking chain serve as key performance indicators (KPIs) for Olas Staking Rewards; in order to collect the corresponding rewards within each epoch, Optimus needs to perform a well defined (as per the staking contract) number of them.
 
 
 #### Notes:
@@ -228,8 +230,8 @@ Then run again your service with:
 
 ## What's New
 
-### Release v0.2.9???
-Introduces Olas Modius
+### Latest release
+Introduces Mode as an Operation chain for Investment and as a Staking chain
 - Added Mode as default chain for staking and as primary chain for investment funds
 - Added feature to opt for Optimism
 - Added feature to restrict/expand activities onto selected chains
