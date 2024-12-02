@@ -3,6 +3,11 @@
 </h1>
 
 
+> :warning: **Warning** <br />
+> The code within this repository is provided without any warranties. It leverages third party APIs and it is important to note that the code has not been audited for potential security vulnerabilities.
+> Using this code could potentially lead to loss of funds, compromised data, or asset risk.
+> Exercise caution and use this code at your own risk. Please refer to the [LICENSE](./LICENSE) file for details about the terms and conditions.
+
 
 ## Optimus Agent: Functionality Overview
 
@@ -160,10 +165,18 @@ Finally, when prompted, send the corresponding funds for gas and investment to t
 
 ### Service is Running
 
-Once the ./run_service.sh has completed, i.e. the service is running, you can check out the live logs of your Optimus agent with:
+Once the ./run_service.sh has completed, i.e. the service is running, you can check out the live logs of your Optimus agent. To do so, you first need to identify the name of your running container with:
 
 ```bash
-docker logs optimus_abci_0 --follow
+docker ps
+```
+
+The name of the target container is similar to 'optimus_abci_0'. Copy it from the output list of the command above and run:
+
+```bash
+docker logs [name] --follow
+```
+
 ```
 
 To inspect the tree state transition of the current run of your agent run:
@@ -221,12 +234,6 @@ Then run again your service with:
 
 
 
-## Terms and Conditions Disclaimer
-
-> :warning: **Warning** <br />
-> The code within this repository is provided without any warranties. It leverages third party APIs and it is important to note that the code has not been audited for potential security vulnerabilities.
-> Using this code could potentially lead to loss of funds, compromised data, or asset risk.
-> Exercise caution and use this code at your own risk. Please refer to the [LICENSE](./LICENSE) file for details about the terms and conditions.
 
 
 
