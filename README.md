@@ -8,7 +8,7 @@
 
 Optimus is an autonomous trader that operates in the crypto echosystem on users' behalf. It requires minimum intervention by you as an end user--it is enough that you fund the agent with initial investment assets and let it run. Optimus will intelligentely invest crypto assets in DEXs on your behalf and grow your portfolio.
 
-If you choose to run your Modius agent with staking, in addition to trading profits Optimus will also accrue rewards in Olas.
+If you choose to run your Optimus agent with staking, in addition to trading profits Optimus will also accrue rewards in Olas.
 
 **Supported Chains:**
 Optimus currently operates trading-wise on the following chains:
@@ -20,16 +20,16 @@ By default, the agent will be active on Mode. But, its activity could be directe
 
 
 **Supported DEXs:**
-Modius trades on the following decentralized exchanges (DEXs):
+Optimus trades on the following decentralized exchanges (DEXs):
 - Balancer
 - Uniswap
 
 **Running with staking**
-When run with staking, Modius will be staked by default on Mode. The user can choose to stake the agent on Optimism instead, during the first run. 
+When run with staking, Optimus will be staked by default on Mode. The user can choose to stake the agent on Optimism instead, during the first run. 
 
 
 **Operational Process:**
-Similar to its human user counterpart, Modius' time is divided in *epoch* days-periods of 24 hours. Throughout one epoch, the agent:
+Similar to its human user counterpart, Optimus' time is divided in *epoch* days-periods of 24 hours. Throughout one epoch, the agent:
 
 1. **Identifies trading opportunities** in investment pools:
    - advertised on Balancer;
@@ -158,7 +158,7 @@ Finally, when prompted, send the corresponding funds for gas and investment to t
 
 ### Service is Running
 
-Once the ./run_service.sh has completed, i.e. the service is running, you can check out the live logs of your Modius agent with:
+Once the ./run_service.sh has completed, i.e. the service is running, you can check out the live logs of your Optimus agent with:
 
 ```bash
 docker logs optimus_abci_0 --follow
