@@ -8,7 +8,8 @@ import docker
 from web3 import Web3
 from web3.middleware import geth_poa_middleware
 from enum import Enum
-
+from operate.cli import OperateApp
+import yaml
 # Set decimal precision
 getcontext().prec = 18
 
@@ -27,6 +28,13 @@ class StakingState(Enum):
     UNSTAKED = 0
     STAKED = 1
     EVICTED = 2
+
+from run_service import (
+    load_local_config,
+    get_service_template,
+    get_service,
+    OPERATE_HOME
+)
 
 def _color_string(text: str, color_code: str) -> str:
     return f"{color_code}{text}{ColorCode.RESET}"
@@ -82,9 +90,9 @@ def load_operator_address(operate_home):
     try:
         with open(ethereum_json_path, "r") as f:
             ethereum_data = json.load(f)
-        operator_address = ethereum_data.get("safes", {}).get("4")
+        operator_address = ethereum_data.get("address", None)
         if not operator_address:
-            print("Error: Operator address not found for chain ID 4 in the wallet file.")
+            print("Error: Operator address not found in the wallet file.")
             return None
         return operator_address
     except FileNotFoundError:
@@ -94,6 +102,36 @@ def load_operator_address(operate_home):
         print("Error: Ethereum wallet file contains invalid JSON.")
         return None
 
+def load_operator_safe_balance(operate_home):
+    ethereum_json_path = operate_home / "wallets" / "ethereum.json"
+    try:
+        with open(ethereum_json_path, "r") as f:
+            ethereum_data = json.load(f)
+
+        safe_chains = ethereum_data.get("safe_chains", [])
+        if not safe_chains:
+            print("Error: Safe chains array is empty.")
+            return None
+
+        chain_id = safe_chains[0]
+
+        safes = ethereum_data.get("safes", {})
+        safe_address = safes.get(str(chain_id))
+        if not safe_address:
+            print(f"Error: Safe address for chain ID {chain_id} not found in the wallet file.")
+            return None
+
+        # Here, you should insert your logic to fetch the safe balance from the blockchain
+        # For illustrative purposes, we'll just return the safe address
+        return safe_address
+
+    except FileNotFoundError:
+        print(f"Error: Ethereum wallet file not found at {ethereum_json_path}")
+        return None
+    except json.JSONDecodeError:
+        print("Error: Ethereum wallet file contains invalid JSON.")
+        return None
+    
 def validate_config(config):
     required_keys = ['home_chain_id', 'chain_configs']
     for key in required_keys:
@@ -103,11 +141,32 @@ def validate_config(config):
     return True
 
 def _get_agent_status() -> str:
+    operate = OperateApp(
+        home=OPERATE_HOME,
+    )
+    operate.setup()
+
+    optimus_config = load_local_config()
+    template = get_service_template(optimus_config)
+    manager = operate.service_manager()
+    service = get_service(manager, template)
+    docker_compose_path = service.path / "deployment" / "docker-compose.yaml"
     try:
+        with open(docker_compose_path, "r") as f:
+            docker_compose = yaml.safe_load(f)
+
+        abci_service_name = None
+        for service_name in docker_compose["services"]:
+            if "abci" in service_name:
+                abci_service_name = service_name
+                break
+
         client = docker.from_env()
-        container = client.containers.get("optimus_abci_0")
+        container = client.containers.get(abci_service_name)
         is_running = container.status == "running"
         return _color_bool(is_running, "Running", "Stopped")
+    except FileNotFoundError:
+        return _color_string("Stopped", ColorCode.RED)
     except docker.errors.NotFound:
         return _color_string("Not Found", ColorCode.RED)
     except docker.errors.DockerException as e:

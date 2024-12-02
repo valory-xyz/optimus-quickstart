@@ -93,7 +93,6 @@ class ServiceManager:
         self.keys_manager = keys_manager
         self.wallet_manager = wallet_manager
         self.logger = logger or setup_logger(name="operate.manager")
-        self._log_directories()
 
     def setup(self) -> None:
         """Setup service manager."""
@@ -1138,38 +1137,51 @@ class ServiceManager:
             chain_type=ledger_config.chain, rpc=rpc or ledger_config.rpc
         )
         agent_fund_threshold = (
-            agent_fund_threshold or chain_data.user_params.fund_requirements.agent
+            agent_fund_threshold
+            if agent_fund_threshold is not None
+            else chain_data.user_params.fund_requirements.agent
         )
 
         for key in service.keys:
             agent_balance = ledger_api.get_balance(address=key.address)
-            self.logger.info(f"Agent {key.address} balance: {agent_balance}")
-            self.logger.info(f"Required balance: {agent_fund_threshold}")
-            if agent_balance < agent_fund_threshold:
-                self.logger.info("Funding agents")
-                to_transfer = (
-                    agent_topup or chain_data.user_params.fund_requirements.agent
+            self.logger.info(
+                f"Agent {key.address} balance: {self._wei_to_unit(agent_balance)} ETH"
+            )
+            if agent_fund_threshold > 0:
+                self.logger.info(
+                    f"Required balance: {self._wei_to_unit(agent_fund_threshold)} ETH"
                 )
-                self.logger.info(f"Transferring {to_transfer} units to {key.address}")
-                wallet.transfer(
-                    to=key.address,
-                    amount=int(to_transfer),
-                    chain_type=ledger_config.chain,
-                    from_safe=from_safe,
-                    rpc=rpc or ledger_config.rpc,
-                )
+                if agent_balance < agent_fund_threshold:
+                    self.logger.info("Funding agents")
+                    to_transfer = (
+                        agent_topup or chain_data.user_params.fund_requirements.agent
+                    )
+                    self.logger.info(
+                        f"Transferring {self._wei_to_unit(to_transfer)} units to {key.address}"
+                    )
+                    wallet.transfer(
+                        to=key.address,
+                        amount=int(to_transfer),
+                        chain_type=ledger_config.chain,
+                        from_safe=from_safe,
+                        rpc=rpc or ledger_config.rpc,
+                    )
 
         safe_balance = ledger_api.get_balance(chain_data.multisig)
         safe_fund_treshold = (
             safe_fund_treshold or chain_data.user_params.fund_requirements.safe
         )
-        self.logger.info(f"Safe {chain_data.multisig} balance: {safe_balance}")
-        self.logger.info(f"Required balance: {safe_fund_treshold}")
+        self.logger.info(
+            f"Safe {chain_data.multisig} balance: {self._wei_to_unit(safe_balance)} ETH"
+        )
+        self.logger.info(
+            f"Required balance: {self._wei_to_unit(safe_fund_treshold)} ETH"
+        )
         if safe_balance < safe_fund_treshold:
             self.logger.info("Funding safe")
             to_transfer = safe_topup or chain_data.user_params.fund_requirements.safe
             self.logger.info(
-                f"Transferring {to_transfer} units to {chain_data.multisig}"
+                f"Transferring {self._wei_to_unit(to_transfer)} units to {chain_data.multisig}"
             )
             wallet.transfer(
                 to=t.cast(str, chain_data.multisig),
@@ -1182,6 +1194,8 @@ class ServiceManager:
         self,
         hash: str,
         token: str,
+        token_symbol: t.Optional[str] = None,
+        token_decimal: int = 18,
         rpc: t.Optional[str] = None,
         agent_topup: t.Optional[float] = None,
         safe_topup: t.Optional[float] = None,
@@ -1200,27 +1214,41 @@ class ServiceManager:
             chain_type=ledger_config.chain, rpc=rpc or ledger_config.rpc
         )
         agent_fund_threshold = (
-            agent_fund_threshold or chain_data.user_params.fund_requirements.agent
+            agent_fund_threshold
+            if agent_fund_threshold is not None
+            else chain_data.user_params.fund_requirements.agent
         )
+        token_symbol = token_symbol or "ETH"
 
         for key in service.keys:
-            agent_balance = ledger_api.get_balance(address=key.address)
-            self.logger.info(f"Agent {key.address} balance: {agent_balance}")
-            self.logger.info(f"Required balance: {agent_fund_threshold}")
-            if agent_balance < agent_fund_threshold:
-                self.logger.info("Funding agents")
-                to_transfer = (
-                    agent_topup or chain_data.user_params.fund_requirements.agent
+            agent_balance = (
+                registry_contracts.erc20.get_instance(ledger_api, token)
+                .functions.balanceOf(key.address)
+                .call()
+            )
+            self.logger.info(
+                f"Agent {key.address} balance: {self._convert_to_token_units(agent_balance, token_decimal)} {token_symbol}"
+            )
+            if agent_fund_threshold > 0:
+                self.logger.info(
+                    f"Required balance: {self._convert_to_token_units(agent_fund_threshold, token_decimal)} {token_symbol}"
                 )
-                self.logger.info(f"Transferring {to_transfer} units to {key.address}")
-                wallet.transfer_erc20(
-                    token=token,
-                    to=key.address,
-                    amount=int(to_transfer),
-                    chain_type=ledger_config.chain,
-                    from_safe=from_safe,
-                    rpc=rpc or ledger_config.rpc,
-                )
+                if agent_balance < agent_fund_threshold:
+                    self.logger.info("Funding agents")
+                    to_transfer = (
+                        agent_topup or chain_data.user_params.fund_requirements.agent
+                    )
+                    self.logger.info(
+                        f"Transferring {self._convert_to_token_units(to_transfer, token_decimal)} {token_symbol} to {key.address}"
+                    )
+                    wallet.transfer_erc20(
+                        token=token,
+                        to=key.address,
+                        amount=int(to_transfer),
+                        chain_type=ledger_config.chain,
+                        from_safe=from_safe,
+                        rpc=rpc or ledger_config.rpc,
+                    )
 
         safe_balance = (
             registry_contracts.erc20.get_instance(ledger_api, token)
@@ -1230,13 +1258,17 @@ class ServiceManager:
         safe_fund_treshold = (
             safe_fund_treshold or chain_data.user_params.fund_requirements.safe
         )
-        self.logger.info(f"Safe {chain_data.multisig} balance: {safe_balance}")
-        self.logger.info(f"Required balance: {safe_fund_treshold}")
+        self.logger.info(
+            f"Safe {chain_data.multisig} balance: {self._convert_to_token_units(safe_balance, token_decimal)} {token_symbol}"
+        )
+        self.logger.info(
+            f"Required balance: {self._convert_to_token_units(safe_fund_treshold, token_decimal)} {token_symbol}"
+        )
         if safe_balance < safe_fund_treshold:
             self.logger.info("Funding safe")
             to_transfer = safe_topup or chain_data.user_params.fund_requirements.safe
             self.logger.info(
-                f"Transferring {to_transfer} units to {chain_data.multisig}"
+                f"Transferring {self._convert_to_token_units(to_transfer, token_decimal)} {token_symbol} to {chain_data.multisig}"
             )
             wallet.transfer_erc20(
                 token=token,
@@ -1321,7 +1353,6 @@ class ServiceManager:
     ) -> Service:
         """Update a service."""
 
-        self.logger.info("-----Entering update local service-----")
         old_service = self.load_or_create(hash=old_hash)
         new_service = self.load_or_create(
             hash=new_hash, service_template=service_template
@@ -1362,3 +1393,14 @@ class ServiceManager:
     def _log_directories(self) -> None:
         directories = [str(p) for p in self.path.iterdir() if p.is_dir()]
         self.logger.info(f"Directories in {self.path}: {', '.join(directories)}")
+
+    def _wei_to_unit(self, wei: int) -> float:  # pylint: disable=R0201
+        """Convert Wei to unit."""
+        value = wei / 1e18
+        return f"{value:.18f}"
+
+    # pylint: disable=R0201
+    def _convert_to_token_units(self, amount: int, token_decimal: int = 18) -> str:
+        """Convert smallest unit to token's base unit."""
+        value = amount / 10**token_decimal
+        return f"{value:.{token_decimal}f}"

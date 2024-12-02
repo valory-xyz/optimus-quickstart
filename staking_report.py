@@ -1,4 +1,6 @@
 # staking_report.py
+import warnings
+warnings.filterwarnings("ignore", category=UserWarning)
 import json
 import math
 from pathlib import Path
@@ -7,7 +9,6 @@ from decimal import Decimal, getcontext
 import logging
 
 from run_service import (
-    get_local_config,
     get_service_template,
     FALLBACK_STAKING_PARAMS,
     CHAIN_ID_TO_METADATA,
@@ -26,9 +27,12 @@ from utils import (
     _warning_message,
     StakingState,
     get_chain_name,
-    load_operator_address,
+    load_operator_safe_balance,
     validate_config,
-    _color_bool
+    _color_bool,
+    _color_string,
+    ColorCode
+
 )
 
 # Set decimal precision
@@ -45,8 +49,7 @@ SERVICE_REGISTRY_TOKEN_UTILITY_JSON_PATH = SCRIPT_PATH / "contracts" / "ServiceR
 def staking_report(config: dict) -> None:
     try:
         _print_section_header("Performance")
-        _print_subsection_header("Staking")
-        operator_address = load_operator_address(OPERATE_HOME)
+        operator_address = load_operator_safe_balance(OPERATE_HOME)
         if not operator_address:
             print("Error: Operator address could not be loaded.")
             return
@@ -60,9 +63,9 @@ def staking_report(config: dict) -> None:
             None
         )
         if not chain_data:
-            print("No staking configuration found where 'use_staking' is true.")
             return
 
+        _print_subsection_header("Staking")
         rpc = chain_data.get("ledger_config", {}).get("rpc")
         if not rpc:
             print("Error: RPC endpoint not found in ledger configuration.")
@@ -90,7 +93,8 @@ def staking_report(config: dict) -> None:
 
         w3 = Web3(HTTPProvider(rpc))
 
-        staking_token_address = STAKING.get(ChainType.OPTIMISM, {}).get("optimus_alpha")
+        home_chain_type = ChainType.from_id(int(home_chain_id))
+        staking_token_address = STAKING.get(home_chain_type, {}).get("optimus_alpha")
         if not staking_token_address:
             print("Error: Staking token address not found for OPTIMISM ChainType.")
             return
@@ -109,7 +113,7 @@ def staking_report(config: dict) -> None:
         is_staked = staking_state in (StakingState.STAKED, StakingState.EVICTED)
         _print_status("Is service staked?", _color_bool(is_staked, "Yes", "No"))
         if is_staked:
-            _print_status("Staking program", str(staking_program_id))
+            _print_status("Staking program",(str(staking_program_id) + " " +str(home_chain_type).rsplit('.', maxsplit=1)[-1]))
             _print_status("Staking state", staking_state.name if staking_state == StakingState.STAKED else _color_string(staking_state.name, ColorCode.RED))
 
             # Activity Checker
@@ -186,7 +190,7 @@ def staking_report(config: dict) -> None:
             multisig_nonces_since_last_cp = multisig_nonces - multisig_nonces_on_last_checkpoint
             multisig_nonces_current_epoch = multisig_nonces_since_last_cp
             _print_status(
-                "Num. txs current epoch",
+                f"{str(home_chain_type).rsplit('.', maxsplit=1)[-1]} txs in current epoch ",
                 str(multisig_nonces_current_epoch),
                 _warning_message(
                     Decimal(multisig_nonces_current_epoch),

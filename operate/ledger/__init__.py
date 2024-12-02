@@ -39,6 +39,7 @@ GOERLI_RPC = os.environ.get("DEV_RPC", "https://ethereum-goerli.publicnode.com")
 SOLANA_RPC = os.environ.get("DEV_RPC", "https://api.mainnet-beta.solana.com")
 OPTIMISM_RPC = os.environ.get("OPTIMISM_RPC", "https://optimism-rpc.publicnode.com")
 BASE_RPC = os.environ.get("BASE_RPC", "https://base-rpc.publicnode.com")
+MODE_RPC = os.environ.get("MODE_RPC", "https://mainnet.mode.network/")
 
 PUBLIC_RPCS = {
     ChainType.ETHEREUM: ETHEREUM_PUBLIC_RPC,
@@ -54,6 +55,7 @@ DEFAULT_RPCS = {
     ChainType.SOLANA: SOLANA_RPC,
     ChainType.OPTIMISM: OPTIMISM_RPC,
     ChainType.BASE: BASE_RPC,
+    ChainType.MODE: MODE_RPC,
 }
 
 CHAIN_HELPERS: t.Dict[ChainType, t.Type[LedgerHelper]] = {
@@ -63,6 +65,7 @@ CHAIN_HELPERS: t.Dict[ChainType, t.Type[LedgerHelper]] = {
     ChainType.BASE: Ethereum,
     ChainType.OPTIMISM: Ethereum,
     ChainType.SOLANA: Solana,
+    ChainType.MODE: Ethereum,
 }
 
 LEDGER_HELPERS: t.Dict[LedgerType, t.Type[LedgerHelper]] = {
