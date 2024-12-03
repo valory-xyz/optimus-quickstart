@@ -100,7 +100,7 @@ CHAIN_ID_TO_METADATA = {
     },
     42220: {
         "name": "Celo",
-        "token": "ETH",
+        "token": "CELO",
         "usdcRequired": False,
         "firstTimeTopUp": unit_to_wei(0.001),
         "operationalFundReq": unit_to_wei(0.001),
@@ -353,6 +353,13 @@ def get_local_config() -> MemeooorrConfig:
     )
 
     memeooorr_config.store()
+    
+    # set the environment variables according to the configuration
+    apply_env_vars({
+        'BASE_LEDGER_RPC': memeooorr_config.base_rpc,
+        'BASE_LEDGER_CHAIN_ID': memeooorr_config.home_chain_id,
+    })
+
     return memeooorr_config
 
 
@@ -366,7 +373,8 @@ def handle_password_migration(operate: OperateApp, config: MemeooorrConfig) -> t
     """Handle password migration."""
     if not config.password_migrated:
         print("Add password...")
-        old_password, new_password = "12345", ask_confirm_password()
+        old_password = getpass.getpass("Please enter old password: ")
+        new_password = ask_confirm_password()
         operate.user_account.update(old_password, new_password)
         if operate.wallet_manager.exists(LedgerType.ETHEREUM):
             operate.password = old_password
@@ -476,11 +484,17 @@ def get_service(manager: ServiceManager, template: ServiceTemplate) -> Service:
                 hash=template["hash"],
                 service_template=template,
             )
-        else:
+        elif template["hash"]:
             print(f"Updating service from {old_hash} to " + template["hash"])
             service = manager.update_service(
                 old_hash=old_hash,
                 new_hash=template["hash"],
+                service_template=template,
+            )
+        else:
+            print(f'Loading service {old_hash}')
+            service = manager.load_or_create(
+                hash=old_hash,
                 service_template=template,
             )
     else:
@@ -554,7 +568,10 @@ def autonomy_publish(path: Path) -> t.Optional[str]:
         print(f"The directory {path} does not exist.")
         return None
 
-    result = subprocess.run(["autonomy", "publish"], capture_output=True, text=True, cwd=path, check=True)
+    result = subprocess.run(["autonomy", "publish"], capture_output=True, text=True, cwd=path)
+
+    if result.returncode != 0:
+        raise RuntimeError(f"Error publishing service: {result.stderr}")
 
     match = re.search(r"Package hash: (\S+)", result.stdout)
     if match:
@@ -663,7 +680,7 @@ def main() -> None:
         service_exists = manager._get_on_chain_state(chain_config) != OnChainState.NON_EXISTENT
 
         chain_name, token = chain_metadata['name'], chain_metadata["token"]
-        balance_str = wei_to_token(ledger_api.get_balance(wallet.crypto.address), token)
+        balance_str = wei_to_token(ledger_api.get_balance(wallet.crypto.address, True), token)
         print(
             f"[{chain_name}] Main wallet balance: {balance_str}",
         )
@@ -678,10 +695,10 @@ def main() -> None:
         )
         spinner.start()
 
-        while ledger_api.get_balance(wallet.crypto.address) < required_balance:
+        while ledger_api.get_balance(wallet.crypto.address, True) < required_balance:
             time.sleep(1)
 
-        spinner.succeed(f"[{chain_name}] Main wallet updated balance: {wei_to_token(ledger_api.get_balance(wallet.crypto.address), token)}.")
+        spinner.succeed(f"[{chain_name}] Main wallet updated balance: {wei_to_token(ledger_api.get_balance(wallet.crypto.address, True), token)}.")
         print()
 
         # Create the master safe
