@@ -353,11 +353,12 @@ def get_local_config() -> MemeooorrConfig:
     )
 
     memeooorr_config.store()
-    
+
     # set the environment variables according to the configuration
     apply_env_vars({
         'BASE_LEDGER_RPC': memeooorr_config.base_rpc,
         'BASE_LEDGER_CHAIN_ID': memeooorr_config.home_chain_id,
+        'BASE_LEDGER_IS_POA_CHAIN': memeooorr_config.home_chain_id == ChainType.CELO
     })
 
     return memeooorr_config
