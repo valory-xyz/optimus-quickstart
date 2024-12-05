@@ -878,7 +878,8 @@ def main() -> None:
         "STAKING_TOKEN_CONTRACT_ADDRESS": STAKING[home_chain_type][target_staking_program_id],
         "COINGECKO_API_KEY": optimus_config.coingecko_api_key,
         "MIN_SWAP_AMOUNT_THRESHOLD": optimus_config.min_swap_amount_threshold,
-        "ALLOWED_CHAINS": json.dumps(optimus_config.allowed_chains)
+        "ALLOWED_CHAINS": json.dumps(optimus_config.allowed_chains),
+        "AGENT_TRANSITION":"True"
     }
     apply_env_vars(env_vars)
     print("Skipping local deployment")
