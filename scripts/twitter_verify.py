@@ -8,6 +8,7 @@ import time
 EXTRACTED_COOKIES_PATH = Path("x.com.cookies.json")
 SAVED_COOKIES_PATH = Path("twikit_cookies.json")
 
+
 def await_for_cookies() -> dict:
     """Awaits for the cookies file"""
 
@@ -18,7 +19,7 @@ def await_for_cookies() -> dict:
 
     print("Cookie file detected")
 
-    with open(EXTRACTED_COOKIES_PATH, "r") as cookies_file:
+    with open(EXTRACTED_COOKIES_PATH, "r", encoding="utf-8") as cookies_file:
         cookies = json.load(cookies_file)
 
     cookies_dict = {cookie["name"]: cookie["value"] for cookie in cookies}
@@ -31,21 +32,34 @@ async def async_get_twitter_cookies(username, email, password) -> Optional[str]:
     client = twikit.Client(
         language="en-US"
     )
+
     try:
-        await client.login(
-            auth_info_1=username,
-            auth_info_2=email,
-            password=password,
-        )
+        valid_cookies = False
+
+        # If cookies exist, try with those and validate
+        if SAVED_COOKIES_PATH.exists():
+            with open(SAVED_COOKIES_PATH, "r", encoding="utf-8") as cookies_file:
+                cookies = json.load(cookies_file)
+                client.set_cookies(cookies)
+
+            user = await client.user()
+            valid_cookies = user.screen_name == username
+
+        if not valid_cookies:
+            print("Logging in with password")
+            await client.login(
+                auth_info_1=username,
+                auth_info_2=email,
+                password=password,
+            )
+            client.save_cookies(SAVED_COOKIES_PATH)
 
     except twikit.errors.BadRequest:
         print("Twitter login failed due to a known issue with the login flow.\nPlease check the known issues section in the README to find the solution. You will need to provide us with a cookies file.")
         cookies = await_for_cookies()
         client.set_cookies(cookies)
 
-    finally:
-        client.save_cookies(SAVED_COOKIES_PATH)
-        return json.dumps(client.get_cookies()).replace(" ", "")
+    return json.dumps(client.get_cookies()).replace(" ", "")
 
 
 def get_twitter_cookies(username, email, password) -> Optional[str]:

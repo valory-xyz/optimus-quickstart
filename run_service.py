@@ -784,12 +784,6 @@ def main() -> None:
     home_chain_type = ChainType.from_id(int(home_chain_id))
     home_chain_name = home_chain_type.name.upper()
 
-    # Validate twitter cookies
-    is_valid_cookies, new_cookies = validate_twitter_credentials()
-    if not is_valid_cookies:
-        memeooorr_config.twikit_cookies = new_cookies
-        memeooorr_config.store()
-
     # Apply env cars
     env_vars = {
         "SAFE_CONTRACT_ADDRESSES": json.dumps(safes, separators=(',', ':')),
