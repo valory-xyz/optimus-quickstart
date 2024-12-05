@@ -82,8 +82,7 @@ MEMEOOORR_REPO = "https://github.com/dvilelaf/meme-ooorr"
 MEMEOOORR_REPO_DEFAULT_TAG = "v0.1.1"
 MEMEOOORR_REPO_TAG = get_latest_tag("dvilelaf/meme-ooorr", MEMEOOORR_REPO_DEFAULT_TAG)
 
-MEME_FACTORY_BASE = "0x42156841253f428cb644ea1230d4fddfb70f8891"
-MEME_FACTORY_FORK = "0x1Aa15a8A751c601BbE31390dbb8711013BFD013d"
+MEME_FACTORY_ADDRESS = "0x42156841253f428cb644ea1230d4fddfb70f8891"
 
 CHAIN_ID_TO_METADATA = {
     8453: {
@@ -160,7 +159,7 @@ class MemeooorrConfig(LocalResource):
     """Local configuration."""
 
     path: Path
-    base_rpc: t.Optional[str] = None
+    chain_rpc: t.Optional[str] = None
     password_migrated: t.Optional[bool] = None
     use_staking: t.Optional[bool] = None
     twikit_username: t.Optional[str] = None
@@ -317,8 +316,8 @@ def get_local_config() -> MemeooorrConfig:
         print("Select the chain for you service")
         memeooorr_config.home_chain_id = input_select_chain([ChainType.BASE, ChainType.CELO]).id
 
-    if memeooorr_config.base_rpc is None:
-        memeooorr_config.base_rpc = input(f"Please enter a {ChainType.from_id(memeooorr_config.home_chain_id).name} RPC URL: ")
+    if memeooorr_config.chain_rpc is None:
+        memeooorr_config.chain_rpc = input(f"Please enter a {ChainType.from_id(memeooorr_config.home_chain_id).name} RPC URL: ")
 
     if memeooorr_config.password_migrated is None:
         memeooorr_config.password_migrated = False
@@ -355,11 +354,17 @@ def get_local_config() -> MemeooorrConfig:
     memeooorr_config.store()
 
     # set the environment variables according to the configuration
-    apply_env_vars({
-        'BASE_LEDGER_RPC': memeooorr_config.base_rpc,
-        'BASE_LEDGER_CHAIN_ID': memeooorr_config.home_chain_id,
-        'BASE_LEDGER_IS_POA_CHAIN': memeooorr_config.home_chain_id == ChainType.CELO
-    })
+    if memeooorr_config.home_chain_id == ChainType.BASE:
+        apply_env_vars({
+            'BASE_LEDGER_RPC': memeooorr_config.chain_rpc,
+            'BASE_LEDGER_CHAIN_ID': memeooorr_config.home_chain_id,
+        })
+
+    if memeooorr_config.home_chain_id == ChainType.CELO:
+        apply_env_vars({
+            'CELO_LEDGER_RPC': memeooorr_config.chain_rpc,
+            'CELO_LEDGER_CHAIN_ID': memeooorr_config.home_chain_id,
+        })
 
     return memeooorr_config
 
@@ -403,7 +408,7 @@ def get_service_template(config: MemeooorrConfig) -> ServiceTemplate:
             str(config.home_chain_id): ConfigurationTemplate(
                 {
                     "staking_program_id": "meme_alpha",
-                    "rpc": config.base_rpc,
+                    "rpc": config.chain_rpc,
                     "nft": "bafybeiaakdeconw7j5z76fgghfdjmsr6tzejotxcwnvmp3nroaw3glgyve",
                     "cost_of_bond": COST_OF_BOND,
                     "threshold": 1,
@@ -777,6 +782,7 @@ def main() -> None:
     }
     home_chain_id = service.home_chain_id
     home_chain_type = ChainType.from_id(int(home_chain_id))
+    home_chain_name = home_chain_type.name.upper()
 
     # Validate twitter cookies
     is_valid_cookies, new_cookies = validate_twitter_credentials()
@@ -797,12 +803,12 @@ def main() -> None:
         "MIN_FEEDBACK_REPLIES": memeooorr_config.min_feedback_replies,
         "PERSONA": memeooorr_config.persona,
         "RESET_PAUSE_DURATION": 3600,
-        "MEME_FACTORY_ADDRESS": MEME_FACTORY_BASE,
+        "MEME_FACTORY_ADDRESS": MEME_FACTORY_ADDRESS,
         "MINIMUM_GAS_BALANCE": 0.02,
         "DB_PATH": "/logs/memeooorr.db",
         "TWIKIT_COOKIES_PATH": "/logs/twikit_cookies.json",
         "STAKING_TOKEN_CONTRACT_ADDRESS": STAKING[home_chain_type]["meme_alpha"],
-        "HOME_CHAIN_ID": home_chain_id
+        "HOME_CHAIN_ID": home_chain_name
     }
     apply_env_vars(env_vars)
 
