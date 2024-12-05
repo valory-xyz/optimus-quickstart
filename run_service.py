@@ -782,7 +782,7 @@ def main() -> None:
     }
     home_chain_id = service.home_chain_id
     home_chain_type = ChainType.from_id(int(home_chain_id))
-    home_chain_name = home_chain_type.name.lower()
+    home_chain_name = home_chain_type.name.upper()
 
     # Validate twitter cookies
     is_valid_cookies, new_cookies = validate_twitter_credentials()
