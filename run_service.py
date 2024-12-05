@@ -163,6 +163,7 @@ class OptimusConfig(LocalResource):
     tenderly_access_key: t.Optional[str] = None
     tenderly_account_slug: t.Optional[str] = None
     tenderly_project_slug: t.Optional[str] = None
+    agent_transition: t.Optional[bool] = None
     coingecko_api_key: t.Optional[str] = None
     min_swap_amount_threshold: t.Optional[int] = None
     password_migrated: t.Optional[bool] = None
@@ -296,6 +297,11 @@ def get_local_config() -> OptimusConfig:
         optimus_config = OptimusConfig(path)
 
     print_section("API Key Configuration")
+
+    # Ask user whether to run BabyDegen agent
+    if optimus_config.agent_transition is None:
+        run_babydegen_agent = input("Do you want to run the BabyDegen agent? (y/n) Default is 'n': ").lower()
+        optimus_config.agent_transition = run_babydegen_agent == 'y' 
 
     if optimus_config.ethereum_rpc is None:
         optimus_config.ethereum_rpc = input("Please enter an Ethereum RPC URL: ")
@@ -879,7 +885,7 @@ def main() -> None:
         "COINGECKO_API_KEY": optimus_config.coingecko_api_key,
         "MIN_SWAP_AMOUNT_THRESHOLD": optimus_config.min_swap_amount_threshold,
         "ALLOWED_CHAINS": json.dumps(optimus_config.allowed_chains),
-        "AGENT_TRANSITION":"True"
+        "AGENT_TRANSITION":str(optimus_config.agent_transition)
     }
     apply_env_vars(env_vars)
     print("Skipping local deployment")
