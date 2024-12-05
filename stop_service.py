@@ -61,7 +61,7 @@ def main() -> None:
         print("Created a backup of the cookies")
         shutil.copy(cookies_source, cookies_target)
 
-    manager.stop_service_locally(hash=service.hash, delete=True)
+    manager.stop_service_locally(hash=service.hash, delete=True, use_docker=True)
     print()
     print_section("Service stopped")
 
