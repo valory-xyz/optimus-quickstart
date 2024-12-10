@@ -2,7 +2,7 @@
 <b>Memeooorr Quickstart</b>
 </h1>
 
-> :warning: **Deprecated: do not use** <br />
+# 🚨 **WARNING: repository deprecated** 🚨
 > This repository has been deprecated and will not be supported until further notice
 
 The Memeooorr agent currently operates on the following chains:
