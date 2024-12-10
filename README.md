@@ -2,6 +2,9 @@
 <b>Memeooorr Quickstart</b>
 </h1>
 
+> :caution: **Deprecated: do not use** <br />
+> This repository has been deprecated and will not be supported until further notice
+
 The Memeooorr agent currently operates on the following chains:
 - Base
 - Celo
