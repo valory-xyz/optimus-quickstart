@@ -6,7 +6,7 @@
 
 ## Optimus Agent: Functionality Overview
 
-Optimus is an autonomous trader that operates in the crypto echosystem on users' behalf. It requires minimum intervention by you as an end user--it is enough that you fund the agent with initial investment assets and let it run. Optimus will intelligentely invest crypto assets in DEXs on your behalf and grow your portfolio.
+Optimus is an autonomous trader that operates in the crypto ecosystem on users' behalf. It requires minimum intervention by you as an end user--it is enough that you fund the agent with initial investment assets and let it run. Optimus will intelligently invest crypto assets in DEXs and grow your portfolio.
 
 
 If you choose to run your Optimus agent with staking, in addition to trading profits, Optimus may also accrue rewards in Olas.
