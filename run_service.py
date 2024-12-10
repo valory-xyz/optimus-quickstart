@@ -342,11 +342,11 @@ def get_local_config() -> MemeooorrConfig:
     if memeooorr_config.twikit_password is None:
         memeooorr_config.twikit_password = input("Please enter the Twitter password for Memeooorr's account (avoid passwords that include the $ character): ")
 
-    memeooorr_config.twikit_cookies = get_twitter_cookies(
-        memeooorr_config.twikit_username,
-        memeooorr_config.twikit_email,
-        memeooorr_config.twikit_password
-    )
+    # memeooorr_config.twikit_cookies = get_twitter_cookies(
+    #     memeooorr_config.twikit_username,
+    #     memeooorr_config.twikit_email,
+    #     memeooorr_config.twikit_password
+    # )
 
     memeooorr_config.store()
 
