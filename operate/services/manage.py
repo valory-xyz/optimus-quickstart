@@ -304,6 +304,7 @@ class ServiceManager:
                         if user_params.use_staking
                         else None
                     ),
+                    metadata_description=service.description,
                 ).get("token"),
             )
             service.chain_data.on_chain_state = OnChainState.PRE_REGISTRATION
@@ -482,10 +483,17 @@ class ServiceManager:
             self._get_on_chain_state(chain_config=chain_config)
             == OnChainState.NON_EXISTENT
         )
+
+        # TODO Determine if the mint metadata hash changed - if so, it requires
+        # an on-chain update.
+        # This has to be implemented. Temporarily added as a placeholder (ignored).
+        has_metadata_changed = False
+
+        # TODO fix this condition
         is_update = (
             (not is_first_mint)
             and (on_chain_hash is not None)
-            and (current_agent_id != agent_id)
+            and (current_agent_id != agent_id or has_metadata_changed)
         )
 
         if is_update:
@@ -516,6 +524,7 @@ class ServiceManager:
                                 if user_params.use_staking
                                 else None
                             ),
+                            metadata_description=service.description,
                         )
                     )
                     .settle()
@@ -565,6 +574,7 @@ class ServiceManager:
                             if user_params.use_staking
                             else None
                         ),
+                        metadata_description=service.description,
                     )
                 )
                 .settle()
@@ -1129,7 +1139,7 @@ class ServiceManager:
         chain_id: str = "10",
     ) -> None:
         """Fund service if required."""
-        from_safe = False # hack
+        from_safe = False  # hack
         service = self.load_or_create(hash=hash)
         chain_config = service.chain_configs[chain_id]
         ledger_config = chain_config.ledger_config
@@ -1177,7 +1187,7 @@ class ServiceManager:
                 amount=int(to_transfer),
                 chain_type=ledger_config.chain,
                 rpc=rpc or ledger_config.rpc,
-                from_safe=False  # hack
+                from_safe=False,  # hack
             )
 
     def fund_service_erc20(  # pylint: disable=too-many-arguments,too-many-locals

@@ -84,9 +84,7 @@ STAKING = {
         "optimus_alpha": "0x88996bbdE7f982D93214881756840cE2c77C4992",
     },
     ChainType.ETHEREUM: {},
-    ChainType.BASE: {
-        "meme_alpha": "0x06702A05312091013FdB50C8b60B98ca30762931"
-    },
+    ChainType.BASE: {"meme_alpha": "0x06702A05312091013FdB50C8b60B98ca30762931"},
     ChainType.CELO: {
         "meme_alpha": "0xf39cd0eE4C502Df7D26F28cFAdd579724A3CFCe8",
     },
