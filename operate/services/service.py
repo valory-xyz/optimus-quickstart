@@ -646,6 +646,7 @@ class Service(LocalResource):
     hash: str
     keys: Keys
     home_chain_id: str
+    description: str
     chain_configs: ChainConfigs
 
     path: Path
@@ -795,6 +796,7 @@ class Service(LocalResource):
             chain_configs=chain_configs,
             path=service_path.parent,
             service_path=service_path,
+            description=service_template["description"],
         )
         service.store()
         return service
