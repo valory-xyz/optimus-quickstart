@@ -79,7 +79,8 @@ MEMEOOORR_REPO = "https://github.com/dvilelaf/meme-ooorr"
 MEMEOOORR_REPO_DEFAULT_TAG = "v0.1.1"
 MEMEOOORR_REPO_TAG = get_latest_tag("dvilelaf/meme-ooorr", MEMEOOORR_REPO_DEFAULT_TAG)
 
-MEME_FACTORY_ADDRESS = "0x42156841253f428cb644ea1230d4fddfb70f8891"
+MEME_FACTORY_ADDRESS_BASE = "0x82a9c823332518c32a0c0edc050ef00934cf04d4"
+MEME_FACTORY_ADDRESS_CELO = "0xeea5f1e202dc43607273d54101ff8b58fb008a99"
 
 CHAIN_ID_TO_METADATA = {
     8453: {
@@ -719,7 +720,7 @@ def main() -> None:
         "MIN_FEEDBACK_REPLIES": memeooorr_config.min_feedback_replies,
         "PERSONA": memeooorr_config.persona,
         "RESET_PAUSE_DURATION": 3600,
-        "MEME_FACTORY_ADDRESS": MEME_FACTORY_ADDRESS,
+        "MEME_FACTORY_ADDRESS": MEME_FACTORY_ADDRESS_BASE if home_chain_type == ChainType.BASE else MEME_FACTORY_ADDRESS_CELO,
         "MINIMUM_GAS_BALANCE": 0.02,
         "DB_PATH": "/logs/memeooorr.db",
         "TWIKIT_COOKIES_PATH": "/logs/twikit_cookies.json",
