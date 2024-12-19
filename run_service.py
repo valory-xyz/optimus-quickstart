@@ -126,6 +126,7 @@ class Strategy(Enum):
     MerklPoolSearchStrategy = "merkl_pools_search"
     BalancerPoolSearchStrategy = "balancer_pools_search"
     SturdyLendingStrategy = "asset_lending"
+    UniswapPoolSearchStrategy = "uniswap_pools_search"
 
 def estimate_priority_fee(
     web3_object: Web3,
@@ -464,7 +465,7 @@ def configure_local_config() -> OptimusConfig:
         print()
 
     if optimus_config.selected_strategies is None:
-        optimus_config.selected_strategies = [Strategy.MerklPoolSearchStrategy.value, Strategy.BalancerPoolSearchStrategy.value]
+        optimus_config.selected_strategies = [Strategy.BalancerPoolSearchStrategy.value, Strategy.UniswapPoolSearchStrategy.value]
     
     if "mode" in optimus_config.target_investment_chains:
         if Strategy.SturdyLendingStrategy.value not in optimus_config.selected_strategies:
@@ -507,7 +508,7 @@ def get_service_template(config: OptimusConfig) -> ServiceTemplate:
     home_chain_id = "10" if config.staking_chain == "optimism" else "34443"
     return ServiceTemplate({
         "name": "Optimus",
-        "hash": "bafybeihqho73he6mirkodg4ubom6ngf2nkgebhmxr435yxpsxgsthu5nvy",
+        "hash": "bafybeidqaji3fey5x6jg5axdupakyizrvzw6rosult37dgd4d5l6xktbay",
 
         "description": "Optimus",
         "image": "https://gateway.autonolas.tech/ipfs/bafybeiaakdeconw7j5z76fgghfdjmsr6tzejotxcwnvmp3nroaw3glgyve",
