@@ -508,7 +508,7 @@ def get_service_template(config: OptimusConfig) -> ServiceTemplate:
     home_chain_id = "10" if config.staking_chain == "optimism" else "34443"
     return ServiceTemplate({
         "name": "Optimus",
-        "hash": "bafybeias4woazmeyihuojumr6d5o7iohmmyxpnkjeq4bytytd7wwjmofeu",
+        "hash": "bafybeidtxaamytzk5cqfpann2ic62wjnswo5xny5bjkctfgxirlwyaxtvi",
 
         "description": "Optimus",
         "image": "https://gateway.autonolas.tech/ipfs/bafybeiaakdeconw7j5z76fgghfdjmsr6tzejotxcwnvmp3nroaw3glgyve",
@@ -753,8 +753,6 @@ def calculate_fund_requirement(
 
 def fetch_agent_fund_requirement(chain_id, rpc, fee_history_blocks: int = 500000) -> int:
     gas_amount = 50_000_000
-    if chain_id == '34443':
-        return DEFAULT_MAX_FEE * gas_amount
     
     return calculate_fund_requirement(rpc, fee_history_blocks, gas_amount)
 
@@ -764,8 +762,6 @@ def fetch_operator_fund_requirement(chain_id, rpc, service_exists: bool = True, 
     else:
         gas_amount = 30_000_000
 
-    if chain_id == '34443':
-        return DEFAULT_MAX_FEE * gas_amount
     return calculate_fund_requirement(rpc, fee_history_blocks, gas_amount)
 
 def main() -> None:
