@@ -17,12 +17,13 @@
 #
 # ------------------------------------------------------------------------------
 """Optimus Quickstart script."""
-
+import warnings
+warnings.filterwarnings("ignore", category=UserWarning)
 import sys
 
 from operate.cli import OperateApp
 from run_service import (
-    print_title, OPERATE_HOME, get_local_config, get_service_template, print_section, get_service,
+    print_title, OPERATE_HOME, load_local_config, get_service_template, print_section, get_service,
 )
 
 
@@ -42,7 +43,7 @@ def main() -> None:
         print("Nothing to clean. Exiting.")
         sys.exit(0)
 
-    optimus_config = get_local_config()
+    optimus_config = load_local_config()
     template = get_service_template(optimus_config)
     manager = operate.service_manager()
     service = get_service(manager, template)

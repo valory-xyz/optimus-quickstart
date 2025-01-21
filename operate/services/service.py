@@ -257,7 +257,6 @@ class ServiceHelper:
                         chain=chain,
                         type=LedgerType.ETHEREUM,
                     )
-                    print(f"Adding {chain} {config['address']}")
         return ledger_configs
 
     def deployment_config(self) -> DeploymentConfig:
@@ -470,27 +469,30 @@ class Deployment(LocalResource):
             (build / volume).mkdir(exist_ok=True)
             _volumes.append(f"./{volume}:{mount}:Z")
 
-        # for node in deployment["services"]:
-        #     if "abci" in node:
-        #         deployment["services"][node]["volumes"].extend(_volumes)
-        #         if (
-        #             "SKILL_TRADER_ABCI_MODELS_PARAMS_ARGS_MECH_REQUEST_PRICE=0"
-        #             in deployment["services"][node]["environment"]
-        #         ):
-        #             deployment["services"][node]["environment"].remove(
-        #                 "SKILL_TRADER_ABCI_MODELS_PARAMS_ARGS_MECH_REQUEST_PRICE=0"
-        #             )
-        #             deployment["services"][node]["environment"].append(
-        #                 "SKILL_TRADER_ABCI_MODELS_PARAMS_ARGS_MECH_REQUEST_PRICE=10000000000000000"
-        #             )
+        # TO-DO: this is no longer valid because of the breaking change in v0.18.0, this is not required in optimus # noqa
+        # for node in deployment["services"]: # noqa
+        #     if "abci" in node: # noqa
+        #         deployment["services"][node]["volumes"].extend(_volumes) # noqa
+        #         if ( # noqa
+        #             "SKILL_TRADER_ABCI_MODELS_PARAMS_ARGS_MECH_REQUEST_PRICE=0" # noqa
+        #             in deployment["services"][node]["environment"] # noqa
+        #         ): # noqa
+        #             deployment["services"][node]["environment"].remove( # noqa
+        #                 "SKILL_TRADER_ABCI_MODELS_PARAMS_ARGS_MECH_REQUEST_PRICE=0" # noqa
+        #             ) # noqa
+        #             deployment["services"][node]["environment"].append( # noqa
+        #                 "SKILL_TRADER_ABCI_MODELS_PARAMS_ARGS_MECH_REQUEST_PRICE=10000000000000000" # noqa
+        #             ) # noqa
 
-        for service_name, service_data in deployment['services'].items():
-            if 'abci' in service_name:
+        # temporary fix: remove extra volume
+        for service_name, service_data in deployment["services"].items():
+            if "abci" in service_name:
                 # Access the volumes list in this service
-                volumes = service_data.get('volumes', [])
+                volumes = service_data.get("volumes", [])
+
                 # Remove './data:/data:Z' if it's in the volumes list
-                if './data:/data:Z' in volumes:
-                    volumes.remove('./data:/data:Z')
+                if "./data:/data:Z" in volumes:
+                    volumes.remove("./data:/data:Z")
 
         with (build / DOCKER_COMPOSE_YAML).open("w", encoding="utf-8") as stream:
             yaml_dump(data=deployment, stream=stream)
@@ -815,6 +817,7 @@ class Service(LocalResource):
             self.chain_configs[
                 chain
             ].chain_data.user_params = OnChainUserParams.from_json(dict(config))
+            self.chain_configs[chain].ledger_config.rpc = config.get("rpc", "")
 
         self.store()
 

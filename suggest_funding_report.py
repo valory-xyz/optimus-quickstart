@@ -1,3 +1,5 @@
+import warnings
+warnings.filterwarnings("ignore", category=UserWarning)
 import json
 from datetime import datetime
 import logging
@@ -7,10 +9,9 @@ from typing import Any, Tuple, Dict
 from web3 import Web3
 
 from run_service import (
-    get_local_config,
+    load_local_config,
     CHAIN_ID_TO_METADATA,
-    OPERATE_HOME,
-    DEFAULT_START_CHAIN
+    OPERATE_HOME
 )
 
 from utils import (
@@ -47,14 +48,18 @@ def load_wallet_info() -> dict:
 
 def load_gas_costs(file_path: Path) -> dict:
     """Load gas costs details from file."""
-    return _load_json_file(file_path, "Gas costs")
+    try: 
+        return _load_json_file(file_path, "Gas costs")
+    except Exception as e:
+        print("No transactions have been recorded until now")
+        return {}
 
 def generate_gas_cost_report():
     """Generate and print the gas cost report."""
     try:
         gas_costs = load_gas_costs(GAS_COSTS_JSON_PATH)
         wallet_info = load_wallet_info()
-        optimus_config = get_local_config()
+        optimus_config = load_local_config()
         if not wallet_info:
             print("Error: Wallet info is empty.")
             return
@@ -76,8 +81,12 @@ def generate_gas_cost_report():
 
         for chain_id, _ in config.get("chain_configs", {}).items():
             chain_name = get_chain_name(chain_id, CHAIN_ID_TO_METADATA)
-            if optimus_config.allowed_chains and chain_name.lower() not in optimus_config.allowed_chains and chain_name != DEFAULT_START_CHAIN:
+            if optimus_config.allowed_chains and chain_name.lower() not in optimus_config.allowed_chains:
                 continue
+            if optimus_config.target_investment_chains and chain_name.lower() not in optimus_config.target_investment_chains:
+                print(f"WARNING: In the current setting, operability is restricted over {chain_name}")
+                continue
+
             balance_info = wallet_info.get('main_wallet_balances', {}).get(chain_name, {})
             agent_address = wallet_info.get('main_wallet_address', 'N/A')
             chain_rpc = wallet_info.get("chain_configs").get(str(chain_id)).get('rpc')
@@ -91,12 +100,11 @@ def _load_json_file(file_path: Path, description: str) -> dict:
     try:
         with open(file_path, "r", encoding="utf-8") as file:
             return json.load(file)
-    except FileNotFoundError:
-        print(f"Error: {description} file not found at {file_path}")
-        return {}
     except json.JSONDecodeError:
         print(f"Error: {description} file contains invalid JSON.")
         return {}
+    
+    return {}
 
 def analyze_and_report_gas_costs(gas_costs: dict, balance_info: Any, chain_id: int, chain_name: str, agent_address: str, chain_rpc: str) -> None:
     """Analyze gas costs and suggest funding amount."""
@@ -117,7 +125,7 @@ def analyze_and_report_gas_costs(gas_costs: dict, balance_info: Any, chain_id: i
     funding_needed, funding_suggestion = _calculate_funding_needed(average_gas_cost, balance_info)
     _report_funding_status(chain_name, balance_info, average_gas_cost, average_gas_price, funding_suggestion, funding_needed, agent_address)
 
-def _calculate_average_gas_price(rpc, fee_history_blocks = 100, fee_history_percentile = 50) -> Decimal:
+def _calculate_average_gas_price(rpc, fee_history_blocks = 500000, fee_history_percentile = 50) -> Decimal:
     web3 = Web3(Web3.HTTPProvider(rpc))
     block_number = web3.eth.block_number
     fee_history = web3.eth.fee_history(
@@ -125,11 +133,11 @@ def _calculate_average_gas_price(rpc, fee_history_blocks = 100, fee_history_perc
     )
     base_fees = fee_history.get('baseFeePerGas')
     if base_fees is None:
-        return None
+        base_fees = [20000000000] #fallback base fee
     
     priority_fees = [reward[0] for reward in fee_history.get('reward',[]) if reward]
     if not priority_fees:
-        return None
+        priority_fees = [2000000000] #fallback priority fee
     
     # Calculate average fees
     average_base_fee = sum(base_fees) / len(base_fees)

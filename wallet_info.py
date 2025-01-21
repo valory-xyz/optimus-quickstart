@@ -7,12 +7,11 @@ from decimal import Decimal, getcontext
 import logging
 
 from run_service import (
-    get_local_config,
+    load_local_config,
     get_service_template,
     CHAIN_ID_TO_METADATA,
     USDC_ADDRESS,
-    OPERATE_HOME,
-    DEFAULT_START_CHAIN
+    OPERATE_HOME
 )
 
 from utils import (
@@ -30,10 +29,7 @@ getcontext().prec = 18
 # Configure logging
 logging.basicConfig(level=logging.INFO, format='%(message)s')
 
-# Ensure USDC_ADDRESS is set (if not, define it here)
-USDC_ADDRESS = USDC_ADDRESS or "0xA0b86991c6218b36c1d19d4a2e9Eb0cE3606eB48"  # Ethereum Mainnet USDC address
-
-USDC_ABI = [{
+TOKEN_ABI = [{
     "constant": True,
     "inputs": [{"name": "_owner", "type": "address"}],
     "name": "balanceOf",
@@ -41,9 +37,14 @@ USDC_ABI = [{
     "type": "function"
 }]
 
+OLAS_ADDRESS = {
+    "optimism": "0xFC2E6e6BCbd49ccf3A5f029c79984372DcBFE527",
+    "mode": "0xcfD1D50ce23C46D3Cf6407487B2F8934e96DC8f9",
+}
+
 def load_config():
     try:
-        optimus_config = get_local_config()
+        optimus_config = load_local_config()
         service_template = get_service_template(optimus_config)
         service_hash = service_template.get("hash")
         if not service_hash:
@@ -71,13 +72,24 @@ def get_balance(web3, address):
         print(f"Error getting balance for address {address}: {e}")
         return Decimal(0)
 
-def get_usdc_balance(web3, address):
+def get_usdc_balance(web3, address, chain_name):
     try:
-        usdc_contract = web3.eth.contract(address=USDC_ADDRESS, abi=USDC_ABI)
+        usdc_address = USDC_ADDRESS[chain_name]
+        usdc_contract = web3.eth.contract(address=usdc_address, abi=TOKEN_ABI)
         balance = usdc_contract.functions.balanceOf(address).call()
         return Decimal(balance) / Decimal(1e6)  # USDC has 6 decimal places
     except Exception as e:
         print(f"Error getting USDC balance for address {address}: {e}")
+        return Decimal(0)
+    
+def get_olas_balance(web3, address, chain_name):
+    try:
+        olas_address = OLAS_ADDRESS[chain_name]
+        olas_contract = web3.eth.contract(address=olas_address, abi=TOKEN_ABI)
+        balance = olas_contract.functions.balanceOf(address).call()
+        return Decimal(balance) / Decimal(1e18)  # OLAS has 18 decimal places
+    except Exception as e:
+        print(f"Error getting OLAS balance for address {address}: {e}")
         return Decimal(0)
 
 class DecimalEncoder(json.JSONEncoder):
@@ -88,22 +100,24 @@ class DecimalEncoder(json.JSONEncoder):
 
 def save_wallet_info():
     config = load_config()
-    optimus_config = get_local_config()
+    optimus_config = load_local_config()
     if not config:
         print("Error: Configuration could not be loaded.")
         return
 
     main_wallet_address = config.get('keys', [{}])[0].get('address')
+    operator_wallet_address = load_operator_address(OPERATE_HOME)
     if not main_wallet_address:
         print("Error: Main wallet address not found in configuration.")
         return
 
     main_balances = {}
     safe_balances = {}
+    operator_balances = {}
 
     for chain_id, chain_config in config.get('chain_configs', {}).items():
         chain_name = get_chain_name(chain_id, CHAIN_ID_TO_METADATA)
-        if optimus_config.allowed_chains and chain_name.lower() not in optimus_config.allowed_chains and chain_name != DEFAULT_START_CHAIN:
+        if optimus_config.allowed_chains and chain_name.lower() not in optimus_config.allowed_chains:
             continue
 
         rpc_url = chain_config.get('ledger_config', {}).get('rpc')
@@ -118,11 +132,17 @@ def save_wallet_info():
 
             # Get main wallet balance
             main_balance = get_balance(web3, main_wallet_address)
+            operator_balance = get_balance(web3, operator_wallet_address)
             main_balances[chain_name] = {
                 "token": "ETH",
                 "balance": main_balance,
                 "balance_formatted": f"{main_balance:.6f} ETH"
             }
+            operator_balances[chain_name] = {
+                "token": "ETH",
+                "balance": operator_balance,
+                "balance_formatted": f"{operator_balance:.6f} ETH"
+            } 
 
             # Get Safe balance
             safe_address = chain_config.get('chain_data', {}).get('multisig')
@@ -138,11 +158,17 @@ def save_wallet_info():
                 "balance_formatted": f"{safe_balance:.6f} ETH"
             }
 
-            # Get USDC balance for Ethereum Mainnet (chain ID 1)
-            if chain_id == "1":
-                usdc_balance = get_usdc_balance(web3, safe_address)
+            # Get USDC balance for Principal Chain
+            if chain_name.lower() == optimus_config.principal_chain:
+                usdc_balance = get_usdc_balance(web3, safe_address, chain_name.lower())
                 safe_balances[chain_name]["usdc_balance"] = usdc_balance
                 safe_balances[chain_name]["usdc_balance_formatted"] = f"{usdc_balance:.2f} USDC"
+
+            # Get USDC balance for Principal Chain
+            if chain_name.lower() == optimus_config.staking_chain:
+                olas_balance = get_olas_balance(web3, safe_address, chain_name.lower())
+                safe_balances[chain_name]["olas_balance"] = usdc_balance
+                safe_balances[chain_name]["olas_balance_formatted"] = f"{olas_balance:.6f} OLAS"
 
         except Exception as e:
             print(f"An error occurred while processing chain ID {chain_id}: {e}")
@@ -151,11 +177,13 @@ def save_wallet_info():
     wallet_info = {
         "main_wallet_address": main_wallet_address,
         "main_wallet_balances": main_balances,
+        "operator_wallet_address": operator_wallet_address,
         "safe_addresses": {
             chain_id: chain_config.get('chain_data', {}).get('multisig', 'N/A')
             for chain_id, chain_config in config.get('chain_configs', {}).items()
         },
         "safe_balances": safe_balances,
+        "operator_balances": operator_balances,
         "chain_configs": {
             chain_id: {
                 "rpc": chain_config.get('ledger_config', {}).get('rpc'),

@@ -38,7 +38,7 @@ CONTRACTS = {
             "service_manager": "0xFbBEc0C8b13B38a9aC0499694A69a10204c5E2aB",
             "service_registry": "0x3d77596beb0f130a4415df3D2D8232B3d3D31e44",
             "service_registry_token_utility": "0xBb7e1D6Cb6F243D6bdE81CE92a9f2aFF7Fbe7eac",
-            "gnosis_safe_proxy_factory": "0xE43d4F4103b623B61E095E8bEA34e1bc8979e168",
+            "gnosis_safe_proxy_factory": "0x5953f21495BD9aF1D78e87bb42AcCAA55C1e896C",
             "gnosis_safe_same_address_multisig": "0xb09CcF0Dbf0C178806Aaee28956c74bd66d21f73",
             "multisend": "0x40A2aCCbd92BCA938b02010E17A5b8929b49130D",
         }
@@ -54,6 +54,16 @@ CONTRACTS = {
         }
     ),
     ChainType.BASE: ContractAddresses(
+        {
+            "service_manager": "0x63e66d7ad413C01A7b49C7FF4e3Bb765C4E4bd1b",
+            "service_registry": "0x3C1fF68f5aa342D296d4DEe4Bb1cACCA912D95fE",
+            "service_registry_token_utility": "0x34C895f302D0b5cf52ec0Edd3945321EB0f83dd5",
+            "gnosis_safe_proxy_factory": "0x22bE6fDcd3e29851B29b512F714C328A00A96B83",
+            "gnosis_safe_same_address_multisig": "0xFbBEc0C8b13B38a9aC0499694A69a10204c5E2aB",
+            "multisend": "0x40A2aCCbd92BCA938b02010E17A5b8929b49130D",
+        }
+    ),
+    ChainType.MODE: ContractAddresses(
         {
             "service_manager": "0x63e66d7ad413C01A7b49C7FF4e3Bb765C4E4bd1b",
             "service_registry": "0x3C1fF68f5aa342D296d4DEe4Bb1cACCA912D95fE",
@@ -75,6 +85,9 @@ STAKING = {
     },
     ChainType.ETHEREUM: {},
     ChainType.BASE: {},
+    ChainType.MODE: {
+        "optimus_alpha": "0x5fc25f50E96857373C64dC0eDb1AbCBEd4587e91",
+    },
 }
 
 OLAS = {
@@ -82,4 +95,5 @@ OLAS = {
     ChainType.OPTIMISM: "0xFC2E6e6BCbd49ccf3A5f029c79984372DcBFE527",
     ChainType.BASE: "0x54330d28ca3357F294334BDC454a032e7f353416",
     ChainType.ETHEREUM: "0x0001A500A6B18995B03f44bb040A5fFc28E45CB0",
+    ChainType.MODE: "0xcfD1D50ce23C46D3Cf6407487B2F8934e96DC8f9",
 }
