@@ -124,6 +124,7 @@ DEFAULT_MAX_FEE = 20000000
 class Strategy(Enum):
     """Strategy type"""
     MerklPoolSearchStrategy = "merkl_pools_search"
+    UniswapPoolSearchStrategy = "uniswap_pools_search"
     BalancerPoolSearchStrategy = "balancer_pools_search"
     SturdyLendingStrategy = "asset_lending"
 
@@ -464,7 +465,10 @@ def configure_local_config() -> OptimusConfig:
         print()
 
     if optimus_config.selected_strategies is None:
-        optimus_config.selected_strategies = [Strategy.BalancerPoolSearchStrategy.value]
+        optimus_config.selected_strategies = [Strategy.BalancerPoolSearchStrategy.value, Strategy.UniswapPoolSearchStrategy.value]
+    
+    if Strategy.MerklPoolSearchStrategy.value in optimus_config.selected_strategies:
+        optimus_config.selected_strategies.remove(Strategy.MerklPoolSearchStrategy.value)
     
     if "mode" in optimus_config.target_investment_chains:
         if Strategy.SturdyLendingStrategy.value not in optimus_config.selected_strategies:
