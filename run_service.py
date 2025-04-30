@@ -511,7 +511,7 @@ def get_service_template(config: OptimusConfig) -> ServiceTemplate:
     home_chain_id = "10" if config.staking_chain == "optimism" else "34443"
     return ServiceTemplate({
         "name": "Optimus",
-        "hash": "bafybeifgkbbm2gv6zccuzoajwttvlpmppxy6jx2ziy7qyvqo5ibmc7rtyi",
+        "hash": "bafybeigcbzo7mxwsu45lmd2ffhfjzye3wkkjznqrelmfa3coo4pp2s4q54",
 
         "description": "Optimus",
         "image": "https://gateway.autonolas.tech/ipfs/bafybeiaakdeconw7j5z76fgghfdjmsr6tzejotxcwnvmp3nroaw3glgyve",
