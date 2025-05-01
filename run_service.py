@@ -121,6 +121,22 @@ COINGECKO_CHAIN_TO_PLATFORM_ID_MAPPING = {
 ZERO_ADDRESS = "0x0000000000000000000000000000000000000000"
 DEFAULT_MAX_FEE = 20000000
 
+LEDGER_TO_TOKEN_LIST = {
+    "ETHEREUM": [
+        "0x0001a500a6b18995b03f44bb040a5ffc28e45cb0",
+        "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+        "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
+    ],
+    "OPTIMISM": [
+        "0x4200000000000000000000000000000000000006",
+        "0x0b2c639c533813f4aa9d7837caf62653d097ff85",
+        "0xda10009cbd5d07dd0cecc66161fc93d7c9000da1",
+    ],
+    "BASE": [
+        "0xd9aaec86b65d86f6a7b5b1b0c42ffa531710b6ca",
+        "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913",
+    ],
+}
 class Strategy(Enum):
     """Strategy type"""
     MerklPoolSearchStrategy = "merkl_pools_search"
@@ -204,11 +220,13 @@ class OptimusConfig(LocalResource):
     tenderly_access_key: t.Optional[str] = None
     tenderly_account_slug: t.Optional[str] = None
     tenderly_project_slug: t.Optional[str] = None
+    agent_transition: t.Optional[bool] = None
     coingecko_api_key: t.Optional[str] = None
     min_swap_amount_threshold: t.Optional[int] = None
     password_migrated: t.Optional[bool] = None
     use_staking: t.Optional[bool] = None
     allowed_chains: t.Optional[list[str]] = None
+    babydegen_network: t.Optional[str] = None 
     target_investment_chains: t.Optional[list[str]] = None
     staking_chain: t.Optional[str] = None
     principal_chain: t.Optional[str] = None
@@ -349,6 +367,43 @@ def configure_local_config() -> OptimusConfig:
         optimus_config = OptimusConfig.load(path)
     else:
         optimus_config = OptimusConfig(path)
+
+    print_section("API Key Configuration")
+
+    # Ask user whether to run BabyDegen agent
+    if optimus_config.agent_transition is None:
+        run_babydegen_agent = input("Do you want to run the BabyDegen agent? (y/n) Default is 'n': ").lower()
+        optimus_config.agent_transition = run_babydegen_agent == 'y' 
+    
+    if optimus_config.agent_transition and optimus_config.babydegen_network is None:
+        print_section("BabyDegen Network Selection")
+        network_mapping = {
+            "1": "ethereum",
+            "2": "optimism",
+            "3": "base",
+        }
+        
+        while True:
+            print("Select the network you want BabyDegen to operate on:")
+            print("1. Ethereum Mainnet")
+            print("2. Optimism")
+            print("3. Base")
+            network_choice = input("Please enter the number corresponding to your choice (1, 2, or 3): ")
+            
+            if network_choice in network_mapping:
+                optimus_config.babydegen_network = network_mapping[network_choice]
+                break
+            else:
+                print("Invalid selection. Please try again.")
+
+    if optimus_config.ethereum_rpc is None:
+        optimus_config.ethereum_rpc = input("Please enter an Ethereum RPC URL: ")
+
+    if optimus_config.optimism_rpc is None:
+        optimus_config.optimism_rpc = input("Please enter an Optimism RPC URL: ")
+
+    if optimus_config.base_rpc is None:
+        optimus_config.base_rpc = input("Please enter a Base RPC URL: ")
 
     if optimus_config.tenderly_access_key is None:
         print_section("Tenderly API Configuration and Price Data Source")
@@ -771,6 +826,19 @@ def fetch_operator_fund_requirement(chain_id, rpc, service_exists: bool = True, 
         return DEFAULT_MAX_FEE * gas_amount
     return calculate_fund_requirement(rpc, fee_history_blocks, gas_amount)
 
+def fund_tokens(ledger_api, address, tokens):
+    """Fund the given address with the list of tokens."""
+    for token in tokens:
+        print(f"Funding address {address} with token {token}")
+        while get_erc20_balance(ledger_api, token, address) == 0:
+            time.sleep(1)
+        print(f"Address {address} has balance for the token {token}")
+
+def get_supported_tokens(ledger_type):
+    """Get supported tokens for the given ledger type."""
+    return LEDGER_TO_TOKEN_LIST.get(ledger_type)
+
+
 def main() -> None:
     """Run service."""
 
@@ -976,6 +1044,42 @@ def main() -> None:
             usdc_balance = get_erc20_balance(ledger_api, usdc_address, address) / 10 ** 6
             spinner.succeed(f"[{chain_name}] Safe updated balance: {usdc_balance} USDC.")
 
+                # New Section for Agent Transition
+        # New Section for Agent Transition
+        if optimus_config.agent_transition:
+            selected_network_name = optimus_config.babydegen_network.capitalize()
+            if chain_name == selected_network_name:
+                print_section(f"[{chain_name}] Setting up tokens for BabyDegen Agent Transition")
+
+                supported_tokens = get_supported_tokens(chain_type.name.upper())
+
+                if supported_tokens:
+                    spinner = Halo(
+                        text=f"[{chain_name}] Funding BabyDegen Agent with tokens...",
+                        spinner="dots",
+                    )
+                    spinner.start()
+
+                    fund_tokens(ledger_api, address, supported_tokens)
+
+                    spinner.succeed(f"[{chain_name}] BabyDegen Agent funded with tokens.")
+
+                # Funding the agent address with native tokens for gas fees
+                agent_address = service.keys[0].address
+                native_fund_requirement = fetch_agent_fund_requirement(chain_id, chain_config.ledger_config.rpc)
+                if native_fund_requirement:
+                    spinner = Halo(
+                        text=f"[{chain_name}] Funding BabyDegen Agent with native tokens for gas fees...",
+                        spinner="dots",
+                    )
+                    spinner.start()
+
+                    while ledger_api.get_balance(agent_address) < native_fund_requirement:
+                        print(f"Funding agent address {agent_address} with native tokens")
+                        time.sleep(1)
+
+                    spinner.succeed(f"[{chain_id}] BabyDegen Agent funded with native tokens.") 
+
         manager.deploy_service_onchain_from_safe_single_chain(
             hash=service.hash,
             chain_id=chain_id,
@@ -1030,6 +1134,7 @@ def main() -> None:
         "STAKING_ACTIVITY_CHECKER_CONTRACT_ADDRESS": activity_checker_dict.get(home_chain_type.name.lower(), ""),
         "MIN_SWAP_AMOUNT_THRESHOLD": optimus_config.min_swap_amount_threshold,
         "ALLOWED_CHAINS": json.dumps(optimus_config.allowed_chains),
+        "AGENT_TRANSITION":str(optimus_config.agent_transition),
         "TARGET_INVESTMENT_CHAINS": json.dumps(optimus_config.target_investment_chains),
         "INITIAL_ASSETS": json.dumps(initial_assets),
         "SELECTED_STRATEGIES": json.dumps(optimus_config.selected_strategies)
